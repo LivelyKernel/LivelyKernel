@@ -882,7 +882,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
 
         result = interpreter.stepToNextCallOrStatement(frame);
         this.assertEquals('Break', result && result.toString(), 'second step');
-        this.assertEquals(node.body[0].body.body[0], result.unwindException.top.getPC(),
+        var newFrame = result.unwindException.top;
+        while (newFrame && newFrame.isInternal()) {
+            newFrame = newFrame.getParentFrame();
+        }
+        this.assertEquals(node.body[0].body.body[0], newFrame && newFrame.getPC(),
             'no new top frame returned');
         this.assertEquals(undefined, frame.getScope().get('x'), 'did not halt at call');
         this.assertEquals(node.body[1].declarations[0].init, frame.getPC(),

@@ -1329,6 +1329,21 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
              || node.astIndex === this.pcStatement.astIndex);
     }
 
+},
+'testing', {
+
+    isInternal: function() {
+        if (!this._internalModules) {
+            var internalModules = [
+                lively.ast.AcornInterpreter
+            ];
+            this._internalModules = internalModules.map(function(m) {
+                return new URL(m.uri()).relativePathFrom(URL.root);
+            });
+        }
+        return this._internalModules.member(this.getOriginalAst().sourceFile);
+    }
+
 });
 
 Object.extend(lively.ast.AcornInterpreter.Frame, {

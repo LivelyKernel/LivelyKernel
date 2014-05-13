@@ -287,6 +287,7 @@ util.inherits(WebSocketListener, websocket.server);
         var handler = this.findHandlers(request)[0];
 
         if (!handler) {
+            request.reject();
             console.warn('Got websocket request to %s but found no handler to respond.', request.resourceURL.path);
             return;
         }

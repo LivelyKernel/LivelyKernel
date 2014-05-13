@@ -848,7 +848,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.interactionVariables = [];
         this.interactionVariableFields = [];
         
-        this.minimizeOnHeaderClick();
         this.makeReframeHandles();
         
         this.componentHeader.addMorph(this.createCloser());
@@ -1063,16 +1062,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // abstract
     },
     
-    minimizeOnHeaderClick: function() {
-        var _this = this;
-        this.onMouseUp = function(evt) {
-            if (!(evt.target.className === "Morph ComponentHeader"))
-                return;
-                
-            var headerClicked = _this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
-            if (headerClicked) {
-                _this.minimize(evt);
-            }
+    onMouseUp: function(evt) {
+        if (!evt.target.className.contains("ComponentHeader"))
+            return;
+        var headerClicked = this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
+        if (headerClicked) {
+            this.minimize(evt);
         }
     },
     
@@ -2582,6 +2577,20 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             return new $.Deferred().resolve(newData);
         }
     },
+    onMouseUp: function($super, evt) {
+        if (evt.isShiftDown()) {
+            this.toggleSelect();
+        } else {
+            $super(evt);
+        }
+    },
+    toggleSelect: function() {
+        this.selected = !this.selected;
+        var header = $(this.componentHeader.renderContext().shapeNode);
+        var body = $(this.componentBody.renderContext().shapeNode);
+        header.toggleClass("selected", this.selected);
+        body.toggleClass("selected", this.selected);
+    },
     highlight: function() {
         var header = $(this.componentHeader.renderContext().shapeNode);
         var body = $(this.componentBody.renderContext().shapeNode);
@@ -3364,7 +3373,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             box-shadow: 0 5px 10px rgba(0,0,0,.2) !important;\
             transition: all 0.3s ease-in-out !important;\
         }\
-        .ComponentBody.highlighted { \
+        .ComponentBody.highlighted, .ComponentBody.selected { \
             border-color: rgb(192, 223, 250) !important;\
         }";
     },
@@ -3446,7 +3455,7 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             border-width: 1px !important;\
             transition: all 0.3s ease-in-out !important;\
         }\
-        .ComponentHeader.highlighted { \
+        .ComponentHeader.highlighted, .ComponentHeader.selected { \
             background-color: rgb(192, 223, 250) !important;\
             border-color: rgb(192, 223, 250) !important;\
         }";
@@ -3871,7 +3880,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         return prototypeMorph;
     },
     createPrototypeArea: function() {
-        this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1, this.extent.y));
+        this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3, this.extent.y));
         this.prototypeArea.setName("PrototypeArea");
         this.prototypeArea.setPosition(pt(this.mappingContainer.getBounds().topRight().x + 6, 0));
         this.prototypeArea.layout.resizeHeight = true;

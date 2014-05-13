@@ -1189,9 +1189,28 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         if (dashboard) dashboard.remove();
     },
     
+    testSubmorphHandling: function() {
+        var creator = this.helper.createComponent("MorphCreator").content;
+        var prototypeMorph = creator.getPrototypeMorph();
+        
+        // create submorph
+        var submorph = creator.prototypeArea.getPrototypeComponents().first().create();
+        submorph.isPrototypeMorph = true;
+        prototypeMorph.addMorph(submorph);
+        
+        var mappingCategory = creator.getMappingCategoryFor(submorph);
+        this.assert(mappingCategory, "No new category was created for submorph");
+        
+        // remove submorph
+        submorph.remove()
+        mappingCategory = creator.getMappingCategoryFor(submorph);
+        this.assert(!mappingCategory, "MappingCategory was not removed when submorph was removed");
+    },
+    
     testLineManagement: function() {
-        var creator = this.helper.createComponent("MorphCreator");
-        var mappingCategory = creator.content.getMappingCategoryFor();
+        var creator = this.helper.createComponent("MorphCreator").content;
+        var prototypeMorph = creator.getPrototypeMorph();
+        var mappingCategory = creator.getMappingCategoryFor(prototypeMorph);
         var lines = mappingCategory.mappingLines;
         
         // There should be only one initial line
@@ -1210,8 +1229,9 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         this.assertEquals(mappingCategory.mappingLines.length, 1, "unused line was not removed");
     },
     testReOrdering: function() {
-        var creator = this.helper.createComponent("MorphCreator");
-        var mappingCategory = creator.content.getMappingCategoryFor();
+        var creator = this.helper.createComponent("MorphCreator").content;
+        var prototypeMorph = creator.getPrototypeMorph();
+        var mappingCategory = creator.getMappingCategoryFor(prototypeMorph);
         var lines = mappingCategory.mappingLines;
 
         // create 3 lines
@@ -1230,7 +1250,8 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
     },
     testGetMappings: function() {
         var component = this.helper.createComponent("MorphCreator");
-        var mappingCategory = component.content.getMappingCategoryFor();
+        var prototypeMorph = component.content.getPrototypeMorph();
+        var mappingCategory = component.content.getMappingCategoryFor(prototypeMorph);
         var lines = mappingCategory.mappingLines;
         
         // fill the fields with some mapping values

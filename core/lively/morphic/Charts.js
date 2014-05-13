@@ -3933,10 +3933,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return;
         }
         
-        var prototypeMorph = this.getSubmorphsByAttribute("isPrototypeMorph", true).first();
-        if (!prototypeMorph) {
-            this.throwError(new Error("No prototype morph found"));
-        }
+        var prototypeMorph = this.getPrototypeMorph();
         
         var morphName = this.morphInput.getTextString();
         
@@ -4268,6 +4265,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 morph.setBorderColor(valueFn(datum));
             }
         };
+    },
+    
+    getPrototypeMorph: function() {
+        var morph = this.getSubmorphsByAttribute("isPrototypeMorph", true).first();
+        if (!morph) {
+            this.throwError(new Error("No prototype morph found"));
+        }
+        
+        return morph;
     }
 
 });
@@ -6537,8 +6543,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         var text = lively.morphic.Text.makeLabel(categoryMorph.getName());
         text.eventsAreIgnored = true;
         this.addMorph(text);
-        
-        
+
         // create the initial mapping line
         this.createEmptyLine();
     },

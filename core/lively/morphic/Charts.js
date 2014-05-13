@@ -1755,16 +1755,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Content", {
         }
         this.submorphs[0].setFill(backgroundColor);
     },
-    onKeyUp: function(evt) {
-        if (evt.keyCode == 27) {
-            // esc was pressed
-            this.toggleAutoEvaluation();
-        }
-        
-        if (this.isAutoEvalActive !== false) {
-            this.component.onContentChanged();
-        }
-    },
     toggleAutoEvaluation: function() {
         // switch is used to avoid reinitialization of existing scenarios
         if (typeof this.isAutoEvalActive == "boolean") {
@@ -3850,7 +3840,18 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
         return result;
-    }
+    },
+    
+    onKeyUp: function(evt) {
+        if (evt.keyCode == 27) {
+            // esc was pressed
+            this.toggleAutoEvaluation();
+        }
+        
+        if (this.isAutoEvalActive !== false) {
+            this.component.onContentChanged();
+        }
+    },
 });
 
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
@@ -6362,7 +6363,8 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         this.attributeField = this.createAttributeField();
         this.valueField = this.createValueField();
         
-        // setup connections to notice if new line is required
+        // setup connections to notice if a new line is required
+        
         connect(this.attributeField, "textString", this, "handleMappingChange", {});
         connect(this.valueField, "textString", this, "handleMappingChange", {});
     },
@@ -6526,9 +6528,15 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         this.valueField.setTextColor(Color.black);
     },
     handleMappingChange: function() {
-        this.ensureNewLine();
-        // TODO: find a better way to do this
-        this.owner.owner.owner.component.onContentChanged();
+        if (this.cachedValue != this.valueField.getTextString()
+        || this.cachedAttribute != this.attributeField.getTextString()) {
+            this.cachedValue = this.valueField.getTextString();
+            this.cachedAttribute = this.attributeField.getTextString();
+            
+            this.ensureNewLine();
+            // TODO: find a better way to do this
+            this.owner.owner.owner.component.onContentChanged();
+        }
     },
     remove: function($super) {
         $super();

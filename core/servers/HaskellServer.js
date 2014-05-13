@@ -1,9 +1,11 @@
-var spawn = require("child_process").spawn;
-var exec = require("child_process").exec;
+var spawn  = require("child_process").spawn;
+var exec   = require("child_process").exec;
 var crypto = require("crypto");
-var path = require("path");
-var fs = require("fs");
-var async = require("async");
+var path   = require("path");
+var fs     = require("fs");
+var async  = require("async");
+
+var debug = true;
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // helper

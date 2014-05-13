@@ -931,7 +931,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 function tidy(xmlString, thenDo) {
                     return lively.shell.run(
                         'tidy -i -xml -q -',
-                        {stdin: xmlString, sync: true},
+                        {stdin: xmlString},
                         function(cmd) { thenDo && thenDo(cmd.getCode(), cmd.resultString()); }).resultString();
                 }
                 var source = ed.$morph.getSelectionOrLineString(),

@@ -656,6 +656,18 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _Extent: lively.pt(100.0,20.0),
             _Position: lively.pt(290.0,10.0),
             className: "lively.morphic.Button",
+            label: "show event log",
+            name: "ShowEventLogButton",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "fire", this.get("Lively2LivelyInspector"), "showEventLogger", {});
+        }
+        }, {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 5,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100.0,20.0),
+            _Position: lively.pt(400.0,10.0),
+            className: "lively.morphic.Button",
             label: "visit world",
             name: "VisitWorldButton",
             connectionRebuilder: function connectionRebuilder() {
@@ -836,6 +848,53 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         var sel = this.get("SessionList").selection;
         sel && sel.worldURL && window.open(sel.worldURL);
     },
+        showEventLogger: function showEventLogger() {
+
+        // this are events from the connected tracker
+
+        var ed = $world.addCodeEditor({
+            title: 'l2l event log',
+            content: '',
+            textMode: 'text',
+            fontSize: 8
+        });
+
+        ed.addScript(function update() {
+            // this.startStepping(5000, 'update');
+            // this.startStepping(5000, 'update');
+            // this.stopStepping();
+            if (this._isUpdating) return;
+            this._isUpdating = true;
+
+            var s = lively.net.SessionTracker.getSession();
+            var self = this;
+
+            if (s && s.isConnected()) {
+                var gotAnswer = false;
+                Functions.waitFor(4000, function() { return !!gotAnswer; }, function(err) {
+                    if (err) self._isUpdating = false;
+                });
+                s.sendTo(s.trackerId, 'getEventLog', {limit: 3000}, function(answer) {
+                    self._isUpdating = false;
+                    var log = answer.data.log;
+
+                    self.saveExcursion(function(reset) {
+                        self.textString = log.length + '\n\n' + log.map(function(ea) {
+                            return Strings.format("[%s] %s", ea.timestamp, ea.message)
+                        }).reverse().join('\n');
+                        reset();
+                    });
+
+                });
+            } else {
+                self._isUpdating = false;
+            }
+        });
+
+        ed.startStepping(5000, 'update');
+
+        ed.getWindow().openInWorldCenter().comeForward();
+    },
         setWorkspaceTarget: function setWorkspaceTarget(session) {
 
                 },
@@ -888,7 +947,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
 });
 
 lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
-    _Extent: lively.pt(629.0,267.0),
+    _Extent: lively.pt(729.0,367.0),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(3.0,22.0),
     draggingEnabled: true,
@@ -899,7 +958,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _BorderWidth: 1,
-        _Extent: lively.pt(623.0,242.0),
+        _Extent: lively.pt(723.0,342.0),
         _Position: lively.pt(3.0,22.0),
         _Fill: Color.rgb(243,243,243),
         _targetSession: null,
@@ -909,7 +968,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         name: "Lively2LivelyWorkspace",
         submorphs: [{
             _BorderColor: Color.rgb(95,94,95),
-            _Extent: lively.pt(621.0,218.0),
+            _Extent: lively.pt(721.0,318.0),
             _FontSize: 12,
             _Position: lively.pt(1.0,24.0),
             _ShowGutter: false,
@@ -1007,13 +1066,42 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         }
         },{
             _Extent: lively.pt(20,20),
-            _Position: lively.pt(598.0,2.0),
+            _Position: lively.pt(698.0,2.0),
             label: '⟳',
             className: "lively.morphic.Button",
             layout: { resizeWidth: false, moveHorizontal: true },
             name: "RefreshButton",
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("Lively2LivelyWorkspace"), "reloadSessions", {});
+        }
+        }, {
+            _ClipMode: "hidden",
+            _Extent: lively.pt(166.7,18.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 9,
+            _Padding: lively.rect(0,0,0,0),
+            _Position: lively.pt(495,6),
+            className: "lively.morphic.Text",
+            droppingEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            layout: { resizeWidth: true },
+            name: "connectionIndicator",
+            sourceModule: "lively.morphic.TextCore",
+            textString: "",
+            update: function update() {
+
+            this.owner.withTargetSession(function(err, sess) {
+                if (!err && !sess) err = 'not connected';
+                if (err) {
+                    this.setRichTextMarkup([[String(err), {color: Color.red}]]);
+                } else {
+                    // var msg = Objects.inspect(sess).replace(/\n/g, '');
+                    var msg = 'connected';
+                    this.setRichTextMarkup([[msg, {color: Color.green}]]);
+                }
+            }.bind(this));
         }
         }],
         addDropDownTargetSessionList: function addDropDownTargetSessionList(listItemGenerator) {
@@ -1025,7 +1113,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                 list = new lively.morphic.DropDownList(
                     rect(0,0, 100, 20), items);
             lively.bindings.connect(list, 'selection', self, 'selectTargetSession');
-            list.setExtent(pt(465,20));
+            list.setExtent(pt(365,20));
             list.align(list.getPosition(), choiceBounds.topRight().addXY(10,0));
             self.addMorph(list);
             list.applyStyle({resizeWidth: true});
@@ -1041,6 +1129,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
     },
         onLoad: function onLoad() {
         this.showNameInput();
+        this.get("connectionIndicator").startStepping(1500, 'update');
     },
         onFromBuildSpecCreated: function onFromBuildSpecCreated() {
             $super();
@@ -1065,6 +1154,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
     },
         selectTargetSession: function selectTargetSession(sess) {
         this._targetSession = sess;
+        this.get("connectionIndicator").update()
     },
         showNameInput: function showNameInput() {
         this.removeOtherInput();

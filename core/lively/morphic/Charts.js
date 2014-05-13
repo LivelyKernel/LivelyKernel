@@ -265,13 +265,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         // add menu to moreContainer
         var _this = this;
         moreContainer.onMouseUp = function(){
-            var items = _this.getPrototypeComponents().splice(showedMorphs, _this.getPrototypeComponents().length - showedMorphs)
+            var items = _this.getPrototypeComponents()
+                .splice(showedMorphs, _this.getPrototypeComponents().length - showedMorphs)
                 .map(function(ea) {
-                return [ea.name, function() {
-                    var morph = ea.create();
-                    morph.openInHand();
-                }];
-            });
+                    return [ea.name, function() {
+                        var morph = ea.create();
+                        morph.openInHand();
+                    }];
+                });
             var menu = new lively.morphic.Menu("Add prototype morph", items);
             menu.openIn($world, this.getPositionInWorld());
         }
@@ -379,6 +380,18 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 })();
            };
         });
+        
+        // override addMorph
+        var oldAddMorphFn = aMorph.addMorph;
+        aMorph.addMorph = function(newMorph) {
+            _this.owner.addCategoryFor(newMorph);
+            var argsForOldFn = Array.prototype.slice.call(arguments);
+            oldAddMorphFn.apply(aMorph, argsForOldFn);
+            _this.attachListener(newMorph);
+        }
+        
+        // backup ID so that we can match the mappings for prototype submorphs with their cloned correspondencies
+        aMorph.savedID = aMorph.id;
     }
 });
 
@@ -3846,6 +3859,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         prototypeMorph.setPosition(position);
         this.prototypeArea.addMorph(prototypeMorph);
         this.prototypeArea.attachListener(prototypeMorph);
+        
+        return prototypeMorph;
     },
     createPrototypeArea: function() {
         this.prototypeArea = new lively.morphic.Charts.PrototypeArea(pt(this.extent.x / 3 * 1, this.extent.y));
@@ -3856,25 +3871,28 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         this.morphInput = this.prototypeArea.morphName;
          
-        this.createPrototypeMorph();
+        var prototypeMorph = this.createPrototypeMorph();
+        this.addCategoryFor(prototypeMorph);
         
         this.addMorph(this.prototypeArea);
     },
-
     createMappingArea: function() {
         // create container for all lines
-        var extent = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
-
-        this.mappingContainer = new lively.morphic.Box(extent);
-        
-        var mappingCategory = new lively.morphic.Charts.MappingLineCategory(extent);
-        
-        this.mappingContainer.addMorph(mappingCategory);
+        var bounds = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y);
+        this.mappingContainer = new lively.morphic.Box(bounds);
+        this.mappingContainer.setLayouter(new lively.morphic.Layout.VerticalLayout());
         this.addMorph(this.mappingContainer);
     },
-
+    addCategoryFor: function(aMorph) {
+        var bounds = this.mappingContainer.bounds();
+        var mappingCategory = new lively.morphic.Charts.MappingLineCategory(bounds, aMorph);
+        this.mappingContainer.addMorph(mappingCategory);
+    },
     createMappingInput: function(inputHeight) {
-        var mappingInput = new lively.morphic.Morph.makeRectangle(lively.rect(0, 0, this.extent.x / 3 * 2 - 3, inputHeight - 3));
+        var mappingInput = new lively.morphic.Morph.makeRectangle(
+            lively.rect(0, 0, this.extent.x / 3 * 2 - 3, inputHeight - 3)
+        );
+        
         mappingInput.setFill(Color.white);
         mappingInput.setBorderRadius(5);
         mappingInput.setBorderColor(Color.rgb(66, 139, 202));
@@ -3901,7 +3919,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return;
         }
         
-        var prototypeMorph = this.getSubmorphsByAttribute("isPrototypeMorph", true)[0];
+        var prototypeMorph = this.getSubmorphsByAttribute("isPrototypeMorph", true).first();
         if (!prototypeMorph) {
             this.throwError(new Error("No prototype morph found"));
         }
@@ -3915,14 +3933,27 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils();
         
-        var mappings = this.getAllMappings();
+        var sampleDatum = data[0];
+        var mainCategory = this.getMappingCategoryFor(prototypeMorph);
+        var mappings = mainCategory.getAllMappings();
+        mappings = this.extractDependencies(mappings, sampleDatum);
         
-        // TODO: handle multiple categories appropriately
-        mappings = Properties.ownValues(mappings).first();
+        var mappingFunction = this.generateMappingFunction(mappings, mainCategory);
         
-        mappings = this.extractDependencies(mappings, data[0]);
+        var _this = this;
+        var submorphMappings = this.getMappingCategoriesForSubmorphs(prototypeMorph)
+            .map(function(category) {
+                var submorphPrototype = category.categoryMorph;
+                var extractedDependencies = _this.extractDependencies(category.getAllMappings(), sampleDatum);
+                var mappingFunction = _this.generateMappingFunction(extractedDependencies, category);
+                
+                return {
+                    submorphPrototype: submorphPrototype,
+                    mappings: extractedDependencies,
+                    mappingFunction: mappingFunction
+                };
+            });
         
-        var mappingFunction = this.generateMappingFunction(mappings);
         
         var bulkCopy = this.smartBulkCopy(prototypeMorph, data.totalLength || data.length);
         var copiedMorphs = bulkCopy.copiedMorphs;
@@ -3933,14 +3964,20 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
             mappingFunction(prototypeInstance, ea);
             
-            // ensure that each datum is a object (primitives will get wrapped here)
+            // apply submorphMappings
+            submorphMappings.each(function(aMapping) {
+                var id = aMapping.submorphPrototype.savedID;
+                var submorphClone = prototypeInstance.getSubmorphsByAttribute("savedID", id).first();
+                aMapping.mappingFunction(submorphClone, ea);
+                submorphClone.mappings = submorphMappings.mappings;
+            });
+            
+            // ensure that each datum is an object (primitives will get wrapped here)
             ea = ({}).valueOf.call(ea);
+            ea[morphName] = prototypeInstance;
             
-            var returnValue = prototypeInstance;
-            returnValue.datum = ea;
-            returnValue.datum[morphName] = prototypeInstance;
-            
-            return returnValue;
+            prototypeInstance.datum = ea;
+            return prototypeInstance;
         });
         
         // deferred evaluation of all mappings that used range
@@ -3948,7 +3985,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         data.each(function(ea, index) {
             Properties.own(_this.morphCreatorUtils.ranges).each(function (key) {
-                var mappingCategory = _this.getMappingCategoryFor();
+                var mappingCategory = _this.getMappingCategoryFor(prototypeMorph);
                 var lineIndex = mappingCategory.getIndexOf(key);
                 var setterFn = attributeMap[key];
                 if (setterFn) {
@@ -3972,10 +4009,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         return data;
     },
-    getMappingCategoryFor: function(morphName) {
-        // TODO: return right category
-        // TODO: check caller
-        return this.mappingContainer.submorphs[0];
+    getMappingCategoryFor: function(morph) {
+        return this.mappingContainer.submorphs.find(function(ea) {
+            return ea.categoryMorph == morph;
+        });
+    },
+    getMappingCategoriesForSubmorphs: function(morph) {
+        return this.mappingContainer.submorphs.filter(function(ea) {
+            return ea.categoryMorph != morph;
+        });
     },
     calculatePieChart: function(data) {
         var mappedPropertySum = data.filter(function(ea){return ea.morph.mappedProperty}).sum();
@@ -4081,7 +4123,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         })
     },
     
-    generateMappingFunction: function(mappingObjects) {
+    generateMappingFunction: function(mappingObjects, mappingCategory) {
         
         var attributeMap = this.getAttributeMap();
         
@@ -4114,7 +4156,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         var combinedMappingFunction = function(morph, datum) {
             mappingFunctions.each(function(eachMappingFunction, index) {
-                var mappingCategory = _this.getMappingCategoryFor();
                 try {
                     eachMappingFunction(morph, datum);
                     mappingCategory.hideErrorAt(index);
@@ -4213,17 +4254,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 morph.setBorderColor(valueFn(datum));
             }
         };
-    },
-    
-    getAllMappings: function() {
-        var mappings = {};
-        
-        this.mappingContainer.submorphs.each(function(category) {
-            var name = category.categoryName;
-            mappings[name] = category.getAllMappings();
-        });
-        
-        return mappings;
     }
 
 });
@@ -6473,8 +6503,9 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
 
 lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
 {
-    initialize: function($super, extent) {
+    initialize: function($super, extent, categoryMorph) {
         $super(extent);
+        this.categoryMorph = categoryMorph;
         this.mappingLines = [];
         this.setFill(Color.white);
         this.layout = {
@@ -6489,8 +6520,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         this.setLayouter(layout);
         
         // add category name
-        var text = lively.morphic.Text.makeLabel("Category 1");
-        text.bigExtent = pt(17, 24);
+        var text = lively.morphic.Text.makeLabel(categoryMorph.getName());
         text.eventsAreIgnored = true;
         this.addMorph(text);
         

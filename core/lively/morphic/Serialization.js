@@ -97,7 +97,8 @@ lively.morphic.Morph.addMethods(
         var oldOwner = null;
         if (original.owner) {
             oldOwner = original.owner
-            original.remove();
+            // true denotes that the removal is only temporary
+            original.remove(true);
             delete original.owner;
             delete original.eventHandler;
             delete original.EventHandler;

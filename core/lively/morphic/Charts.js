@@ -388,7 +388,15 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
             var argsForOldFn = Array.prototype.slice.call(arguments);
             oldAddMorphFn.apply(aMorph, argsForOldFn);
             _this.attachListener(newMorph);
-        }
+        };
+        
+        var oldRemoveMorphFn = aMorph.remove;
+        aMorph.remove = function(temporary) {
+            oldRemoveMorphFn.apply(this, arguments);
+            if (!temporary) {
+                _this.owner.removeCategoryOf(this);
+            }
+        };
         
         // backup ID so that we can match the mappings for prototype submorphs with their cloned correspondencies
         aMorph.savedID = aMorph.id;
@@ -3887,6 +3895,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var bounds = this.mappingContainer.bounds();
         var mappingCategory = new lively.morphic.Charts.MappingLineCategory(bounds, aMorph);
         this.mappingContainer.addMorph(mappingCategory);
+    },
+    removeCategoryOf: function(aMorph) {
+        this.mappingContainer.submorphs
+            .find(function(ea) {
+                return ea.categoryMorph == aMorph;
+            }).remove();
     },
     createMappingInput: function(inputHeight) {
         var mappingInput = new lively.morphic.Morph.makeRectangle(

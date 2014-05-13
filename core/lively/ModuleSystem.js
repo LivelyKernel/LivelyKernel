@@ -134,8 +134,7 @@ Object.extend(lively, {
             args = Array.from(arguments);
         lively.require.counter !== undefined ? lively.require.counter++ : lively.require.counter = 0;
         var m = lively.module(getUniqueName()).beAnonymous();
-        if (lively.Config.showModuleDefStack)
-            try { throw new Error() } catch(e) { m.defStack = e.stack }
+        if (lively.Config.showModuleDefStack) m.defStack = new Error().stack;
         return m.requires(Object.isArray(args[0]) ? args[0] : args);
     }
 

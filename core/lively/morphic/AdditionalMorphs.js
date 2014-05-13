@@ -55,9 +55,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     onrestore: function($super) {
         $super();
         if (this._canvasSerializationDataURI) {
-            this.whenOpenedInWorld(function() {
-                this.fromDataURI(this._canvasSerializationDataURI);
-            }.bind(this));
+            var self = this;
+            function deserialize() { self.fromDataURI(self._canvasSerializationDataURI); }
+            if (this.world()) lively.whenLoaded(deserialize);
+            else this.whenOpenedInWorld(deserialize);
         }
     },
 

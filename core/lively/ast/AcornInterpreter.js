@@ -32,7 +32,11 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     runWithContext: function(node, ctx, optMapping) {
         var program = new lively.ast.AcornInterpreter.Function(node),
-            frame = lively.ast.AcornInterpreter.Frame.create(program, optMapping);
+            frame = lively.ast.AcornInterpreter.Frame.create(program);
+        if (optMapping != null) {
+            var parentScope = new lively.ast.AcornInterpreter.Scope(optMapping);
+            frame.getScope().setParentScope(parentScope);
+        }
         program.lexicalScope = frame.getScope(); // FIXME
         frame.setThis(ctx);
         return this.runWithFrameAndResult(node, frame, undefined);
@@ -497,7 +501,13 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitThrowStatement: function(node, state) {
         this.accept(node.argument, state);
-        throw state.result;
+        var error = state.result;
+        if (lively.Config.get('loadRewrittenCode')) {
+            error = new UnwindException(error);
+            state.currentFrame.setPC(node);
+            error.shiftFrame(state.currentFrame);
+        }
+        throw error;
     },
 
     visitWhileStatement: function(node, state) {
@@ -928,6 +938,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
         } catch (e) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
             if (e.isUnwindException) {
                 e.shiftFrame(state.currentFrame);
                 e = e.error;

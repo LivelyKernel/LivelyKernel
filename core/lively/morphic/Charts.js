@@ -4125,6 +4125,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     wantsDroppedMorph: function(aMorph) {
         return (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph);
     },
+    adaptBackgroundColor: function() {
+        var backgroundColor = Color.white;
+        if (!this.isAutoEvalActive) {
+            backgroundColor = Color.rgbHex("EFEFEF");
+        }
+        this.submorphs[0].submorphs.each(function(eachCategory){
+            eachCategory.setFill(backgroundColor);
+        });
+        this.submorphs[0].setFill(backgroundColor);
+        this.setFill(backgroundColor);
+    },
+
+
     
     
     migrateFromPart: function(oldComponent) {
@@ -6362,6 +6375,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
         
         this.attributeField = this.createAttributeField();
         this.valueField = this.createValueField();
+        this.isAutoEvalActive = true;
         
         // setup connections to notice if a new line is required
         
@@ -6397,6 +6411,14 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
             evt.stop();
         }
         
+        valueField.onEscPressed = function(evt){
+            var morphCreator = _this.owner.owner.owner;
+            morphCreator.toggleAutoEvaluation();
+            
+            if (morphCreator.isAutoEvalActive !== false) {
+                morphCreator.component.onContentChanged();
+            }
+        }
         // fit the height when the valueField resizes
         connect(valueField.shape, "_Extent", this, "fitHeight", {});
         

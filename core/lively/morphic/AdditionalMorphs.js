@@ -927,16 +927,13 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
     },
 
     getHTML: function() {
-        return this.asJQuery().html();
+        return this.jQuery().html();
     },
 
     setHTML: function(html) {
-        return this.asJQuery().html(html);
-    },
-
-    asJQuery: function() {
-        return lively.$(this.renderContext().shapeNode);
+        return this.jQuery().html(html);
     }
+
 },
 "menu", {
     morphMenuItems: function($super) {

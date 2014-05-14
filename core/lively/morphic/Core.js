@@ -696,7 +696,7 @@ Object.subclass('lively.morphic.Morph',
         return this.renderContext().shapeNode;
     },
     jQuery: function() {
-        return jQuery(this.jQueryNode());
+        return lively.$(this.jQueryNode());
     }
 });
 

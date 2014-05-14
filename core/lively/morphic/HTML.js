@@ -376,13 +376,13 @@ lively.morphic.Morph.addMethods(
 'morph data', {
 
     setMorphDataHTML: function(ctx) {
-        $(ctx.morphNode).data('morph', this);
+        lively.$(ctx.morphNode).data('morph', this);
         this.submorphs.forEach(function(ea) {
             ea.setMorphDataHTML(ea.renderContext()); });
     },
 
     removeMorphDataHTML: function(ctx) {
-        $(ctx.morphNode).removeData('morph');
+        lively.$(ctx.morphNode).removeData('morph');
         this.submorphs.forEach(function(ea) {
             ea.removeMorphDataHTML(ea.renderContext()); });
     }
@@ -1079,7 +1079,7 @@ lively.morphic.Shapes.External.addMethods(
         // 2) figure out the extent
         var extent = pt(0,0);
         if (element.style) {
-            var $element = new jQuery.fn.init(element),
+            var $element = new lively.$.fn.init(element),
                 width = $element.width(),
                 height = $element.height();
             extent = pt(width, height);

@@ -526,7 +526,8 @@ Object.extend(lively.Module, {
     topologicalSortLoadedModules: function() {
         if (lively.Config.standAlone) {
             var scripIds = [];
-            $('body script').each(function() { scripIds.push($(this).attr('id')); });
+            lively.$('body script').each(function() {
+                scripIds.push(lively.$(this).attr('id')); });
             return scripIds.collect(function(id) {
                 var name = id.replace(/^..\//, '');
                 return lively.module(name);

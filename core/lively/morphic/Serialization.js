@@ -275,7 +275,7 @@ lively.morphic.World.addMethods(
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
             title = this.name || url.filename().replace(/\.x?html$/, ''),
             bootstrapFile = bootstrapModuleURL.relativePathFrom(url),
-            css = $("head style").toArray().map(function(el) {
+            css = lively.$("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
             metaTags = this.getMetaTags(),
             linkTags = this.getLinkTags(),

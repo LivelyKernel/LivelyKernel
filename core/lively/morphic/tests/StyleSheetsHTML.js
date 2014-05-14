@@ -60,8 +60,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     test04AppendStyleNode: function() {
         var appendStyleNode = function(morph){
                     var ctx = morph.renderContext();
-                    $(ctx.styleNode).remove();
-                    ctx.styleNode = $('<style id="' + morph.id + '"></style>').get(0);
+                    lively.$(ctx.styleNode).remove();
+                    ctx.styleNode = lively.$('<style id="' + morph.id + '"></style>').get(0);
                     morph.appendStyleNodeHTML(
                         ctx,
                         ctx.styleNode);
@@ -153,19 +153,19 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.H
     },
     test08SetNewMorphId: function() {
         var shapeNode = this.morph.renderContext().shapeNode,
-            oldId = $(shapeNode).attr('data-lively-morphid');
+            oldId = lively.$(shapeNode).attr('data-lively-morphid');
         this.morph.setNewId();
-        this.assert(oldId !== $(shapeNode).attr('data-lively-morphid'),
+        this.assert(oldId !== lively.$(shapeNode).attr('data-lively-morphid'),
             'morphid in node should not be the old id');
-        this.assertEquals(this.morph.id, $(shapeNode).attr('data-lively-morphid'),
+        this.assertEquals(this.morph.id, lively.$(shapeNode).attr('data-lively-morphid'),
             'morphid in node should be the new morph id');
     },
     test09SetNodeTypeAttributes: function() {
         var ctx = this.redRectangle.renderContext();
 
-        this.assertEquals('morph-node', $(ctx.morphNode).attr('data-lively-node-type'),
+        this.assertEquals('morph-node', lively.$(ctx.morphNode).attr('data-lively-node-type'),
             'Node-type of morphNode should be "morph-node"');
-        this.assertEquals('origin-node', $(ctx.originNode).attr('data-lively-node-type'),
+        this.assertEquals('origin-node', lively.$(ctx.originNode).attr('data-lively-node-type'),
             'Node-type of originNode should be "origin-node"');
     },
     test09ReplaceWildcardSelector: function() {
@@ -279,9 +279,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
     },
     test02aSetNodeMorphId: function() {
         var shapeNode = this.morph.renderContext().shapeNode;
-        $(shapeNode).attr('data-lively-morphid', '');
+        lively.$(shapeNode).attr('data-lively-morphid', '');
         this.morph.setNodeMorphIdHTML(this.morph.renderContext());
-        this.assertEquals(this.morph.id, $(shapeNode).attr('data-lively-morphid'),
+        this.assertEquals(this.morph.id, lively.$(shapeNode).attr('data-lively-morphid'),
             'Morphid node attribute should be the morph id');
     },
 
@@ -326,9 +326,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.morph.setStyleSheet('.test-class { color: black;}');
         var styleNode = this.morph.renderContext().styleNode;
         this.assert(styleNode, 'There is no style node in the render context');
-        this.assertEquals('style-for-'+this.morph.id, $(styleNode).attr('id'),
+        this.assertEquals('style-for-'+this.morph.id, lively.$(styleNode).attr('id'),
             'id of style node is wrong');
-        var styleNodeContent = $(styleNode).html()
+        var styleNodeContent = lively.$(styleNode).html()
         this.assert(styleNodeContent.indexOf('[data-lively-morphid="'+this.morph.id.toUpperCase()+'"]') >= 0,
             'Style node content has no ref to morph');
         this.assert(styleNodeContent.indexOf('.test-class') >= 0,
@@ -350,9 +350,9 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         this.morph.setBaseThemeStyleSheet('.test-class { color: black;}');
         var baseThemeNode = this.morph.renderContext().baseThemeNode;
         this.assert(baseThemeNode, 'There is no base theme node in the render context');
-        this.assertEquals('base-theme-for-' + this.morph.id, $(baseThemeNode).attr('id'),
+        this.assertEquals('base-theme-for-' + this.morph.id, lively.$(baseThemeNode).attr('id'),
                           'id of base theme node is wrong');
-        var styleNodeContent = $(baseThemeNode).html(),
+        var styleNodeContent = lively.$(baseThemeNode).html(),
             morphIdSel = '[data-lively-morphid="' + this.morph.id.toUpperCase()+'"]';
         this.assert(styleNodeContent.include(morphIdSel),
                     'Base theme node content has no ref to morph');
@@ -371,7 +371,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.S
         morph1.setStyleSheet('.test-class { color: black;}');
         morph2.setStyleSheet('.test-class { color: green;}');
         var styleId = 'style-for-' + morph1.id;
-        this.assertEquals(1, $('head #' + styleId).length);
+        this.assertEquals(1, lively.$('head #' + styleId).length);
     },
     test07ClassnameDOMModificationsArePickedUpInMorphic: function() {
         this.morph.addStyleClassName('test-class');
@@ -402,33 +402,33 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheetsHTML.B
 'testing', {
     assertDOMMorphNodeAttribute: function(targetValue, attributeName, morph, msg) {
         var shapeNode= morph.renderContext().shapeNode;
-        return this.assertEquals(targetValue, $(shapeNode).attr(attributeName), msg);
+        return this.assertEquals(targetValue, lively.$(shapeNode).attr(attributeName), msg);
     },
     test01SwitchBorderStylingMode: function() {
         //this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
         this.redRectangle.setBorderWidth(20);
-        var oldShapeNodeSize = $(this.redRectangle.renderContext().shapeNode).outerWidth();
+        var oldShapeNodeSize = lively.$(this.redRectangle.renderContext().shapeNode).outerWidth();
         this.redRectangle.setBorderStylingMode(true);
         this.assertEquals(oldShapeNodeSize,
-            $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            lively.$(this.redRectangle.renderContext().shapeNode).outerWidth(),
             'Shapenode should be the same size after switching on CSS styling');
         this.redRectangle.setBorderStylingMode(false);
         this.assertEquals(oldShapeNodeSize,
-            $(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            lively.$(this.redRectangle.renderContext().shapeNode).outerWidth(),
             'Shapenode should be the same size after switching off CSS styling');
     },
     test02AddCSSBorder: function() {
         this.redRectangle.setBorderWidth(0);
-        var oldShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
-            oldShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
-            oldBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+        var oldShapeNodeOuterSize = lively.$(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            oldShapeNodeInnerSize = lively.$(this.redRectangle.renderContext().shapeNode).width(),
+            oldBluePosition = lively.$(this.blueRectangle1.renderContext().shapeNode).position();
 
         this.redRectangle.setBorderStylingMode(true);
         this.redRectangle.setStyleSheet('.red {border: 10px solid black;}');
 
-        var newShapeNodeOuterSize = $(this.redRectangle.renderContext().shapeNode).outerWidth(),
-            newShapeNodeInnerSize = $(this.redRectangle.renderContext().shapeNode).width(),
-            newBluePosition = $(this.blueRectangle1.renderContext().shapeNode).position();
+        var newShapeNodeOuterSize = lively.$(this.redRectangle.renderContext().shapeNode).outerWidth(),
+            newShapeNodeInnerSize = lively.$(this.redRectangle.renderContext().shapeNode).width(),
+            newBluePosition = lively.$(this.blueRectangle1.renderContext().shapeNode).position();
 
         this.assertEquals(oldShapeNodeOuterSize, newShapeNodeOuterSize ,
             'Shape node should be the same outer size than before adding the 10px border');
@@ -858,21 +858,21 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
         this.assert(this.textMorph.getTextStylingMode(), 'Text styling mode should be on');
 
         this.delay(function() {
-            this.assertEquals('right', $(textNode).css('text-align'),
+            this.assertEquals('right', lively.$(textNode).css('text-align'),
                 'Text align was not properly set via CSS');
-            this.assertEquals('Arial', $(textNode).css('font-family'),
+            this.assertEquals('Arial', lively.$(textNode).css('font-family'),
                 'font-family was not properly set via CSS');
-            this.assertEquals('13px', $(textNode).css('font-size'),
+            this.assertEquals('13px', lively.$(textNode).css('font-size'),
                 'font-size was not properly set via CSS');
-            this.assertEquals('italic', $(textNode).css('font-style'),
+            this.assertEquals('italic', lively.$(textNode).css('font-style'),
                 'font-style was not properly set via CSS');
-            this.assertEquals('bold', $(textNode).css('font-weight'),
+            this.assertEquals('bold', lively.$(textNode).css('font-weight'),
                 'font-weight was not properly set via CSS');
-            this.assertEquals('rgb(128, 0, 128)', $(textNode).css('color'),
+            this.assertEquals('rgb(128, 0, 128)', lively.$(textNode).css('color'),
                 'color was not properly set via CSS');
-            this.assert($(textNode).css('text-decoration').include('underline'),
-                'text-decoration was not properly set via CSS: ' + $(textNode).css('text-decoration'));
-            this.assertEquals('top', $(textNode).css('vertical-align'),
+            this.assert(lively.$(textNode).css('text-decoration').include('underline'),
+                'text-decoration was not properly set via CSS: ' + lively.$(textNode).css('text-decoration'));
+            this.assertEquals('top', lively.$(textNode).css('vertical-align'),
                 'vertial-align was not properly set via CSS');
             this.done();
         }, 0.1);
@@ -884,19 +884,19 @@ AsyncTestCase.subclass('lively.morphic.tests.StyleSheetsHTML.Text',
         this.assert(!this.textMorph.getTextStylingMode(), 'Text styling mode should be off');
 
         this.delay(function() {
-            this.assertEquals('center', $(textNode).css('text-align'),
+            this.assertEquals('center', lively.$(textNode).css('text-align'),
                 'Text align was not properly reset after switching back from CSS text styling');
-            this.assertEquals('Times', $(textNode).css('font-family'),
+            this.assertEquals('Times', lively.$(textNode).css('font-family'),
                 'font-family was not properly reset after switching back from CSS text styling');
-            this.assertEquals('normal', $(textNode).css('font-style'),
+            this.assertEquals('normal', lively.$(textNode).css('font-style'),
                 'font-style was not properly reset after switching back from CSS text styling');
-            this.assertEquals('300', $(textNode).css('font-weight'),
+            this.assertEquals('300', lively.$(textNode).css('font-weight'),
                 'font-weight was not properly reset after switching back from CSS text styling');
-            this.assertEquals('rgb(0, 0, 0)', $(textNode).css('color'),
+            this.assertEquals('rgb(0, 0, 0)', lively.$(textNode).css('color'),
                 'color was not properly reset after switching back from CSS text styling');
-            this.assert($(textNode).css('text-decoration').include('none'),
-                'text-decoration was not properly reset after switching back from CSS text styling: ' + $(textNode).css('text-decoration'));
-            this.assertEquals('bottom', $(textNode).css('vertical-align'),
+            this.assert(lively.$(textNode).css('text-decoration').include('none'),
+                'text-decoration was not properly reset after switching back from CSS text styling: ' + lively.$(textNode).css('text-decoration'));
+            this.assertEquals('bottom', lively.$(textNode).css('vertical-align'),
                 'vertial-align was not properly reset after switching back from CSS text styling');
             this.done();
         }, 0.1);

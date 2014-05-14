@@ -2791,7 +2791,7 @@ Object.subclass('lively.morphic.TextChunk',
     },
     getStyle: function() { return this.style },
     bounds: function() {
-        var b = $(this.getChunkNode()).bounds();
+        var b = lively.$(this.getChunkNode()).bounds();
         return new Rectangle(b.left, b.top, b.width(), b.height());
     }
 },
@@ -3118,7 +3118,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(function() {
-                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
+                        var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.inAction.call(morph, evt);
                     });
@@ -3126,7 +3126,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(function() {
-                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
+                        var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.outAction.call(morph, evt);
                     });
@@ -3460,7 +3460,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     installCallbackHandler: function(node) {
-        var $node = $(node);
+        var $node = lively.$(node);
         [{type: 'click', handler: 'mouseup'},
          {type: 'mouseenter', handler: 'mouseenter'},
          {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
@@ -3483,7 +3483,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     uninstallCallbackHandlers: function(node) {
-        var $node = $(node);
+        var $node = lively.$(node);
         $node.off();
     }
 

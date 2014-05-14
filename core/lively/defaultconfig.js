@@ -250,7 +250,7 @@ Global.Config = {
     toString: function() { return 'lively.Config' },
 
     displayWarning: function() {
-        var warn = $('<div/>');
+        var warn = lively.$('<div/>');
         warn.text('Currently optimized loading is disabled. '
                  + 'It can therefore take a bit longer loading a world. '
                  + 'We will soon fix this issue.');

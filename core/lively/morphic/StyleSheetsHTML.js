@@ -466,7 +466,7 @@ lively.morphic.Morph.addMethods(
     },
 
     setNodeMorphIdHTML: function(ctx) {
-        $(ctx.shapeNode).attr('data-lively-morphid', this.id);
+        lively.$(ctx.shapeNode).attr('data-lively-morphid', this.id);
     },
 
     setStyleIdHTML: function (ctx, id) {

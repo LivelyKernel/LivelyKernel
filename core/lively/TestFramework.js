@@ -401,7 +401,7 @@ Object.subclass('TestCase',
         // cs: this should be moved to lively.morphic.tests.TestCase
         // FIXME depends on jQuery
         return lively.morphic.EventHandler.prototype.patchEvent(
-            jQuery.Event(spec.type, {keyCode: spec.charCode, ctrlKey: spec.ctrl}));
+            lively.$.Event(spec.type, {keyCode: spec.charCode, ctrlKey: spec.ctrl}));
     },
     doKeyboardEvent: function(spec, morph) {
         // cs: this should be moved to lively.morphic.tests.TestCase

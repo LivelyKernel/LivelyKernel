@@ -1063,7 +1063,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onMouseUp: function(evt) {
-        if (!evt.target.className.toString().contains("ComponentHeader"))
+        if (evt.target.className.toString().indexOf("ComponentHeader") < 0)
             return;
         var headerClicked = this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
         if (headerClicked) {

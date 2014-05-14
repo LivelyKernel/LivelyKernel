@@ -4199,7 +4199,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 with (lively.morphic.Charts.Utils)
                 with (datum)
                 with (morphCreatorUtils) {
-                    return eval(eachMapping.value);
+                    // the IIFE allows function declarations within the value fields
+                    return eval("(function() { return " + eachMapping.value + ";})();");
                 }
             };
             

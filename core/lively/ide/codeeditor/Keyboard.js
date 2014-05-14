@@ -662,10 +662,19 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         this.addCommands(kbd, [{
             bindKey: 'Tab',
             name: 'expandSnippetOrDoTab',
-            exec: function(ed) {
+            exec: function (ed) {
                 var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
-                if (!success)
-                    ed.execCommand("indent");
+            
+                // the five lines below are for not accidentally re-expanding snippets,
+                // e.g. mutliple expands of forEach when first "tabStop" is directly at the
+                // key that triggers expansion
+                if (ed.tabstopManager) {
+                    ed.tabstopManager.keyboardHandler.bindKeys({
+                        "Tab": function(ed) { ed.tabstopManager.tabNext(1); }
+                    })
+                }
+            
+                if (!success) ed.execCommand("indent");
             },
             multiSelectAction: "forEach"
         }, {

@@ -649,7 +649,7 @@ lively.morphic.Charts.DroppingArea.subclass("lively.morphic.Charts.InteractionAr
                         _this.createInteractionVariable();
                     }
                     var description = "Choose attribute of to connect with";
-                    $world.prompt(description, setConnectionAttribute, {input: "value"})
+                    $world.prompt(description, setConnectionAttribute, {input: "value"});
                 } else {
                     this.createContainer();
                     this.createInteractionVariable();
@@ -4533,24 +4533,38 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     },
     handleClick: function(cell, method) {
         var attribute = cell.getTextString();
-        
         switch(method) {
             case "Statistics":
-                var statistics = this.calculateStatistics(attribute);
-                var inspector = lively.morphic.Charts.Component.createWindow("Table");
+                var columnData = this.component.data;
+        
+                // check if the data-array contains objects, else data is an array of primitives
+                // and we don't need (and shouldn't) pluck the attribute
+                if (typeof columnData[0] === 'object') {
+                    columnData = columnData.pluck(attribute);
+                }
+                
+                var inspector = lively.morphic.Charts.Component.createWindow("StatisticTable");
                 inspector.setDescription("Statistics - " + attribute);
                 inspector.openInWorld(cell.getPositionInWorld());
-                inspector.update(statistics);
+                inspector.content.createStatistics(columnData);
                 break;
             case "Sort":
                 var data = this.component.data;
+                var primitive = true;
+                if (typeof data[0] === 'object') {
+                    primitive = false;
+                }
                 data.sort(function(a, b) {
+                    if (!primitive) {
+                        a = a[attribute];
+                        b = b[attribute];
+                    }
                     if (cell.sortedAsc) {
                         // sort descending
-                        return a[attribute] < b[attribute];
+                        return a < b;
                     } else {
                         // sort ascending
-                        return a[attribute] > b[attribute];
+                        return a > b;
                     }
                 });
                 cell.sortedAsc = !cell.sortedAsc;
@@ -4561,40 +4575,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 break;
         }
     },
-    calculateStatistics: function(attribute) {
-        var data = this.component.data.pluck(attribute);
-        
-        var result = [];
-        var heuristics = this.getStatisticFunctions();
-        
-        heuristics.each(function(ea) {
-            result.push({heuristic: ea.name, value: ea.calculation.apply(data)});
-        });
-        
-        return result;
-    },
-    getStatisticFunctions: function() {
-        
-        // calculate the average value
-        var avg = function() {
-            var sum = 0;
-            var count = 0;
-            this.each(function(ea) {
-                if (Number.isFinite(ea)) {
-                    sum += ea;
-                    count++;
-                }
-            });
-            
-            return sum / count;
-        }
-        
-        return [
-            {name: "min", calculation: Array.prototype.min},
-            {name: "max", calculation: Array.prototype.max},
-            {name: "avg", calculation: avg}
-        ];
-    },
+
+
+
     
     updateTable : function(){
         this.submorphs.invoke("remove");
@@ -4721,6 +4704,87 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         return activeCell;
     }
     
+});
+
+lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
+    initialize: function($super) {
+        $super();
+        this.valCount = 1;
+    },
+    update: function($super, data) {
+        this.component.data = data;
+        $super(this.data);
+    },
+    createStatistics: function(data) { 
+        var result = [];
+        var heuristics = this.getStatisticFunctions();
+        
+        heuristics.each(function(ea) {
+            result.push({heuristic: ea.name, value: ea.calculation.apply(data)});
+        });
+        
+        this.data = result;
+        this.backupData = data;
+        this.update(result);
+    },
+    addHeuristic: function() {
+        var data = this.backupData;
+        var description = "Write heuristic function";
+        var heuristicFunction;
+        var _this = this;
+        var callback = function(functionString) {
+            if (functionString) {
+                var heuristicFunction = new Function("args", functionString);
+                _this.data.push({heuristic: "val" + _this.valCount, value: heuristicFunction.apply(data)});
+                _this.valCount++;
+                _this.update(_this.data);
+            }
+        }
+    
+        
+        var exampleInput = "var sum = 0;\nthis.each(function(ea) {\n\tsum += ea;\n});\nreturn sum;";
+        // var prompt = $world.prompt(description, callback, {input: exampleInput});
+        var dialog = new lively.morphic.EditDialog(description, callback, {input: exampleInput});
+        var position = this.getPositionInWorld();
+        dialog.openIn($world, position);
+        dialog.inputText.enableSyntaxHighlighting();
+        dialog.label.beInputLine();
+    },
+    getContextMenuItems: function() {
+        return [
+            "Statistics",
+            "Add heuristic"
+            ];
+    },
+    handleClick: function($super, cell, method) {
+        if (method == "Add heuristic") {
+            this.addHeuristic();
+        } else {
+            $super(cell, method);
+        }
+    },
+    getStatisticFunctions: function() {
+        
+        // calculate the average value
+        var avg = function() {
+            var sum = 0;
+            var count = 0;
+            this.each(function(ea) {
+                if (Number.isFinite(ea)) {
+                    sum += ea;
+                    count++;
+                }
+            });
+            
+            return sum / count;
+        }
+        
+        return [
+            {name: "min", calculation: Array.prototype.min},
+            {name: "max", calculation: Array.prototype.max},
+            {name: "avg", calculation: avg}
+        ];
+    }
 });
 
 lively.morphic.Charts.Content.subclass('lively.morphic.Charts.EntityViewer', {

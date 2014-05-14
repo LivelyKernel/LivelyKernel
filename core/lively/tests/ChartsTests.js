@@ -1202,9 +1202,12 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         this.assert(mappingCategory, "No new category was created for submorph");
         
         // remove submorph
-        submorph.remove()
-        mappingCategory = creator.getMappingCategoryFor(submorph);
-        this.assert(!mappingCategory, "MappingCategory was not removed when submorph was removed");
+        submorph.remove();
+        setTimeout(function() {
+            mappingCategory = creator.getMappingCategoryFor(submorph);
+            this.assert(!mappingCategory, "MappingCategory was not removed when submorph was removed");
+        }, 0);
+        
     },
     
     testLineManagement: function() {

@@ -280,6 +280,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
     },
     
     getPrototypeComponents: function() {
+        var _this = this;
         var createOnMouseDownFor = function(morphName) {
             return function(evt) {
                 var prototype = this.copy();
@@ -287,9 +288,12 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 prototype.setExtent(this.bigExtent || pt(20, 20));
                 prototype.setName(morphName);
                 prototype.isPrototypeMorph = true;
+                _this.attachListener(prototype);
+                _this.owner.addCategoryFor(prototype);
                 prototype.openInHand();
             };
-        }
+        };
+        
         var componentNames = [
             {
                 create: function() {
@@ -391,10 +395,21 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         };
         
         var oldRemoveMorphFn = aMorph.remove;
+        aMorph.notifyAboutRemoval = function() {
+            var _thisMorph = this;
+            setTimeout(function() {
+                if (_thisMorph.owner)
+                    return;
+                _this.owner.removeCategoryOf(_thisMorph);
+                _thisMorph.submorphs.each(function(subMorph) {
+                    subMorph.notifyAboutRemoval();
+                });
+            }, 0);
+        };
         aMorph.remove = function(temporary) {
             oldRemoveMorphFn.apply(this, arguments);
             if (!temporary) {
-                _this.owner.removeCategoryOf(this);
+                this.notifyAboutRemoval();
             }
         };
         
@@ -3906,6 +3921,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.addMorph(this.mappingContainer);
     },
     addCategoryFor: function(aMorph) {
+        if (this.getMappingCategoryFor(aMorph)) {
+            return;
+        }
+        
         var bounds = this.mappingContainer.bounds();
         bounds = lively.rect(0, 0, 200, 50);
         var mappingCategory = new lively.morphic.Charts.MappingLineCategory(bounds, aMorph);

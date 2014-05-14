@@ -3845,11 +3845,11 @@ lively.morphic.CodeEditor.subclass('lively.morphic.Charts.CodeEditor',
     onKeyUp: function(evt) {
         if (evt.keyCode == 27) {
             // esc was pressed
-            this.toggleAutoEvaluation();
+            this.owner.toggleAutoEvaluation();
         }
         
-        if (this.isAutoEvalActive !== false) {
-            this.component.onContentChanged();
+        if (this.owner.isAutoEvalActive !== false) {
+            this.owner.component.onContentChanged();
         }
     },
 });

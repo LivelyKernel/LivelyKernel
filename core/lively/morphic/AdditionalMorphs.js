@@ -24,8 +24,9 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     setExtent: function($super, extent) {
+        var prevExtent = this.getExtent();
         $super(extent);
-        this.renderContextDispatch('adaptCanvasSize', extent);
+        this.renderContextDispatch('adaptCanvasSize', prevExtent, extent);
     },
 
     clear: function() {
@@ -305,18 +306,20 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     createCanvasNodeHTML: function(ctx) {
         return XHTMLNS.create('canvas');
     },
-    adaptCanvasSizeHTML: function(ctx) {
+    adaptCanvasSizeHTML: function(ctx, oldExtent, newExtent) {
         if (this._adaptCanvasSizeHTMLInProgress) return;
         this._adaptCanvasSizeHTMLInProgress = true;
         try {
             var $node = lively.$(ctx.shapeNode),
                 x = $node.width(),
-                y = $node.height(),
-                imgData = this.getImageData();
-            $node.attr('width', x);
-            $node.attr('height', y);
-            this.putImageData(imgData, x, y);
-            this.onCanvasChanged();
+                y = $node.height();
+            if (oldExtent && newExtent && (oldExtent.x !== newExtent.x || oldExtent.y !== newExtent.y)) {
+                var imgData = this.getImageData();
+                $node.attr('width', x);
+                $node.attr('height', y);
+                this.putImageData(imgData, x, y);
+                this.onCanvasChanged();
+            }
         } finally {
             this._adaptCanvasSizeHTMLInProgress = false;
         }

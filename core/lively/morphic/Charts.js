@@ -4562,10 +4562,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                     }
                     if (cell.sortedAsc) {
                         // sort descending
-                        return a < b;
+                        return a < b ? 1 : a > b ? -1 : 0;
                     } else {
                         // sort ascending
-                        return a > b;
+                        return a < b ? -1 : a > b ? 1 : 0;
                     }
                 });
                 cell.sortedAsc = !cell.sortedAsc;
@@ -4715,6 +4715,10 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     update: function($super, data) {
         this.component.data = data;
         $super(this.data);
+    },
+    removalNeedsConfirmation: function() {
+        // check whether heuristic was added manually
+        return this.valCount != 1;
     },
     createStatistics: function(data) { 
         var result = [];

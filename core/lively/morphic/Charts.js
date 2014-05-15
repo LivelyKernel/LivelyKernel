@@ -1216,7 +1216,8 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent"
     },
 
     onContentChanged: function() {
-        // do nothing
+        // basically just redraw the content (e.g. after sorting the data)
+        this.content.update(this.data);
     },
     
     createMinimizer: function() {
@@ -4779,10 +4780,16 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
             return sum / count;
         }
         
+        // get the number of items
+        var length = function() {
+            return this.length;
+        }
+        
         return [
             {name: "min", calculation: Array.prototype.min},
             {name: "max", calculation: Array.prototype.max},
-            {name: "avg", calculation: avg}
+            {name: "avg", calculation: avg},
+            {name: "length", calculation: length}
         ];
     }
 });

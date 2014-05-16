@@ -4393,6 +4393,25 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         return undefined;
     },
 
+},
+'event handling', {
+
+    onMouseDown: function(evt) {
+        this.focus();
+        if (!evt.isRightMouseButtonDown()) return false;
+        // delayed because when owner is a window and comes forward the window
+        // would be also in front of the new menu
+        var items = this.getMenu();
+        if (items.length > 0) lively.morphic.Menu.openAt.curry(
+            evt.getPosition(), null, items).delay(0.1);
+        evt.stop(); return true;
+    },
+
+},
+'morph menu', {
+
+    getMenu: function() { /*FIXME actually menu items*/ return []; }
+
 });
 
 }) // end of module

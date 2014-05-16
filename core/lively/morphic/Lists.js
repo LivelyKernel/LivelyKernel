@@ -815,7 +815,9 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
 },
 'morph menu', {
-    getMenu: function() { /*FIXME actually menu items*/ return [] }
+
+    getMenu: function() { /*FIXME actually menu items*/ return []; }
+
 },
 'list interface', {
 

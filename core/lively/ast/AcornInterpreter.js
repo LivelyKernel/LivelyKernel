@@ -85,7 +85,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     setVariable: function(name, state) {
         var scope = state.currentFrame.getScope();
         if (name != 'arguments')
-            scope = scope.findScope(name).scope; // may throw ReferenceError
+            scope = scope.findScope(name, true).scope; // may throw ReferenceError
         scope.set(name, state.result);
     },
 
@@ -1153,12 +1153,15 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
 
     addToMapping: function(name) { return this.set(name, undefined); },
 
-    findScope: function(name) {
+    findScope: function(name, isSet) {
         if (this.has(name)) {
             return { val: this.get(name), scope: this };
         }
         if (this.getMapping() === Global) { // reached global scope
-            throw new ReferenceError(name + ' is not defined');
+            if (!isSet)
+                throw new ReferenceError(name + ' is not defined');
+            else
+                return { val: undefined, scope: this };
         }
         // TODO: what is this doing?
         // lookup in my current function
@@ -1172,7 +1175,7 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
         var parentScope = this.getParentScope();
         if (!parentScope)
             throw new ReferenceError(name + ' is not defined');
-        return parentScope.findScope(name);
+        return parentScope.findScope(name, isSet);
     }
 
 });

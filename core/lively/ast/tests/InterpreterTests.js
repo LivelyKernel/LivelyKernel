@@ -632,6 +632,18 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     test45InterpretWithContext: function() {
         var node = this.parse('this');
         this.assertEquals(42, this.interpretWithContext(node, 42));
+    },
+
+    test46aReadUndefinedVarFromGlobalScope: function() {
+        var node = this.parse('a1b2c3;')
+        this.assertRaises(this.interpret.curry(node, Global), 'undefined variable read did not throw error');
+    },
+
+    test46bAddVarToGlobalScope: function() {
+        var node = this.parse('a1b2c3 = 123;')
+        this.assertEquals(123, this.interpret(node, Global));
+        this.assertEquals(Global.a1b2c3, 123, 'global variable was not set');
+        delete Global.a1b2c3;
     }
 
 });

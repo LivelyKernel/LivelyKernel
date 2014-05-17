@@ -86,6 +86,11 @@ lively.morphic.Morph.addMethods(
         return this.owner.getBreadthFirstUpwards(name);
     },
 },
+'tagging', {
+    tagScript: function(scriptName, tags) {
+        return this[scriptName].tag(tags);
+    }
+},
 'conversion', {
     asSVGLogo: function() {
         var oldPos = this.getPosition();
@@ -445,6 +450,18 @@ Trait('lively.morphic.DraggableBehavior').applyTo(lively.morphic.DraggableBehavi
 });
 
 Object.extend(Function.prototype, {
+
+    setTimestampAndUser: function(timestamp, user) {
+        this.setProperty('timestamp', timestamp || new Date());
+        this.setProperty('user', user || lively.Config.get('UserName'));
+    },
+
+    tag: function(tags) {
+        tags = (typeof tags === 'string') ? [tags] : tags;
+        this.setProperty("tags", tags);
+        return true;
+    },
+
     printMethodsAsScripts: function() {
         // for classes that should be converted to PartsBin objects
         var methods = [],

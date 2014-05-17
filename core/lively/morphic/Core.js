@@ -497,9 +497,15 @@ Object.subclass('lively.morphic.Morph',
 },
 'prototypical scripting', {
     addScript: function(funcOrString, optName, optMapping) {
-        if (!funcOrString) return false;
-        var func = Function.fromString(funcOrString);
-        return func.asScriptOf(this, optName, optMapping);
+        if (!funcOrString) return null;
+        var func        = Function.fromString(funcOrString),
+            oldFunction = this[func.name],
+            changed     = oldFunction && oldFunction.toString() !== func.toString(),
+            timestamp   = oldFunction && !changed ? oldFunction.timestamp : undefined,
+            user        = oldFunction && !changed ? oldFunction.user : undefined,
+            result      = func.asScriptOf(this, optName, optMapping);
+        result.setTimestampAndUser(timestamp, user);
+        return result;
     }
 
 },

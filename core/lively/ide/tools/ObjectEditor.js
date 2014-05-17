@@ -63,6 +63,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _SoftTabs: true,
             _aceInitialized: true,
             accessibleInInactiveWindow: true,
+            evalEnabled: false,
             droppingEnabled: false,
             draggingEnabled: false,
             grabbingEnabled: false,
@@ -84,16 +85,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             textMode: "javascript",
             textString: "",
             theme: "",
-            boundEval: function boundEval(str) {
-                    var result;
-                
-                    this.objectEditorPane.ensureAnnotationLayer();
-                    withLayers([ScriptAnnotationLayer], function() {
-                        result = $super(str);
-                    })
-                    
-                    return result
-                },
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "textString", this.get("ChangeIndicator"), "indicateUnsavedChanges", {});
         },
@@ -102,34 +93,24 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     this.setTextString(jsCode);
                 },
             doSave: function doSave() {
-                    $super();
-                    var saved = this.boundEval(this.getTextString());
-        
-                    if (saved) {
-                        this.lastSaveSource = this.textString;
-                        this.owner.changeIndicator.indicateUnsavedChanges();
-                        this.owner.updateLists();
-                        this.owner.selectChangedContent(this.getTextString());
-                        this.setStatusMessage("saved source", Color.green);
-                    } else {
-                        this.setStatusMessage("not saved", Color.red);
-                    }
-                },
+    $super();
+    this.get('ObjectEditorPane').saveSourceFromEditor(this);
+},
             hasChanged: function hasChanged() {
-                    var cleanText = function (string) {
-                        var source = string.trim();
-                        if (source.substring(0,2) === "//") {
-                            // removes annotation line
-                            source = source.substring(source.indexOf("\n"), source.length);
-                            source = source.trim();
-                        }
-                        if (source === 'undefined' || source === 'null') source = '';
-                        return source;
-                    }
-                    var cleanedTextString = cleanText(this.textString);
-                    var cleanedLastSource = cleanText(this.lastSaveSource);
-                    return cleanedTextString !== cleanedLastSource;
-                },
+    var cleanText = function (string) {
+        var source = string.trim();
+        if (source.substring(0,2) === "//") {
+            // removes annotation line
+            source = source.substring(source.indexOf("\n"), source.length);
+            source = source.trim();
+        }
+        if (source === 'undefined' || source === 'null') source = '';
+        return source;
+    }
+    var cleanedTextString = cleanText(this.textString || '');
+    var cleanedLastSource = cleanText(this.lastSaveSource || '');
+    return cleanedTextString !== cleanedLastSource;
+},
             reset: function reset() {
                     this.doitContext = null;
                     this.lastSaveSource = "";
@@ -1276,17 +1257,19 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 this.scriptList.selectAt(0);
             }
         },
-        displayJavaScriptSource: function displayJavaScriptSource(jsCode, selectString) {
-            var editor = this.scriptPane;
-            function insert() {
-                editor.display(jsCode);
-                editor.focus();
-                selectString && editor.find({needle: selectString, start: {column: 0, row: 0}});
-            }
-            if (this.scriptPane.hasChanged()) {
-                this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });
-            } else { insert(); }
-        },
+        displayJavaScriptSource: function displayJavaScriptSource(jsCode, selectString, optMode) {
+    var editor = this.scriptPane;
+    function insert() {
+        if (optMode) editor.setTextMode(optMode);
+        editor.display(jsCode);
+        editor.focus();
+        selectString && editor.find({needle: selectString, start: {column: 0, row: 0}});
+    }
+
+    if (this.scriptPane.hasChanged()) {
+        this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });
+    } else { insert(); }
+},
         displaySourceForConnection: function displaySourceForConnection(connection) {
             var code = "", that = this;
             if (connection === undefined) return;
@@ -1301,63 +1284,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.displayJavaScriptSource(code);
         },
         displaySourceForScript: function displaySourceForScript(scriptName) {
-            var code = "",
-                that = this;
-            if (scriptName === null) {
-                this.sortedScriptNamesOfObj(this.target).forEach(function(each) {
-                    code = code.concat(that.generateSourceForScript(each)).concat("\n\n\n");
-                });
-                code = code.substring(0, code.length - "\n\n\n".length - 1);
-            } else {
-                code = this.generateSourceForScript(scriptName);
-            }
-            if (code) this.displayJavaScriptSource(code);
-        },
-        ensureAnnotationLayer: function ensureAnnotationLayer() {
-            module('lively.LayerableMorphs').load(true);
-        
-            if ("ScriptAnnotationLayer" in Global) return;
-            
-            cop.create("ScriptAnnotationLayer");
-            ScriptAnnotationLayer.refineClass(
-                lively.morphic.Morph,{
-                    
-                addScript: function(funcOrString) {
-                    var func = Function.fromString(funcOrString),
-                        oldFunction = this[func.name],
-                        changed = oldFunction && oldFunction.toString() !== func.toString();
-                       
-                    var result = cop.proceed.apply(this, arguments);
-        
-                    if (oldFunction && !changed) {
-                         this[func.name].setTimestampAndUser(oldFunction.timestamp, oldFunction.user);
-                    } else {
-                         this[func.name].setTimestampAndUser();
-                    }
-                    return result;
-                },
-        
-                tagScript: function(scriptName, tags) {
-                    return this[scriptName].tag(tags);
-                }
-        
-            });   
-            ScriptAnnotationLayer.refineObject(
-                Function.prototype,{
-        
-                setTimestampAndUser: function(timestamp, user) {
-                    this.setProperty('timestamp', timestamp || new Date());
-                    this.setProperty('user', user || lively.Config.get('UserName'));
-                },
-                
-                tag: function(tags) {
-                    tags = (typeof tags === 'string') ? [tags] : tags;
-                    this.setProperty("tags", tags);
-                    return true; 
-                }  
-            });
-        
-        },
+    var codeSpec = scriptName ?
+        this.generateSourceForScript(scriptName) : {
+            code: this.sortedScriptNamesOfObj(this.target)
+                .map(this.generateSourceForScript, this)
+                .pluck('code')
+                .join('\n\n\n'),
+            mode: 'javascript'
+        }
+    this.displayJavaScriptSource(codeSpec.code, codeSpec.scriptName, codeSpec.mode);
+},
         generateSourceForConnection: function generateSourceForConnection(connection) {
             var c = connection, targetObject = this.target;
             if (!c.getTargetObj() || !c.getTargetObj().name || 
@@ -1377,20 +1313,19 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
         },
         generateSourceForScript: function generateSourceForScript(scriptName) {
-            var script = this.target[scriptName],
-                annotation = '',
-                scriptSource = '',
-                tagScript = '';
-        
-            if (!script) return;
-        
-            if (script.timestamp && script.user) 
-                annotation = Strings.format('// changed at %s by %s  \n', script.timestamp, script.user);
-            scriptSource = Strings.format('this.addScript(%s)', script.getOriginal().originalSource || script.getOriginal());
-            tagScript = Strings.format('.tag(%s);', this.printTags(script));
-        
-            return annotation + scriptSource + tagScript;
-        },
+    var script = this.target[scriptName];
+    if (!script) return null;
+
+    return {
+        mode: 'javascript',
+        scriptName: scriptName,
+        code: Strings.format(
+            '// changed at %s by %s\nthis.addScript(%s).tag(%s);',
+            script.timestamp, script.user,
+            script.getOriginal().originalSource || script.getOriginal(),
+            this.printTags(script)),
+    };
+},
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
             var name = targetObject.name;
             if (baseObject === targetObject) 
@@ -1490,6 +1425,22 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.world().alertOK("Running " + scriptName);
             this.target[scriptName]();
         },
+        saveSourceFromEditor: function saveSourceFromEditor(editor) {
+    var source = editor.getTextString(),
+        saved = editor.boundEval(source);
+
+    if (!saved) {
+        editor.setStatusMessage("not saved", Color.red);
+        return;
+    }
+
+    editor.lastSaveSource = source;
+    this.changeIndicator.indicateUnsavedChanges();
+    this.updateLists();
+    this.selectChangedContent(source);
+    editor.setStatusMessage("saved source", Color.green);
+
+},
         selectChangedContent: function selectChangedContent(source) {
         
             var addScriptRegex = /this\.addScript\s*\(\s*function\s*([^\(]*)/g;
@@ -1555,14 +1506,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.startStepping(500/*ms*/, 'update'); 
         },
         sortedConnectionNamesOfObj: function sortedConnectionNamesOfObj(obj) {
-            if ("attributeConnections" in obj) {
-                return obj.attributeConnections.
-                    sortBy(function(each) {return name.toLowerCase() }).
-                    collect(function(each) {return [each.getSourceAttrName(), each]});
-            } else {
-                return [];
-            }
-        },
+    return obj.attributeConnections ?
+        obj.attributeConnections
+            .map(function(con) { return [con.getSourceAttrName(), con]; }): [];
+},
         sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
         
             if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];

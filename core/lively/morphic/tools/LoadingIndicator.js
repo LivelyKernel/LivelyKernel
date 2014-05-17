@@ -39,10 +39,11 @@ lively.BuildSpec('lively.morphic.LoadingIndicator', {
 });
 
 Object.extend(lively.morphic.tools.LoadingIndicator, {
-    open: function(doFunc) {
+    open: function(label, doFunc) {
         var loadingIndicator = lively.BuildSpec('lively.morphic.LoadingIndicator').createMorph().openInWorld();
-        function closeLoadingIndicator() { loadingIndicator.remove(); }
-        doFunc && doFunc(closeLoadingIndicator);
+        if (arguments.length === 1) doFunc = label;
+        else loadingIndicator.setLabel(label);
+        doFunc && doFunc(function closeLoadingIndicator() { loadingIndicator.remove(); });
         return loadingIndicator;
     }
 });

@@ -742,9 +742,8 @@ Object.extend(lively.ide.CommandLineSearch, {
     extractBrowseRefFromGrepLine: function(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
-        line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
-        if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
+        line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
         return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
     },

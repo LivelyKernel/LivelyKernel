@@ -322,7 +322,17 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             throw throwableBreak();
         }
 
-        this['visit' + node.type](node, state);
+        try {
+            this['visit' + node.type](node, state);
+        } catch (e) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
+            if (!frame.isResuming() && e.error && e.error.toString() != 'Break') {
+                frame.setPC(node);
+                e.shiftFrame(frame);
+            }
+            throw e;
+        }
     },
 
     visitProgram: function(node, state) {

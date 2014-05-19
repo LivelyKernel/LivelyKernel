@@ -1093,7 +1093,7 @@ handleOnCapture);
                     var pos = world.firstHand().getPosition();
                     pasteTarget.addMorph(pastedMorph);
                     pastedMorph.setPosition(pasteTarget.localize(pos));
-                    alertOK('Pasted ' + pasteTarget);
+                    alertOK('Pasted ' + pastedMorph);
                     if (pastedMorph.isMorphClipboardCarrier) {
                         pastedMorph.submorphs.forEach(function(ea) { pasteTarget.addMorph(ea); });
                         pastedMorph.remove();

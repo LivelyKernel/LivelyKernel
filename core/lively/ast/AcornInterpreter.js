@@ -1014,10 +1014,14 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         if (this._cachedFunction)
             return this._cachedFunction;
 
-        var self = this;
-        var fn = Object.extend(function fn(/*args*/) {
-            return self.apply(this, Array.from(arguments));
-        }, {
+        var self = this,
+            forwardFn = function FNAME(/*args*/) {
+                return self.apply(this, Array.from(arguments));
+            },
+            forwardSrc = forwardFn.toStringRewritten ? forwardFn.toStringRewritten() : forwardFn.toString();
+        var fn = Object.extend(
+            // FIXME: this seems to be the only way to get the name attribute right
+            eval('(' + forwardSrc.replace('FNAME', this.name() || '') + ')'), {
             isInterpretableFunction: true,
             forInterpretation: function() { return fn; },
             ast: function() { return self.node; },
@@ -1030,6 +1034,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // evaluatedSource: function() { return ...; },
             // custom Lively stuff
             methodName: this.name(),
+            argumentNames: function() {
+                return self.argNames();
+            }
         });
 
         // TODO: prepare more stuff from optFunc

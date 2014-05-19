@@ -649,6 +649,22 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
     test47Debugger: function() {
         var node = this.parse('debugger; 123;');
         this.assertRaises(this.interpret.curry(node), /UNWIND.*Debugger/);
+    },
+
+    test48aLeakingFunctionImplementation: function() {
+        var src = 'function foo() {}\nfoo.name;',
+            node = this.parse(src);
+        this.assertEquals('foo', this.interpret(node), 'wrong function name returned');
+
+        src = '(function() {}).name;',
+        node = this.parse(src);
+        this.assertEquals('', this.interpret(node), 'function name for anonymous function not empty');
+    },
+
+    test48bLeakingFunctionImplementation: function() {
+        var src = '(function foo(a, b, c) {}).argumentNames();',
+            node = this.parse(src);
+        this.assertEqualState(['a', 'b', 'c'], this.interpret(node), 'wrong argument names returned');
     }
 
 });

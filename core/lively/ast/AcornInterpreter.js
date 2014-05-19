@@ -940,12 +940,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         } catch (e) {
             if (lively.Config.get('loadRewrittenCode') && e.unwindException)
                 e = e.unwindException;
+            state.result = e;
+            state.currentFrame.setPC(node);
             if (e.isUnwindException) {
                 e.shiftFrame(state.currentFrame);
                 e = e.error;
             }
-            state.result = e;
-            state.currentFrame.setPC(node);
             throw e.unwindException || e;
         }
     },

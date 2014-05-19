@@ -1609,6 +1609,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
     UnwindException.prototype.shiftFrame = function(frame) {
+        if (!frame.isResuming()) console.log('Frame without PC found!', frame);
         if (!this.top) {
             this.top = this.last = frame;
         } else {

@@ -504,7 +504,11 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
 'plugin interface', {
     serializeObj: function(original, persistentCopy) {
         if (typeof original.onstore === 'function') {
-            original.onstore(persistentCopy);
+            try {
+                original.onstore(persistentCopy);
+            } catch (e) {
+                console.error('error in onstore of ' + original + ': ' + (e.stack || e));
+            }
         }
     },
     afterDeserializeObj: function(obj) {

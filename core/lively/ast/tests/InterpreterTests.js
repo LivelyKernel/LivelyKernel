@@ -644,6 +644,11 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(123, this.interpret(node, Global));
         this.assertEquals(Global.a1b2c3, 123, 'global variable was not set');
         delete Global.a1b2c3;
+    },
+
+    test47Debugger: function() {
+        var node = this.parse('debugger; 123;');
+        this.assertRaises(this.interpret.curry(node), /UNWIND.*Debugger/);
     }
 
 });

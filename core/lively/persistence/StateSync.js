@@ -452,13 +452,56 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }
     },
     indicateUpdate: function () {
-        // var changeIndicator = new lively.morphic.Box(lively.rect(0, 0, 10, 10));
-        // changeIndicator.openInWorld();
-        // changeIndicator.setPosition(this.getPosition().plusXY(this.getExtent().x - 10, 0));
-        // changeIndicator.setFill(Color.tangerine);
-        // changeIndicator.setBorderWidth(0);
-        // window.setTimeout(function() {changeIndicator.remove()}, 10)
-        // connect(this, "position", changeIndicator, "remove", {removeAfterUpdate: true)
+        var highlightColor = Color.tangerine;
+
+        if (this.isFocused()) return
+        if (this.updateIndicator) {
+            this.updateIndicator.boundsRect.setBounds(this.getBounds());
+            this.updateIndicator.setPosition(this.getPosition().addXY(this.getExtent().x - 20, 0));
+            return (this.updateIndicator.indicate && this.updateIndicator.indicate())
+                || this.updateIndicator;
+        }
+        var boundsRect = new lively.morphic.Box(this.getBounds());
+        boundsRect.applyStyle({
+            fill: null,
+            borderWidth: 4,
+            borderColor: highlightColor,
+        });
+        boundsRect.disableEvents();
+
+        var pos = this.getPosition().addXY(this.getExtent().x - 20, 0),
+            updateIndicator = new lively.morphic.Box(lively.rect(pos.x, pos.y, 20, 20));
+        updateIndicator.applyStyle({
+            fill: highlightColor,
+            borderWidth: 0});
+        
+        updateIndicator.openInWorld();
+        boundsRect.openInWorld();
+        this.updateIndicator = updateIndicator;
+        this.updateIndicator.boundsRect = boundsRect;
+    
+        if (this.hasOwnProperty("onFocus")){
+            connect(this, "onFocus", boundsRect, "remove", { removeAfterUpdate: true })
+            connect(this, "onFocus", updateIndicator, "remove", { removeAfterUpdate: true })
+        } else {
+            this.addScript(function() {
+                this.updateIndicator.remove();
+                this.updateIndicator.boundsRect.remove();
+                delete this.onFocus;
+                delete this.updateIndicator;
+            }, "onFocus")
+        }
+        connect(this, "remove", boundsRect, "remove", { removeAfterUpdate: true })
+        connect(this, "remove", updateIndicator, "remove", { removeAfterUpdate: true })
+        connect(this, "position", boundsRect, "setPosition", {
+            updater: function($upd, val) {
+                if (!target.owner) this.disconnect();
+                else {
+                    $upd(val);
+                    source.updateIndicator.setPosition(val)
+                }
+            },
+        })
     },
     toString: function() {
         if (this.constructor.prototype.toString !== lively.morphic.Morph.prototype.toString)
@@ -663,6 +706,7 @@ function formUpdate(me, error, value) {
     this.mixInto(newMe, me.synchronizationHandles[0], false);
     newMe.form.json = value;
     newMe.mergeWithModelData(me.getModelData());
+    newMe.indicateUpdate();
     if (me.owner) {
         newMe.setPosition(me.getPosition());
         me.owner.addMorph(newMe, me);
@@ -724,7 +768,7 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
             // visualize change
             if (this.changeVisualizationEnd !== undefined) {
                 this.changeVisualizationEnd();
-                return
+                return true;
             }
             var color = this.getBorderColor(),
                 width = this.getBorderWidth(),
@@ -766,7 +810,7 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
             // visualize change
             if (this.changeVisualizationEnd !== undefined) {
                 this.changeVisualizationEnd();
-                return
+                return true;
             }
             var color = this.getBorderColor(),
                 width = this.getBorderWidth(),
@@ -806,7 +850,8 @@ Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
             // visualize change
             if (this.changeVisualizationEnd !== undefined) {
                 this.changeVisualizationEnd();
-                return
+                return true;
+                
             }
             var color = this.sliderKnob.getFill(),
                 self = this;
@@ -888,7 +933,7 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
             // visualize change
             if (this.changeVisualizationEnd !== undefined) {
                 this.changeVisualizationEnd();
-                return
+                return true;
             }
             var color = this.getBorderColor(),
                 width = this.getBorderWidth(),

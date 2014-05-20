@@ -981,19 +981,17 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         // abstract
     },
 
-    minimize: function(evt) {
-        if (evt.isLeftMouseButtonDown() && !evt.isCtrlDown()) {
-            if (this.isMinimized) {
-                this.setExtent(pt(this.getExtent().x, this.maximizedHeight));
-                this.componentBody.setVisible(true);
-                this.isMinimized = false;
-            }
-            else {
-                this.maximizedHeight = this.getExtent().y;
-                this.componentBody.setVisible(false);
-                this.setExtent(pt(this.getExtent().x, 24 + 7));
-                this.isMinimized = true;
-            }
+    minimize: function() {
+        if (this.isMinimized) {
+            this.setExtent(pt(this.getExtent().x, this.maximizedHeight));
+            this.componentBody.setVisible(true);
+            this.isMinimized = false;
+        }
+        else {
+            this.maximizedHeight = this.getExtent().y;
+            this.componentBody.setVisible(false);
+            this.setExtent(pt(this.getExtent().x, 24 + 7));
+            this.isMinimized = true;
         }
     },
     
@@ -1105,11 +1103,10 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     
     onMouseUp: function(evt) {
-        if (evt.target.className.toString().indexOf("ComponentHeader") < 0)
+        if (evt.target.className.toString().indexOf("ComponentHeader") < 0 || evt.isCtrlDown())
             return;
-        var headerClicked = this.componentHeader.fullContainsWorldPoint(pt(evt.pageX, evt.pageY));
-        if (headerClicked) {
-            this.minimize(evt);
+        if (evt.isLeftMouseButtonDown()) {
+            this.minimize();
         }
     },
     
@@ -1134,11 +1131,14 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
     },
     remove: function($super) {
         $super();
-
-        if (!this.wasDragged) {
-            // notify the content of the removal
-            this.content.remove();
-        }
+        var _this = this;
+        setTimeout(function () {
+            // removed for real?
+            if (!_this.owner) {
+                // notify the content of the removal
+                _this.content.remove();
+            }
+        }, 0);
     },
 
     
@@ -1967,11 +1967,11 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         }
     },
     
-    onMouseUp: function(e) {
-        if (e.isLeftMouseButtonDown()) {
+    onMouseUp: function(evt) {
+        if (evt.isLeftMouseButtonDown()) {
             this.toggle();
-        } else if (e.isRightMouseButtonDown()) {
-            this.showContextMenu(e.scaledPos);
+        } else if (evt.isRightMouseButtonDown()) {
+            this.showContextMenu(evt.scaledPos);
         }
     },
     
@@ -2681,12 +2681,54 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     onMouseUp: function($super, evt) {
         if (evt.isShiftDown()) {
             this.toggleSelect();
+        } else if (evt.isRightMouseButtonDown()) {
+            this.showHeaderContextMenu(evt.scaledPos);
         } else {
             $super(evt);
         }
     },
-    toggleSelect: function() {
-        this.selected = !this.selected;
+    showHeaderContextMenu: function(position) {
+        var _this = this;
+        var contextItems = [
+            ["Select/Unselect", function() {
+                _this.toggleSelect();
+            }],
+            ["Select all", function() {
+                _this.selectAll();
+            }],
+            ["Publish selection", function() {
+                _this.publishSelection();
+            }]
+        ]
+        
+        var menu = new lively.morphic.Menu("Select/Publish dataflow", contextItems);
+        menu.openIn($world, position);
+    },
+    publishSelection: function() {
+        var allComponents = lively.morphic.Charts.DataFlowComponent.getAllComponents();
+        var selectedComponents = allComponents.filter(function(ea) {
+            return ea.selected === true;
+        });
+        
+        if (selectedComponents.length) {
+            var container = new lively.morphic.Morph();
+            selectedComponents.each(function(ea) {
+                container.addMorph(ea);
+            });
+            
+            var dialog = $world.openPublishPartDialogFor(container);
+            dialog.get('CategoryText').setTextString("PartsBin/ChartsParts/")
+        }
+    },
+
+    selectAll: function() {
+        var allComponents = lively.morphic.Charts.DataFlowComponent.getAllComponents();
+        allComponents.each(function(ea) {
+            ea.toggleSelect(true);
+        });
+    },
+    toggleSelect: function(selected) {
+        this.selected = selected !== undefined ? selected : !this.selected;
         var header = $(this.componentHeader.renderContext().shapeNode);
         var body = $(this.componentBody.renderContext().shapeNode);
         header.toggleClass("selected", this.selected);
@@ -2931,9 +2973,12 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     remove: function($super) {
         $super();
-        if (!window["migrationProcessIsActive"]) {
-            this.onClose();
-        }
+        var _this = this;
+        setTimeout(function () {
+            if (!_this.owner) {
+                _this.onClose();
+            }
+        }, 0);
     },
     
     addPreviewMorph: function() {

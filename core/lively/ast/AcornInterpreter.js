@@ -511,13 +511,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitThrowStatement: function(node, state) {
         this.accept(node.argument, state);
-        var error = state.result;
-        if (lively.Config.get('loadRewrittenCode')) {
-            error = new UnwindException(error);
-            state.currentFrame.setPC(node);
-            error.shiftFrame(state.currentFrame);
-        }
-        throw error;
+        throw state.result;
     },
 
     visitWhileStatement: function(node, state) {

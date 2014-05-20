@@ -397,6 +397,76 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
 // keeping the root handles when this file is modified and reloaded.
 lively.persistence.StateSync.L2LHandle.rootHandles = handles;
 
+lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
+'magic constants', {
+    highlightColor: Color.tangerine,
+    initialExtent: lively.pt(20, 20),
+},
+'initializing', {
+    initialize: function($super, targetMorph, changedSubmorphs) {
+        if (!targetMorph.synchronizationHandles || !targetMorph.synchronizationHandles.length > 0) {
+            throw new Error("Can not indicate changes for something which is not synchronized.")
+        }
+        var ext = this.initialExtent,
+            pos = targetMorph.getPosition().addXY(targetMorph.getExtent().x - ext.x, 0);
+        $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
+        
+        this.target = targetMorph;
+        this.createBounds();
+        
+        this.applyStyle({
+            fill: this.highlightColor,
+            borderWidth: 0});
+        this.indicate(changedSubmorphs);
+    },
+    createBounds: function() {
+        var boundsRect = new lively.morphic.Box(this.target.getBounds());
+        boundsRect.applyStyle({
+            fill: null,
+            borderWidth: 4,
+            borderColor: this.highlightColor,
+        });
+        this.boundsRect = boundsRect;
+        boundsRect.disableEvents();
+    },
+},
+'morphic', {
+    remove: function($super) {
+        $super();
+        this.boundsRect.remove();
+    },
+},
+'updates', {
+    indicate: function(changedSubmorphs) {
+        var targetMorph = this.target;
+        this.boundsRect.setBounds(targetMorph.getBounds());
+        this.setPosition(targetMorph.getPosition().addXY(targetMorph.getExtent().x - this.getExtent().x, 0));
+        
+        if (this.owner === $world) return
+        this.openInWorld();
+        this.boundsRect.openInWorld();
+        
+        if (targetMorph.hasOwnProperty("onFocus")){
+            connect(targetMorph, "onFocus", this, "remove", { removeAfterUpdate: true })
+        } else {
+            targetMorph.addScript(function() {
+                this.updateIndicator.remove();
+                delete this.onFocus;
+            }, "onFocus")
+        }
+        connect(targetMorph, "remove", this, "remove", { removeAfterUpdate: true })
+        connect(targetMorph, "position", this, "setPosition", {
+            updater: function($upd, val) {
+                if (!target.owner) this.disconnect();
+                else {
+                    $upd(val);
+                    source.updateIndicator.setPosition(val)
+                }
+            },
+        })
+    }
+})
+
 // Although there is the ability to have more than one synchronizationHandle, for the time being we assume there is exactly one, and the DB morph should be refactored so that that assumption is true
 Trait('lively.persistence.StateSync.SynchronizedMorphMixin', 
 'morphic', {
@@ -441,8 +511,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             // (re-)added and should therefore start getting updates again
             var aMorph = this;
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
-                if (aMorph.mergeWithModelData(val)) {
-                    aMorph.indicateUpdate();
+                var changes = aMorph.mergeWithModelData(val);
+                if (changes.length > 0) {
+                    aMorph.indicateUpdate(changes);
                 }
             });
             this.synchronizationHandles.forEach(function(handle) {
@@ -451,57 +522,13 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.form.handle.get(this.form.cb);
         }
     },
-    indicateUpdate: function () {
-        var highlightColor = Color.tangerine;
-
-        if (this.isFocused()) return
+    indicateUpdate: function (changedSubmorphs) {
         if (this.updateIndicator) {
-            this.updateIndicator.boundsRect.setBounds(this.getBounds());
-            this.updateIndicator.setPosition(this.getPosition().addXY(this.getExtent().x - 20, 0));
-            return (this.updateIndicator.indicate && this.updateIndicator.indicate())
+            return (this.updateIndicator.indicate && this.updateIndicator.indicate(changedSubmorphs))
                 || this.updateIndicator;
-        }
-        var boundsRect = new lively.morphic.Box(this.getBounds());
-        boundsRect.applyStyle({
-            fill: null,
-            borderWidth: 4,
-            borderColor: highlightColor,
-        });
-        boundsRect.disableEvents();
-
-        var pos = this.getPosition().addXY(this.getExtent().x - 20, 0),
-            updateIndicator = new lively.morphic.Box(lively.rect(pos.x, pos.y, 20, 20));
-        updateIndicator.applyStyle({
-            fill: highlightColor,
-            borderWidth: 0});
-        
-        updateIndicator.openInWorld();
-        boundsRect.openInWorld();
-        this.updateIndicator = updateIndicator;
-        this.updateIndicator.boundsRect = boundsRect;
-    
-        if (this.hasOwnProperty("onFocus")){
-            connect(this, "onFocus", boundsRect, "remove", { removeAfterUpdate: true })
-            connect(this, "onFocus", updateIndicator, "remove", { removeAfterUpdate: true })
         } else {
-            this.addScript(function() {
-                this.updateIndicator.remove();
-                this.updateIndicator.boundsRect.remove();
-                delete this.onFocus;
-                delete this.updateIndicator;
-            }, "onFocus")
+            this.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(this, changedSubmorphs);
         }
-        connect(this, "remove", boundsRect, "remove", { removeAfterUpdate: true })
-        connect(this, "remove", updateIndicator, "remove", { removeAfterUpdate: true })
-        connect(this, "position", boundsRect, "setPosition", {
-            updater: function($upd, val) {
-                if (!target.owner) this.disconnect();
-                else {
-                    $upd(val);
-                    source.updateIndicator.setPosition(val)
-                }
-            },
-        })
     },
     toString: function() {
         if (this.constructor.prototype.toString !== lively.morphic.Morph.prototype.toString)
@@ -538,23 +565,23 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             $world.addModal(dialog.panel, self);
         }
         if (this.changeTime && this.changeTime > someValue.changeTime)
-            return;// alertOK("Change ignored due to newer changes in this world.");
+            return [];// alertOK("Change ignored due to newer changes in this world.");
         try {
             this.noSave = true;
             return (function walkRecursively(values) {
-                if (!Object.isObject(values)) return
-                var changed = false;
+                if (!Object.isObject(values)) return []
+                var changed = [];
                 this.submorphs.forEach(function(morph) {
                     if (morph.name) {
                         // only named morphs are candidates for fields
                         if (morph.mergeWithModelData && values[morph.name] !== undefined)
                             try {
                                 if (morph.mergeWithModelData(values[morph.name], someValue.changeTime))
-                                    changed = true;
+                                    changed.push(morph);
                             } catch (e) {
                                 alert("Error while merging changes into " + this + ": " + e)
                             }
-                        else walkRecursively.call(morph, values[morph.name])
+                        else changed = changed.concat(walkRecursively.call(morph, values[morph.name]));
                     };
                 });
                 return changed;
@@ -713,7 +740,7 @@ function formUpdate(me, error, value) {
     this.mixInto(newMe, me.synchronizationHandles[0], false);
     newMe.form.json = value;
     newMe.mergeWithModelData(me.getModelData());
-    newMe.indicateUpdate();
+    newMe.indicateUpdate([newMe]);
     if (me.owner) {
         newMe.setPosition(me.getPosition());
         me.owner.addMorph(newMe, me);

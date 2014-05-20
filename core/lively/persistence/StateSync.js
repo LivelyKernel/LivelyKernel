@@ -646,6 +646,7 @@ function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
         var part = lively.persistence.Serializer.deserialize(formJSON),
             handle = rootHandle.child(modelPath);
         part.setName(name);
+        part.form = {json: formJSON};
         trait.mixInto(part, handle, false);
         if (thenDo) {
             thenDo(null, part);
@@ -672,7 +673,7 @@ function mixInto(aMorph, morphHandle, saveForm) {
     this.connectSavingProperties(aMorph);
     
     aMorph.form = {
-        json: "", 
+        json: aMorph.form && aMorph.form.json || "", 
         cb: this.formUpdate.bind(this, aMorph),
         handle: formHandle};
     aMorph.synchronizationHandles = aMorph.synchronizationHandle || [];

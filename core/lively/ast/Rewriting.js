@@ -1398,23 +1398,44 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         body.body.unshift(
             // var _xx = { 'e': e.isUnwindExpression ? e.error : e };
             rewriter.createCatchScope(param.name),
-            // if (_xx[x].toString() == 'Debugger')
+            // if (_xx[x].toString() == 'Debugger' && !lively.Config.get('loadRewrittenCode'))
             //     throw e;
             rewriter.newNode('IfStatement', {
-                test: rewriter.newNode('BinaryExpression', {
-                    operator: '==',
-                    left: rewriter.newNode('CallExpression', {
-                        callee: rewriter.newNode('MemberExpression', {
-                            object: rewriter.newNode('MemberExpression', {
-                                object: rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
-                                property: rewriter.newNode('Literal', { value: param.name }),
-                                computed: true
-                            }),
-                            property: rewriter.newNode('Identifier', { name: 'toString' }),
-                            computed: false
-                        }), arguments: []
+                test: rewriter.newNode('LogicalExpression', {
+                    operator: '&&',
+                    left: rewriter.newNode('BinaryExpression', {
+                        operator: '==',
+                        left: rewriter.newNode('CallExpression', {
+                            callee: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('MemberExpression', {
+                                    object: rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
+                                    property: rewriter.newNode('Literal', { value: param.name }),
+                                    computed: true
+                                }),
+                                property: rewriter.newNode('Identifier', { name: 'toString' }),
+                                computed: false
+                            }), arguments: []
+                        }),
+                        right: rewriter.newNode('Literal', { value: 'Debugger' })
                     }),
-                    right: rewriter.newNode('Literal', { value: 'Debugger' })
+                    right: rewriter.newNode('UnaryExpression', {
+                        operator: '!',
+                        prefix: true,
+                        argument: rewriter.newNode('CallExpression', {
+                            callee: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('MemberExpression', {
+                                    object: rewriter.newNode('Identifier', { name: 'lively' }),
+                                    property: rewriter.newNode('Identifier', { name: 'Config' }),
+                                    computed: false
+                                }),
+                                property: rewriter.newNode('Identifier', { name: 'get' }),
+                                computed: false
+                            }),
+                            arguments: [
+                                rewriter.newNode('Literal', { value: 'loadRewrittenCode' })
+                            ]
+                        })
+                    })
                 }),
                 consequent: rewriter.newNode('ThrowStatement', {
                     argument: rewriter.newNode('Identifier', { name: param.name })

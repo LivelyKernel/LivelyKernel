@@ -55,7 +55,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     catchIntro: function(level, catchVar, storeResult) {
         storeResult = storeResult == null ? true : !!storeResult;
         return Strings.format("var _%s = { '%s': %s.isUnwindException ? %s.error : %s };\n"
-            + "if (_%s['%s'].toString() == 'Debugger')\n"
+            + "if (_%s['%s'].toString() == 'Debugger' && !lively.Config.get('loadRewrittenCode'))\n"
             + "    throw %s;\n"
             + (storeResult ? this.pcAdvance() + ";\n"
                 + "__%s = [\n"

@@ -566,9 +566,11 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.setTopFrame(frame);
             } else
                 this.owner.remove();
-        } else if (result.top && result.top != frame) // new frame
-            this.setTopFrame(result.top);
-        else
+        } else if (result.unwindException && result.unwindException.top && result.unwindException.top != frame) { // new frame
+            this.setTopFrame(result.unwindException.top);
+            if (result.toString && result.toString())
+                this.getWindow().setTitle(result.toString());
+        } else
             this.setCurrentFrame(frame); // simple pc advancement
     }
     })],

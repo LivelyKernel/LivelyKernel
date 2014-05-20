@@ -683,7 +683,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
                     // TODO: pop boundEval & interactiveEval from stack?
                     var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
-                    lively.ast.openDebugger(cont.currentFrame, e.message);
+                    lively.ast.openDebugger(cont.currentFrame, e.toString());
                 });
             }
             return e;

@@ -4529,7 +4529,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     getContextMenuItems: function() {
         return [
             "Statistics",
-            "Sort"
+            "Sort",
+            "Rename"
             ];
     },
     handleClick: function(cell, method) {
@@ -4574,6 +4575,19 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 var _this = this;
                 this.table.setScroll(scrollPosition[0], scrollPosition[1]);
                 break;
+            case "Rename":
+                var data = this.component.data;
+                var _this = this;
+                var renameColumn = function(newName) {
+                    data.map(function(ea) {
+                        ea[newName] = ea[attribute];
+                        delete ea[attribute];
+                        return ea;
+                    });
+                    _this.component.onContentChanged();
+                }
+                var description = "Enter new name";
+                $world.prompt(description, renameColumn);
         }
     },
 
@@ -4758,6 +4772,7 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     getContextMenuItems: function() {
         return [
             "Statistics",
+            "Sort",
             "Add heuristic"
             ];
     },

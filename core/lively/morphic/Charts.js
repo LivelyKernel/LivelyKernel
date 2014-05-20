@@ -3912,11 +3912,12 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     },
     createMappingArea: function() {
         // create container for all lines
-        var bounds = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, this.extent.y * 0.7);
+        var bounds = lively.rect(0, 0, this.extent.x / 3 * 2 - 6, 0);
         this.mappingContainer = new lively.morphic.Box(bounds);
         
         var layout = new lively.morphic.Layout.VerticalLayout();
         layout.setSpacing(0);
+        layout.borderSize = 0;
         this.mappingContainer.setLayouter(layout);
         
         this.addMorph(this.mappingContainer);
@@ -3927,9 +3928,14 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         }
         
         var bounds = this.mappingContainer.bounds();
-        bounds = lively.rect(0, 0, 200, 50);
+        bounds = lively.rect(0, 0, 200, 20);
         var mappingCategory = new lively.morphic.Charts.MappingLineCategory(bounds, aMorph);
+        
         this.mappingContainer.addMorph(mappingCategory);
+        
+        // update layout
+        var _this = this;
+        setTimeout(function(){_this.mappingContainer.applyLayout();}, 100);
     },
     removeCategoryOf: function(aMorph) {
         this.mappingContainer.submorphs
@@ -3937,30 +3943,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 return ea.categoryMorph == aMorph;
             }).remove();
     },
-    createMappingInput: function(inputHeight) {
-        var mappingInput = new lively.morphic.Morph.makeRectangle(
-            lively.rect(0, 0, this.extent.x / 3 * 2 - 3, inputHeight - 3)
-        );
-        
-        mappingInput.setFill(Color.white);
-        mappingInput.setBorderRadius(5);
-        mappingInput.setBorderColor(Color.rgb(66, 139, 202));
-        mappingInput.layout = {resizeWidth: true};
-        mappingInput.layout.layouter = new lively.morphic.Layout.TightHorizontalLayout(mappingInput);
-        mappingInput.layout.layouter.spacing = 4;
-        mappingInput.layout.layouter.borderSize = 2; 
-        this.datumInput = this.createInputField("datum");
-        mappingInput.addMorph(this.datumInput);
-        
-        if (!lively.morphic.Charts.MorphCreator.counter) lively.morphic.Charts.MorphCreator.counter = 1;
-        var currentID = lively.morphic.Charts.MorphCreator.counter;
-        lively.morphic.Charts.MorphCreator.counter++;
-        this.morphInput = this.createInputField("morph" + currentID);
-        mappingInput.addMorph(this.morphInput);
-        
-        mappingInput.addMorph(lively.morphic.Text.makeLabel("mappingInput:"));
-        return mappingInput;
-    },
+
 
 
     update : function($super, data) {
@@ -4131,16 +4114,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             cloned: cloned,
         };
     },
-    createInputField: function(text) {
-        var input = $world.loadPartItem("InputField", "PartsBin/Inputs");
-        input.setTextString(text);
-        input.setName(text);
-        input.setBorderColor(Color.white)
-        input.setBorderRadius(0);
-        input.setExtent(pt(80, 20));
-        input.setFontSize(10);
-        return input;
-    },
+
     
     wantsDroppedMorph: function(aMorph) {
         return (!(aMorph instanceof lively.morphic.Charts.Component) && $world.draggedMorph !== aMorph);
@@ -6479,16 +6453,17 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     createValueField: function() {
         var offset = 120;
-        var valueField = new lively.morphic.Text(lively.rect(offset, 0, this.getExtent().x - offset, 14), "");
+        var valueField = new lively.morphic.Text(lively.rect(offset, 0, this.getExtent().x - offset - 8, 16), "");
+        
         valueField.setFill(Color.white);
         valueField.setTextColor(this.INACTIVE_COLOR);
         valueField.setBorderColor(this.INACTIVE_COLOR);
         valueField.setBorderWidth(1);
         valueField.setBorderStyle("dashed");
         valueField.setBorderRadius(8);
-        valueField.setFixedHeight(false);
         valueField.layout = {
-            resizeWidth: true
+            resizeWidth: true,
+            resizeHeight: false
         }
         valueField.setWordBreak("break-word");
         
@@ -6528,7 +6503,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
     },
     createAttributeField: function() {
         var maxWidth = 100;
-        var attributeField = new lively.morphic.Text(lively.rect(0, 0, maxWidth, 20), "");
+        var attributeField = new lively.morphic.Text(lively.rect(2, 0, maxWidth, 16), "");
         attributeField.setBorderWidth(0);
         attributeField.setBorderRadius(8);
         attributeField.setFill(this.INACTIVE_COLOR);
@@ -6669,6 +6644,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         this.categoryMorph = categoryMorph;
         this.mappingLines = [];
         this.setFill(Color.white);
+        this.setFillOpacity(0);
         this.layout = {
             adjustForNewBounds: true,
             resizeWidth: true,
@@ -6677,16 +6653,20 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         
         // layout for layouting the lines vertically
         var layout = new lively.morphic.Layout.VerticalLayout();
-        layout.setSpacing(7.5);
+        layout.setSpacing(5);
+        layout.borderSize = 0;
         this.setLayouter(layout);
         
         // add category name
         var text = lively.morphic.Text.makeLabel(categoryMorph.getName());
         text.eventsAreIgnored = true;
+        // use setTimeout otherwise extent overriden
+        setTimeout(function(){text.setExtent(pt(60, 20));},100);
         this.addMorph(text);
-
+        
         // create the initial mapping line
         this.createEmptyLine();
+        
     },
     refreshLayout: function() {
         this.getLayouter().layout(this, this.submorphs);
@@ -6771,8 +6751,7 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         return previous ? previous : sender;
     },
     createEmptyLine: function() {
-        var line = new lively.morphic.Charts.MappingLine(lively.rect(0, 0, this.getExtent().x, 20), this);
-        
+        var line = new lively.morphic.Charts.MappingLine(lively.rect(0, 0, this.getExtent().x, 16), this);
         this.emptyLine = line;
         this.addLine(line);
         

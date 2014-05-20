@@ -926,6 +926,40 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
             'parent frame does not have correct PC');
 
         this.assertEquals(2, interpreter.runFromPC(frame), 'did not finish resume');
+    },
+
+    test06SteppingIntoFunctionResetAndResume: function() {
+        var node = this.parse('(function foo(arg) { return arg; })(123);'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        result = interpreter.stepToNextStatement(frame);
+        this.assertEquals('Break', result && result.toString(), 'first step');
+        this.assertEquals(node.body[0], frame.getPC(), 'did not halt at initial position');
+
+        result = interpreter.stepToNextCallOrStatement(frame);
+        this.assertEquals('Break', result && result.toString(), 'second step');
+        var newFrame = result.unwindException.top;
+        while (newFrame && newFrame.isInternal()) {
+            newFrame = newFrame.getParentFrame();
+        }
+
+        var functionNode = node.body[0].expression.callee;
+        this.assertEquals(functionNode.body.body[0], newFrame && newFrame.getPC(),
+            'no new top frame returned');
+        this.assertEquals(123, newFrame.getScope().get('arg'), 'argument "arg" was not set correctly');
+        this.assertEquals(node.body[0].expression, frame.getPC(),
+            'parent frame does not have correct PC');
+
+        newFrame.reset();
+        this.assertEquals(undefined, newFrame.getPC(), 'PC of frame was not reset');
+        this.assertEquals(node.body[0].expression, frame.getPC(),
+            'parent frame does not have correct PC after reset');
+        this.assertEquals(123, newFrame.getScope().get('arg'), 'argument "arg" was not stored by reset');
+
+        this.assertEquals(123, interpreter.runFromPC(frame), 'did not finish resume');
     }
 
 });

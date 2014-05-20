@@ -278,7 +278,9 @@ Object.extend(lively.ast.Continuation, {
 
     fromUnwindException: function(e) {
         if (!e.isUnwindException) console.error("No unwind exception?");
-        return new this(e.top);
+        var continuation = new this(e.top);
+        continuation.error = e.error;
+        return continuation;
     }
 
 });

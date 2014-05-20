@@ -570,6 +570,10 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             this.setTopFrame(result.unwindException.top);
             if (result.toString && result.toString())
                 this.getWindow().setTitle(result.toString());
+        } else if (result instanceof lively.ast.Continuation) {
+            this.setTopFrame(result.currentFrame);
+            if (result.error && result.error.toString())
+                this.getWindow().setTitle(result.error.toString());
         } else
             this.setCurrentFrame(frame); // simple pc advancement
     }

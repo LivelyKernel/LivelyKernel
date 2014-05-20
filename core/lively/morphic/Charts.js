@@ -3960,7 +3960,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             this.morphInput.cachedName = morphName;
         }
         
-        this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils();
+        this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils(data);
         
         var sampleDatum = data[0];
         var mainCategory = this.getMappingCategoryFor(prototypeMorph);
@@ -4007,26 +4007,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             
             prototypeInstance.datum = ea;
             return prototypeInstance;
-        });
-        
-        // deferred evaluation of all mappings that used range
-        var attributeMap = this.getAttributeMap();
-        var _this = this;
-        data.each(function(ea, index) {
-            Properties.own(_this.morphCreatorUtils.ranges).each(function (key) {
-                var mappingCategory = _this.getMappingCategoryFor(prototypeMorph);
-                var lineIndex = mappingCategory.getIndexOf(key);
-                var setterFn = attributeMap[key];
-                if (setterFn) {
-                    try {
-                        setterFn(_this.morphCreatorUtils.interpolate.bind(_this.morphCreatorUtils, key), ea, index);
-                        mappingCategory.hideErrorAt(lineIndex);
-                    } catch (e) {
-                        mappingCategory.showErrorAt(lineIndex);
-                        console.log(e);
-                    }
-                }
-            });
         });
         
         // if pie chart, calculate arg
@@ -4165,7 +4145,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
             var morphCreatorUtils = {
-                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute)
+                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, null)
             }
             
             var valueFn = function(datum) {
@@ -4305,30 +4285,31 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
 Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
 'default category', {
-    initialize: function() {
+    initialize: function(data) {
         this.ranges = {};
         var _this = this;
         // publicly exposed utils functions
         this.public = {
-            range: function(property, samples) {
+            range: function(property, valueFunction, samples) {
                 var sampleValues = samples;
+                debugger
+                // TODO: REPLACE
+                valueFunction = function (a) { return a };
                 if (!Object.isArray(samples)) {
                     // put all arguments but the first one into an array
                     sampleValues = Array.prototype.slice.call(arguments).slice(1, arguments.length);
                 }
                 if (!_this.ranges[property]) {
-                    _this.ranges[property] = { samples : sampleValues, values: [] };
+                    var values = data.map(function (ea) {
+                        return valueFunction(ea);
+                    })
+                    _this.ranges[property] = { samples : sampleValues, values: values };
                 }
-                return function(value) {
-                    _this.ranges[property].values.push(value);
-                }
+                return _this.interpolate.bind(_this, samples, _this.ranges[property].values);
             }
         }
     },
-    interpolate: function(property, index) {
-        var samples = this.ranges[property].samples;
-        var values = this.ranges[property].values;
-        var value = values[index];
+    interpolate: function(samples, values, value) {
         var min = values.min();
         var max = values.max();
         

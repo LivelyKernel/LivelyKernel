@@ -1278,6 +1278,26 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         // those should equal the expected ones
         this.assertEquals(JSON.stringify(mappings), JSON.stringify(expected));
     },
+    testRange: function() {
+        var script = this.helper.createComponent();
+        script.arrows[0].activate();
+        script.data = [1,2,3];
+        
+        var morphCreator = this.helper.createComponent("MorphCreator", pt(0, 1));
+        var prototypeMorph = morphCreator.content.getPrototypeMorph();
+        var mappingCategory = morphCreator.content.getMappingCategoryFor(prototypeMorph);
+        var lines = mappingCategory.mappingLines;
+
+        // fill the fields with some mapping values
+        lines[0].attributeField.setTextString("height");
+        lines[0].valueField.setTextString("range([100, 200])(datum)");
+        
+        script.notifyNextComponent();
+        
+        this.assertEquals(morphCreator.data[0].getExtent().y, 100, "first value false");
+        this.assertEquals(morphCreator.data[1].getExtent().y, 150, "second value false");
+        this.assertEquals(morphCreator.data[2].getExtent().y, 200, "third value false");
+    },
     testExtractMappings: function() {
         
         var creator = this.helper.createComponent("MorphCreator").content;

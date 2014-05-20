@@ -4268,6 +4268,32 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             },
             borderColor: function(valueFn, morph, datum) {
                 morph.setBorderColor(valueFn(datum));
+            },
+            // events
+            click: function(valueFn, morph, datum){
+              morph.onClick = valueFn(datum);  
+            },
+            dbclick: function(valueFn, morph, datum){
+              morph.onDoubleClick = valueFn(datum);  
+            },
+            hover: function(valueFn, morph, datum) {
+                //TODO: improve hover function, maybe tow functions for mouseOver and mouseOut
+                // save standard properties
+                var stdColor, stdPosition, stdBorderWidth;
+                setTimeout(function(){
+                    stdColor = morph.getFill();
+                    stdPosition = morph.getPosition();
+                    stdBorderWidth = morph.getBorderWidth();
+                }, 10);
+                morph.onMouseOver = valueFn(datum);
+                morph.onMouseOut = function(){
+                    morph.setFill(stdColor);
+                    morph.setPosition(stdPosition);
+                    morph.setBorderWidth(stdBorderWidth);
+                }
+            },
+            mouseover: function(valueFn, morph, datum){
+                morph.onMouseOver = valueFn();
             }
         };
     },

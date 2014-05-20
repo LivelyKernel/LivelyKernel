@@ -539,23 +539,29 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }
         if (this.changeTime && this.changeTime > someValue.changeTime)
             return;// alertOK("Change ignored due to newer changes in this world.");
-        this.noSave = true;
-        (function walkRecursively(values) {
-            if (!Object.isObject(values)) return
-            this.submorphs.forEach(function(morph) {
-                if (morph.name) {
-                    // only named morphs are candidates for fields
-                    if (morph.mergeWithModelData && values[morph.name] !== undefined)
-                        try {
-                            morph.mergeWithModelData(values[morph.name], someValue.changeTime)
-                        } catch (e) {
-                            alert("Error while merging changes into " + this + ": " + e)
-                        }
-                    else walkRecursively.call(morph, values[morph.name])
-                }
-            });
-        }).call(this, someValue)
-        this.noSave = false;
+        try {
+            this.noSave = true;
+            return (function walkRecursively(values) {
+                if (!Object.isObject(values)) return
+                var changed = false;
+                this.submorphs.forEach(function(morph) {
+                    if (morph.name) {
+                        // only named morphs are candidates for fields
+                        if (morph.mergeWithModelData && values[morph.name] !== undefined)
+                            try {
+                                if (morph.mergeWithModelData(values[morph.name], someValue.changeTime))
+                                    changed = true;
+                            } catch (e) {
+                                alert("Error while merging changes into " + this + ": " + e)
+                            }
+                        else walkRecursively.call(morph, values[morph.name])
+                    };
+                });
+                return changed;
+            }).call(this, someValue)
+        } finally {
+            this.noSave = false;
+        }
     },
     getModelData: function() {
         var obj = (function walkRecursively() {

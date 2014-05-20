@@ -4,12 +4,17 @@ Object.subclass('lively.persistence.StateSync.Handle',
 /* class comment
  * A Handle is an accessor to a node in the tree a key-value database spanns. It provides 
  * direct access to its value, but also children. It knows about it's parent, if there is one.
+ *
+ * The only event a handle might emit is that its value, or one of its children, changed.
+ * The operations implemented are set, which is based on merging with the current value, update,
+ * which merges only the requested attributes but keeps all the other ones, push, which gives a
+ * new child handle, and get/getOnce which inform of the current value, and the first also
+ * registers for events.
  * 
  * Design decision made but unsure:
  *     create intermediate steps when browsing a whole path - yes,
  *         because that relieves us of book keeping when creating subsequent children, and 
  *         updating their parents, with minimal costs
- * Design Decision or Implementation pending:
  */
 'settings', {
     path: lively.PropertyPath("")
@@ -359,6 +364,8 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         return 'L2LHandle(to ' + this._path + ')'
     }
 });
+
+// maintaining class state in case of reloading this file
 var handles = [];
 if (lively.persistence && lively.persistence.StateSync && lively.persistence.StateSync.L2LHandle && lively.persistence.StateSync.L2LHandle.rootHandles) {
     handles = lively.persistence.StateSync.L2LHandle.rootHandles;

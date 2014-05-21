@@ -746,22 +746,22 @@ TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
         this.assertEquals(aggregatedGermany.parent.continent, "Europe");
     },
     
-    testJoin: function() {
+    testSubtreeJoin: function() {
         var employmentData = [
-            {2006: 56,  2007: 55.70000076, employment: "Afghanistan"},
-            {2006: 51.40000153, 2007: 51.40000153, employment: "Albania"},
+            {2006: 56,  2007: 55.70000076, country: "Afghanistan"},
+            {2006: 51.40000153, 2007: 51.40000153, country: "Albania"},
         ];
 
         var cellphoneData = [
-            {2006: 35.072609372, 2007: 41.4160788358, cellphones: "Afghanistan"},
-            {2006: 103.7751487718, 2007: 116.6229320736, cellphones: "Albania"},
-            {2006: 76.6446034137, 2007: 82.4719584424, cellphones: "United States"}
+            {2006: 35.072609372, 2007: 41.4160788358, country: "Afghanistan"},
+            {2006: 103.7751487718, 2007: 116.6229320736, country: "Albania"},
+            {2006: 76.6446034137, 2007: 82.4719584424, country: "United States"}
         ];
         
         var populationData = [
-            {2006: 100000, 2007: 100001, population: "Germany"},
-            {2006: 23421348, 2008: 9320736, population: "Albania"},
-            {2006: 34137, 2007: 19584424, population: "United States"}
+            {2006: 100000, 2007: 100001, country: "Germany"},
+            {2006: 23421348, 2008: 9320736, country: "Albania"},
+            {2006: 34137, 2007: 19584424, country: "United States"}
         ];
         
         var expectedResult = [
@@ -787,14 +787,9 @@ TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
             }
         ];
         
-        
-        var options = {
-            sources : [employmentData, cellphoneData, populationData],
-            sourceAttributes : ["employment", "cellphones", "population"],
-            targetAttribute : "country"
-        };
-        
-        var join = lively.morphic.Charts.Utils.join(options);
+        var dataToJoin = [employmentData, cellphoneData, populationData];
+        var joinedAttributes = ["employment", "cellphones", "population"];
+        var join = lively.morphic.Charts.Utils.join(dataToJoin, "country", joinedAttributes);
         join = join.sort(function(a, b) {
             return a.country > b.country;
         });
@@ -809,6 +804,26 @@ TestCase.subclass('lively.tests.ChartsTests.UtilsTest',
         this.assertEquals(expectedResult[2].population[2007], join[2].population[2007]);
         this.assertEquals(expectedResult[2].employment, undefined);
         
+    },
+    testSimpleJoin: function() {
+        var bipData = [{country: "D", bip:4}, {country: "EN", bip:2}, {country: "FR", bip: 3}];
+        var popData = [{country: "D", pop:8}, {country: "EN", pop:10}];
+        
+        var expectedData = [
+            {bip: 4, country: "D", pop: 8},
+            {bip: 2, country: "EN", pop: 10},
+            {bip: 3, country: "FR"}
+            ];
+        
+        var joined = lively.morphic.Charts.Utils.join([bipData, popData], "country");
+        
+        joined = joined.sort(function(a, b) {
+            return a.country > b.country;
+        });
+        
+        this.assertEquals(joined[0].bip, expectedData[0].bip);
+        this.assertEquals(joined[1].pop, expectedData[1].pop);
+        this.assertEquals(joined[2].country, expectedData[2].country);
     }
 });
 

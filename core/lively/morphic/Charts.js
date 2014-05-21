@@ -2411,42 +2411,80 @@ Object.extend(lively.morphic.Charts.Utils, {
         }
     },
     
-    join: function(options) {
-        // options should be an object with the following keys:
-        // sources : array of datasets
-        // sourceAttributes: array of attributes which define the join
-        // targetAttribute: the name of the attribute which holds the joined attribute
+    join: function(dataArrays, joinAttribute, optSubtreeNames) {
+        // the join function performs an outer-join
         
-        var joined = [];
-        var targetAttribute = options.targetAttribute;
+        // if optSubtreeNames-Array is given, the join will return a data structure
+        // like this. Check the testSubtreeJoin test for detailed information.
+        // [{
+        //     joinAttribute: value,
+        //     optSubtreeNames[0]: datum_of_dataArrays[0],
+        //     optSubtreeNames[1]: datum_of_dataArrays[1],
+        //     ...
+        // },{
+        //     ...
+        // }]
         
-        var getOrCreateElement = function(value) {
-            var el = joined.find(function(ea) { return ea[targetAttribute] == value });
-            if (!el) {
-                el = {};
-                el[targetAttribute] = value;
-                joined.push(el);    
+        var attributeSuperSet = [];
+        
+        // build a superset of the attributes, which occur in the data arrays
+        // and which will occur in the joined data later
+        dataArrays.each(function(dataTable) {
+            dataTable.each(function(datum) {
+                if (attributeSuperSet.indexOf(datum[joinAttribute]) == -1) {
+                    attributeSuperSet.push(datum[joinAttribute]);
+                }
+            });
+        });
+        
+        // build the subtrees if chosen
+        if (optSubtreeNames) {
+            if (optSubtreeNames.length == dataArrays.length) {
+                dataArrays.each(function(data, index) {
+                    dataArrays[index] = data.map(function(ea) {
+                        var datum = {};
+                        datum[joinAttribute] = ea[joinAttribute];
+                        datum[optSubtreeNames[index]] = ea;
+                        return datum;
+                    });
+                });
+            } else {
+                alert("Too few subtree names. The number of names should match the number of tables to join");
+                // return here, since the user obviously did not want to perform a simple join,
+                // so let the join fail
+                return [];
             }
-            return el;
         }
         
-        options.sources.each(function(eachSource, sourceIndex) {
-            eachSource.each(function(eachSourceElement) {
-                var currentSourceAttribute = options.sourceAttributes[sourceIndex];
-                var attributeValue = eachSourceElement[currentSourceAttribute];
-
-                var joinElement = getOrCreateElement(attributeValue);
+        var joined = [];
+            
+        attributeSuperSet.each(function(joinValue) {
+            // build a joinedItem-Object for each attribute in the super-set
+            var joinedItem = {};
+            joinedItem[joinAttribute] = joinValue;
+            
+            // go through each data array, that was provided
+            dataArrays.each(function(data) {
+                // get the first item that matches the current joinValue
+                var itemToJoin = data.filter(function(datum) {
+                    return datum[joinAttribute] == joinValue;
+                }).first();
                 
-                var clonedObject = {}
-                
-                Properties.own(eachSourceElement).each(function(eachKey) {
-                    if (currentSourceAttribute == eachKey)
-                        return;
+                // write every value of the item we found into the joined item
+                Properties.own(itemToJoin).each(function(key) {
+                    // don't write the actual join attribute into it, since this was done before
+                    if (key == joinAttribute) return;
                     
-                    clonedObject[eachKey] = eachSourceElement[eachKey];
+                    if (joinedItem[key] != undefined) {
+                        alert(key + " exists in more than one datasource and was overridden by the join. \
+                        You may want to rename one of the columns before joining to preserve all data values.");
+                    }
+                    
+                    joinedItem[key] = itemToJoin[key];
                 });
-                joinElement[currentSourceAttribute] = clonedObject;
             });
+            
+            joined.push(joinedItem);
         });
         
         return joined;

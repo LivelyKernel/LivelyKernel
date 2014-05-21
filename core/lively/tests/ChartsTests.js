@@ -1209,6 +1209,32 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         }, 0);
         
     },
+    testSimpleMapping: function() {
+        var script = this.helper.createComponent();
+        script.arrows[0].activate();
+        script.data = [1, 2, 3];
+        
+        var morphCreator = this.helper.createComponent("MorphCreator", pt(0, 1));
+        var prototypeMorph = morphCreator.content.getPrototypeMorph();
+        var mappingCategory = morphCreator.content.getMappingCategoryFor(prototypeMorph);
+        var lines = mappingCategory.mappingLines;
+
+        // fill the fields with some mapping values
+        lines[0].attributeField.setTextString("height");
+        lines[0].valueField.setTextString("datum * datum");
+        
+        script.notifyNextComponent();
+        
+        var _this = this;
+        var expectedValues = [1, 4, 9];
+        expectedValues.each(function(expectedValue, index) {
+            _this.assertEquals(
+                morphCreator.data[index].getExtent().y,
+                expectedValue,
+                index + ". value false in simple range"
+            );
+        });
+    },
     
     testLineManagement: function() {
         var creator = this.helper.createComponent("MorphCreator").content;
@@ -1281,7 +1307,7 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
     testRange: function() {
         var script = this.helper.createComponent();
         script.arrows[0].activate();
-        script.data = [1,2,3];
+        script.data = [1, 2, 3];
         
         var morphCreator = this.helper.createComponent("MorphCreator", pt(0, 1));
         var prototypeMorph = morphCreator.content.getPrototypeMorph();
@@ -1294,9 +1320,31 @@ TestCase.subclass('lively.tests.ChartsTests.MorphCreatorTest',
         
         script.notifyNextComponent();
         
-        this.assertEquals(morphCreator.data[0].getExtent().y, 100, "first value false");
-        this.assertEquals(morphCreator.data[1].getExtent().y, 150, "second value false");
-        this.assertEquals(morphCreator.data[2].getExtent().y, 200, "third value false");
+        var _this = this;
+        var expectedValues = [100, 150, 200];
+        expectedValues.each(function(expectedValue, index) {
+            _this.assertEquals(
+                morphCreator.data[index].getExtent().y,
+                expectedValue,
+                index + ". value false in simple range"
+            );
+        });
+        
+        // more complex valueFunction
+        script.data = [1, 4, 16]; // and their sqrt: [1, 2, 4]
+        lines[0].valueField.setTextString("range([100, 200])(Math.sqrt(datum))");
+        
+        script.notifyNextComponent();
+        
+        expectedValues = [100, 133.33, 200];
+        expectedValues.each(function(expectedValue, index) {
+            _this.assertEquals(
+                Math.floor(morphCreator.data[index].getExtent().y),
+                Math.floor(expectedValue),
+                index + ". value false in complex range"
+            );
+        });
+        
     },
     testExtractMappings: function() {
         

@@ -4144,8 +4144,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         // property to the result of the specified expression
         var _this = this;
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
+            var rangeArguments = _this.extractArgumentsForRange(eachMapping.value);
             var morphCreatorUtils = {
-                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, null)
+                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, rangeArguments)
             }
             
             var valueFn = function(datum) {
@@ -4236,6 +4237,25 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         
         return identifiers;
     },
+    extractArgumentsForRange: function(codeString) {
+        var ast = lively.ast.acorn.parse(codeString);
+        
+        var testFn = function(type, node) {
+            if (type === "CallExpression") {
+                var callee, calleeCallee;
+                if ((callee = node.callee) != null) {
+                    if ((calleeCallee = callee.callee) != null) {
+                      return calleeCallee.name === "range";
+                    }
+                }
+            }
+        }
+        var node = acorn.walk.findNodeAt(ast, null, null, testFn);
+        if (node) {
+            node = node.node.arguments[0];
+            return lively.ast.acorn.nodeSource(codeString, node);
+        }
+    },
 
     getAttributeMap: function() {
         return {
@@ -4316,11 +4336,10 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
         var _this = this;
         // publicly exposed utils functions
         this.public = {
-            range: function(property, valueFunction, samples) {
+            range: function(property, valueFunctionString, samples) {
                 var sampleValues = samples;
                 debugger
-                // TODO: REPLACE
-                valueFunction = function (a) { return a };
+                var valueFunction = function (datum) { return eval(valueFunctionString) };
                 if (!Object.isArray(samples)) {
                     // put all arguments but the first one into an array
                     sampleValues = Array.prototype.slice.call(arguments).slice(1, arguments.length);

@@ -407,24 +407,31 @@ lively.persistence.StateSync.L2LHandle.rootHandles = handles;
 lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
 'magic constants', {
     highlightColor: Color.tangerine,
+    normalColor: Color.black,
     initialExtent: lively.pt(20, 20),
+    doNotSerialize: true,
+    isLayoutable: false,
+    isEpiMorph: true
 },
 'initializing', {
-    initialize: function($super, targetMorph, changedSubmorphs) {
+    initialize: function($super, targetMorph, updatedSubmorphs) {
         if (!targetMorph.synchronizationHandles || !targetMorph.synchronizationHandles.length > 0) {
             throw new Error("Can not indicate changes for something which is not synchronized.")
         }
         var ext = this.initialExtent,
-            pos = targetMorph.getPosition().addXY(targetMorph.getExtent().x - ext.x, 0);
+            pos = lively.pt(targetMorph.getExtent().x - ext.x, 0);
         $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
         
         this.target = targetMorph;
         this.createBounds();
         
         this.applyStyle({
-            fill: this.highlightColor,
+            fill: this.normalColor,
             borderWidth: 0});
-        this.indicate(changedSubmorphs);
+        this.indicate(updatedSubmorphs);
+        connect(targetMorph, "extent", this, "adjustPosition");
+        connect(targetMorph, "position", this, "adjustPosition");
+        connect(targetMorph, "remove", this, "remove");
     },
     createBounds: function() {
         var boundsRect = new lively.morphic.Box(this.target.getBounds());
@@ -442,35 +449,39 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         $super();
         this.boundsRect.remove();
     },
+    adjustPosition: function() {
+        var newExtent = this.target.getExtent(),
+            pos = this.target.getPosition().subPt(this.getExtent()).addXY(newExtent.x, 0);
+        this.target.owner.addMorph(this);
+        this.setPosition(pos);
+        this.boundsRect.setBounds(this.target.getBounds());
+    },
+    morphMenuItems: function() {
+        return []
+    },
 },
 'updates', {
-    indicate: function(changedSubmorphs) {
+    becomeNormal: function() {
+        this.boundsRect.remove();
+        this.setFill(this.normalColor);
+    },
+    indicate: function(updatedSubmorphs) {
         var targetMorph = this.target;
-        this.boundsRect.setBounds(targetMorph.getBounds());
-        this.setPosition(targetMorph.getPosition().addXY(targetMorph.getExtent().x - this.getExtent().x, 0));
+        this.adjustPosition(targetMorph.getExtent());
         
-        if (this.owner === $world) return
-        this.openInWorld();
+        if (this.getFill().equals(this.highlightColor)) return
+        this.setFill(this.highlightColor);
         this.boundsRect.openInWorld();
         
         if (targetMorph.hasOwnProperty("onFocus")){
-            connect(targetMorph, "onFocus", this, "remove", { removeAfterUpdate: true })
+            connect(targetMorph, "onFocus", this, "becomeNormal", { removeAfterUpdate: true })
         } else {
             targetMorph.addScript(function() {
-                this.updateIndicator.remove();
+                this.updateIndicator.becomeNormal();
                 delete this.onFocus;
             }, "onFocus")
         }
-        connect(targetMorph, "remove", this, "remove", { removeAfterUpdate: true })
-        connect(targetMorph, "position", this, "setPosition", {
-            updater: function($upd, val) {
-                if (!target.owner) this.disconnect();
-                else {
-                    $upd(val);
-                    source.updateIndicator.setPosition(val)
-                }
-            },
-        })
+        connect(targetMorph, "remove", this, "becomeNormal", { removeAfterUpdate: true });
     }
 })
 
@@ -519,7 +530,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             var aMorph = this;
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
                 var changes = aMorph.mergeWithModelData(val);
-                if (changes.length > 0) {
+                if (changes && changes.length > 0) {
                     aMorph.indicateUpdate(changes);
                 }
             });
@@ -529,12 +540,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.form.handle.get(this.form.cb);
         }
     },
-    indicateUpdate: function (changedSubmorphs) {
+    indicateUpdate: function (updatedSubmorphs) {
         if (this.updateIndicator) {
-            return (this.updateIndicator.indicate && this.updateIndicator.indicate(changedSubmorphs))
+            return (this.updateIndicator.indicate && this.updateIndicator.indicate(updatedSubmorphs))
                 || this.updateIndicator;
         } else {
-            this.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(this, changedSubmorphs);
+            this.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(this, updatedSubmorphs);
         }
     },
     toString: function() {
@@ -577,21 +588,21 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.noSave = true;
             return (function walkRecursively(values) {
                 if (!Object.isObject(values)) return []
-                var changed = [];
+                var updatedSubmorphs = [];
                 this.submorphs.forEach(function(morph) {
                     if (morph.name) {
                         // only named morphs are candidates for fields
                         if (morph.mergeWithModelData && values[morph.name] !== undefined)
                             try {
                                 if (morph.mergeWithModelData(values[morph.name], someValue.changeTime))
-                                    changed.push(morph);
+                                    updatedSubmorphs.push(morph);
                             } catch (e) {
                                 alert("Error while merging changes into " + this + ": " + e)
                             }
-                        else changed = changed.concat(walkRecursively.call(morph, values[morph.name]));
+                        else updatedSubmorphs = updatedSubmorphs.concat(walkRecursively.call(morph, values[morph.name]));
                     };
                 });
-                return changed;
+                return updatedSubmorphs;
             }).call(this, someValue)
         } finally {
             this.noSave = false;

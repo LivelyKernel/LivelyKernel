@@ -487,10 +487,11 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
     },
         restart: function restart() {
         var frame = this.currentFrame,
+            parentFrame = frame.parentFrame,
             interpreter = new lively.ast.AcornInterpreter.Interpreter();
         frame.reset();
-        var result = interpreter.stepToNextStatement(frame);
-        this.updateDebugger(frame, result);
+        interpreter.stepToNextStatement(frame);
+        this.updateDebugger(frame);
     },
         resume: function resume() {
         var frame = this.topFrame,
@@ -566,7 +567,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.setTopFrame(frame);
             } else
                 this.owner.remove();
-        } else if (result.unwindException && result.unwindException.top && result.unwindException.top != frame) { // new frame
+        } else if (result && result.unwindException && result.unwindException.top && result.unwindException.top != frame) { // new frame
             this.setTopFrame(result.unwindException.top);
             if (result.toString && result.toString())
                 this.getWindow().setTitle(result.toString());

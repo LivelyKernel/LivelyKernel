@@ -886,7 +886,6 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody = this.createComponentBody();
 
         this.layout = {adjustForNewBounds: true};
-        this.wasDragged = false;
         this.interactionVariables = [];
         this.interactionVariableFields = [];
         
@@ -1204,42 +1203,42 @@ Object.extend(lively.morphic.Charts.Component, {
 
 lively.morphic.Charts.Component.subclass("lively.morphic.Charts.WindowComponent", {
 
-    initialize: function($super, content) {
-        $super(content);
+
     
-        this.isDragged = true;
-        this.position = this.getPositionInWorld();
-    },
+
     
-    onDragStart: function($super, evt) {
-        this.isDragged = true;
-        this.wasDragged = true;
-        $super(evt);
-    },
-    
-    onDropOn: function($super, aMorph) {
-        $super(aMorph);
-        
-        this.isDragged = false;
-    },
+
     
     update: function(data) {
         this.data = data;
         this.content.update(data);
+    },
+    onDropOn: function($super, evt) {
+        $super(evt);
+        
+        this.positionInWorld = this.getPositionInWorld();
     },
 
 
 
     onDrag: function($super, evt) {
         $super();
-        this.position = this.getPositionInWorld();
+
+        // update the position of a possibly existing connection line while dragging
+        this.positionInWorld = this.getPositionInWorld();
     },
     remove: function($super) {
         $super();
         
-        var line = $morph("Line" + this);
-        if (!this.isDragged && line)
-            line.remove();
+        var _this = this;
+        setTimeout(function () {
+            if (!_this.owner) {
+                var line = $morph("Line" + _this);
+                if (line){
+                    line.remove();
+                }
+            }
+        }, 0);
     },
 
     onContentChanged: function() {
@@ -2606,7 +2605,6 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
         
         this.viewer = lively.morphic.Charts.Component.createWindow("JsonViewer");
         this.viewer.update(this.data);
-        this.viewer.wasDragged = true;
         this.viewer.openInHand();
         
         this.viewerLine = new lively.morphic.Path([evtPosition, evtPosition]);
@@ -2629,8 +2627,7 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Line", {
                 }
         };
         
-        connect(this.viewer, 'position', this.viewerLine.getControlPoints().last(), 'setPos', spec);
-        
+        connect(this.viewer, 'positionInWorld', this.viewerLine.getControlPoints().last(), 'setPos', spec);
     },
     
     updateViewer: function(data) {
@@ -3025,7 +3022,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     
     onDragStart: function($super, evt) {
         var _this = this;
-        this.wasDragged = true;
         $super(evt);
         this.removeAllConnectionLines();
 
@@ -3076,29 +3072,25 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
     },
     
     onClose: function() {
-        // only do this if the component is really removed
-        // it is temporarily removed while dragging..
-        if (!this.wasDragged) {
-            var _this = this;
+        var _this = this;
 
-            var componentsBelow = this.getComponentsInDirection(1);
-            var componentsAbove = this.getComponentsInDirection(-1);
-            
-            componentsBelow.each(function (c) {
-                c.move(-_this.getExtent().y - _this.componentOffset);
-            });
+        var componentsBelow = this.getComponentsInDirection(1);
+        var componentsAbove = this.getComponentsInDirection(-1);
+        
+        componentsBelow.each(function (c) {
+            c.move(-_this.getExtent().y - _this.componentOffset);
+        });
 
-            componentsAbove.each(function (c){
-                // if there is a component below, reuse the connection line
-                // otherwise FanOut deletes the whole arrow
-                c.refreshConnectionLines();
-                if (!componentsBelow.length) {
-                    c.handleLowerNeighborMoved(_this);
-                }
-            });
+        componentsAbove.each(function (c){
+            // if there is a component below, reuse the connection line
+            // otherwise FanOut deletes the whole arrow
+            c.refreshConnectionLines();
+            if (!componentsBelow.length) {
+                c.handleLowerNeighborMoved(_this);
+            }
+        });
 
-            this.notifyNextComponent();
-        }
+        this.notifyNextComponent();
     },
     
     gridWidth: 20,
@@ -3209,7 +3201,6 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
         this.drawAllConnectionLines();
         this.notifyNeighborsOfDragEnd();
         this.notify();
-        this.wasDragged = false;
     },
     
     update: function() {

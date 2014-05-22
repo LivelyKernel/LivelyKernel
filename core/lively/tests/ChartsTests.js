@@ -70,7 +70,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         // there is no line before dragging
         this.assertEquals(components[0].arrows[0].connectionLine, null);
         
-        this.drag([pt(-40,20), pt(-400,20)], components[1]);
+        this.helper.drag([pt(-40,20), pt(-400,20)], components[1]);
         
         // there is a line after dragging
         this.assert(components[0].arrows[0].connectionLine != null);
@@ -83,7 +83,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         // there is a line before dragging
         this.assert(components[0].arrows[0].connectionLine != null);
         
-        this.drag([pt(40,20), pt(600,20)], components[1]);
+        this.helper.drag([pt(40,20), pt(600,20)], components[1]);
         
         // there is no line after dragging
         this.assertEquals(components[0].arrows[0].connectionLine, null);
@@ -99,7 +99,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assert(components[0].arrows[0].connectionLine != null);
         this.assertEquals(components[0].arrows[0].target, components[1]);
         
-        this.drag([pt(0,-50), pt(-405,-50)], components[2]);
+        this.helper.drag([pt(0,-50), pt(-405,-50)], components[2]);
         
         // there is a line between 0 and 2
         this.assert(components[0].arrows[0].connectionLine != null);
@@ -124,7 +124,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assert(components[1].arrows[0].connectionLine != null);
         this.assertEquals(components[1].arrows[0].target, components[2]);
         
-        this.drag([pt(50,20), pt(405,20)], components[1]);
+        this.helper.drag([pt(50,20), pt(405,20)], components[1]);
         
         // there is a line between component 0 and 2
         this.assert(components[0].arrows[0].connectionLine != null);
@@ -134,26 +134,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals(components[1].arrows[0].connectionLine, null);
     },
     
-    testRefreshLineOnDeleteFromBetween: function() {
-        var components = this.helper.createComponents(3);
-        
-        components[0].arrows[0].activate();
-        components[1].arrows[0].activate();
-        
-        // there is a line between component 0 and 1
-        this.assert(components[0].arrows[0].connectionLine != null);
-        this.assertEquals(components[0].arrows[0].target, components[1]);
-        
-        // there is a line between component 1 and 2
-        this.assert(components[1].arrows[0].connectionLine != null);
-        this.assertEquals(components[1].arrows[0].target, components[2]);
-        
-        components[1].remove();
-        
-        // there is a line between component 0 and 2
-        this.assert(components[0].arrows[0].connectionLine != null);
-        this.assertEquals(components[0].arrows[0].target, components[2]);
-    }
+
 }, 'dragging', {
     
     testDragBetween: function() {
@@ -161,7 +142,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         var components = this.helper.createComponents(2);
         var newComponent = this.helper.createComponent(pt(1, 1));
         
-        this.drag([pt(-400,-20), pt(-405,-20)], newComponent);
+        this.helper.drag([pt(-400,-20), pt(-405,-20)], newComponent);
         
         // assert that newComponent is below the component[0]
         var position = newComponent.getPosition();
@@ -181,7 +162,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         var newComponent = this.helper.createComponent(pt(1, 1));
         
         // drag new component between the two others without dropping
-        this.drag([pt(-400,-20), pt(-405,-20)], newComponent, false);
+        this.helper.drag([pt(-400,-20), pt(-405,-20)], newComponent, false);
         
         // assert that preview snaps below component[0]
         var preview = $morph('PreviewMorph' + newComponent);
@@ -197,7 +178,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals(position, posBelow);
         
         // drop it to finish the drag
-        this.mouseEvent('up', pt(-405,-20), newComponent);
+        this.helper.mouseEvent('up', pt(-405,-20), newComponent);
     },
     
     testPreviewOnDrag: function() {
@@ -208,11 +189,11 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals($morph("PreviewMorph" + component), null);
         
         // preview appears
-        this.drag([pt(300,300)], component, false);
+        this.helper.drag([pt(300,300)], component, false);
         this.assert($morph("PreviewMorph" + component) != null);
 
         // preview disappears
-        this.mouseEvent('up', pt(300,300), component);
+        this.helper.mouseEvent('up', pt(300,300), component);
         this.assertEquals($morph("PreviewMorph" + component), null);
 
     },
@@ -223,10 +204,10 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         
         var component = this.helper.createComponent();
         
-        this.drag([pt(123,456)], component);
+        this.helper.drag([pt(123,456)], component);
         
         var position = component.getPosition();
-        
+
         this.assertEquals(position.x % component.gridWidth, 0);
         this.assertEquals(position.y % component.gridWidth, 0);
     },
@@ -277,8 +258,8 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         fanOut.setExtent(pt(800,50));
        
         //drag componentBottom to create and active arrow of FanOut
-        this.drag([pt(10,10)], componentsBottom[0]);
-        this.drag([pt(10,10)], componentsBottom[1]);
+        this.helper.drag([pt(10,10)], componentsBottom[0]);
+        this.helper.drag([pt(10,10)], componentsBottom[1]);
        
         this.assertEquals(componentsBottom[0].data, 42);
         this.assertEquals(componentsBottom[1].data, 42);
@@ -295,7 +276,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         components[1].arrows[0].activate();
         components[0].arrows[0].activate();
         //drag componentBottom to create and active arrow of FanOut
-        this.drag([pt(10,10)], components[2]);
+        this.helper.drag([pt(10,10)], components[2]);
 
         components[0].data = 42;
         components[0].notifyNextComponent();
@@ -306,45 +287,14 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         this.assertEquals(components[2].data, 43);
 
         //move fanOut up
-        this.drag([pt(10,10),pt(20,-500)], fanOut);
+        this.helper.drag([pt(10,10),pt(20,-500)], fanOut);
 
         components[0].data = 8;
         components[0].notifyNextComponent();
         
         this.assertEquals(components[2].data, 8);
     },
-    testFanOutArrows: function() {
-        
-        var fanOut = new lively.morphic.Charts.FanOut();
-        $world.addMorph(fanOut);
-        fanOut.setPosition(pt(0,200));
-        fanOut.onResizeStart();
-        fanOut.setExtent(pt(1000, fanOut.getExtent().y));
-        fanOut.onResizeEnd();
 
-        var components = this.helper.createComponents(3, [pt(0,2), pt(1,2), pt(2,2)]);
-        
-        // drag componentBottom to create and active arrow of FanOut
-        components[0].refreshData();
-        components[1].refreshData();
-        components[2].refreshData();
-
-        components[0].remove();
-        
-        this.assertEquals(fanOut.arrows.length, 2);
-
-        // move component[1] away
-        this.drag([pt(10, 10), pt(1500,0)], components[1]);
-        
-        this.assertEquals(fanOut.arrows.length, 1);
-        
-        // resize fanOut so that component[2] is no longer below it
-        fanOut.onResizeStart();
-        fanOut.setExtent(pt(500, fanOut.getExtent().y));
-        fanOut.onResizeEnd();
-        
-        this.assertEquals(fanOut.arrows.length, 0);
-    },
     
 }, 'notification', {
     
@@ -414,7 +364,7 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         
         components[1].setExtent(components[1].getExtent().subPt(pt(100,0)));
     
-        this.drag([pt(-500,0)], components[1]);
+        this.helper.drag([pt(-500,0)], components[1]);
         
         var extent0 = components[0].getExtent();
         var extent1 = components[1].getExtent();
@@ -428,13 +378,13 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
         var components = this.helper.createComponents(2, [pt(0,0), pt(1,1)]);
         
         components[1].setExtent(components[1].getExtent().subPt(pt(100,0)));
-        this.drag([pt(-300,20), pt(-305,20)], components[1], false);
+        this.helper.drag([pt(-300,20), pt(-305,20)], components[1], false);
         
         var extent0 = components[0].getExtent();
         var extentPrev = $morph("PreviewMorph" + components[1]).getExtent();
         
         // finish dragging before assert, so that morph is dropped even if the test fails
-        this.mouseEvent('up', pt(-310,20), components[1]);
+        this.helper.mouseEvent('up', pt(-310,20), components[1]);
         
         // preview should have been as wide as component above
         this.assertEquals(extent0.x, extentPrev.x);
@@ -468,28 +418,9 @@ TestCase.subclass('lively.tests.ChartsTests.ComponentTest',
     },
 }, 'helper', {
     
-    mouseEvent: function(type, pos, target, button) {
-        if (button == undefined)
-            button = 0;
-        
-        this.doMouseEvent({type: 'mouse' + type, pos: pos, target: target, button: button});
-    },
+
     
-    drag: function(via, component, drop) {
-        if (drop == undefined) {
-            drop = true;
-        }
-        
-        this.mouseEvent('down', pt(0,0), component);
-        
-        var _that = this;
-        via.each( function(ea) {
-            _that.mouseEvent('move', ea, component);
-        });
-        if (drop) {
-            this.mouseEvent('up', via.last(), component);
-        }
-    }
+
 },
 'layout components', {
     
@@ -550,7 +481,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
     
     tearDown: function($super) {
         $super();
-        
+
         // delete all dataflow components
         // this fixes the problem that a failing test leaves components behind and affects other tests
         $world.withAllSubmorphsSelect(function(el) {
@@ -585,6 +516,67 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncComponentTest',
             
             _this.assertEquals(components[0].data, "testdata");
             _this.assertEquals(components[1].data, "testdata");
+            _this.done();
+        });
+    },
+    testRefreshLineOnDeleteFromBetween: function() {
+        var components = this.helper.createComponents(3);
+
+        components[0].arrows[0].activate();
+        components[1].arrows[0].activate();
+        
+        // there is a line between component 0 and 1
+        this.assert(components[0].arrows[0].connectionLine != null);
+        this.assertEquals(components[0].arrows[0].target, components[1]);
+        
+        // there is a line between component 1 and 2
+        this.assert(components[1].arrows[0].connectionLine != null);
+        this.assertEquals(components[1].arrows[0].target, components[2]);
+
+        components[1].remove();
+        
+        var _this = this;
+        this.waitFor(function() { return !components[1].owner }, 10, function() {
+            // there is a line between component 0 and 2
+            this.assert(components[0].arrows[0].connectionLine != null);
+            this.assertEquals(components[0].arrows[0].target, components[2]);
+            _this.done();
+        });
+    },
+    testFanOutArrows: function() {
+        
+        var fanOut = new lively.morphic.Charts.FanOut();
+        $world.addMorph(fanOut);
+        fanOut.setPosition(pt(0,200));
+        fanOut.onResizeStart();
+        fanOut.setExtent(pt(1000, fanOut.getExtent().y));
+        fanOut.onResizeEnd();
+
+        var components = this.helper.createComponents(3, [pt(0,2), pt(1,2), pt(2,2)]);
+        
+        // drag componentBottom to create and active arrow of FanOut
+        components[0].refreshData();
+        components[1].refreshData();
+        components[2].refreshData();
+
+        components[0].remove();
+        
+        var _this = this;
+        this.waitFor(function() { return !components[0].owner }, 10, function() {
+            _this.assertEquals(fanOut.arrows.length, 2);
+    
+            // move component[1] away
+            _this.helper.drag([pt(10, 10), pt(1500,0)], components[1]);
+            
+            _this.assertEquals(fanOut.arrows.length, 1);
+            
+            // resize fanOut so that component[2] is no longer below it
+            fanOut.onResizeStart();
+            fanOut.setExtent(pt(500, fanOut.getExtent().y));
+            fanOut.onResizeEnd();
+            
+            _this.assertEquals(fanOut.arrows.length, 0);
+            
             _this.done();
         });
     }
@@ -647,6 +639,27 @@ TestCase.subclass('lively.tests.ChartsTests.Helper',
         components.each(function(each) {
             each.remove();
         });
+    },
+    mouseEvent: function(type, pos, target, button) {
+        if (button == undefined)
+            button = 0;
+        
+        this.doMouseEvent({type: 'mouse' + type, pos: pos, target: target, button: button});
+    },
+    drag: function(via, component, drop) {
+        if (drop == undefined) {
+            drop = true;
+        }
+        
+        this.mouseEvent('down', pt(0,0), component);
+        
+        var _that = this;
+        via.each( function(ea) {
+            _that.mouseEvent('move', ea, component);
+        });
+        if (drop) {
+            this.mouseEvent('up', via.last(), component);
+        }
     },
     getAndDropWidget: function() {
         var interactionArea = $world.get("InteractionArea");

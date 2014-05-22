@@ -28,5 +28,8 @@
     "testQuery": ""
   },
   "devDependencies": {},
-  "optionalDependencies": {}
+  "optionalDependencies": {
+    "jsdom": "~0.10.5",
+    "xmlhttprequest": "~1.6"
+  }
 }

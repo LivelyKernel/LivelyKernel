@@ -905,7 +905,7 @@
                 'core/lively/defaultconfig.js',
                 'core/lively/Base.js',
                 'core/lively/ModuleSystem.js']
-            return JSLoader.getOption('loadRewrittenCode') ?
+            return Global.JSLoader.getOption('loadRewrittenCode') ?
                 ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles,"core/lively/store/Interface.js") :
                 normalBootstrapFiles;
         })(),
@@ -1028,7 +1028,7 @@
                 base = this.rootPath,
                 timemachineActive = /timemachine/.test(Config.rootPath),
                 urlOption = Global.JSLoader.getOption('quickLoad'),
-                useRewritten = !!JSLoader.getOption('loadRewrittenCode'),
+                useRewritten = Global.JSLoader.getOption('loadRewrittenCode'),
                 runCodeOption = Global.JSLoader.getOption('runCode'),
                 optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive && !useRewritten,
                 combinedModulesHash;
@@ -1271,7 +1271,7 @@
     function initNodejsBootstrap() {
         // remove libs, JSON:
         Global.LivelyLoader.bootstrapFiles = [
-            'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
+            'core/lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
         var bootstrapModules = [
             'lively.lang.Closure',
             'lively.bindings',
@@ -1285,7 +1285,7 @@
                 loader.systemStart(document);
                 console.log('bootstrap done');
             } + ')');
-            lively.require(bootstrapModules).toRun(finished);
+            Global.lively.require(bootstrapModules).toRun(finished);
         });
         module.exports.Global = Global;
     }
@@ -1420,11 +1420,11 @@
     // -=-=-=-=-=-=-=-
     (function startWorld(startupFunc) {
         // don't load twice
-        if (lively.wasStarted) return;
-        lively.wasStarted = true;
+        if (Global.lively.wasStarted) return;
+        Global.lively.wasStarted = true;
         if (browserDetector.isNodejs()) {
             initNodejsBootstrap();
-        } else if (lively.ApplicationCache.isActive) {
+        } else if (Global.lively.ApplicationCache.isActive) {
             initOnAppCacheLoad(initBrowserBootstrap);
         } else {
             initBrowserBootstrap();

@@ -236,8 +236,8 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         this.addMorph(line);
         
         // add prototype components
-        var showedMorphs = 5;
-        this.getPrototypeComponents().reverse().each(function(eachCreateFunction, index){
+        var showedMorphs = 3;
+        this.getPrototypeComponents().each(function(eachCreateFunction, index){
             if (index <= showedMorphs) {
                 var morph = eachCreateFunction.create();
                 container.addMorph(morph);
@@ -247,7 +247,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         // update container Layout
         setTimeout(function(){container.getLayouter().layout(container, container.submorphs);}.bind(this), 1);
         
-        if (showedMorphs <= this.getPrototypeComponents().length) return;
+        if (showedMorphs >= this.getPrototypeComponents().length) return;
         
         // add ... for more prototype components
         var moreContainer = new lively.morphic.Morph.makeRectangle(lively.rect(50, 10, 20, 20));
@@ -266,17 +266,23 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         var _this = this;
         moreContainer.onMouseUp = function(){
             var items = _this.getPrototypeComponents()
-                .splice(showedMorphs, _this.getPrototypeComponents().length - showedMorphs)
+                .splice(showedMorphs + 1, _this.getPrototypeComponents().length - showedMorphs + 1)
                 .map(function(ea) {
-                    return [ea.name, function() {
+                    var createFunction = function() {
                         var morph = ea.create();
                         morph.openInHand();
-                    }];
+                    };
+                    if (ea.name == "Symbols") 
+                        createFunction = ea.create();
+                    return [ea.name, createFunction];
                 });
             var menu = new lively.morphic.Menu("Add prototype morph", items);
             menu.openIn($world, this.getPositionInWorld());
         }
         container.addMorph(moreContainer);
+        
+        // add moreContainer after all other morphs are layouted
+        setTimeout(function(){container.addMorph(moreContainer);}, 1);
     },
     
     getPrototypeComponents: function() {
@@ -297,7 +303,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
         var componentNames = [
             {
                 create: function() {
-                    var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 10, 20));
+                    var rectangle = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 15, 20));
                     rectangle.setBorderWidth(0);
                     rectangle.setFill(Color.rgb(66, 139, 202));
                     rectangle.bigExtent = pt(20, 60);
@@ -331,16 +337,37 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.PrototypeArea", {
                 }
             }, 
             {   
+                name: "Pie sector",
                 create: function() {
                     var pieSector = new lively.morphic.Charts.PieSector(45, 20);
                     pieSector.bigExtent = pt(90, 90);
                     pieSector.onMouseDown = createOnMouseDownFor("pieSector");;
                     return pieSector;
                 }
+            },
+            {
+                name: "Symbols",
+                create: function(){
+                    return _this.createSymbols();
+                    
+                }
             }
         ];
         
         return componentNames;
+    },
+    createSymbols: function() {
+        return [
+            ['human', function() {
+                var path = ["m77.223915,64.271744c10.880661,0 19.702522,-8.821869 19.702522,-19.703056c0,-10.880646 -8.821861,-19.702026 -19.702522,-19.702026c-10.881134,0 -19.702042,8.821381 -19.702042,19.702026c0,10.881187 8.820908,19.703056 19.702042,19.703056z",
+"m57.105,68.620438c-13.952663,0 -25.172991,11.379044 -25.172991,25.572006l0,60.49231c0,11.760712 17.211897,11.760712 17.211897,0l0,-55.313736l4.074154,0l0,151.457321c0,15.723877 22.919765,15.261169 22.919765,0l0,-87.91954l3.947754,0l0,87.91954c0,15.261169 23.046173,15.723877 23.046173,0l0,-151.457321l3.979103,0l0,55.313736c0,11.850937 17.122147,11.850937 17.090775,0l0,-60.130432c0,-13.08757 -10.163177,-25.906876 -25.482269,-25.906876l-41.614361,-0.027008z"];
+                var pathMorph = lively.morphic.Charts.Utils.pathToMorph(path);
+                // pathMorph.setScale(0.1);
+                pathMorph.setFill(Color.black)
+                return pathMorph.openInHand();
+            }],
+            ['name2', function() {return lively.morphic.Text.makeLabel("B").openInHand();}]
+        ]
     },
 
     attachListener: function attachListener(aMorph, force) {
@@ -2190,6 +2217,36 @@ Object.extend(lively.morphic.Charts.Utils, {
                 });
         });
     },
+    pathToMorph: function(pathString) {
+        if (Object.isString(pathString))
+            pathString = [pathString];
+        
+        var container = lively.morphic.Morph.makeRectangle(lively.rect(0, 0, 500, 200));
+        container.setFill(Color.rgba(0,0,0,0));
+        container.setBorderWidth(0);
+        
+        pathString.each(function (eachPath){
+            var path  = new lively.morphic.Path([pt(0, 0),pt(0, 0)]);
+            path.shape.setPathElements(lively.morphic.Shapes.PathElement.parse(eachPath));
+            
+            path.setPosition(pt(0,0));
+            path.setFill(Color.black);
+             container.addMorph(path);
+        })
+        
+        //overwrite some functions of the container
+        var functionsToOverwrite = ["setFill", "setBorderWidth", "setBorderColor", "setBorderRadius", "setOpacity", "setOpacityFill", "setScale", "setRotation"];
+        functionsToOverwrite.each(function(eachFunction){
+            container[eachFunction] = function(argument){
+                container.submorphs.each(function(eachPath){
+                    eachPath[eachFunction](argument);
+                });
+            };
+        });
+        container.__isHookedPathFunction = true;
+        
+        return container;
+    },
     addLegend: function(entries, startPt) {
         // entries is array of {name: "", color: xyz} and startPt is optional
         if(!startPt) startPt = pt(0, 0);
@@ -3736,7 +3793,6 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Canvas", {
     },
 
     addElement: function(element, container) {
-
 		var morphs = {};
         if (element.morphs) {
             morphs = element.morphs;
@@ -4127,6 +4183,20 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             cloned = true;
         }
         
+        if (prototypeMorph.__isHookedPathFunction){
+            copiedMorphs.each(function(eachMorph){
+                var functionsToOverwrite = ["setFill", "setBorderWidth", "setBorderColor", "setBorderRadius", "setOpacity", "setOpacityFill", "setScale", "setRotation"];
+                functionsToOverwrite.each(function(eachFunction){
+                    eachMorph[eachFunction] = function(argument){
+                        eachMorph.submorphs.each(function(eachPath){
+                            eachPath[eachFunction](argument);
+                        });
+                    };
+                });
+            })
+        }
+        
+        
         return {
             copiedMorphs: copiedMorphs,
             cloned: cloned,
@@ -4352,7 +4422,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             },
             mouseover: function(valueFn, morph, datum){
                 morph.onMouseOver = valueFn();
-            }
+            },
+            mousemove: function(valueFn, morph, datum){
+                // attention: have to click on element before mousemove is active
+                morph.onMouseMove = valueFn();
+            },
+            mouseout: function(valueFn, morph, datum){
+                morph.onMouseOut = valueFn();
+            },
+            tooltip: function(valueFn, morph, datum){
+                morph.setToolTip(valueFn(datum));
+            },
         };
     },
     

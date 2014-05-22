@@ -135,6 +135,45 @@ Object.extend(lively.ast.Rewriting, {
                 lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
             });
         }
+    },
+
+    recreateServerSideCode: function() {
+        module('lively.store.SQLiteInterface').load(true);
+
+        // 1. clear rewritten_objects table
+        lively.store.SQLiteInterface.ensureDB('ObjectRepository', 'objects.sqlite', function() {
+            lively.store.SQLiteInterface.query('ObjectRepository', ['DELETE FROM rewritten_objects;'],
+            function(err, res) {
+                requestBootstrapFiles();
+            });
+        });
+
+        // 2. request all the files that need to be rewritten in advance
+        function requestBootstrapFiles() {
+            // list of files taken from life_star config
+            var bootstrapRewriteFiles = [ // 'core/lib/lively-libs-debug.js',
+                'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
+                'core/lively/lang/Function.js', 'core/lively/lang/String.js', 'core/lively/lang/Array.js',
+                'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
+                'core/lively/lang/LocalStorage.js','core/lively/defaultconfig.js', 'core/lively/Base.js',
+                'core/lively/ModuleSystem.js', 'core/lively/Traits.js', 'core/lively/DOMAbstraction.js',
+                'core/lively/IPad.js', 'core/lively/LogHelper.js', 'core/lively/lang/Closure.js',
+                // bootstrap.js
+                'core/lively/bindings/Core.js', 'core/lively/persistence/Serializer.js',
+                'core/lively/Main.js', 'core/lively/net/WebSockets.js', 'core/cop/Layers.js',
+                'core/lively/OldModel.js', 'core/lively/Data.js', 'core/lively/Network.js',
+                // neccessary to be able to load everything else dynamically
+                'core/lively/store/Interface.js'
+            ];
+
+            bootstrapRewriteFiles.forEachShowingProgress({
+                iterator: function(filename) {
+                    var file = URL.root.withFilename(filename);
+                    file = file.withFilename('DBG_' + file.filename());
+                    new WebResource(file).get(); // could be async but we have the progress bar
+                }
+            });
+        }
     }
 
 });

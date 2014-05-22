@@ -1744,11 +1744,11 @@ lively.morphic.Path.subclass('lively.morphic.Charts.PieSector',
         }
         points.push(this.center);
         
-        this = new lively.morphic.Path(points);
-        this.degree = degree;
-        this.originalVertices = points;
-        this._savedScale = 1;
-        //this.cachedBounds = null;
+        var newPath = new lively.morphic.Path(points);
+        newPath.degree = degree;
+        newPath.originalVertices = points;
+        newPath._savedScale = 1;
+        //newPath.cachedBounds = null;
        
     },
     setMappedProperty: function(value) {

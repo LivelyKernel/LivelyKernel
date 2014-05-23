@@ -2,7 +2,7 @@ module('lively.persistence.StateSync').requires('lively.persistence.Sync').toRun
 
 Object.subclass('lively.persistence.StateSync.Handle',
 /* class comment
- * A Handle is an accessor to a node in the tree a key-value database spanns. It provides 
+ * A Handle is an accessor to a node in the tree a key-value database spanns. It provides
  * direct access to its value, but also children. It knows about it's parent, if there is one.
  *
  * The only event a handle might emit is that its value, or one of its children, changed.
@@ -10,10 +10,10 @@ Object.subclass('lively.persistence.StateSync.Handle',
  * which merges only the requested attributes but keeps all the other ones, push, which gives a
  * new child handle, and get/getOnce which inform of the current value, and the first also
  * registers for events.
- * 
+ *
  * Design decision made but unsure:
  *     create intermediate steps when browsing a whole path - yes,
- *         because that relieves us of book keeping when creating subsequent children, and 
+ *         because that relieves us of book keeping when creating subsequent children, and
  *         updating their parents, with minimal costs
  */
 'settings', {
@@ -56,7 +56,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
         this.set(function(oldVal, newVal, cb) {
             try { var keys = Object.keys(values); }
             catch (er) { var keys = false }
-            mergeFn( keys ? keys.inject({}, function(last, key) { 
+            mergeFn( keys ? keys.inject({}, function(last, key) {
                     last[key] = oldVal && oldVal[key];
                     return last
                 }) : oldVal, values, function(merged) {
@@ -66,7 +66,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
                 })
         }, thenDo, undefined, undefined, cbToIgnore)
     },
-    
+
     push: function(value, cb) {
         var length,
             self = this;
@@ -96,7 +96,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
     // check whether those are valid? make it a thenDo-function?
     child: function(path) {
         if (typeof path !== 'string') {
-            if (!(path.include && path.split) && !path.normalizePath) 
+            if (!(path.include && path.split) && !path.normalizePath)
                 throw new Error("Unexpected argument: Neither behaves like a string, nor like a lively.PropertyPath");
             path = path.normalizePath ? path.normalizePath() : path;
         }
@@ -105,7 +105,7 @@ Object.subclass('lively.persistence.StateSync.Handle',
         else {
             return !path.include('.') ? this._children[path] = new this.constructor(this._store, path, this) : path.split(".").reduce(function(parent, segment) {
                 return parent.child(segment)
-            }, this) 
+            }, this)
         }
     },
     // children?
@@ -182,7 +182,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
             ignoreCbs = this._ignoreCbs,
             storeCb = function(oldV, merged) {
                 store.set(path, merged, {
-                    precondition: {type: 'equality', value: oldV}, 
+                    precondition: {type: 'equality', value: oldV},
                     callback: function(error) {
                         if (error) getCb(merged)
                         else {
@@ -227,7 +227,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
             var self = this;
             self._store.get(self.fullPath(), function(path, value) {
                 self._callbacks.filter(function(ea) {
-            var ignoreCb = this._ignoreCbs.detect(function(ignore) { 
+            var ignoreCb = this._ignoreCbs.detect(function(ignore) {
                 return ignore.cb === ea && Objects.equal(ignore.value, value)});
             if (ignoreCb !== undefined)
                 this._ignoreCbs = this._ignoreCbs.without(ignoreCb);
@@ -269,7 +269,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
     get: function(thenDo) {
         // get the value in the database, and call thenDo with it
         // also call on every update change
-        
+
         if (!this._callbacks) {
             this._callbacks = [thenDo]
         } else {
@@ -293,7 +293,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         var sess = lively.net.SessionTracker.getSession(),
             path = this.fullPath().toString(),
             self = this;
-        
+
         function send(newValue, oldValue) {
             sess.sendTo(sess.trackerId, 'syncSet', {path: path, newValue: newValue, oldValue: oldValue}, function(msg) {
                 var currentValue = msg.data.value
@@ -327,7 +327,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         // if (path.isRoot())
         //     alertOK(path + " " + Objects.inspect(value));
         this._callbacks && this._callbacks.filter(function(ea) {
-            var ignoreCb = this._ignoreCbs.detect(function(ignore) { 
+            var ignoreCb = this._ignoreCbs.detect(function(ignore) {
                 return ignore.cb === ea && Objects.equal(ignore.value, value)});
             if (ignoreCb !== undefined)
                 this._ignoreCbs = this._ignoreCbs.without(ignoreCb);
@@ -419,10 +419,10 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             pos = lively.pt(targetMorph.getExtent().x - ext.x, 0);
         $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
         this.updates = [];
-        
+
         this.connectTo(targetMorph);
         this.initializeMorphic();
-        
+
         if (updatedSubmorphs)
             this.indicate(updatedSubmorphs, newModel);
         else
@@ -441,7 +441,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     },
     initializeMorphic: function() {
         this.createBounds(this.target.getBounds());
-        
+
         this.applyStyle({
             fill: this.normalColor,
             borderWidth: 0,
@@ -470,7 +470,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         } catch(e){
             return "UpdateIndicator for morph " + this.target;
         }
-        return 
+        return
     },
     getPathFor: function(aMorph) {
         var path = [];
@@ -531,7 +531,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         var targetMorph = this.target;
         this.setFill(this.highlightColor);
         this.target.owner.addMorph(this.boundsRect);
-        
+
         if (targetMorph.hasOwnProperty("onFocus")){
             connect(targetMorph, "onFocus", this, "becomeNormal", { removeAfterUpdate: true })
         } else {
@@ -545,7 +545,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     indicate: function(updatedSubmorphs, newModel) {
         this.adjustPosition(this.target.getExtent());
         if (!this.getFill().equals(this.highlightColor)) this.becomeHighlighted();
-        
+
         this.updates.unshift({changeTime: newModel.changeTime, affectedMorphs: updatedSubmorphs, author: newModel.author});
     },
     humanReadableTimeFor: function(timestamp) {
@@ -567,7 +567,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
 })
 
 // Although there is the ability to have more than one synchronizationHandle, for the time being we assume there is exactly one, and the DB morph should be refactored so that that assumption is true
-Trait('lively.persistence.StateSync.SynchronizedMorphMixin', 
+Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 'morphic', {
     findAndSetUniqueName: function() {
         // copies of the morph should keep the original name
@@ -718,7 +718,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             self = this,
             trait = Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
             confirmed = true, register = false;
-        
+
         var newFormJSON = lively.persistence.Serializer.serialize(copy);
 
         // now update all other versions of this form
@@ -741,7 +741,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     // },
 });
 
-Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function connectSavingProperties(anObject, options) {
     // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
     if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
@@ -760,12 +760,12 @@ function connectSavingProperties(anObject, options) {
     }).call(anObject, anObject)
 });
 
-Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
     var path = lively.PropertyPath(modelPath),
         name = path.parts()[path.parts().length - 2],
         trait = this;
-    
+
     var formHandle = rootHandle.child(path).parent().child(".form");
     formHandle.getOnce(function(err, formJSON) {
         if (err) return alert(err);
@@ -784,9 +784,9 @@ function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
     });
 });
 
-Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function mixInto(aMorph, morphHandle, saveForm) {
-    if (!aMorph.name) 
+    if (!aMorph.name)
         throw new Error("Any morph being synchronized has to have a name.");
     if (!morphHandle)
         throw new Error("Can not synchronize Morph whithout knowing where it is synchronized.");
@@ -798,9 +798,9 @@ function mixInto(aMorph, morphHandle, saveForm) {
     // 1 apply the mixin
     this.mixin().applyTo(aMorph);
     this.connectSavingProperties(aMorph);
-    
+
     aMorph.form = {
-        json: aMorph.form && aMorph.form.json || "", 
+        json: aMorph.form && aMorph.form.json || "",
         cb: this.formUpdate.bind(this, aMorph),
         handle: formHandle};
     aMorph.synchronizationHandles = aMorph.synchronizationHandle || [];
@@ -808,28 +808,26 @@ function mixInto(aMorph, morphHandle, saveForm) {
     // 2 ensure there is a handle
     var withHandleDo = function(err, handle) {
         if (err) throw new Error("Synchronization failed: " + err);
-        
+
         if (!aMorph.synchronizationHandles.include(handle))
             aMorph.synchronizationHandles.push(handle);
-        
+
         // 3 synchronize it
         if (aMorph.owner)
             aMorph.onOwnerChanged(aMorph.owner);
         if (!aMorph.updateIndicator)
             aMorph.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(aMorph);
-        
+
         // 4 save the form
         if (saveForm) aMorph.saveForm && aMorph.saveForm();
-
     };
     if (morphHandle.isRoot())
         morphHandle.child(aMorph.name).push(aMorph.getModelData(), withHandleDo);
     else
         withHandleDo(null, morphHandle)
-    
 });
 
-Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function formUpdate(me, error, value) {
     if (error) return alert(error);
     if (value === me.form.json) return;
@@ -857,7 +855,7 @@ function formUpdate(me, error, value) {
 Trait('lively.persistence.StateSync.SynchronizedTextMixin', 'modelCreation',
 {
     connectTo: function(targetObj, targetMethodName, options) {
-        connect(this, "textString", targetObj, targetMethodName, {updater: 
+        connect(this, "textString", targetObj, targetMethodName, {updater:
         function ($upd, value) {
             this.sourceObj.changeTime = Date.now();
             if (typeof this.targetObj[this.targetMethodName] == "function")
@@ -987,7 +985,6 @@ Trait('lively.persistence.StateSync.SynchronizedSliderMixin',
             if (this.changeVisualizationEnd !== undefined) {
                 this.changeVisualizationEnd();
                 return true;
-                
             }
             var color = this.sliderKnob.getFill(),
                 self = this;

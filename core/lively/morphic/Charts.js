@@ -4684,7 +4684,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         return [
             "Statistics",
             "Sort",
-            "Rename"
+            "Rename",
+            "Hide"
             ];
     },
     handleClick: function(cell, method) {
@@ -4742,6 +4743,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 }
                 var description = "Enter new name";
                 $world.prompt(description, renameColumn);
+            case "Hide":
+                var data = this.component.data;
+                data.map(function(ea) {
+                    delete ea[attribute];
+                    return ea;
+                });
+                this.component.onContentChanged();
         }
     },
 

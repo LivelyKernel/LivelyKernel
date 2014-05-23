@@ -732,7 +732,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }, function(error, v) {
             if (confirmed)
                 self.form.json = v;
-        }, newFormJSON, this.form.json, this.form.cb)
+        }, newFormJSON, this.form.json, this.form.cb);
+
+        copy.copyToPartsBin('PartsBin/BYOIE');
     },
     // addMorph: function(aMorph, other) {
     //     var result = this.constructor.prototype.addMorph.call(this, aMorph, other);

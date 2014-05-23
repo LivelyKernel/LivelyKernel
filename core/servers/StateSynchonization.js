@@ -116,7 +116,9 @@ var searchForIn = function(searchStrings, object, initialPath) {
                 if (searchInObject(object[i]))
                     result.push({path: path.concat(i + ""), 
                                 shortString: object[i].shortString,
-                                changeTime: object[i].changeTime})
+                                changeTime: object[i].changeTime,
+                                author: object[i].author,
+                            })
             }
         } else {
             try {

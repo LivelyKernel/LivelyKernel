@@ -707,6 +707,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         }).call(this)
         obj.shortString = this.toString();
         obj.changeTime = this.changeTime || Date.now();
+        obj.author = lively.Config.get("UserName") + "";
         return obj
     },
 }, 'form synchronization', {

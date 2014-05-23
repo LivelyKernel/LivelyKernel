@@ -414,27 +414,44 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     isEpiMorph: true
 },
 'initializing', {
-    initialize: function($super, targetMorph, updatedSubmorphs) {
-        if (!targetMorph.synchronizationHandles || !targetMorph.synchronizationHandles.length > 0) {
-            throw new Error("Can not indicate changes for something which is not synchronized.")
-        }
+    initialize: function($super, targetMorph, updatedSubmorphs, newModel) {
         var ext = this.initialExtent,
             pos = lively.pt(targetMorph.getExtent().x - ext.x, 0);
         $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
         
-        this.target = targetMorph;
-        this.createBounds();
+        this.connectTo(targetMorph);
+        this.initializeMorphic();
         
-        this.applyStyle({
-            fill: this.normalColor,
-            borderWidth: 0});
-        this.indicate(updatedSubmorphs);
+        if (updatedSubmorphs)
+            this.indicate(updatedSubmorphs, newModel);
+        else
+            this.becomeNormal();
+    },
+    connectTo: function(targetMorph) {
+        if (!targetMorph.synchronizationHandles || !targetMorph.synchronizationHandles.length > 0) {
+            throw new Error("Can not indicate changes for something which is not synchronized.")
+        }
+        if (this.target) {// disconnect ...
+        }
+        this.target = targetMorph;
         connect(targetMorph, "extent", this, "adjustPosition");
         connect(targetMorph, "position", this, "adjustPosition");
         connect(targetMorph, "remove", this, "remove");
     },
-    createBounds: function() {
-        var boundsRect = new lively.morphic.Box(this.target.getBounds());
+    initializeMorphic: function() {
+        this.createBounds(this.target.getBounds());
+        
+        this.applyStyle({
+            fill: this.normalColor,
+            borderWidth: 0,
+            borderRadius: [10, 10, 0, 0]
+            });
+        this.setBorderStylingMode(true);
+        this.setStyleSheet(".Morph {border-width: 0; border-radius: 10px 10px 0 0}")
+        this.enableMorphMenu();
+    },
+    createBounds: function(rect) {
+        var boundsRect = new lively.morphic.Box(rect);
         boundsRect.applyStyle({
             fill: null,
             borderWidth: 4,

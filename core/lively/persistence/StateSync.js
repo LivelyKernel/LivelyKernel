@@ -634,7 +634,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         // the copy neither has synchronization handles, nor injected behavior
         var copy = this.copy(false),
             self = this,
-            trait = Trait("lively.persistence.StateSync.SynchronizedMorphMixin"),
+            trait = Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
             confirmed = true, register = false;
         
         var newFormJSON = lively.persistence.Serializer.serialize(copy);
@@ -659,7 +659,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
     // },
 });
 
-Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
 function connectSavingProperties(anObject, options) {
     // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
     if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
@@ -678,7 +678,7 @@ function connectSavingProperties(anObject, options) {
     }).call(anObject, anObject)
 });
 
-Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
 function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
     var path = lively.PropertyPath(modelPath),
         name = path.parts()[path.parts().length - 2],
@@ -702,7 +702,7 @@ function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
     });
 });
 
-Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
 function mixInto(aMorph, morphHandle, saveForm) {
     if (!aMorph.name) 
         throw new Error("Any morph being synchronized has to have a name.");
@@ -724,7 +724,7 @@ function mixInto(aMorph, morphHandle, saveForm) {
     aMorph.synchronizationHandles = aMorph.synchronizationHandle || [];
 
     // 2 ensure there is a handle
-    var thenDoFirst = function(err, handle) {
+    var withHandleDo = function(err, handle) {
         if (err) throw new Error("Synchronization failed: " + err);
         
         if (!aMorph.synchronizationHandles.include(handle))
@@ -739,13 +739,13 @@ function mixInto(aMorph, morphHandle, saveForm) {
 
     };
     if (morphHandle.isRoot())
-        morphHandle.child(aMorph.name).push(aMorph.getModelData(), thenDoFirst);
+        morphHandle.child(aMorph.name).push(aMorph.getModelData(), withHandleDo);
     else
-        thenDoFirst(null, morphHandle)
+        withHandleDo(null, morphHandle)
     
 });
 
-Object.addScript(Trait("lively.persistence.StateSync.SynchronizedMorphMixin"), 
+Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'), 
 function formUpdate(me, error, value) {
     if (error) return alert(error);
     if (value === me.form.json) return;
@@ -770,7 +770,7 @@ function formUpdate(me, error, value) {
 });
 
 // Object.extend(lively.morphic.Text.prototype,
-Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
+Trait('lively.persistence.StateSync.SynchronizedTextMixin', 'modelCreation',
 {
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "textString", targetObj, targetMethodName, {updater: 
@@ -843,9 +843,9 @@ Trait("lively.persistence.StateSync.SynchronizedTextMixin", 'modelCreation',
         }
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedTextMixin").mixin().applyTo(lively.morphic.Text);
+Trait('lively.persistence.StateSync.SynchronizedTextMixin').mixin().applyTo(lively.morphic.Text);
 
-Trait("lively.persistence.StateSync.SynchronizedListMixin",
+Trait('lively.persistence.StateSync.SynchronizedListMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "itemList", targetObj, targetMethodName, options)
@@ -885,9 +885,9 @@ Trait("lively.persistence.StateSync.SynchronizedListMixin",
         }
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedListMixin").mixin().applyTo(lively.morphic.List);
+Trait('lively.persistence.StateSync.SynchronizedListMixin').mixin().applyTo(lively.morphic.List);
 
-Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
+Trait('lively.persistence.StateSync.SynchronizedSliderMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "value", targetObj, targetMethodName, options)
@@ -920,10 +920,10 @@ Trait("lively.persistence.StateSync.SynchronizedSliderMixin",
         }
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedSliderMixin").mixin().applyTo(lively.morphic.Slider);
+Trait('lively.persistence.StateSync.SynchronizedSliderMixin').mixin().applyTo(lively.morphic.Slider);
 
 
-Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin",
+Trait('lively.persistence.StateSync.SynchronizedCheckBoxMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "checked", targetObj, targetMethodName, options)
@@ -939,9 +939,9 @@ Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin",
         }
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedCheckBoxMixin").mixin().applyTo(lively.morphic.CheckBox);
+Trait('lively.persistence.StateSync.SynchronizedCheckBoxMixin').mixin().applyTo(lively.morphic.CheckBox);
 
-Trait("lively.persistence.StateSync.SynchronizedImageMixin",
+Trait('lively.persistence.StateSync.SynchronizedImageMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
         this.addScript(function setImageURL(url, keepOriginalExtent) {
@@ -960,9 +960,9 @@ Trait("lively.persistence.StateSync.SynchronizedImageMixin",
         }
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedImageMixin").mixin().applyTo(lively.morphic.Image);
+Trait('lively.persistence.StateSync.SynchronizedImageMixin').mixin().applyTo(lively.morphic.Image);
 
-Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
+Trait('lively.persistence.StateSync.SynchronizedCodeEditorMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
         connect(this, "savedTextString", targetObj, targetMethodName, options)
@@ -1008,6 +1008,6 @@ Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin",
         return changed;
     },
 });
-Trait("lively.persistence.StateSync.SynchronizedCodeEditorMixin").mixin().applyTo(lively.morphic.CodeEditor);
+Trait('lively.persistence.StateSync.SynchronizedCodeEditorMixin').mixin().applyTo(lively.morphic.CodeEditor);
 
 }) // end of module

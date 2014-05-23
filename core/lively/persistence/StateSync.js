@@ -418,6 +418,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         var ext = this.initialExtent,
             pos = lively.pt(targetMorph.getExtent().x - ext.x, 0);
         $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
+        this.updates = [];
         
         this.connectTo(targetMorph);
         this.initializeMorphic();
@@ -461,6 +462,27 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         boundsRect.disableEvents();
     },
 },
+'default category', {
+    toString: function() {
+        try {
+            var path = this.target.synchronizationHandles[0].fullPath();
+            return "" + path + " update indicator";
+        } catch(e){
+            return "UpdateIndicator for morph " + this.target;
+        }
+        return 
+    },
+    getPathFor: function(aMorph) {
+        var path = [];
+        for (var owner = aMorph.owner; owner && (!owner.synchronizationHandles || owner.synchronizationHandles.length < 1); owner = owner.owner) {
+            path.unshift(owner.getName());
+        }
+        if (path.length > 0)
+            return "(" + path.join(".") + ")";
+        else
+            return "";
+    },
+},
 'morphic', {
     remove: function($super) {
         $super();
@@ -469,12 +491,35 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     adjustPosition: function() {
         var newExtent = this.target.getExtent(),
             pos = this.target.getPosition().subPt(this.getExtent()).addXY(newExtent.x, 0);
-        this.target.owner.addMorph(this);
+        if (this.owner !== this.target.owner) {
+            var boundsOwner = this.boundsRect.owner
+            this.target.owner.addMorph(this);
+            if (boundsOwner) this.target.owner.addMorph(this.boundsRect);
+        }
         this.setPosition(pos);
         this.boundsRect.setBounds(this.target.getBounds());
     },
     morphMenuItems: function() {
-        return []
+        return this.updates.map(function(ea) {
+            var when = this.humanReadableTimeFor(ea.changeTime),
+                who = ea.author ? " " + ea.author + " changed " : "";
+            if (ea.affectedMorphs && ea.affectedMorphs.length > 1) {
+                return [when + who, ea.affectedMorphs.map(function(eb) {
+                    return [eb.getName() + this.getPathFor(eb), function() { show(eb) }];
+                }, this)]
+            } else {
+                if (ea.affectedMorphs && ea.affectedMorphs.length == 1) {
+                    var theMorph = ea.affectedMorphs[0]
+                    if (theMorph == this.target) {
+                        return [when + " reloaded the form", function() { show(theMorph) }]
+                    } else {
+                        return [when + who + theMorph.getName() + this.getPathFor(theMorph),
+                            function() { show(theMorph)}]
+                    }
+                }
+                return [when + " unspecified update"]
+            }
+        }, this)
     },
 },
 'updates', {
@@ -482,13 +527,10 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         this.boundsRect.remove();
         this.setFill(this.normalColor);
     },
-    indicate: function(updatedSubmorphs) {
+    becomeHighlighted: function() {
         var targetMorph = this.target;
-        this.adjustPosition(targetMorph.getExtent());
-        
-        if (this.getFill().equals(this.highlightColor)) return
         this.setFill(this.highlightColor);
-        this.boundsRect.openInWorld();
+        this.target.owner.addMorph(this.boundsRect);
         
         if (targetMorph.hasOwnProperty("onFocus")){
             connect(targetMorph, "onFocus", this, "becomeNormal", { removeAfterUpdate: true })
@@ -499,6 +541,28 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             }, "onFocus")
         }
         connect(targetMorph, "remove", this, "becomeNormal", { removeAfterUpdate: true });
+    },
+    indicate: function(updatedSubmorphs, newModel) {
+        this.adjustPosition(this.target.getExtent());
+        if (!this.getFill().equals(this.highlightColor)) this.becomeHighlighted();
+        
+        this.updates.unshift({changeTime: newModel.changeTime, affectedMorphs: updatedSubmorphs, author: newModel.author});
+    },
+    humanReadableTimeFor: function(timestamp) {
+        var delta = Date.now() - timestamp;
+        if (delta <= 60 * 1000)
+            return (delta / 1000).toFixed() + "s ago"
+        if (delta <= 20 /*min*/ * 1000 * 60) {
+            return (delta / 1000 / 60).toFixed() + " min ago"
+        }
+        var time = new Date(timestamp),
+            now = new Date();
+        if (time.getYear() == now.getYear && time.getMonth() == now.getMonth()) {
+            var str = time.format("H:MM ")
+            if (time.getDay() == now.getDay()) return str + "today";
+            if (time.getDay() == now.getDay() - 1) return str + "yesterday";
+        }
+        return time.format("H:MM yy-mm-dd")
     }
 })
 
@@ -548,7 +612,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.synchronizationGet = this.synchronizationGet || (function(error, val) {
                 var changes = aMorph.mergeWithModelData(val);
                 if (changes && changes.length > 0) {
-                    aMorph.indicateUpdate(changes);
+                    aMorph.indicateUpdate(changes, val);
                 }
             });
             this.synchronizationHandles.forEach(function(handle) {
@@ -557,12 +621,12 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
             this.form.handle.get(this.form.cb);
         }
     },
-    indicateUpdate: function (updatedSubmorphs) {
+    indicateUpdate: function (updatedSubmorphs, newModel) {
         if (this.updateIndicator) {
-            return (this.updateIndicator.indicate && this.updateIndicator.indicate(updatedSubmorphs))
+            return (this.updateIndicator.indicate && this.updateIndicator.indicate(updatedSubmorphs, newModel))
                 || this.updateIndicator;
         } else {
-            this.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(this, updatedSubmorphs);
+            this.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(this, updatedSubmorphs, newModel);
         }
     },
     toString: function() {
@@ -750,6 +814,8 @@ function mixInto(aMorph, morphHandle, saveForm) {
         // 3 synchronize it
         if (aMorph.owner)
             aMorph.onOwnerChanged(aMorph.owner);
+        if (!aMorph.updateIndicator)
+            aMorph.updateIndicator = new lively.persistence.StateSync.UpdateIndicator(aMorph);
         
         // 4 save the form
         if (saveForm) aMorph.saveForm && aMorph.saveForm();
@@ -775,7 +841,7 @@ function formUpdate(me, error, value) {
     this.mixInto(newMe, me.synchronizationHandles[0], false);
     newMe.form.json = value;
     newMe.mergeWithModelData(me.getModelData());
-    newMe.indicateUpdate([newMe]);
+    newMe.indicateUpdate([newMe], me.getModelData());
     if (me.owner) {
         newMe.setPosition(me.getPosition());
         me.owner.addMorph(newMe, me);

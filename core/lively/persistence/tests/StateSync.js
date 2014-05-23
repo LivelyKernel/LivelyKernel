@@ -301,7 +301,7 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
     getStickyNote: function() {
         var background = new lively.morphic.Box(lively.rect(0, 0, 200, 150)),
             content = new lively.morphic.Text(lively.rect(5, 5, 190, 140), "");
-        background.setName("stickyNote");
+        background.setName("testStickyNote");
         content.setName("content");
         content.fixedHeight = true;
         background.addMorph(content);
@@ -318,7 +318,7 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         var model = gunieaPig.getModelData();
         this.assert(model.content && Object.isNumber(model.changeTime), "for texts, there is no change changeTime-ing");
         model.changeTime = 10;
-        this.assertEqualState(model, {changeTime: 10, content: [["some text", model.content[0][1]]], shortString: model.shortString}, "model generation not successful");
+        this.assertEqualState(model, {changeTime: 10, content: [["some text", model.content[0][1]]], shortString: model.shortString, author: lively.Config.get("UserName") + ""}, "model generation not successful");
         
         (thenDo && thenDo.call(this, gunieaPig)) || this.done()
     },
@@ -327,7 +327,7 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         
         gunieaPig.submorphs[0].textString = "some different text";
         var model = gunieaPig.getModelData()
-        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: [["some different text", model.content[0][1]]], shortString: model.shortString}, "model not updated successful")
+        this.assertEqualState(model, {changeTime: gunieaPig.changeTime || 0, content: [["some different text", model.content[0][1]]], shortString: model.shortString, author: lively.Config.get("UserName") + ""}, "model not updated successful")
         
         this.epsilon = 100
         this.assertEqualsEpsilon(model.changeTime, Date.now(), "changing the text should change the last update timestamp")
@@ -362,6 +362,28 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
         })
         s.b = 1;
         window.setTimeout(function() {s.b = 2}, 4)
+    },
+    testNotifications: function() {
+        var self = this,
+            note = this.getStickyNote();
+        this.startSynchronizing(note);
+        note.saveForm();
+        var handle = note.synchronizationHandles[0]
+        this.trait.openMorphFor(handle.fullPath(), handle.root(), function() { self.assert(false, "there should be a form for the new morph..."); }, function(err, newNote) {
+            newNote.openInWorld();
+            if (err) self.assert(false, "the new note is not available beacuse of " + err);
+            self.assert(newNote.updateIndicator && note.updateIndicator, "After initialization, both notes should have an updateIndicator.");
+
+            note.getMorphNamed('content').textString = "Some new TextString.";
+            note.save(); // textMorph save is throttled by 20ms. circumvent by saving directly
+            self.assert(note.getModelData().content[0][0] === "Some new TextString.");
+            self.assert(newNote.getModelData().content[0][0] === "Some new TextString.", 'change not transmitted.');
+
+            self.assert(newNote.updateIndicator.getFill().equals(newNote.updateIndicator.highlightColor), "Although there was an update, the indicators state did not change.");
+            self.assert(newNote.updateIndicator.updates[0].affectedMorphs[0] === newNote.getMorphNamed("content"), "update logging does not work, or the structure has changed")
+            self.done();
+            newNote.remove();
+        })
     },
 })
 

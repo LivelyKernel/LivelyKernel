@@ -30,29 +30,3 @@ objects.sqlite
 # Debugging -- for development, will go away soon #
 DBG_*.js
 
-=======
-# Symlinks #
-stuff
-web
-
-# PartsBin serving
-PartsBin-copies/
-
-# QBF
-QBFHighScores.json
-
-# module debugging
-*.html.dot
-*.html.svg
-
-# backup
-.exclude-from-backup
-
-# ignore lively-web specific subservers
-core/servers/
-
-# R
-lively_r_log
-.Rhistory
-Rplots.pdf
-R-libraries/

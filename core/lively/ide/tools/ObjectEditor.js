@@ -1437,7 +1437,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     editor.lastSaveSource = source;
     this.changeIndicator.indicateUnsavedChanges();
     this.updateLists();
-    this.selectChangedContent(source);
     editor.setStatusMessage("saved source", Color.green);
 
 },

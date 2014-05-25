@@ -1369,9 +1369,11 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         var el = this.createScriptEl({
             id: id,
             parent: this.body[0],
-            textContent: json,
             type: 'text/x-lively-world'
         });
+        var xml = lively.$.parseXML('<xml />'),
+            cdata = xml.createCDATASection(json);
+        el.appendChild(cdata);
         lively.$(el).attr('data-migrationLevel', migrationLevel);
     },
 

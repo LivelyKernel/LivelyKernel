@@ -61,7 +61,15 @@ Object.extend(lively.Main.WorldDataAccessor, {
 
     forHTMLDoc: function(doc) {
         // get the first script tag with the x-lively-world type
-        var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
+        var worldTag = lively.$(doc).find('script[type="text/x-lively-world"]'),
+            json;
+        // FIXME: LivelyMigrationSupport.documentMigrationLevel should not return 0
+        if (worldTag.attr('data-migrationlevel') < 9)
+            json =  worldTag.text();
+        else {
+            var xmlDoc = lively.$.parseXML(worldTag[0].outerHTML);
+            json = xmlDoc.children[0].textContent
+        }
         return new lively.Main.JSONMorphicData(doc, json);
     }
 });

@@ -1420,6 +1420,10 @@ Object.extend(lively.persistence.HTMLDocBuilder, {
         // This method creates a new HTML document that can be used to
         // serialize a Lively world.
         return new this().build(spec);
+    },
+    documentForWorldSerializationAsString: function(spec) {
+        var doc = this.documentForWorldSerialization(spec);
+        return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
     }
 });
 

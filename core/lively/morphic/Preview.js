@@ -2,6 +2,13 @@ module('lively.morphic.Preview').requires().requiresLib({url: Config.codeBase + 
 
 Object.extend(lively.morphic.Preview, {
 
+    usage: function() {
+        var morph = lively.morphic.newMorph()
+        lively.morphic.Preview.renderMorphToNewImage(morph, {/*options*/}, function(err, image) {
+            image.openInWorldCenter();
+        });
+    },
+
     withMorphNodeInDOMDo: function(morph, doFunc) {
             var node = morph.renderContext().shapeNode, cleanup;
             if (!morph.world()) {

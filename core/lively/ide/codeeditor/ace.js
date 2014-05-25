@@ -148,5 +148,17 @@ Object.extend(lively.ide, {
     Object.extend(LivelyCstyleBehaviour, CstyleBehaviour);
     oop.inherits(LivelyCstyleBehaviour, CstyleBehaviour);
     lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour = LivelyCstyleBehaviour;
+    
+    if (UserAgent.fireFoxVersion /* UserAgent.isMozilla is also true for Chrome */) {
+        var cssOverrides = document.createElement("style");
+        cssOverrides.textContent = "\n/* ACE CSS Workarounds for Firefox */" +
+                ["div.ace_scrollbar",
+                 "div.ace_gutter", "div.ace_layer.ace_cursor-layer",
+                 "div.ace_layer.ace_text-layer", "div.ace_layer.ace_marker-layer",
+                 "div.ace_marker-layer .ace_bracket"].inject("\n", function (css, next) {
+            return css + next + " { z-index: 0; }\n"
+        });
+        document.head.insertBefore(cssOverrides, document.head.firstChild);
+    }
 })();
 }); // end of module

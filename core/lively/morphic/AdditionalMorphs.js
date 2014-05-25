@@ -948,7 +948,7 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
             });
         }]);
         items.push(['as text', function() {
-            var ed = target.world().addCodeEditor({content: target.asJQuery().text(), gutter: false, textMode: 'text'});
+            var ed = target.world().addCodeEditor({content: target.jQuery().text(), gutter: false, textMode: 'text'});
             ed.owner.align(ed.owner.bounds().center(), target.globalBounds().center());
         }]);
         items.push(['open in web page', function() {
@@ -968,7 +968,7 @@ Object.extend(lively.morphic.HtmlWrapperMorph, {
     renderHTML: function(html, bounds) {
         bounds = bounds || lively.rect(0,0, 500, 500);
         var morph = new lively.morphic.HtmlWrapperMorph(bounds.extent());
-        morph.asJQuery().html(html);
+        morph.jQuery().html(html);
         morph.applyStyle({fill: Color.white, clipMode: 'auto'});
         morph.name = 'HTMLMorph';
         morph.openInWindow();

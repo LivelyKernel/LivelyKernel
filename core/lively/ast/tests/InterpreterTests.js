@@ -665,6 +665,12 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         var src = '(function foo(a, b, c) {}).argumentNames();',
             node = this.parse(src);
         this.assertEqualState(['a', 'b', 'c'], this.interpret(node), 'wrong argument names returned');
+    },
+
+    test49SameFunctionArgAndVarDeclaration: function() {
+        var src = '(function(a) { var a; return a; })(123);',
+            node = this.parse(src);
+        this.assertEquals(123, this.interpret(node), 'variable declaration overwrote argument');
     }
 
 });

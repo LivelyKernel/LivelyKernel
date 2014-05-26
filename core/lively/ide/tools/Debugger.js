@@ -486,12 +486,8 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameScope").reset();
     },
         restart: function restart() {
-        var frame = this.currentFrame,
-            parentFrame = frame.parentFrame,
-            interpreter = new lively.ast.AcornInterpreter.Interpreter();
-        frame.reset();
-        interpreter.stepToNextStatement(frame);
-        this.updateDebugger(frame);
+        this.currentFrame.reset();
+        this.stepOver();
     },
         resume: function resume() {
         var frame = this.topFrame,
@@ -520,22 +516,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         var frames = [];
         var frame = topFrame;
         do {
-            // Filter rewriting, interpreter and editor frames (optionally show them)
-            var modulesToHide = [
-                    lively.ast.AcornInterpreter,
-                    lively.ide.CodeEditor
-                ], filenames;
-            filenames = modulesToHide.map(function(m) {
-                return new URL(m.uri()).relativePathFrom(URL.root);
+            var name = frame.func.name() || '(anonymous function)';
+            frames.push({
+                isListItem: true,
+                string: frame.isResuming() ? name : name + " [native]",
+                value: frame
             });
-            if (!filenames.member(frame.func.getAst().sourceFile)) {
-                var name = frame.func.name() || '(anonymous function)';
-                frames.push({
-                    isListItem: true,
-                    string: frame.isResuming() ? name : name + " [native]",
-                    value: frame
-                });
-            }
         } while (frame = frame.getParentFrame());
         this.topFrame = frames[0] ? frames[0].value : topFrame;
         this.get("FrameList").updateList(frames);
@@ -545,18 +531,24 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
     },
         stepInto: function stepInto() {
         var frame = this.currentFrame,
+            parentFrame = frame.getParentFrame(),
             interpreter = new lively.ast.AcornInterpreter.Interpreter();
 
         // FIXME: rather use continuation here
         var result = interpreter.stepToNextCallOrStatement(frame);
+        frame = lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(frame);
+        frame.setParentFrame(parentFrame);
         this.updateDebugger(frame, result);
     },
         stepOver: function stepOver() {
         var frame = this.currentFrame,
+            parentFrame = frame.getParentFrame(),
             interpreter = new lively.ast.AcornInterpreter.Interpreter();
 
         // FIXME: rather use continuation here
         var result = interpreter.stepToNextStatement(frame);
+        frame = lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(frame);
+        frame.setParentFrame(parentFrame);
         this.updateDebugger(frame, result);
     },
         updateDebugger: function updateDebugger(frame, result) {
@@ -568,7 +560,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             } else
                 this.owner.remove();
         } else if (result && result.unwindException && result.unwindException.top && result.unwindException.top != frame) { // new frame
-            this.setTopFrame(result.unwindException.top);
+            this.setTopFrame(lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(result.unwindException.top));
             if (result.toString && result.toString())
                 this.getWindow().setTitle(result.toString());
         } else if (result instanceof lively.ast.Continuation) {

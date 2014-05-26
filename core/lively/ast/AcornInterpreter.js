@@ -1191,6 +1191,25 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
 
 });
 
+Object.extend(lively.ast.AcornInterpreter.Interpreter, {
+
+    stripInterpreterFrames: function(topFrame) {
+        var allFrames = [topFrame];
+        while (allFrames.last().getParentFrame())
+            allFrames.push(allFrames.last().getParentFrame());
+        allFrames = allFrames.select(function(frame) {
+            return !frame.isInternal();
+        });
+        allFrames.push(undefined);
+        allFrames.reduce(function(frame, parentFrame) {
+            frame.setParentFrame(parentFrame);
+            return parentFrame;
+        });
+        return allFrames[0];
+    }
+
+})
+
 Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
 

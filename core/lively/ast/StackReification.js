@@ -278,7 +278,8 @@ Object.extend(lively.ast.Continuation, {
 
     fromUnwindException: function(e) {
         if (!e.isUnwindException) console.error("No unwind exception?");
-        var continuation = new this(e.top);
+        var frame = lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(e.top),
+            continuation = new this(frame);
         continuation.error = e.error;
         return continuation;
     }

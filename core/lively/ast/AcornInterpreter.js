@@ -1233,7 +1233,9 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 	},
 
     reset: function() {
-        var args = this.getArguments();
+        try {
+            var args = this.getArguments();
+        } catch (e) { /* might throw ReferenceError */ }
         this.scope             = new lively.ast.AcornInterpreter.Scope(null, this.scope.getParentScope());
         this.returnTriggered   = false;
         this.breakTriggered    = null;      // null, true or string (labeled break)
@@ -1242,7 +1244,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.pcStatement       = null;      // statement node of the pc
         this.alreadyComputed   = {};        // maps astIndex to values. Filled
                                             // when we unwind from captured state
-        this.setArguments(args);
+        if (args != undefined) this.setArguments(args);
     }
 
 },

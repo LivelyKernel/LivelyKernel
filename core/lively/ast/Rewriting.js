@@ -1679,6 +1679,24 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         return frame;
     }
 
+    UnwindException.prototype.unshiftFrame = function() {
+        if (!this.top) return;
+
+        var frame = this.top,
+            prevFrame;
+        while (frame.getParentFrame()) {
+            prevFrame = frame;
+            frame = frame.getParentFrame();
+        }
+        if (prevFrame) { // more then one frame
+            prevFrame.setParentFrame(undefined);
+            this.last = prevFrame;
+        } else {
+            this.top = this.last = undefined;
+        }
+        return frame;
+    }
+
 })();
 
 }) // end of module

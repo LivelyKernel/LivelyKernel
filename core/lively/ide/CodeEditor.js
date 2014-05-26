@@ -681,10 +681,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
             if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
                 require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
-                    // TODO: pop boundEval & interactiveEval from stack?
+                    // pop boundEval & interactiveEval from stack
+                    e.unwindException.unshiftFrame();
+                    e.unwindException.unshiftFrame();
                     var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
                     lively.ast.openDebugger(cont.currentFrame, e.toString());
                 });
+                return;
             }
             return e;
         }

@@ -175,7 +175,7 @@ Object.extend(Array.prototype, {
         var value, result, resultValue;
         this.forEach(function(element, index) {
             value = iterator(element, index);
-            if (!result || value < resultValue) {
+            if (result === undefined || value < resultValue) {
                 result = element;
                 resultValue = value;
             }

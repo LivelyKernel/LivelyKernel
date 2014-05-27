@@ -1889,6 +1889,9 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Arrow", {
         this.positionAtMorph(positionX);
         this.setBorderWidth(1);
         this.deactivate(true);
+        
+        this.disableDragging();
+        this.disableGrabbing();
     },
     
     getTipPosition: function() {

@@ -16,7 +16,7 @@
     "life_star": ">=0.4.9",
     "optparse": "~1.0",
     "shelljs": "~0.2",
-    "sqlite3": "^2.2.3",
+    "sqlite3": "~2.2.3",
     "watch": "~0.8.0",
     "websocket": "1.0.8"
   },

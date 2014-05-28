@@ -4052,6 +4052,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         layout.setSpacing(0);
         layout.borderSize = 0;
         this.mappingContainer.setLayouter(layout);
+        this.mappingContainer.layout.resizeWidth = true;
         
         this.addMorph(this.mappingContainer);
     },
@@ -6671,7 +6672,9 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLine",
             resizeWidth: true,
             resizeHeight: false
         }
-        valueField.setWordBreak("break-word");
+        valueField.setWordBreak("normal");
+        valueField.fixedHeight = false;
+        valueField.registeredForMouseEvents = true;
         
         valueField.setStyleSheet(this.getFieldCSS());
         valueField.setWhiteSpaceHandling("normal");

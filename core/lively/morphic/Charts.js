@@ -4736,67 +4736,87 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         var attribute = cell.getTextString();
         switch(method) {
             case "Statistics":
-                var columnData = this.component.data;
-        
-                // check if the data-array contains objects, else data is an array of primitives
-                // and we don't need (and shouldn't) pluck the attribute
-                if (typeof columnData[0] === 'object') {
-                    columnData = columnData.pluck(attribute);
-                }
-                
-                var inspector = lively.morphic.Charts.Component.createWindow("StatisticTable");
-                inspector.setDescription("Statistics - " + attribute);
-                inspector.openInWorld(cell.getPositionInWorld());
-                inspector.content.createStatistics(columnData);
+                this.openStatisticsWindow(cell);
                 break;
             case "Sort":
-                var data = this.component.data;
-                var primitive = true;
-                if (typeof data[0] === 'object') {
-                    primitive = false;
-                }
-                data.sort(function(a, b) {
-                    if (!primitive) {
-                        a = a[attribute];
-                        b = b[attribute];
-                    }
-                    if (cell.sortedAsc) {
-                        // sort descending
-                        return a < b ? 1 : a > b ? -1 : 0;
-                    } else {
-                        // sort ascending
-                        return a < b ? -1 : a > b ? 1 : 0;
-                    }
-                });
-                cell.sortedAsc = !cell.sortedAsc;
-                var scrollPosition = this.table.getScroll();
-                this.component.onContentChanged();
-                var _this = this;
-                this.table.setScroll(scrollPosition[0], scrollPosition[1]);
+                this.sortTable(cell);
                 break;
             case "Rename":
-                var data = this.component.data;
-                var _this = this;
-                var renameColumn = function(newName) {
-                    data.map(function(ea) {
-                        ea[newName] = ea[attribute];
-                        delete ea[attribute];
-                        return ea;
-                    });
-                    _this.component.onContentChanged();
-                }
-                var description = "Enter new name";
-                $world.prompt(description, renameColumn);
+                this.renameColumn(cell);
                 break;
             case "Remove":
-                var data = this.component.data;
-                data.map(function(ea) {
-                    delete ea[attribute];
-                    return ea;
-                });
-                this.component.onContentChanged();
+                this.removeColumn(cell);
                 break;
         }
+    },
+    removeColumn: function(cell) {
+        var data = this.component.data;
+        var attribute = cell.getTextString();
+        data.map(function(ea) {
+            delete ea[attribute];
+            return ea;
+        });
+        this.component.onContentChanged();
+    },
+    renameColumn: function(cell) {
+        var data = this.component.data;
+        var attribute = cell.getTextString();
+        
+        var _this = this;
+        var rename = function(newName) {
+            data.map(function(ea) {
+                ea[newName] = ea[attribute];
+                delete ea[attribute];
+                return ea;
+            });
+            _this.component.onContentChanged();
+        }
+        
+        var description = "Enter new name";
+        $world.prompt(description, rename);
+    },
+    sortTable: function(cell) {
+        var data = this.component.data;
+        var attribute = cell.getTextString();
+        
+        var primitive = true;
+        if (typeof data[0] === 'object') {
+            primitive = false;
+        }
+        
+        data.sort(function(a, b) {
+            if (!primitive) {
+                a = a[attribute];
+                b = b[attribute];
+            }
+            if (cell.sortedAsc) {
+                // sort descending
+                return a < b ? 1 : a > b ? -1 : 0;
+            } else {
+                // sort ascending
+                return a < b ? -1 : a > b ? 1 : 0;
+            }
+        });
+        cell.sortedAsc = !cell.sortedAsc;
+        var scrollPosition = this.table.getScroll();
+        this.component.onContentChanged();
+        var _this = this;
+        this.table.setScroll(scrollPosition[0], scrollPosition[1]);
+    },
+    openStatisticsWindow: function(cell) {
+        var columnData = this.component.data;
+        var attribute = cell.getTextString();
+        
+        // check if the data-array contains objects, else data is an array of primitives
+        // and we don't need (and shouldn't) pluck the attribute
+        if (typeof columnData[0] === 'object') {
+            columnData = columnData.pluck(attribute);
+        }
+        
+        var inspector = lively.morphic.Charts.Component.createWindow("StatisticTable");
+        inspector.setDescription("Statistics - " + attribute);
+        inspector.openInWorld(cell.getPositionInWorld());
+        inspector.content.createStatistics(columnData);
     },
 
 

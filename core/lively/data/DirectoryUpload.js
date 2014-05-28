@@ -8,13 +8,13 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
     },
 
     asItem: function(file, evt) {
+        debugger;
         var files = Array.from(evt.dataTransfer.files);
         var idx = files.indexOf(file);
         return evt.dataTransfer.items[idx];
     },
 
     asWebKitEntry: function(file, evt) {
-        debugger;
         var item = this.asItem(file, evt);
         if (!item) return false;
         return item && item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;

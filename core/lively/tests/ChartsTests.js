@@ -1004,7 +1004,7 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
         var _this = this;
         setTimeout(function() {
             script.content.codeEditor.withAceDo(function() { inited = true; });
-        }, 100);
+        }, 0);
         
         // wait for the code editor to be initialized
         this.waitFor(function() { return inited }, 10, function() {

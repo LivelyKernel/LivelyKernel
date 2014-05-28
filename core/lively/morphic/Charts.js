@@ -6114,10 +6114,10 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
         
         this.description.bringToFront();
     },
-    determineSpec: function(data) {
+    determineSpec: function(morphs) {
         this.length = this.getExtent()[this.dimension];
         
-        var values = data.pluck(this.property).filter(function (ea) { return ea !== undefined});
+        var values = morphs.pluck("datum").pluck(this.property).filter(function (ea) { return ea !== undefined});
         this.max = (this.fixedMax != undefined) ? this.fixedMax : Math.max.apply(null, values);
         this.min = (this.fixedMin != undefined) ? this.fixedMin : Math.min.apply(null, values);
         
@@ -6221,29 +6221,28 @@ lively.morphic.Path.subclass("lively.morphic.Charts.Scale", {
     },
     
     update: function(data) {
+        // data = morphs which include .datum with original data
         console.log("Scale update");
         this.determineSpec(data);
         this.addPitchlines();
         this.positionMorphs(data, this.min, this.max);
     },
-    positionMorphs: function(data) {
+    positionMorphs: function(morphs) {
         var _this = this;
-        data.each(function (ea) {
-            // TODO select the correct morph
-            var morph = ea.morphs[Object.keys(ea.morphs)[0]];
+        morphs.each(function (morph) {
             // calculate relative position on scale, LINEAR
-            var relValue = ((ea[_this.property] || 0) - _this.min) / (_this.max - _this.min);
+            var relValue = ((morph.datum[_this.property] || 0) - _this.min) / (_this.max - _this.min);
             var absValue = relValue * _this.length;
             var scalePosition = _this.getPosition();
             var newPosition = morph.getPosition().copy();
             if (_this.dimension == "x") {
-                morph.propertyX = ea[_this.property];
+                morph.propertyX = morph.datum[_this.property];
                 newPosition.x = absValue + scalePosition.x;
                 if (!morph.scaleXListenersAttached) {
                     _this.attachListener(morph, absValue);
                 }
             } else {
-                morph.propertyY = ea[_this.property];
+                morph.propertyY = morph.datum[_this.property];
                 newPosition.y = _this.length - absValue + scalePosition.y;
                 if (!morph.scaleYListenersAttached) {
                     _this.attachListener(morph, absValue);

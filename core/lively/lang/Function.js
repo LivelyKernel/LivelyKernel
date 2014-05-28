@@ -263,7 +263,13 @@ Object.extend(Function.prototype, {
 
     addToObject: function(obj, name) {
         this.name = name;
+
+        var methodConnections = obj.attributeConnections ?
+            obj.attributeConnections.filter(function(con) { return con.getSourceAttrName() === 'update'; }) : [];
+    
+        methodConnections.invoke('disconnect');
         obj[name] = this;
+
         this.declaredObject = Objects.safeToString(obj);
         // suppport for tracing
         if (lively.Tracing && lively.Tracing.stackTracingEnabled) {
@@ -271,6 +277,9 @@ Object.extend(Function.prototype, {
                 declaredObject: Objects.safeToString(obj)
             });
         }
+
+        methodConnections.invoke('connect');
+
         return this;
     },
 
@@ -497,12 +506,13 @@ Global.Functions = {
         var queue = store[id] || (store[id] = {
             _workerActive: false,
             worker: workerFunc, tasks: [],
-            drain: null, // can be a function
+            drain: null, // can be overwritten by a function
             push: function(task) { queue.tasks.push(task); queue.activateWorker(); },
             pushAll: function(tasks) { queue.tasks.pushAll(tasks); queue.activateWorker(); },
             pushNoActivate: function(task) { queue.tasks.push(task); },
             handleError: function(err) {
-                if (!err) return;
+                // can be overwritten
+                err && console.error('Error in queue: ' + err);
             },
             activateWorker: function() {
                 var tasks = queue.tasks, active = queue._workerActive;
@@ -522,6 +532,31 @@ Global.Functions = {
         return queue;
     },
 
+    composeAsync: function(/*functions*/) {
+        // composes functions: Functions(f,g,h)(arg1, arg2) = 
+        //   f(arg1, arg2, thenDo1) -> thenDo1(err, fResult)
+        // -> g(fResult, thenDo2) -> thenDo2(err, gResult) ->
+        // -> h(fResult, thenDo3) -> thenDo2(err, hResult)
+        // Example:
+        // Functions.composeAsync(
+        //   function(a,b, thenDo) { thenDo(null, a+b); },
+        //  function(x, thenDo) { thenDo(x*4); })(3,2, function(err, result) { show(result); });
+        var functions = Array.from(arguments);
+        var endCallback, intermediateResult;
+        return functions.reverse().reduce(function(prevFunc, func) {
+            return function() {
+                var args = Array.from(arguments);
+                if (!endCallback) endCallback = args.pop();
+                function next(/*err and args*/) {
+                    var args = Array.from(arguments),
+                        err = args.shift();
+                    if (err) endCallback(err);
+                    else prevFunc.apply(null, args);
+                }
+                func.apply(Global, args.concat([next]));
+            }
+        }, function() { endCallback.apply(null, [null].concat(Array.from(arguments))); });
+    },
     compose: function(/*functions*/) {
         // composes functions: Functions(f,g,h)(arg1, arg2) = h(g(f(arg1, arg2)))
         // Example:

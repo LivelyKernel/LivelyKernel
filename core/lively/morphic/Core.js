@@ -323,7 +323,6 @@ Object.subclass('lively.morphic.Morph',
         return this.withAllSubmorphsSelect(matches);
     },
 
-
     withAllSubmorphsDetect: function(func, context, depth) {
         if (!depth) depth = 0;
         var res = [];
@@ -335,6 +334,10 @@ Object.subclass('lively.morphic.Morph',
         return null;
     },
 
+    getMorphById: function(id) {
+        return this.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
+    },
+
     submorphBounds: function(tfm) {
         var subBounds;
         for (var i = 0; i < this.submorphs.length; i++) {
@@ -343,6 +346,7 @@ Object.subclass('lively.morphic.Morph',
         }
         return subBounds ? tfm.transformRectToRect(subBounds) : null;
     },
+
     morphsContainingPoint: function(point, list) {
         // if morph1 visually before morph2 than list.indexOf(morph1) < list.indexOf(morph2)
         if (!list) list = [];
@@ -353,6 +357,7 @@ Object.subclass('lively.morphic.Morph',
         if (this.innerBoundsContainsWorldPoint(point)) list.push(this);
         return list;
     },
+
     morphBeneath: function(pos) {
         var someOwner = this.world() || this.owner;
         if (!someOwner) return null;
@@ -492,9 +497,15 @@ Object.subclass('lively.morphic.Morph',
 },
 'prototypical scripting', {
     addScript: function(funcOrString, optName, optMapping) {
-        if (!funcOrString) return false;
-        var func = Function.fromString(funcOrString);
-        return func.asScriptOf(this, optName, optMapping);
+        if (!funcOrString) return null;
+        var func        = Function.fromString(funcOrString),
+            oldFunction = this[func.name],
+            changed     = oldFunction && oldFunction.toString() !== func.toString(),
+            timestamp   = oldFunction && !changed ? oldFunction.timestamp : undefined,
+            user        = oldFunction && !changed ? oldFunction.user : undefined,
+            result      = func.asScriptOf(this, optName, optMapping);
+        result.setTimestampAndUser(timestamp, user);
+        return result;
     }
 
 },
@@ -675,7 +686,7 @@ Object.subclass('lively.morphic.Morph',
 
     isAncestorOf: function(aMorph) {
         // check if aMorph is somewhere in my submorph graph
-        return this.withAllSubmorphsDetect(function(ea) {
+        return !!this.withAllSubmorphsDetect(function(ea) {
             return ea === aMorph; });
     }
 
@@ -685,7 +696,7 @@ Object.subclass('lively.morphic.Morph',
         return this.renderContext().shapeNode;
     },
     jQuery: function() {
-        return jQuery(this.jQueryNode());
+        return lively.$(this.jQueryNode());
     }
 });
 

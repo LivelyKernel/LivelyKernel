@@ -453,6 +453,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 readOnly: true
             }, {
+
                 name: 'gotoPrevParagraph',
                 bindKey: 'Ctrl-Up',
                 exec: function(ed) {
@@ -491,6 +492,11 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) { ed.$morph.searchWithPrompt(); },
                 readOnly: true
             }, {
+                name: "codeSearch",
+                bindKey: {win: "Ctrl-Shift-F", mac: "Command-Shift-F"},
+                exec: function(ed) { lively.ide.commands.exec('lively.ide.codeSearch', ed.$morph.getSelectionOrLineString()); },
+                readOnly: true
+            }, {
                 name: "findnext",
                 bindKey: {win: "Ctrl-K", mac: "Command-G"},
                 exec: function(ed) { ed.$morph.findNext(); },
@@ -514,11 +520,6 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     lively.ide.CommandLineSearch.doGrepFromWorkspace(ed.$morph.getSelectionOrLineString());
                 },
                 multiSelectAction: 'forEach'
-            }, {
-                name: 'doBrowseImplementors',
-                bindKey: {win: 'Ctrl-Shift-F', mac: 'Command-Shift-F'},
-                exec: function(ed) { ed.$morph.doBrowseImplementors(); },
-                readOnly: true
             }]);
     },
 
@@ -597,14 +598,15 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         if (!size) { show("not a valid tab size: %s", size); return; }
                         ed.$morph.setTabSize(size);
                         $world.confirm('Set tab size to ' + newTabSize + ' for all editors?', function(input) {
-                            if (!input) return;
+                            if (!input) { ed.$morph.focus(); return; }
                             lively.Config.set("defaultTabSize", newTabSize);
                             lively.morphic.CodeEditor.prototype.style.tabSize = Config.get('defaultTabSize');
                             $world.withAllSubmorphsDo(function(ea) { return ea.isCodeEditor && ea.setTabSize(size); });
                             alertOK('Changed global tab size to ' + newTabSize);
+                            ed.$morph.focus();
                         });
                         ed.$morph.focus();
-                    }, ed.$morph.getTabSize() || lively.Config.defaultTabSize);
+                    }, ed.$morph.guessTabSize() || ed.$morph.getTabSize() || lively.Config.defaultTabSize);
                  }
             }, {
                 name: "set line ending mode",
@@ -660,10 +662,19 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         this.addCommands(kbd, [{
             bindKey: 'Tab',
             name: 'expandSnippetOrDoTab',
-            exec: function(ed) {
+            exec: function (ed) {
                 var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
-                if (!success)
-                    ed.execCommand("indent");
+            
+                // the five lines below are for not accidentally re-expanding snippets,
+                // e.g. mutliple expands of forEach when first "tabStop" is directly at the
+                // key that triggers expansion
+                if (ed.tabstopManager) {
+                    ed.tabstopManager.keyboardHandler.bindKeys({
+                        "Tab": function(ed) { ed.tabstopManager.tabNext(1); }
+                    })
+                }
+            
+                if (!success) ed.execCommand("indent");
             },
             multiSelectAction: "forEach"
         }, {
@@ -929,7 +940,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 function tidy(xmlString, thenDo) {
                     return lively.shell.run(
                         'tidy -i -xml -q -',
-                        {stdin: xmlString, sync: true},
+                        {stdin: xmlString},
                         function(cmd) { thenDo && thenDo(cmd.getCode(), cmd.resultString()); }).resultString();
                 }
                 var source = ed.$morph.getSelectionOrLineString(),

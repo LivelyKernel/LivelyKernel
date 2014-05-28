@@ -30,6 +30,18 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         return this.runWithFrameAndResult(node, frame, undefined);
     },
 
+    runWithContext: function(node, ctx, optMapping) {
+        var program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program);
+        if (optMapping != null) {
+            var parentScope = new lively.ast.AcornInterpreter.Scope(optMapping);
+            frame.getScope().setParentScope(parentScope);
+        }
+        program.lexicalScope = frame.getScope(); // FIXME
+        frame.setThis(ctx);
+        return this.runWithFrameAndResult(node, frame, undefined);
+    },
+
     runWithFrame: function(node, frame) {
         if (node.type == 'FunctionDeclaration' || node.type =='FunctionExpression')
             node = node.body;
@@ -54,9 +66,11 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node, state);
         } catch (e) {
-            if (e.toString() == 'Break' && !frame.isResuming()) {
-                frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.astIndex));
-                e.top = e.top || frame;
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
+            if (e.isUnwindException && !frame.isResuming()) {
+                frame.setPC(acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), e.error.astIndex));
+                e.shiftFrame(frame);
             }
             throw e;
         }
@@ -71,7 +85,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     setVariable: function(name, state) {
         var scope = state.currentFrame.getScope();
         if (name != 'arguments')
-            scope = scope.findScope(name).scope; // may throw ReferenceError
+            scope = scope.findScope(name, true).scope; // may throw ReferenceError
         scope.set(name, state.result);
     },
 
@@ -198,6 +212,8 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 this.runWithFrame(frame.getOriginalAst(), frame);
         } catch (e) {
             // TODO: create continuation
+            if (e.isUnwindException && e.error.toString() == 'Break')
+                e = e.error;
             return e;
         }
     },
@@ -273,12 +289,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 'visiting', {
 
     accept: function(node, state) {
-        function throwBreak() {
-            throw {
+        function throwableBreak() {
+            return new UnwindException({
                 toString: function() { return 'Break'; },
                 astIndex: node.astIndex,
                 lastResult: state.result
-            };
+            });
         }
 
         var frame = state.currentFrame;
@@ -291,7 +307,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 frame.resumesNow();
                 if (this.breakOnResume) {
                     this.breakOnResume = false;
-                    throwBreak();
+                    throw throwableBreak();
                 }
             }
             if (frame.isAlreadyComputed(node.astIndex)) {
@@ -303,13 +319,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 frame.alreadyComputed[node.astIndex] = undefined;
             this.breakAtStatement = false;
             this.breakAtCall = false;
-            throwBreak();
+            throw throwableBreak();
         }
 
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (e.isUnwindException && e.last != frame) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
+            if (!frame.isResuming() && e.error && e.error.toString() != 'Break') {
                 frame.setPC(node);
                 e.shiftFrame(frame);
             }
@@ -457,17 +475,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.block, state);
         } catch (e) {
             hasError = true;
-            err = e;
+            state.error = err = e;
         }
-        if (frame.isResuming() && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler)) {
+        if (!hasError && frame.isResuming() && (node.handler !== null)  && !frame.isAlreadyComputed(node.handler))
             hasError = true;
-            err = frame.alreadyComputed[node.handler.param.astIndex];
-        }
 
         try {
             if (hasError && (node.handler !== null)) {
                 hasError = false;
-                state.error = err;
                 this.accept(node.handler, state);
                 delete state.error;
             }
@@ -485,7 +500,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitCatchClause: function(node, state) {
         var frame = state.currentFrame;
-        if (!frame.isResuming()) {
+        if (!frame.isResuming() || state.hasOwnProperty('error')) {
             var catchScope = frame.newScope();
             catchScope.set(node.param.name, state.error);
             frame.setScope(catchScope);
@@ -669,12 +684,11 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     visitVariableDeclarator: function(node, state) {
         var oldResult = state.result, val;
-        if (node.init)
+        if (node.init) {
             this.accept(node.init, state);
-        else
-            state.result = undefined;
-        // addToMapping is done in evaluateDeclarations()
-        this.setVariable(node.id.name, state);
+            // addToMapping is done in evaluateDeclarations()
+            this.setVariable(node.id.name, state);
+        }
         state.result = oldResult;
     },
 
@@ -927,9 +941,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             state.result = this.invoke(recv, fn, args, state.currentFrame, state.isNew);
         } catch (e) {
-            if (e.toString() == 'Break')
-                state.currentFrame.setPC(node);
-            throw e;
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                e = e.unwindException;
+            state.result = e;
+            state.currentFrame.setPC(node);
+            if (e.isUnwindException) {
+                e.shiftFrame(state.currentFrame);
+                e = e.error;
+            }
+            throw e.unwindException || e;
         }
     },
 
@@ -987,10 +1007,14 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         if (this._cachedFunction)
             return this._cachedFunction;
 
-        var self = this;
-        var fn = Object.extend(function fn(/*args*/) {
-            return self.apply(this, Array.from(arguments));
-        }, {
+        var self = this,
+            forwardFn = function FNAME(/*args*/) {
+                return self.apply(this, Array.from(arguments));
+            },
+            forwardSrc = forwardFn.toStringRewritten ? forwardFn.toStringRewritten() : forwardFn.toString();
+        var fn = Object.extend(
+            // FIXME: this seems to be the only way to get the name attribute right
+            eval('(' + forwardSrc.replace('FNAME', this.name() || '') + ')'), {
             isInterpretableFunction: true,
             forInterpretation: function() { return fn; },
             ast: function() { return self.node; },
@@ -1003,6 +1027,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // evaluatedSource: function() { return ...; },
             // custom Lively stuff
             methodName: this.name(),
+            argumentNames: function() {
+                return self.argNames();
+            }
         });
 
         // TODO: prepare more stuff from optFunc
@@ -1032,7 +1059,17 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     },
 
     getSource: function() {
-        return this.getAst().source || escodegen.generate(this.getAst());;
+        var source = this.getAst().source;
+        if (source) return source;
+
+        var ast = this.getAst();
+        if (ast.sourceFile) {
+            source = new WebResource(URL.root.withFilename(ast.sourceFile)).get().content;
+            if (source)
+                return source.substring(ast.start, ast.end);
+        }
+
+        return escodegen.generate(this.getAst());;
     }
 
 },
@@ -1065,7 +1102,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // of the interpreter is stopped, there is no top frame anymore.
             return interpreter.runWithFrame(this.node, frame);
         } catch (ex) {
-            if (ex.isUnwindException) {
+            if (lively.Config.get('loadRewrittenCode') && ex.unwindException)
+                ex = ex.unwindException;
+            if (ex.isUnwindException && !frame.getPC()) {
                 var pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), ex.error.astIndex);
                 frame.setPC(pc);
                 ex.shiftFrame(frame);
@@ -1122,14 +1161,19 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
 
     set: function(name, value) { return this.mapping[name] = value; },
 
-    addToMapping: function(name) { return this.set(name, undefined); },
+    addToMapping: function(name) {
+        return this.has(name) ? this.get(name) : this.set(name, undefined);
+    },
 
-    findScope: function(name) {
+    findScope: function(name, isSet) {
         if (this.has(name)) {
             return { val: this.get(name), scope: this };
         }
         if (this.getMapping() === Global) { // reached global scope
-            throw new ReferenceError(name + ' is not defined');
+            if (!isSet)
+                throw new ReferenceError(name + ' is not defined');
+            else
+                return { val: undefined, scope: this };
         }
         // TODO: what is this doing?
         // lookup in my current function
@@ -1143,10 +1187,29 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
         var parentScope = this.getParentScope();
         if (!parentScope)
             throw new ReferenceError(name + ' is not defined');
-        return parentScope.findScope(name);
+        return parentScope.findScope(name, isSet);
     }
 
 });
+
+Object.extend(lively.ast.AcornInterpreter.Interpreter, {
+
+    stripInterpreterFrames: function(topFrame) {
+        var allFrames = [topFrame];
+        while (allFrames.last().getParentFrame())
+            allFrames.push(allFrames.last().getParentFrame());
+        allFrames = allFrames.select(function(frame) {
+            return !frame.isInternal();
+        });
+        allFrames.push(undefined);
+        allFrames.reduce(function(frame, parentFrame) {
+            frame.setParentFrame(parentFrame);
+            return parentFrame;
+        });
+        return allFrames[0];
+    }
+
+})
 
 Object.subclass('lively.ast.AcornInterpreter.Frame',
 'initialization', {
@@ -1190,6 +1253,9 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
 	},
 
     reset: function() {
+        try {
+            var args = this.getArguments();
+        } catch (e) { /* might throw ReferenceError */ }
         this.scope             = new lively.ast.AcornInterpreter.Scope(null, this.scope.getParentScope());
         this.returnTriggered   = false;
         this.breakTriggered    = null;      // null, true or string (labeled break)
@@ -1198,6 +1264,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         this.pcStatement       = null;      // statement node of the pc
         this.alreadyComputed   = {};        // maps astIndex to values. Filled
                                             // when we unwind from captured state
+        if (args != undefined) this.setArguments(args);
     }
 
 },
@@ -1310,6 +1377,21 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.pcStatement
             && (node === this.pcStatement
              || node.astIndex === this.pcStatement.astIndex);
+    }
+
+},
+'testing', {
+
+    isInternal: function() {
+        if (!this._internalModules) {
+            var internalModules = [
+                lively.ast.AcornInterpreter
+            ];
+            this._internalModules = internalModules.map(function(m) {
+                return new URL(m.uri()).relativePathFrom(URL.root);
+            });
+        }
+        return this._internalModules.member(this.getOriginalAst().sourceFile);
     }
 
 });

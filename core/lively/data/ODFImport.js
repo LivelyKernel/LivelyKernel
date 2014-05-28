@@ -422,9 +422,9 @@ lively.whenLoaded(function() { // FIXME include problem with lively.morphic.Grap
 textSpecFromFrame = function(frameEl) {
     // returns list of textStrings with ranged text emphs
     // [{text: "Five 5 Minute Ideas", emph: [0,19, {fontWeight: "bold"}]}]
-    var textParagraphs = $(frameEl).find("text-box>p").toArray();
+    var textParagraphs = lively.$(frameEl).find("text-box>p").toArray();
     return textParagraphs.inject([], function(textAndEmphs, p) {
-        var $p = $(p),
+        var $p = lively.$(p),
             text = $p.text() + '\n';
         if (!text.length) return textAndEmphs;
         var emph = mergeStyles($p.add($p.find("*")).toArray().map(gatherTextStyle)),
@@ -436,7 +436,7 @@ textSpecFromFrame = function(frameEl) {
 }
 
 morphStyleFromFrame = function(frameEl) {
-    var $n = $(frameEl);
+    var $n = lively.$(frameEl);
     var bounds = lively.Rectangle.fromElement($n[0]),
         style = mergeStyles($n.add($n.find("text-box")).toArray().map(gatherMorphStyle));
     style.position = bounds.topLeft();
@@ -506,7 +506,7 @@ Global.renderStateForOdfPage = function renderStateForOdfPage(pageEl) {
         node: pageEl,//.cloneNode(false/*don'copy children*/),
         elements: Array.from(pageEl.childNodes).inject([], function(renderStates, node) {
             if (node.prefix !== 'draw') return renderStates;
-            var $bounds = $(node).bounds(),
+            var $bounds = lively.$(node).bounds(),
                 bounds = lively.rect(pt($bounds.left, $bounds.top), pt($bounds.right, $bounds.bottom)),
                 state = {
                     node: node.cloneNode(true),
@@ -526,7 +526,7 @@ Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(re
     wrapper.applyStyle({fill: Color.white, position: renderState.position});
     wrapper.shape.odfRenderState = renderState;
     (function getExtentHTML(ctx) { return this.odfRenderState.extent; }).asScriptOf(wrapper.shape);
-    $(Strings.format('<div style="position: absolute; top: -%spx; left: -%spx" />',
+    lively.$(Strings.format('<div style="position: absolute; top: -%spx; left: -%spx" />',
          renderState.position.y, renderState.position.x))
         .appendTo(wrapper.renderContext().shapeNode)
         .append(renderState.node);
@@ -543,7 +543,7 @@ Global.morphForOdfRendering = function morphForOdfRendering(odfRenderState) {
 }
 
 function movePageToOriginWhileGenerating(wrapper, page, doFunc) {
-    var $page = $(page),
+    var $page = lively.$(page),
         origPos = wrapper.getPosition(),
         pagePos = pt($page.bounds().left, $page.bounds().top),
         result;

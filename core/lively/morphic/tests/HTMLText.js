@@ -71,12 +71,12 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             [{textString: 'ein', style: {doit: {
                 code: "Global.textDoitInvoked=true", context: null}}},
              {textString: 'test'}]);
-        var events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        var events = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
 
         this.assertEquals(1, events.mouseup.length, 'no doit event handler?');
 
         this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
-        events = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        events = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
         this.assertEquals(1, events.mouseup.length, 'multiple doit event handler?');
     },
 
@@ -93,7 +93,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             style: {hover: hoverSpec1}
         }]);
 
-        var events1 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        var events1 = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
         // jQuery decides whether it implements mouseenter/leave with
         // mouseover/out or directly with menter/leave
         this.assertEquals(1, (events1.mouseover || events1.mouseenter).length);
@@ -108,7 +108,7 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             textString: "xyz",
             style: {hover: hoverSpec2}
         }]);
-        var events2 = $._data(this.text.firstTextChunk().getChunkNode(), "events");
+        var events2 = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
         this.assertEquals(1, (events2.mouseover || events2.mouseenter).length);
         this.assertEquals(1, (events2.mouseout || events2.mouseleave).length);
     }

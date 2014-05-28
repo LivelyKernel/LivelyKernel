@@ -835,4 +835,23 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
     },
 });
 
+TestCase.subclass('lively.ast.tests.AstTests.AcornWalkTests',
+'testing', {
+
+    testFindSiblings: function() {
+        var src = 'function foo() {\nvar a;\nvar b;\nvar c;\nvar d;\n}';
+        var ast = lively.ast.acorn.parse(src);
+        var decls = ast.body[0].body.body.clone();
+        var a = decls[0];
+        var b = decls[1];
+        var c = decls[2];
+        var d = decls[3];
+
+        this.assertEqualState(decls.without(b), acorn.walk.findSiblings(ast, b));
+        this.assertEqualState([a], acorn.walk.findSiblings(ast, b, 'before'));
+        this.assertEqualState([c,d], acorn.walk.findSiblings(ast, b, 'after'));
+    }
+
+});
+
 }) // end of module

@@ -550,8 +550,23 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         obj.f();
         this.assert(gInvoked);
         this.assert(!hInvoked);
-    }
+    },
 
+    test46ConnectAndThenUpdateMethodScript: function() {
+        var obj = {value: 0}, target1 = {}, target2 = {};
+
+        (function update() { return this.value += 1; }).asScriptOf(obj);
+        
+        lively.bindings.connect(obj, 'update', target1, 'value');
+        lively.bindings.connect(obj, 'update', target2, 'value');
+        
+        (function update() { return this.value += 1; }).asScriptOf(obj);
+
+        obj.update();
+
+        this.assertEquals(1, target1.value, 'target1');
+        this.assertEquals(1, target2.value, 'target2');
+    }
 
 });
 

@@ -2,6 +2,7 @@ module('lively.ide.codeeditor.TextOverlay').requires('lively.DOMAbstraction').to
 
 (function setupCSS() {
     var css = ".text-overlay {\n"
+            + "    z-index: 999;\n"
             + "    font-family: Monaco, monospace;\n"
             + "    font-size: 11px;\n"
             + "    position: absolute;\n"

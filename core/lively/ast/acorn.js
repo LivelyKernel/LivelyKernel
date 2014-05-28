@@ -142,11 +142,12 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({ur
         return nodes;
     };
 
-    acorn.walk.addSource = function(ast, source) {
+    acorn.walk.addSource = function(ast, source, completeSrc) {
         source = Object.isString(ast) ? ast : source;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
+        completeSrc = !!completeSrc;
         return acorn.walk.forEachNode(ast, function(node) {
-            node.source || (node.source = source.slice(node.start, node.end));
+            node.source || (node.source = completeSrc ? source : source.slice(node.start, node.end));
         });
     };
 
@@ -854,6 +855,20 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({ur
         }
         return c(ast);
     };
+
+    acorn.walk.findSiblings = function(ast, node, beforeOrAfter) {
+        if (!node) return [];
+        var nodes = acorn.walk.findNodesIncluding(ast, node.start),
+            idx = nodes.indexOf(node),
+            parents = nodes.slice(0, idx),
+            parentWithBody = parents.reverse().detect(function(p) { return Object.isArray(p.body); }),
+            siblingsWithNode = parentWithBody.body;
+        if (!beforeOrAfter) return siblingsWithNode.without(node);
+        var nodeIdxInSiblings = siblingsWithNode.indexOf(node);
+        return beforeOrAfter === 'before' ?
+            siblingsWithNode.slice(0, nodeIdxInSiblings) :
+            siblingsWithNode.slice(nodeIdxInSiblings + 1);
+    }
 
 })();
 

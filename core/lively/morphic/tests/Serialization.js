@@ -1,6 +1,6 @@
 module('lively.morphic.tests.Serialization').requires('lively.morphic.tests.Helper').toRun(function() {
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldSerialization',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Serialization.World',
 'testing', {
     test01SerializeSimpleWorld: function() {
         this.createWorld();
@@ -16,7 +16,34 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.WorldSerialization'
     }
 });
 
-lively.morphic.tests.TestCase.subclass('lively.morphic.tests.DocumentSerialization',
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Serialization.Morphic',
+'testing', {
+    test01SimpleMorphSerialization: function() {
+        var m1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
+            m2 = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
+            m3 = lively.morphic.Morph.makeRectangle(0,0, 100, 100);
+        m1.setName('SomeMorph');
+        m1.addMorph(m2);
+        m1.addMorph(m3);
+        var json = lively.persistence.Serializer.serialize(m1),
+            copy = lively.persistence.Serializer.deserialize(json);
+        this.assertEquals(copy.name, m1.name);
+        this.assertEquals(2, copy.submorphs.length);
+    },
+
+    test02OnstoreError: function() {
+        var m1 = lively.morphic.Morph.makeRectangle(0,0, 100, 100),
+            m2 = lively.morphic.Morph.makeRectangle(0,0, 10, 10),
+            m3 = lively.morphic.Morph.makeRectangle(0,0, 10, 10);
+        m1.addMorph(m2);
+        m1.addMorph(m3);
+        m2.addScript(function onstore() { throw new Error("onstore error"); });
+        var copy = lively.persistence.Serializer.copy(m1);
+        this.assertEquals(2, copy.submorphs.length, 'submorphs not copied correctly?');
+    }
+});
+
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.Serialization.Document',
 'testing', {
     testCreateHTMLDocumentForWorldSerialization: function() {
         var spec = {

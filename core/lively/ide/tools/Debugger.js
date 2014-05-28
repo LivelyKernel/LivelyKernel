@@ -42,32 +42,9 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         name: "Debugger",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
-            _BorderColor: Color.rgb(230,230,230),
-            _BorderWidth: 1,
-            _ClipMode: "auto",
-            _Extent: lively.pt(680.6,106.0),
-            _Fill: Color.rgb(255,255,255),
-            _Position: lively.pt(4.7,4.7),
-            changeTriggered: true,
-            className: "lively.morphic.List",
-            doNotSerialize: ["selection"],
-            droppingEnabled: true,
-            layout: {
-                adjustForNewBounds: true,
-                resizeWidth: true
-            },
-            name: "FrameList",
-            sourceModule: "lively.morphic.Lists",
-            connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "selection", this.get("Debugger"), "setCurrentFrame", {});
-        },
-            reset: function reset() {
-            this.doNotSerialize = ["selection"];
-        }
-        },{
             _BorderColor: Color.rgb(204,0,0),
             _Extent: lively.pt(680.6,23.0),
-            _Position: lively.pt(4.7,116.7),
+            _Position: lively.pt(4.7,4.7),
             className: "lively.morphic.Box",
             droppingEnabled: true,
             layout: {
@@ -77,6 +54,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 spacing: 4.670000000000001,
                 type: "lively.morphic.Layout.HorizontalLayout"
             },
+            name: "ControlPanel",
             sourceModule: "lively.morphic.Core",
             submorphs: [{
                 _BorderColor: Color.rgb(214,214,214),
@@ -188,6 +166,54 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             }
             }]
         },{
+            _BorderColor: Color.rgb(230,230,230),
+            _BorderWidth: 1,
+            _ClipMode: "auto",
+            _Extent: lively.pt(680.6,106.0),
+            _Fill: Color.rgb(255,255,255),
+            _Position: lively.pt(4.7,33.7),
+            changeTriggered: true,
+            className: "lively.morphic.List",
+            doNotSerialize: ["selection"],
+            droppingEnabled: true,
+            layout: {
+                adjustForNewBounds: true,
+                resizeWidth: true
+            },
+            name: "FrameList",
+            sourceModule: "lively.morphic.Lists",
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "selection", this.get("Debugger"), "setCurrentFrame", {});
+        },
+            reset: function reset() {
+            this.doNotSerialize = ["selection"];
+        }
+        },{
+            _BorderColor: Color.rgb(204,0,0),
+            _Extent: lively.pt(354,3.7),
+            _Fill: Color.rgb(204,204,204),
+            _Position: lively.pt(4,230.4),
+            className: "lively.morphic.HorizontalDivider",
+            doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
+            draggingEnabled: true,
+            droppingEnabled: true,
+            fixed: [],
+            layout: {
+                resizeWidth: true,
+                scaleVertical: true
+            },
+            minHeight: 20,
+            oldPoint: lively.pt(1203.0,407.0),
+            pointerConnection: null,
+            scalingAbove: [],
+            scalingBelow: [],
+            sourceModule: "lively.morphic.Widgets",
+            onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+            $super();
+            this.addScalingAbove(this.get('FrameList'));
+            this.addScalingBelow(this.get('FrameInfo'));
+        }
+        },{
             _BorderColor: Color.rgb(204,0,0),
             _Extent: lively.pt(680.6,311.6),
             _Fill: Color.rgb(242,242,242),
@@ -202,6 +228,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 spacing: 6.795,
                 type: "lively.morphic.Layout.HorizontalLayout"
             },
+            name: 'FrameInfo',
             sourceModule: "lively.morphic.Core",
             submorphs: [{
                 _AutocompletionEnabled: true,
@@ -213,7 +240,6 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _LineWrapping: true,
                 _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
-                _PointerEvents: 'none',
                 _ShowActiveLine: true,
                 _ShowErrors: false,
                 _ShowGutter: true,
@@ -232,7 +258,27 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 fixedHeight: true,
                 name: "FrameSource",
                 lastSaveSource: '',
+                layout: {
+                    resizeWidth: true,
+                    resizeHeight: true
+                },
                 sourceModule: "lively.ide.CodeEditor",
+                submorphs: [{
+                    _BorderStyle: "none",
+                    _BorderWidth: 1,
+                    _Extent: lively.pt(684.0,504.0),
+                    _Fill: Color.rgba(0,0,204,0),
+                    className: "lively.morphic.Box",
+                    droppingEnabled: false,
+                    grabbingEnabled: false,
+                    halosEnabled: false,
+                    layout: {
+                        resizeHeight: true,
+                        resizeWidth: true
+                    },
+                    name: "DoNotRemoveSelection",
+                    sourceModule: "lively.morphic.Core"
+                }],
                 boundEval: function boundEval(str) {
               var frame = this.get("Debugger").currentFrame;
               if (!frame) return;
@@ -279,19 +325,18 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     // var style = { backgroundColor: Color.rgb(255,255,127) };
                     // target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
                     var context = frame.func.getAst(),
-                        start = frame.pc.start - context.start,
-                        end = frame.pc.end - context.start;
+                        start = frame.pc.start,
+                        end = frame.pc.end;
+                    if (context.type != 'Program') {
+                        start -= context.start;
+                        end -= context.start;
+                    }
                     this.setSelectionRange(start, end);
                 }
             },
-                reset: function reset() {
-                lively.bindings.disconnectAll(this);
-                this.textString = '';
-                this.savedTextString = '';
-                this.submorphs[0].textString = '';
-                this.setExtent(pt(100,100));
-            },
                 showSource: function showSource(frame) {
+                // FIXME: make additional morph obsolete by restricting user selection
+                this.addMorph(this.get('DoNotRemoveSelection'));
                 this.textString = (frame && frame.func) ? frame.func.getSource() : '';
             }
             },{
@@ -311,7 +356,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     borderSize: 1.325,
                     extentWithoutPlaceholder: lively.pt(657.6,94.3),
                     resizeHeight: true,
-                    resizeWidth: false,
+                    moveHorizontal: true,
                     spacing: 0,
                     type: "lively.morphic.Layout.VerticalLayout"
                 },
@@ -441,11 +486,8 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameScope").reset();
     },
         restart: function restart() {
-        var frame = this.currentFrame,
-            interpreter = new lively.ast.AcornInterpreter.Interpreter();
-        frame.reset();
-        var result = interpreter.stepToNextStatement(frame);
-        this.updateDebugger(frame, result);
+        this.currentFrame.reset();
+        this.stepOver();
     },
         resume: function resume() {
         var frame = this.topFrame,
@@ -471,7 +513,6 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         }
     },
         setTopFrame: function setTopFrame(topFrame) {
-        this.topFrame = topFrame;
         var frames = [];
         var frame = topFrame;
         do {
@@ -482,25 +523,32 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 value: frame
             });
         } while (frame = frame.getParentFrame());
+        this.topFrame = frames[0] ? frames[0].value : topFrame;
         this.get("FrameList").updateList(frames);
-        this.get("FrameList").setSelection(topFrame);
-        this.setCurrentFrame(topFrame);
+        this.get("FrameList").setSelection(this.topFrame);
+        this.setCurrentFrame(this.topFrame);
         return true;
     },
         stepInto: function stepInto() {
         var frame = this.currentFrame,
+            parentFrame = frame.getParentFrame(),
             interpreter = new lively.ast.AcornInterpreter.Interpreter();
 
         // FIXME: rather use continuation here
         var result = interpreter.stepToNextCallOrStatement(frame);
+        frame = lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(frame);
+        frame.setParentFrame(parentFrame);
         this.updateDebugger(frame, result);
     },
         stepOver: function stepOver() {
         var frame = this.currentFrame,
+            parentFrame = frame.getParentFrame(),
             interpreter = new lively.ast.AcornInterpreter.Interpreter();
 
         // FIXME: rather use continuation here
         var result = interpreter.stepToNextStatement(frame);
+        frame = lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(frame);
+        frame.setParentFrame(parentFrame);
         this.updateDebugger(frame, result);
     },
         updateDebugger: function updateDebugger(frame, result) {
@@ -511,9 +559,15 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.setTopFrame(frame);
             } else
                 this.owner.remove();
-        } else if (result.top && result.top != frame) // new frame
-            this.setTopFrame(result.top);
-        else
+        } else if (result && result.unwindException && result.unwindException.top && result.unwindException.top != frame) { // new frame
+            this.setTopFrame(lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(result.unwindException.top));
+            if (result.toString && result.toString())
+                this.getWindow().setTitle(result.toString());
+        } else if (result instanceof lively.ast.Continuation) {
+            this.setTopFrame(result.currentFrame);
+            if (result.error && result.error.toString())
+                this.getWindow().setTitle(result.error.toString());
+        } else
             this.setCurrentFrame(frame); // simple pc advancement
     }
     })],

@@ -12,6 +12,7 @@ before_script:
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "npm start &"
   - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"
+  - echo "Arrrrrggh!!! Server needs more than a minute to startup :("; sleep 80;
 
 script: "DISPLAY=:1 npm test"
 

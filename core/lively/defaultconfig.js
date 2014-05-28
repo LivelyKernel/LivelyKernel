@@ -250,7 +250,7 @@ Global.Config = {
     toString: function() { return 'lively.Config' },
 
     displayWarning: function() {
-        var warn = $('<div/>');
+        var warn = lively.$('<div/>');
         warn.text('Currently optimized loading is disabled. '
                  + 'It can therefore take a bit longer loading a world. '
                  + 'We will soon fix this issue.');
@@ -456,7 +456,7 @@ Config.addOptions(
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
     ["loadRewrittenCode", false, "Is currently running code rewritten?"],
     ["enableDebuggerStatements", false, "Whether to throw Debugger exceptions in rewritten code"],
-    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html", "Where to report bugs"]
+    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
 ],
 
 'lively.morphic.Text', [
@@ -533,7 +533,7 @@ Config.addOptions(
 ],
 
 "Wiki", [
-    ['showWikiToolFlap', true, 'Show tool flap that gives access to wiki tools.']
+    ['showWikiToolFlap', false, 'Show tool flap that gives access to wiki tools.']
 ],
 
 'lively.Worker', [
@@ -541,7 +541,7 @@ Config.addOptions(
 ],
 
 "Changesets", [
-    ['changesetsExperiment', true, 'track changes and provide a UI for a changesets-based worlkflow'],
+    ['changesetsExperiment', false, 'track changes and provide a UI for a changesets-based worlkflow'],
     ['automaticChangesReplay', true, 'restore changes automatically on world load']
 ]
 );

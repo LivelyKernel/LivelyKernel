@@ -451,6 +451,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEquals(4, arr.pluck('y').min());
         this.assertEqualState({x:2,y:12}, arr.min(function(ea) { return ea.x }));
         this.assertEqualState({x:9,y:4}, arr.min(function(ea) { return ea.y }));
+
+        this.assertEquals(2, [5,3,2,6,4,3,2].min());
+        this.assertEquals(-10, [-3,-3,-5,-10].min());
+        this.assertEquals(-10, [-3,-3,-5,-10].min());
+        this.assertEquals(-5, [-3,null,-5,null].min());
+        this.assertEquals(0, [0, 10].min());
+        this.assertMatches({x: 'foo'}, [{x: 'bar'},{x: 'foo'}, {x: 'baz'}].min(function(ea) { return ea.x.charCodeAt(2); }));
     },
 
     testMax: function() {
@@ -459,6 +466,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEquals(12, arr.pluck('y').max());
         this.assertEqualState({x:9,y:4}, arr.max(function(ea) { return ea.x }));
         this.assertEqualState({x:2,y:12}, arr.max(function(ea) { return ea.y }));
+
+        this.assertEquals(6, [5,3,2,6,4,-3,2].max());
+        this.assertEquals(-1, [-3,-2,-1,-10].max());
+        this.assertEquals(-2, [-3,-2,null,-10].max());
+        this.assertEquals(0, [0, -10].max());
+        this.assertMatches({x: 'baz'}, [{x: 'bar'},{x: 'foo'}, {x: 'baz'}].max(function(ea) { return ea.x.charCodeAt(2); }));
     },
 
     testInspect: function() {
@@ -554,7 +567,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
             'batchify endless recursion?');
     },
 
-    testHistogram: function(binSize) {
+    testHistogram: function() {
         var data = [0,1,2,3,7,2,1,3,9];
 
         var hist = data.histogram();
@@ -570,6 +583,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var hist = data.histogram([0,3,6]); // 3 bins
         this.assertEquals([[1,2],[3,4],[]], hist, Strings.print(hist));
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {
@@ -838,6 +852,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.done();
         });
     },
+
     testThrottleCommand: function() {
         var called = 0, result = [];
         Array.range(1,4).forEach(function(i) {
@@ -855,6 +870,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
             this.done();
         }, 120);
     },
+
     testCompose: function() {
         function mult(a,b) { return a * b; }
         function add1(a) { return a + 1; }
@@ -863,11 +879,38 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.assert("23" === result, 'compose not OK: ' + Strings.print(result));
         this.done();
     },
+
+    testComposeAsync: function() {
+        var result, err, test1;
+        function mult(a,b, thenDo) { thenDo(null, a * b); }
+        function add1(a, thenDo) { thenDo(null, a + 1); }
+        var composed = Functions.composeAsync(mult, add1);
+        composed(11, 2, function(err, _result) { result = _result; });
+        this.waitFor(function() { return !!result; }, 10, function() {
+            this.assertEquals(23, result, 'composeAsync not OK: ' + Strings.print(result));
+            result = null;
+            test1 = true;
+        });
+
+        this.waitFor(function() { return !!test1; }, 10, function() {
+            function a(a,b, thenDo) { thenDo(new Error('ha ha'), a * b); }
+            function b(a, thenDo) { thenDo(null, a); }
+            var composed = Functions.composeAsync(a, b);
+            composed(11, 2, function(_err, _result) { err = _err; result = _result; });
+            this.waitFor(function() { return !!err || !!result; }, 10, function() {
+                this.assert(!result, 'composeAsync result when error expected?: ' + Strings.print(result));
+                this.assert(err, 'no error? ' + Strings.print(err));
+                this.done();
+            });
+        });
+    },
+
     testFlip: function() {
         function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));
         this.done();
     },
+
     testWaitFor: function() {
         var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
         Functions.waitFor(200, function() { return x === 1; }, function(_timeout) {
@@ -882,6 +925,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
                 this.done();
             });
     },
+
     testWaitForTimeout: function() {
         var x = 0, wasCalled, startTime = Date.now(), endTime, timeout;
         Functions.waitFor(200, function() { return x === 1; /*will never be true*/ },

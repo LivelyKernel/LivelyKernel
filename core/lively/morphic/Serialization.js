@@ -54,7 +54,7 @@ lively.morphic.EventHandler.addMethods(
 lively.morphic.Morph.addMethods(
 'serialization', {
 
-    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds'],
+    doNotSerialize: ['_renderContext', 'halos', '_isRendered', 'priorExtent', 'cachedBounds', 'magnets'],
 
     onrestore: function() {
         // when classes of morphs during object deserialization cannot be found
@@ -281,7 +281,7 @@ lively.morphic.World.addMethods(
             if (!input) return;
             var url = input.startsWith('http') ?
                 new URL(input) : URL.source.withFilename(input);
-            if (!new WebResource(url).exists()) {
+            if (!url.eqDomain(URL.root) || !new WebResource(url).exists()) {
                 world.saveWorldAs(url, true);
             } else {
                 world.confirm(url.toString() + ' already exists. Overwrite?',
@@ -291,6 +291,26 @@ lively.morphic.World.addMethods(
     },
 
     saveWorldAs: function (url, checkForOverwrites, bootstrapModuleURL) {
+        try {
+            url = new URL(url)
+        } catch (e) {
+            throw new Error('Cannot save world, not a valid URL: ' + url);
+        }
+
+        // save world to a different domain / server
+        if (!url.eqDomain(URL.root) && !bootstrapModuleURL) {
+            function transformRootURLToBootstrapURL(urlString) {
+                return urlString.replace(/\/+$/, '') + '/core/lively/bootstrap.js';
+            }
+            this.prompt(
+                'You are saving ' + url.filename() + ' to a different Lively server.\n'
+              + 'Please enter the root URL of that Lively server', function(input) {
+                  if (!input) alert("save aborted, no input");
+                  else this.saveWorldAs(url, false, transformRootURLToBootstrapURL(input));
+              }, String(url.withPath('/')));
+            return;
+        }
+
         // FIXME: this should go somewhere else or actually not be necessary at
         // all... cleanup, removing junk css defs
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this);
@@ -306,7 +326,7 @@ lively.morphic.World.addMethods(
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
             title = this.name || url.filename().replace(/\.x?html$/, ''),
             bootstrapFile = bootstrapModuleURL.relativePathFrom(url),
-            css = $("head style").toArray().map(function(el) {
+            css = lively.$("head style").toArray().map(function(el) {
                 return {css: el.textContent, id: el.getAttribute('id')}; }),
             metaTags = this.getMetaTags(),
             linkTags = this.getLinkTags(),
@@ -320,7 +340,7 @@ lively.morphic.World.addMethods(
                 styleSheets: css,
                 externalScripts: [bootstrapFile]
             },
-            doc = lively.persistence.HTMLDocBuilder.documentForWorldSerialization(docSpec);
+            doc = lively.persistence.HTMLDocBuilder.documentForWorldSerializationAsString(docSpec);
 
         this.savedWorldAsURL = undefined;
         lively.bindings.connect(this, 'savedWorldAsURL', this, 'visitNewPageAfterSaveAs', {
@@ -354,7 +374,7 @@ lively.morphic.World.addMethods(
 
         this.confirm('Directory ' + dirWebR.getURL() + ' does not exist! Create it?', function(answer) {
             if (!answer) return;
-            connect(dirWebR, 'status', this, 'setStatusMessage', {
+            lively.bindings.connect(dirWebR, 'status', this, 'setStatusMessage', {
                 updater: function($upd, status) {
                     if (!status.isDone()) return;
                     if (!status.isSuccess()) $upd(status, Color.green)
@@ -366,14 +386,11 @@ lively.morphic.World.addMethods(
         }.bind(this))
     },
     storeDoc: function (doc, url, checkForOverwrites) {
-        var webR = new WebResource(url);
+        var webR = new WebResource(url).beAsync();
         webR.createProgressBar('Saving...');
-        connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
+        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
             $upd(status, this.sourceObj); // pass in WebResource as well
         }});
-        if (!Config.forceSyncSaving) { // optional asynchronous save
-            webR = webR.beAsync();
-        }
         var putOptions = {};
         if (checkForOverwrites) {
             if (this.lastModified) putOptions.ifUnmodifiedSince = this.lastModified;

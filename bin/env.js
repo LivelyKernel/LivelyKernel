@@ -73,7 +73,7 @@ function set(varName, choices, options) {
 set("LK_CORE_DIR",     [path.normalize(__dirname + '/..')]);
 set("NODE_BIN",        [which('node'), which('nodejs'), which('node.exe'), process.execPath]);
 set("NODEMODULES",     [lkCoreDir("/node_modules"), join(env.LK_CORE_DIR, '..')]);
-set("TEMP_DIR",        [env.TMP, env.TEMP, env.TEMPDIR, '/tmp'], {useLastIfNothingIsValid: true});
+set("TEMP_DIR",        [env.TMP, env.TEMP, env.TMPDIR, env.TEMPDIR, '/tmp'], {useLastIfNothingIsValid: true});
 
 /*
  * server related stuff

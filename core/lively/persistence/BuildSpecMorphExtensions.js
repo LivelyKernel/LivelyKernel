@@ -35,6 +35,7 @@ lively.morphic.Morph.addMethods(
         eventHandler: {exclude: true},
         derivationIds: {exclude: true},
         partTests: {exclude: true},
+        magnets: {exclude: true},
         moved: {exclude: true},
         _renderContext: {exclude: true},
         _isRendered: {exclude: true},
@@ -240,7 +241,15 @@ lively.morphic.Window.addMethods(
         reframeHandle: {exclude: true},
         bottomReframeHandle: {exclude: true},
         rightReframeHandle: {exclude: true},
-        targetMorph: {exclude: true}
+        targetMorph: {exclude: true},
+        cameForward: {exlcude: true},
+        collapsedExtent: {exlcude: true},
+        collapsedTransform: {exlcude: true},
+        expandedExtent: {exlcude: true},
+        expandedTransform: {exlcude: true},
+        highlighted: {exlcude: true},
+        ignoreEventsOnExpand: {exlcude: true},
+        contentOffset: {exlcude: true}
     },
 
     onFromBuildSpecCreated: function($super) {
@@ -286,6 +295,7 @@ lively.morphic.Tree.addMethods(
         this.setItem(this.item || {name: "tree with no item"});
     }
 });
+
 lively.morphic.Image.addMethods(
 'buildSpec', {
     buildSpecProperties: {
@@ -296,6 +306,29 @@ lively.morphic.Image.addMethods(
     onFromBuildSpecCreated: function() {
         this.setImageURL(this.url, this.useNativeExtent);
     }
+});
+
+lively.morphic.Path.addMethods(
+'buildSpec', {
+
+    buildSpecProperties: {
+        controlPoints: {
+
+            getter: function(morph, val) {
+                return morph.shape.getPathElements().invoke('attributeFormat').join(' ');
+            },
+
+            recreate: function(instance, spec) {
+                instance.controlPoints = null;
+                instance.shape.setPathElements(
+                    lively.morphic.Shapes.PathElement.parse(
+                        spec.controlPoints));
+                // FIXME
+                spec._Origin && instance.setOrigin(spec._Origin);
+            }
+        }
+    }
+
 });
 
 Object.extend(lively.morphic.Morph, {
@@ -320,6 +353,7 @@ lively.morphic.TabBar.addMethods(
         this.tabs = this.submorphs.clone();
     }
 });
+
 lively.morphic.TabContainer.addMethods(
 'UI builder', {
     buildSpecProperties: {
@@ -333,6 +367,7 @@ lively.morphic.TabContainer.addMethods(
         this.tabBar = this.submorphs.detect(function(ea) { return ea.isTabBar; });
     }
 });
+
 lively.morphic.Tab.addMethods(
 'UI builder', {
     buildSpecProperties: {
@@ -357,6 +392,7 @@ lively.morphic.Tab.addMethods(
         this.initializeLabel(this.label); 
     }
 });
+
 lively.morphic.TabPane.addMethods(
 'UI builder', {
     buildSpecProperties: {

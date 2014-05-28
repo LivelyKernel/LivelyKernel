@@ -1,6 +1,6 @@
 module('lively.morphic.tools.LoadingIndicator').requires('lively.persistence.BuildSpec').toRun(function() {
 
-m=lively.BuildSpec('lively.morphic.LoadingIndicator', {
+lively.BuildSpec('lively.morphic.LoadingIndicator', {
     _FixedPosition: true,
     _Extent: lively.pt(128.0,128.0),
     _Fill: Color.rgba(131,131,131,0.95),
@@ -35,13 +35,15 @@ m=lively.BuildSpec('lively.morphic.LoadingIndicator', {
             this.setPositionCentered(this.world().visibleBounds().extent().scaleBy(0.5));
         });
     },
+    setLabel: function setLabel(text) { this.get('Text').textString = text; }
 });
 
 Object.extend(lively.morphic.tools.LoadingIndicator, {
-    open: function(doFunc) {
+    open: function(label, doFunc) {
         var loadingIndicator = lively.BuildSpec('lively.morphic.LoadingIndicator').createMorph().openInWorld();
-        function closeLoadingIndicator() { loadingIndicator.remove(); }
-        doFunc && doFunc(closeLoadingIndicator);
+        if (arguments.length === 1) doFunc = label;
+        else loadingIndicator.setLabel(label);
+        doFunc && doFunc(function closeLoadingIndicator() { loadingIndicator.remove(); });
         return loadingIndicator;
     }
 });

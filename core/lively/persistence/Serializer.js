@@ -504,7 +504,11 @@ ObjectLinearizerPlugin.subclass('StoreAndRestorePlugin',
 'plugin interface', {
     serializeObj: function(original, persistentCopy) {
         if (typeof original.onstore === 'function') {
-            original.onstore(persistentCopy);
+            try {
+                original.onstore(persistentCopy);
+            } catch (e) {
+                console.error('error in onstore of ' + original + ': ' + (e.stack || e));
+            }
         }
     },
     afterDeserializeObj: function(obj) {
@@ -1191,7 +1195,7 @@ Object.extend(lively.persistence.Serializer, {
     },
 
     serializeWorldToDocumentWithSerializer: function(world, doc, serializer) {
-        var $doc = $(doc),
+        var $doc = lively.$(doc),
             $head = $doc.find("head"),
             head = $head.get(0);
 
@@ -1199,7 +1203,7 @@ Object.extend(lively.persistence.Serializer, {
         $doc.find("#LivelyMigrationLevel, #LivelyJSONWorld").remove();
 
         // store migration level
-        $("<meta/>")
+        lively.$("<meta/>")
             .attr("id", LivelyMigrationSupport.migrationLevelNodeId)
             .append($doc[0].createCDATASection(LivelyMigrationSupport.migrationLevel))
             .appendTo($head);
@@ -1207,7 +1211,7 @@ Object.extend(lively.persistence.Serializer, {
         // serialize world
         var json = this.serialize(world, null, serializer);
         if (!json) throw new Error('Cannot serialize world -- serialize returned no JSON!');
-        $("<meta/>")
+        lively.$("<meta/>")
             .attr("id", this.jsonWorldId)
             .append($doc[0].createCDATASection(json))
             .appendTo($head)
@@ -1217,7 +1221,7 @@ Object.extend(lively.persistence.Serializer, {
             var previewHTML = world.asHTMLLogo({asFragment: true});
             $doc.find("body").html(previewHTML);
             lively.morphic.StyleSheets.removeStylesForMorphsNotIn(world);
-            $("head style").clone().appendTo($head);
+            lively.$("head style").clone().appendTo($head);
         }
 
         return doc;
@@ -1294,11 +1298,11 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         this.$doc = lively.$(this.doc);
         this.head = this.$doc.find('head');
         if (this.head.length === 0) {
-            this.head = $('<head/>').appendTo(this.$doc);
+            this.head = lively.$('<head/>').appendTo(this.$doc);
         }
         this.body = this.$doc.find('body');
         if (this.body.length === 0) {
-            this.body = $('<body/>').appendTo(this.$doc);
+            this.body = lively.$('<body/>').appendTo(this.$doc);
         }
     }
 },
@@ -1307,7 +1311,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
     addTitle: function(titleString) {
         var title = this.head.find('title');
         if (title.length === 0) {
-            title = $('<title/>').appendTo(this.head);
+            title = lively.$('<title/>').appendTo(this.head);
         }
         title.text(titleString || "New Lively World");
     },
@@ -1327,7 +1331,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
     },
 
     addHTML: function(html) {
-        $(html).appendTo(this.body);
+        lively.$(html).appendTo(this.body);
     },
 
     addScripts: function(scriptSpecs) {
@@ -1341,7 +1345,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
     addMetaTags: function(metaSpecs) {
         // metaSpecs is an array of {name: string, content: string} specs
         metaSpecs.forEach(function(arg) {
-            $('<meta/>')
+            lively.$('<meta/>')
                 .attr(arg)
                 .appendTo(this.head);
         }, this);
@@ -1350,7 +1354,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
     addLinkTags: function(linkSpecs) {
         // linkSpecs is an array of {rel: string, href: string} specs
         linkSpecs.forEach(function(arg) {
-            $('<link/>')
+            lively.$('<link/>')
                 .attr(arg)
                 .appendTo(this.head);
         }, this);
@@ -1368,7 +1372,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
             textContent: json,
             type: 'text/x-lively-world'
         });
-        $(el).attr('data-migrationLevel', migrationLevel);
+        lively.$(el).attr('data-migrationLevel', migrationLevel);
     },
 
     build: function(spec) {
@@ -1393,7 +1397,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
         return el;
     },
     addExternalStyleSheet: function(url, id) {
-        $('<link/>')
+        lively.$('<link/>')
             .attr('rel', 'stylesheet')
             .attr('href', url)
             .attr('id', id)
@@ -1402,7 +1406,7 @@ Object.subclass('lively.persistence.HTMLDocBuilder',
             .appendTo(this.head);
     },
     addEmbeddedCSS: function(css, id) {
-        $('<style/>')
+        lively.$('<style/>')
             .attr('type', 'text/css')
             .attr('id', id)
             .text(css)
@@ -1416,6 +1420,10 @@ Object.extend(lively.persistence.HTMLDocBuilder, {
         // This method creates a new HTML document that can be used to
         // serialize a Lively world.
         return new this().build(spec);
+    },
+    documentForWorldSerializationAsString: function(spec) {
+        var doc = this.documentForWorldSerialization(spec);
+        return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
     }
 });
 

@@ -7,10 +7,11 @@ function exit() {
 }
 
 function prepareConfig() {
+    lively.Config.set("computeCodeEditorCompletionsOnStartup", false);
     // For closing the browser
-    Config.askBeforeQuit = false;
+    lively.Config.set("askBeforeQuit", false);
     // for network tests
-    Config.serverInvokedTest = true;
+    lively.Config.set("serverInvokedTest", true);
 }
 
 function alertForever(msg) {

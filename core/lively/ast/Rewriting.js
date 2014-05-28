@@ -135,6 +135,45 @@ Object.extend(lively.ast.Rewriting, {
                 lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
             });
         }
+    },
+
+    recreateServerSideCode: function() {
+        module('lively.store.SQLiteInterface').load(true);
+
+        // 1. clear rewritten_objects table
+        lively.store.SQLiteInterface.ensureDB('ObjectRepository', 'objects.sqlite', function() {
+            lively.store.SQLiteInterface.query('ObjectRepository', ['DELETE FROM rewritten_objects;'],
+            function(err, res) {
+                requestBootstrapFiles();
+            });
+        });
+
+        // 2. request all the files that need to be rewritten in advance
+        function requestBootstrapFiles() {
+            // list of files taken from life_star config
+            var bootstrapRewriteFiles = [ // 'core/lib/lively-libs-debug.js',
+                'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
+                'core/lively/lang/Function.js', 'core/lively/lang/String.js', 'core/lively/lang/Array.js',
+                'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
+                'core/lively/lang/LocalStorage.js','core/lively/defaultconfig.js', 'core/lively/Base.js',
+                'core/lively/ModuleSystem.js', 'core/lively/Traits.js', 'core/lively/DOMAbstraction.js',
+                'core/lively/IPad.js', 'core/lively/LogHelper.js', 'core/lively/lang/Closure.js',
+                // bootstrap.js
+                'core/lively/bindings/Core.js', 'core/lively/persistence/Serializer.js',
+                'core/lively/Main.js', 'core/lively/net/WebSockets.js', 'core/cop/Layers.js',
+                'core/lively/OldModel.js', 'core/lively/Data.js', 'core/lively/Network.js',
+                // neccessary to be able to load everything else dynamically
+                'core/lively/store/Interface.js'
+            ];
+
+            bootstrapRewriteFiles.forEachShowingProgress({
+                iterator: function(filename) {
+                    var file = URL.root.withFilename(filename);
+                    file = file.withFilename('DBG_' + file.filename());
+                    new WebResource(file).get(); // could be async but we have the progress bar
+                }
+            });
+        }
     }
 
 });
@@ -226,9 +265,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 },
 'scoping', {
 
-    enterScope: function(isWith) {
-        isWith = isWith == null ? false : !!isWith;
-        return this.scopes.push({localVars: [], computationProgress: [], isWithScope: isWith});
+    enterScope: function(additionals) {
+        additionals = additionals || {};
+        return this.scopes.push(Object.extend(additionals, {localVars: [], computationProgress: []}));
     },
 
     exitScope: function() {
@@ -236,7 +275,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     lastFunctionScopeId: function() {
-        return this.scopes.pluck('isWithScope').lastIndexOf(false);
+        return this.scopes.map(function(scope) {
+            return !!(scope.isWithScope || scope.isCatchScope);
+        }).lastIndexOf(false);
     },
 
     registerVars: function(varIdentifiers) {
@@ -1356,7 +1397,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             paramIndex = n.param.astIndex,
             guard = n.guard ?  this.accept(n.guard, rewriter) : guard;
 
-        var scopeIdx = rewriter.enterScope() - 1,
+        var scopeIdx = rewriter.enterScope({ isCatchScope: true }) - 1,
             catchParam = rewriter.registerVars([n.param]),
             body = this.accept(n.body, rewriter);
         if (paramIndex) {
@@ -1396,23 +1437,44 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         body.body.unshift(
             // var _xx = { 'e': e.isUnwindExpression ? e.error : e };
             rewriter.createCatchScope(param.name),
-            // if (_xx[x].toString() == 'Debugger')
+            // if (_xx[x].toString() == 'Debugger' && !lively.Config.get('loadRewrittenCode'))
             //     throw e;
             rewriter.newNode('IfStatement', {
-                test: rewriter.newNode('BinaryExpression', {
-                    operator: '==',
-                    left: rewriter.newNode('CallExpression', {
-                        callee: rewriter.newNode('MemberExpression', {
-                            object: rewriter.newNode('MemberExpression', {
-                                object: rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
-                                property: rewriter.newNode('Literal', { value: param.name }),
-                                computed: true
-                            }),
-                            property: rewriter.newNode('Identifier', { name: 'toString' }),
-                            computed: false
-                        }), arguments: []
+                test: rewriter.newNode('LogicalExpression', {
+                    operator: '&&',
+                    left: rewriter.newNode('BinaryExpression', {
+                        operator: '==',
+                        left: rewriter.newNode('CallExpression', {
+                            callee: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('MemberExpression', {
+                                    object: rewriter.newNode('Identifier', { name: '_' + scopeIdx }),
+                                    property: rewriter.newNode('Literal', { value: param.name }),
+                                    computed: true
+                                }),
+                                property: rewriter.newNode('Identifier', { name: 'toString' }),
+                                computed: false
+                            }), arguments: []
+                        }),
+                        right: rewriter.newNode('Literal', { value: 'Debugger' })
                     }),
-                    right: rewriter.newNode('Literal', { value: 'Debugger' })
+                    right: rewriter.newNode('UnaryExpression', {
+                        operator: '!',
+                        prefix: true,
+                        argument: rewriter.newNode('CallExpression', {
+                            callee: rewriter.newNode('MemberExpression', {
+                                object: rewriter.newNode('MemberExpression', {
+                                    object: rewriter.newNode('Identifier', { name: 'lively' }),
+                                    property: rewriter.newNode('Identifier', { name: 'Config' }),
+                                    computed: false
+                                }),
+                                property: rewriter.newNode('Identifier', { name: 'get' }),
+                                computed: false
+                            }),
+                            arguments: [
+                                rewriter.newNode('Literal', { value: 'loadRewrittenCode' })
+                            ]
+                        })
+                    })
                 }),
                 consequent: rewriter.newNode('ThrowStatement', {
                     argument: rewriter.newNode('Identifier', { name: param.name })
@@ -1437,7 +1499,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitWithStatement: function(n, rewriter) {
         // object is a node of type Expression
         // body is a node of type Statement
-        var scopeIdx = rewriter.enterScope(true) - 1,
+        var scopeIdx = rewriter.enterScope({ isWithScope: true }) - 1,
             lastFnScopeIdx = rewriter.lastFunctionScopeId(),
             block = this.accept(n.body, rewriter);
         rewriter.exitScope();
@@ -1590,12 +1652,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
             pc;
         frame.setThis(thiz);
-        frame.setArguments(args);
+        if (frame.func.node && frame.func.node.type != 'Program')
+            frame.setArguments(args);
         frame.setAlreadyComputed(alreadyComputed);
         if (!this.top) {
-            pc = this.error && this.error.astIndex ?
-                acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), this.error.astIndex) :
-                null;
+            pc = this.error && acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
+                this.error.astIndex ? this.error.astIndex : lastNodeAstIndex);
         } else {
             if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
             pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
@@ -1607,11 +1669,30 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
     UnwindException.prototype.shiftFrame = function(frame) {
+        if (!frame.isResuming()) console.log('Frame without PC found!', frame);
         if (!this.top) {
             this.top = this.last = frame;
         } else {
             this.last.setParentFrame(frame);
             this.last = frame;
+        }
+        return frame;
+    }
+
+    UnwindException.prototype.unshiftFrame = function() {
+        if (!this.top) return;
+
+        var frame = this.top,
+            prevFrame;
+        while (frame.getParentFrame()) {
+            prevFrame = frame;
+            frame = frame.getParentFrame();
+        }
+        if (prevFrame) { // more then one frame
+            prevFrame.setParentFrame(undefined);
+            this.last = prevFrame;
+        } else {
+            this.top = this.last = undefined;
         }
         return frame;
     }

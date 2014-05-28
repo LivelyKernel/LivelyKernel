@@ -20,8 +20,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 },
 'matching code', {
 
-    tryCatch: function(level, varMapping, inner) {
+    tryCatch: function(level, varMapping, inner, optOuterLevel) {
         level = level || 0;
+        optOuterLevel = !isNaN(optOuterLevel) ? optOuterLevel : (level - 1);
         return Strings.format("try {\n"
             + "var _ = {}, lastNode = undefined, debugging = false, __%s = [], _%s = %s;\n"
             + "__%s.push(_, _%s, %s);\n"
@@ -32,7 +33,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "    throw ex;\n"
             + "}\n",
             level, level, generateVarMappingString(), level, level,
-            level-1 < 0 ? 'Global' : '__' + (level-1),
+            optOuterLevel < 0 ? 'Global' : '__' + optOuterLevel,
             inner, level, "__/[0-9]+/__");
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function generateVarMappingString() {
@@ -54,7 +55,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     catchIntro: function(level, catchVar, storeResult) {
         storeResult = storeResult == null ? true : !!storeResult;
         return Strings.format("var _%s = { '%s': %s.isUnwindException ? %s.error : %s };\n"
-            + "if (_%s['%s'].toString() == 'Debugger')\n"
+            + "if (_%s['%s'].toString() == 'Debugger' && !lively.Config.get('loadRewrittenCode'))\n"
             + "    throw %s;\n"
             + (storeResult ? this.pcAdvance() + ";\n"
                 + "__%s = [\n"
@@ -89,7 +90,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             "}\n";
     },
 
-    closureWrapper: function(level, name, args, innerVarDecl, inner) {
+    closureWrapper: function(level, name, args, innerVarDecl, inner, optInnerLevel) {
         // something like:
         // __createClosure(333, __0, function () {
         //     try {
@@ -98,10 +99,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         //     } catch (e) {...}
         // })
         var argDecl = innerVarDecl || {};
+        optInnerLevel = !isNaN(optInnerLevel) ? optInnerLevel : (level + 1);
         args.forEach(function(argName) { argDecl[argName] = argName; });
         return Strings.format(
             "__createClosure(__/[0-9]+/__, __%s, function %s(%s) {\n"
-          + this.tryCatch(level+1, argDecl, inner)
+          + this.tryCatch(optInnerLevel, argDecl, inner, level)
           + "})", level, name, args.join(', '));
     },
 
@@ -559,6 +561,23 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         this.assertASTMatchesCode(result, expected);
     },
 
+    test29cTryCatchAndFunctionDecl: function() {
+        var src = 'try { debugger; } catch (e) { (function() { e; }); }',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'try {\n' +
+                this.debuggerThrow() +
+                '} catch (e) {\n' +
+                this.catchIntro(1, 'e') +
+                this.intermediateResult(this.closureWrapper(0, '', [], {},
+                    this.getVar(1, 'e') + ';\n', 2) + ';\n') + '\n' +
+                this.catchOutro(1) +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
     test30aWithStatement: function() {
         var src = 'var a = 1; with ({ a: 2 }) { a; }',
             ast = this.parser.parse(src),
@@ -774,6 +793,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
         var src = Strings.format('(%s)();', code),
             src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
         this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
+    },
+
+    test05aTryCatchAndFunctionDecl: function() {
+        function code() {
+            try {
+                throw new Error('foo');
+            } catch (e) {
+                return (function(arg) { return e.message + arg; })('bar');
+            }
+        }
+        var src = Strings.format('(%s)();', code),
+            src2 = escodegen.generate(this.rewrite(this.parser.parse(src)));
+        this.assertEquals(eval(src), eval(src2), code + ' not identically rewritten');
     }
 
 });
@@ -783,15 +815,18 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
     setUp: function($super) {
         $super();
-        this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
-        lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = []);
+        if (!lively.Config.get('loadRewrittenCode')) {
+            this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
+            lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = []);
+        }
         this.config = lively.Config.enableDebuggerStatements;
         lively.Config.enableDebuggerStatements = true;
     },
 
     tearDown: function($super) {
         $super();
-        lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
+        if (!lively.Config.get('loadRewrittenCode'))
+            lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
         lively.Config.enableDebuggerStatements = this.config;
     }
 
@@ -843,8 +878,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(runResult.isContinuation, 'no continuation');
 
         // can we access the original ast, needed for resuming?
-        var capturedAst = frame.getOriginalAst();
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), capturedAst);
+        var capturedAst = frame.getOriginalAst(),
+            generatedAst = lively.ast.acorn.parseFunction(String(code));
+        generatedAst.type = capturedAst.type;
+        this.assertAstNodesEqual(generatedAst, capturedAst);
 
         // where did the execution stop?
         // this.assertIdentity(5, frame.getPC(), 'pc');
@@ -1028,8 +1065,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
     },
 
     test12IndependentFunctions: function() {
-        var f1 = (function(x) { if (x === 1) debugger; return x + 1; }).stackCaptureMode(null, this.astRegistry),
+        var f1 = (function(x) { if (x === 1) debugger; return x + 1; }),
             f2 = function() { return f1(0) + f1(1) + f1(2); };
+        if (!f1.livelyDebuggingEnabled)
+            f1 = f1.stackCaptureMode(null, this.astRegistry);
 
         var continuation = lively.ast.StackReification.run(f2, this.astRegistry, null, { f1: f1 });
         continuation.frames().last().scope.set('f1', f1);
@@ -1191,13 +1230,15 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(3, frame.lookup('y'), 'did not initialize y correctly');
 
         result = interpreter.stepToNextStatement(frame); // step over debugger statement
-        this.assertEquals('Break', result.toString(), 'did not stop after debugger');
-        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+        this.assertEquals('Break', result && result.toString(), 'did not stop after debugger');
+        this.assertEquals(ast.body.body[3], result.unwindException.top.getPC(),
+            'did not stop before return');
 
         result = interpreter.stepToNextCallOrStatement(frame);
-        this.assertEquals('Break', result.toString(), 'did not stop at call');
-        this.assertEquals(ast.body.body[1].body.body[0], result.top.getPC(), 'did not step into f()');
-        this.assertEquals(undefined, result.top.lookup('x'), 'no new scope was created');
+        this.assertEquals('Break', result && result.toString(), 'did not stop at call');
+        this.assertEquals(ast.body.body[1].body.body[0], result.unwindException.top.getPC(),
+            'did not step into f()');
+        this.assertEquals(undefined, result.unwindException.top.lookup('x'), 'no new scope was created');
     },
 
     test18bStepOverWithDebuggerAfterContinuation: function() {
@@ -1221,8 +1262,9 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(3, frame.lookup('y'), 'did not initialize y correctly');
 
         result = interpreter.stepToNextStatement(frame); // step over debugger statement
-        this.assertEquals('Break', result.toString(), 'did not stop after debugger');
-        this.assertEquals(ast.body.body[3], result.top.getPC(), 'did not stop before return');
+        this.assertEquals('Break', result && result.toString(), 'did not stop after debugger');
+        this.assertEquals(ast.body.body[3], result.unwindException.top.getPC(),
+            'did not stop before return');
 
         result = interpreter.stepToNextStatement(frame); // UnwindException
         this.assert(result.isUnwindException, 'no UnwindException');
@@ -1231,6 +1273,31 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(result.top.getParentFrame(), 'new frame does not have parent frame');
         this.assertEquals(ast.body.body[3].argument.right, result.top.getParentFrame().getPC(),
             'parent frame does not have the right PC')
+    },
+
+    test19SimpleError: function() {
+        function code() {
+            var x = 2;
+            throw new Error();
+            return x + 4;
+        }
+
+        var expected = { isContinuation: true },
+            runResult;
+        try {
+            lively.ast.StackReification.run(code, this.astRegistry);
+            this.assert(false, 'Error was not detected and triggered!');
+        } catch (e) {
+            runResult = lively.ast.Continuation.fromUnwindException(e.unwindException);
+        }
+        var frame = runResult.frames().first();
+        this.assert(runResult.isContinuation, 'no continuation');
+
+        var capturedAst = frame.getOriginalAst(),
+            generatedAst = lively.ast.acorn.parseFunction(String(code));
+        generatedAst.type = capturedAst.type;
+        this.assertAstNodesEqual(generatedAst, capturedAst);
+        this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');
     }
 
 });

@@ -157,6 +157,11 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         this.assertEquals('', url.extension());
         url = URL.codeBase.withFilename('foo/');
         this.assertEquals('', url.extension());
+    },
+
+    testParseHash: function() {
+        var url = new URL('http://foo.bar/baz#hello world=34&test=foo - 1');
+        this.assertEqualState({"hello world": "34", test: "foo - 1"}, url.parseHash());
     }
 
 });

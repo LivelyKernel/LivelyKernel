@@ -145,11 +145,11 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         var string = Object.isArray(cmdString) ? cmdString.join(' ') : cmdString;
         var statusString = [
             this.isRunning() ?
-                'running' :
+                'runs' :
                     this.isDone() ?
-                        "exit code " + this.getCode() : "not started",
+                        "exited " + this.getCode() : "not started",
             this.getPid ? 'pid ' + this.getPid() : 'no pid'].join(',');
-        return string + ' [' + statusString + ']';
+        return '[' + statusString + '] ' + string;
     },
     toString: function() {
         return 'ShellCommand(' + this.printState() + ')';
@@ -350,7 +350,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (thenDo) options.whenDone = thenDo;
         var session = lively.net.SessionTracker.getSession(),
             lively2LivelyShellAvailable = session && session.isConnected(),
-            commandClass = lively2LivelyShellAvailable ?
+            commandClass = lively2LivelyShellAvailable && !options.sync ?
                 lively.ide.CommandLineInterface.PersistentCommand :
                 lively.ide.CommandLineInterface.Command,
             cmd = new commandClass(commandString, options);
@@ -464,6 +464,15 @@ Object.extend(lively.ide.CommandLineInterface, {
         return cmd;
     },
 
+    diffIgnoringWhiteSpace: function(string1, string2, thenDo) {
+        return lively.ide.CommandLineInterface.runAll([
+            {command: 'mkdir -p diff-tmp/'},
+            {writeFile: 'diff-tmp/a', content: string1},
+            {writeFile: 'diff-tmp/b', content: string2},
+            {name: 'diff', command: 'git diff -w --no-index --histogram diff-tmp/a diff-tmp/b'},
+            {command: 'rm -rfd diff-tmp/'}
+        ], function(result) { thenDo(result.diff.resultString(true)); });
+    },
     diff: function(string1, string2, thenDo) {
         return lively.ide.CommandLineInterface.runAll([
             {command: 'mkdir -p diff-tmp/'},
@@ -727,15 +736,14 @@ Object.extend(lively.ide.CommandLineSearch, {
         var modWrapper = lively.ide.sourceDB().addModule(spec.fileName),
             ff = modWrapper.ast();
         if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
-        ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
+        return ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
 
     extractBrowseRefFromGrepLine: function(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
-        line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
-        if (line.startsWith('core/')) line = line.slice('core/'.length); // FIXME!!!
+        line = line.replace(/\\/g, '/').replace(/^\.\//, '');
         var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
         return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
     },
@@ -750,8 +758,9 @@ Object.extend(lively.ide.CommandLineSearch, {
         var spec = this.extractBrowseRefFromGrepLine(grepString, baseDir);
         if (!spec) {
             show("cannot extract browse ref from %s", grepString);
+            return false;
         } else {
-            this.doBrowse(spec);
+            return this.doBrowse(spec);
         }
     },
 
@@ -790,7 +799,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             commandString = timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
-              + "%s %s | xargs ls -lLd \"$timeformat\"",
+              + "%s %s | xargs -I{} ls -lLd \"$timeformat\" \"{}\"",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },

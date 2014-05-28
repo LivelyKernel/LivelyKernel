@@ -62,7 +62,7 @@ function triggerCallbacks(receiver, msg) {
         callbacks = responseId && receiver.callbacks && receiver.callbacks[responseId];
     // log(this.debugLevel, 'triggering callbacks for message:', receiver.callbacks, msg);
     if (!callbacks) return;
-    callbacks.forEach(function(cb) { 
+    callbacks.forEach(function(cb) {
         try { cb(msg, expectMore); } catch(e) { console.error('Error in websocket message callback:\n', e); }
     });
     if (!expectMore) callbacks.length = 0;
@@ -126,7 +126,7 @@ util.inherits(WebSocketClient, EventEmitter);
         var c = this._client = new WebSocketClientImpl();
 
         c.on('connectFailed', function(e) { self.onConnectionFailed(e); });
-        
+
         c.on('connect', function(connection) {
             connection.on('error', function(e) { self.onError(e); });
             connection.on('close', function() { self.onClose() });
@@ -150,12 +150,12 @@ util.inherits(WebSocketClient, EventEmitter);
         console.warn('Could not connect %s:\n%s', this.toString(), err.toString());
         this.emit("error", {message: 'connection failed', error: err});
     }
-    
+
     this.onError = function(err) {
         console.warn('%s connection error %s', this.toString(), err);
         this.emit("error", err);
     }
-    
+
     this.onClose = function() {
         log(this.debugLevel, '%s closed', this.toString());
         this.emit("close");
@@ -215,13 +215,13 @@ function WebSocketListener(options) {
     if (server) init(server);
     else lifeStar.on('start', init);
     lifeStar.on('close', this.shutDown.bind(this));
-    this.requestHandler = {};
+    this.requestHandlers = [];
 }
 
 util.inherits(WebSocketListener, websocket.server);
 
 (function() {
-    
+
     this.init = function(options, server) {
         options = options || {};
         if (this._started) this.shutDown();
@@ -234,43 +234,65 @@ util.inherits(WebSocketListener, websocket.server);
     }
 
     this.registerSubhandler = function(options) {
-      this.requestHandler[options.path] = options.handler;
+        var match = function() { return false; };
+        if (options.path) {
+            match = function(path) { return options.path === path; };
+        } else if (typeof options.match === 'function') {
+            match = options.match;
+        }
+        this.requestHandlers.push({match: match, handler: options.handler});
     }
 
     this.unregisterSubhandler = function(options) {
-      if (options.path) {
-        delete this.requestHandler[options.path];
-      }
+        options = options || {};
+        var matching;
+        if (options.path)
+            matching = this.findHandlersForPath(options.path);
+        else if (options.handler)
+            matching = this.requestHandlers.filter(function(ea) { return ea.handler === options.handler; })
+        else
+            return;
+        this.requestHandlers = this.requestHandlers.filter(function(ea) {
+            return matching.indexOf(ea.handler) === -1; });
     }
 
-    this.originIsAllowed = function(origin) { return true }
-    
-    this.findHandler = function(request) {
-        var path = request.resourceURL.path,
-            handler = this.requestHandler[path];
-        if (handler) return handler;
-        request.reject();
-        console.warn('Got websocket request to %s but found no handler to respond.', path);
-        return null;
+    this.originIsAllowed = function(origin) { return true; }
+
+    this.findHandlers = function(request) {
+        return this.findHandlersForPath(request.resourceURL.path);
+    }
+
+    this.findHandlersForPath = function(path) {
+        return this.requestHandlers.filter(function(spec) {
+            return spec.match && spec.match(path);
+        }).map(function(ea) { return ea.handler; });
     }
 
     this.shutDown = function(request) {
         log(this.debugLevel, 'Stopping websocket listener');
-        Object.keys(this.requestHandler).forEach(function(path) {
-            this.unregisterSubhandler(path); }, this);
+        this.requestHandlers.forEach(function(ea) {
+            this.unregisterSubhandler({handler: ea});
+        }, this);
         websocket.server.prototype.shutDown.call(this);
     }
 
     this.dispatchRequest = function(request) {
+
         if (!this.originIsAllowed(request.origin)) {
             request.reject();
             log(this.debugLevel, 'Connection from origin %s rejected.', request.origin);
             return;
         }
-        var handler = this.findHandler(request);
-        try {
-            handler && handler(request);
-        } catch(e) {
+
+        var handler = this.findHandlers(request)[0];
+
+        if (!handler) {
+            request.reject();
+            console.warn('Got websocket request to %s but found no handler to respond.', request.resourceURL.path);
+            return;
+        }
+
+        try { handler(request); } catch(e) {
             console.warn('Error handling websocket request: %s', e);
         }
     }

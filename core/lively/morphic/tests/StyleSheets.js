@@ -881,10 +881,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
     test13RemoveStyleTagsForRemovedMorphs: function() {
         var id = this.yellowRectangle.id;
         this.yellowRectangle.setStyleSheet('.Morph { color: red; }');
-        this.assertEquals(1, $('head style[id="style-for-' + id + '"]').length);
+        this.assertEquals(1, lively.$('head style[id="style-for-' + id + '"]').length);
         this.yellowRectangle.remove();
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this.world);
-        this.assertEquals(0, $('head style[id="style-for-' + id + '"]').length);
+        this.assertEquals(0, lively.$('head style[id="style-for-' + id + '"]').length);
     }
 
 });

@@ -25,16 +25,23 @@ app.post(route + ':person', function(req, res) {
     });
 app.get(route, function(req, res) {
     // Retrieve all scores as a pile of JSON text
-        if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, '{}');
-        var content = fs.readFileSync(filePath);
-        res.end(content);
+    if (pastMonth != new Date().getMonth()) {
+        // reset scores at the end of the month
+        fs.writeFileSync(filePath, '{}');
+        pastMonth = new Date().getMonth()
+        }
+    if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, '{}');
+    var content = fs.readFileSync(filePath);
+    res.end(content);
     });
 };
 
+pastMonth = new Date().getMonth();
 process.env.PWD;  // can print the process working directory
 path = require('path');
 inspect = require('util').inspect;
 fs = require('fs');
-
 localFileName = 'QBFHighScores.json';
 filePath = path.join(process.env.WORKSPACE_LK, localFileName);
+
+// to reset scores:  fs.writeFileSync(filePath, '{}')

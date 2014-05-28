@@ -734,7 +734,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 case "d": { this.doDebugit(); return true; }
                 case "p": { this.doListProtocol(); return true; }
                 case "r": { this.doBrowseReferences(); return true; }
-                case "f": { this.doBrowseImplementors(); return true; }
+                case "f": { this.doCodeSearch(); return true; }
                 case "b": { this.doBrowseClass(); return true; }
                 case "s": { this.convertTabsToSpaces(); return true; }
                 case "u": { this.unEmphasizeSelection(); return true; }
@@ -887,6 +887,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     doEdit: function() {
         var obj = this.evalSelection();
         if (obj) this.world().openObjectEditorFor(obj);
+    },
+    doCodeSearch: function() {
+        lively.ide.commands.exec('lively.ide.codeSearch', this.getSelectionOrLineString());
     },
     doBrowseSenders: function() {
         this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')
@@ -1795,7 +1798,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         } catch(e) {throw e}
     },
     tryBoundEval: function(str) {
-        try { return this.boundEval(str) } catch(e) { this.showError(e); return null }
+        // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
+        try {
+            return this.boundEval(str);
+        } catch(e) {
+            this.showError(e);
+            return null;
+        }
     },
 
     getDoitContext: function() { return this.doitContext }
@@ -1822,7 +1831,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 },
 'debugging', {
     showError: function (e, offset) {
-
         offset = offset || 0;
         var msg = "" + e + "\n" +
             "Line: " + e.line + "\n" +
@@ -1845,7 +1853,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             alert("Error " + e + "on line " + e.line + " offset " + offset)
         }
         if (world)
-            world.logError(e)
+            world.logError(e);
     },
 
     textNodeString: function() {
@@ -2783,7 +2791,7 @@ Object.subclass('lively.morphic.TextChunk',
     },
     getStyle: function() { return this.style },
     bounds: function() {
-        var b = $(this.getChunkNode()).bounds();
+        var b = lively.$(this.getChunkNode()).bounds();
         return new Rectangle(b.left, b.top, b.width(), b.height());
     }
 },
@@ -3110,7 +3118,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
                 this.addCallbackWhenApplyDone('mouseenter', function(evt) {
                     actionQueue.enter(function() {
-                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
+                        var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.inAction.call(morph, evt);
                     });
@@ -3118,7 +3126,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 });
                 this.addCallbackWhenApplyDone('mouseleave', function(evt) {
                     actionQueue.leave(function() {
-                        var morph = $(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
+                        var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
                         hover.outAction.call(morph, evt);
                     });
@@ -3452,7 +3460,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     installCallbackHandler: function(node) {
-        var $node = $(node);
+        var $node = lively.$(node);
         [{type: 'click', handler: 'mouseup'},
          {type: 'mouseenter', handler: 'mouseenter'},
          {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
@@ -3475,7 +3483,7 @@ Object.subclass('lively.morphic.TextEmphasis',
     },
 
     uninstallCallbackHandlers: function(node) {
-        var $node = $(node);
+        var $node = lively.$(node);
         $node.off();
     }
 

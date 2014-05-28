@@ -815,7 +815,9 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
 },
 'morph menu', {
-    getMenu: function() { /*FIXME actually menu items*/ return [] }
+
+    getMenu: function() { /*FIXME actually menu items*/ return []; }
+
 },
 'list interface', {
 
@@ -1124,6 +1126,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         // It's size will define how much scroll space is there which will give
         // users feedback about how many items are in the list when scrolling
         var m = this.submorphs[0];
+        m && m.disableHalos();
         if (m) return m;
         return this.addMorph(lively.newMorph({
             style: {fill: null, adjustForNewBounds: true, resizeWidth: true}}));
@@ -1211,6 +1214,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         text.addScript(this.textOnMouseDown);
         // text.disableEvents();
         text.unignoreEvents();
+        text.disableHalos();
         text.setInputAllowed.bind(text, false).delay(1);
         text.addStyleClassName('list-item');
         text.setTextStylingMode(true);

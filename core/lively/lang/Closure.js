@@ -139,8 +139,9 @@ Object.subclass('lively.Closure',
 
     addFuncProperties: function(func) {
         var props = this.getFuncProperties();
-        for (var name in props)
-        if (props.hasOwnProperty(name)) func[name] = props[name];
+        for (var name in props) {
+            if (props.hasOwnProperty(name)) func[name] = props[name];
+        }
         this.addClosureInformation(func);
     },
 

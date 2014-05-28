@@ -18,9 +18,25 @@ function log(/*level, msg, arguments*/) {
     // the smaller logLevel the more important the message
     var args = Array.prototype.slice.call(arguments);
     var logLevel = typeof args[0] === 'number' ? args.shift() : 1;
+    events.add.apply(events, args);
     if (logLevel > debugThreshold) return;
     console.log.apply(console, args);
 }
+
+var events = global.l2lEvents || (global.l2lEvents = {
+    log: []
+});
+
+util._extend(events, {
+
+    add: function(/*logMessage args*/) {
+        var msg = util.format.apply(util, arguments);
+        var entry = {timestamp: String(new Date()), message: msg};
+        if (events.log.length > 1000) events.log = events.log.slice(-800);
+        events.log.push(entry);
+    }
+
+})
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // session actions, when messages come in they specify in
@@ -31,6 +47,7 @@ function log(/*level, msg, arguments*/) {
 var sessionActions = {
 
     reportServices: function(sessionServer, connection, msg) {
+        events.add('[sender %s][reportServices]', msg.sender);
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId,
@@ -75,10 +92,13 @@ var sessionActions = {
             // the client might come back
             if (!sessions[msg.sender]) return; // unregistered
             if (!sessionServer.inactiveSessionRemovalTime) return;
+            events.add('[connection to %s] closed', msg.sender);
             setTimeout(function() {
                 var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
                 if (!newConnection) {
                     log(2, '%s removes local session of %s', sessionServer, msg.sender);
+                    events.add('[connection to %s] l2l deregistration "%s" %s %s %s',
+                        msg.sender, session.user, session.worldURL, session.id, session.remoteAddress);
                     sessionServer.removeLocalSessionOf(msg.sender);
                     if (logSessionLifetime) {
                         console.log('l2l deregistration "%s" %s %s %s',
@@ -93,6 +113,9 @@ var sessionActions = {
                 session.user, session.worldURL, session.id, session.remoteAddress);
         }
 
+        events.add('[sender %s][registerClient] l2l registration "%s" %s %s %s%s',
+            msg.sender, session.user, session.worldURL, session.id, session.remoteAddress, isNewSession ? ' (new)' : '');
+
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId,
@@ -106,6 +129,9 @@ var sessionActions = {
             console.log('l2l deregistration "%s" %s %s %s',
                 session.user, session.worldURL, session.id, session.remoteAddress);
         }
+        events.add('[sender %s][unregisterClient] l2l deregistration "%s" %s %s %s',
+                msg.sender, session.user, session.worldURL, session.id, session.remoteAddress);
+
         connection.send({
             action: msg.action + 'Result',
             inResponseTo: msg.messageId, data: {success: true}});
@@ -114,6 +140,7 @@ var sessionActions = {
 
     initServerToServerConnect: function(sessionServer, connection, msg) {
         var url = msg.data.url;
+        events.add('[sender %s][initServerToServerConnect] url: %s', msg.sender, url);
         sessionServer.serverToServerConnect(url, function(err, remoteClient) {
             if (err) console.error(err);
             connection.send({action: 'initServerToServerConnectResult', inResponseTo: msg.messageId, data: {success: !err}});
@@ -123,12 +150,14 @@ var sessionActions = {
     initServerToServerDisconnect: function(sessionServer, connection, msg) {
         var remoteURLs = Object.keys(sessionServer.serverToServerConnections);
         sessionServer.removeServerToServerConnections();
+        events.add('[sender %s][initServerToServerDisconnect]', msg.sender);
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Connections to ' + remoteURLs.join(', ') + ' closed'}});
     },
 
     getSessions: function(sessionServer, connection, msg) {
         // send the sessions accessible from this tracker. includes local sessions,
         // reported sessions
+        events.add('[sender %s][getSessions]', msg.sender);
         sessionServer.getSessionList(msg.data.options, function(sessions) {
             connection.send({
                 action: msg.action,
@@ -145,19 +174,31 @@ var sessionActions = {
             console.error('%s got reportSession request without id: ', sessionServer, msg);
             return;
         }
-        var id = connection.id = msg.data.trackerId;
-        connection.on('close', function() {
-            if (!sessionServer.inactiveSessionRemovalTime) return;
-            setTimeout(function() {
-                var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
-                if (!newConnection) {
-                    log(2, '%s removes reported session of %s', sessionServer, id);
-                    delete sessionServer.trackerData[id];
-                }
-            }, sessionServer.inactiveSessionRemovalTime);
-        });
+
+        var id = connection.id;
+        if (!id) {
+            id = connection.id = msg.data.trackerId;
+            connection.on('close', function() {
+                if (!sessionServer.inactiveSessionRemovalTime) return;
+                setTimeout(function() {
+                    var newConnection = sessionServer.websocketServer.getConnection(msg.sender);
+                    if (!newConnection) {
+                        log(2, '%s removes reported session of %s', sessionServer, id);
+                        delete sessionServer.trackerData[id];
+                        events.add('[connection to %s] remove trackerData', msg.sender);
+                    }
+                }, sessionServer.inactiveSessionRemovalTime);
+            });
+        }
+
+        events.add('[sender %s][reportSession]', msg.sender);
+
         sessionServer.trackerData[id] = {sessions: msg.data[id]};
-        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true, message: 'Sessions added to ' + sessionServer}});
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {success: true, message: 'Sessions added to ' + sessionServer}
+        });
     },
 
     reportActivity: function(sessionServer, connection, msg) {
@@ -165,9 +206,21 @@ var sessionActions = {
          var sessions = sessionServer.getLocalSessions()[sessionServer.id()],
             session = sessions[msg.sender] = sessions[msg.sender] || {};
         session.lastActivity = msg.data.lastActivity;
-        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
-    }
 
+        events.add('[sender %s][reportActivity]', msg.sender);
+
+        connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
+    },
+
+    getEventLog: function(sessionServer, connection, msg) {
+        var log = events.log.slice()
+        if (msg.data.limit) log = log.slice(-1 * msg.data.limit);
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {log: log}
+        });
+    }
 }
 
 var services = require("./LivelyServices").services;

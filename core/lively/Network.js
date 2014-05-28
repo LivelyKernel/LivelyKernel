@@ -39,13 +39,13 @@ module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.
 })();
 
 Object.subclass('URL',
-"settings",
-{
+"settings", {
     isURL: true,
     splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
 },
 'initializing', {
+
     initialize: function(/*...*/) { // same field names as window.location
         var firstArg = arguments[0];
         if (!firstArg) throw new Error("URL constructor expecting string or URL parameter");
@@ -155,6 +155,13 @@ Object.subclass('URL',
         if (!s.include("?"))
             return {};
         return s.toQueryParams();
+    },
+
+    parseHash: function() {
+        return this.hash ? decodeURIComponent(this.hash)
+            .replace(/^#/, '').split('&').invoke('split', '=')
+            .reduce(function(hashMap, keyVal) {
+                hashMap[keyVal[0]] = keyVal[1]; return hashMap }, {}) : {};
     },
 
     toLiteral: function() {
@@ -1741,9 +1748,9 @@ Object.subclass('WebResource',
             try {
                 // Try to fix url in case it was proxied
                 URL.root.relativePathFrom(this.getURL()); // may throw error
-                var child = new WebResource(URL.root.withFilename(
-                    url.startsWith('/') ? url.substr(1) : url
-                ));
+                var child = new WebResource(url.startsWith('/') ?
+                    URL.root.withPath(url) : URL.root.withFilename(url)
+                );
             } catch (e) {
                 var child = new WebResource(this.getURL().withPath(url));
             }

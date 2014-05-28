@@ -78,6 +78,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     evalEnabled: true,
     isAceEditor: true,
     isCodeEditor: true,
+    isText: true,
     showsMorphMenu: true,
     connections: {textChange: {}, textString: {}, savedTextString: {}}
 },
@@ -465,9 +466,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     showsCompleter: function() {
         return this.withAceDo(function(ed) {
-            return ed.completer && ed.completer.activated; })
+            return ed.completer && ed.completer.activated; });
     },
-
+    
     initializeAutoTriggerAutocompletion: function() {
         this.setAutoTriggerAutocompletionEnabled(Config.get('aceDefaultAutoTriggerAutocompletion'));
         var editor = this.aceEditor;
@@ -687,9 +688,21 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'text morph eval interface', {
 
     tryBoundEval: function(string) {
+        // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
         try {
             return this.boundEval(string);
         } catch(e) {
+            // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
+                require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
+                    // pop boundEval & interactiveEval from stack
+                    e.unwindException.unshiftFrame();
+                    e.unwindException.unshiftFrame();
+                    var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
+                    lively.ast.openDebugger(cont.currentFrame, e.toString());
+                });
+                return;
+            }
             return e;
         }
     },
@@ -700,15 +713,40 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var ctx = this.getDoitContext() || this,
             str,
             interactiveEval = function() {
-                try { return eval(str = "("+__evalStatement+")")} catch (e) { return eval(str = __evalStatement) }
-                };
+                try {
+                    return eval(str = '(' + __evalStatement + ')');
+                } catch (e) {
+                    return eval(str = __evalStatement);
+                }
+            },
+            interactiveDebugEval = function(ctx) {
+                module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
+                var interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+                    ast;
+                try {
+                    ast = lively.ast.acorn.parse(str = '(' + __evalStatement + ')');
+                    acorn.walk.addAstIndex(ast);
+                    acorn.walk.addSource(ast, str);
+                    return interpreter.runWithContext(ast, ctx, Global);
+                } catch (e) {
+                    ast = lively.ast.acorn.parse(str = __evalStatement);
+                    acorn.walk.addAstIndex(ast);
+                    acorn.walk.addSource(ast, str);
+                    return interpreter.runWithContext(ast, ctx, Global);
+                }
+            };
         try {
-            var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment && $world.getUserName() && 
+            var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx);
+            if (Config.changesetsExperiment && $world.getUserName() &&
         localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
-        } catch(e) {throw e}
+        } catch(e) {
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                throw e.unwindException;
+            else
+                throw e;
+        }
     },
 
     evalSelection: function(printIt) {
@@ -1215,6 +1253,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     setTabSize: function(tabSize) {
         return this.withAceDo(function(ed) { return ed.session.setTabSize(tabSize); });
     },
+    guessTabSize: function() {
+        return this.withAceDo(function(ed) {
+            var tabSize = ed.session.getLines(0, 100)
+                .map(function(l) { return l.match(/^\s+/)})
+                .compact().flatten().pluck('length')
+                .filter(function(length) { return length % 2 === 0}).min();
+            return tabSize;
+        });
+    },
+    guessAndSetTabSize: function() {
+        this.setTabSize(this.guessTabSize());
+    },
 
     setAutocompletionEnabled: function(bool) {
         this.withAceDo(function(ed) { ed.setOption("enableBasicAutocompletion", bool); });
@@ -1358,7 +1408,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
         boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
         settingsItems.push(['Change tab width', function() {
-            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.getTabSize())
+            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
         }]);
         boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
         settingsItems.push(['Change line ending mode', function() {
@@ -1453,26 +1503,30 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'text operations', {
+
     alignInSelectionRange: function(needle) {
         return this.alignInRange(needle, this.getSelectionRangeAce());
     },
+
     alignInRange: function(needle, range) {
         if (!range || range.isEmpty()) return null;
         if (range.start.column > 0) range.start.column = 0;
-        var lines = Strings.lines(this.getTextRange(range));
-        var linesAndIndentIndicies = lines.map(function(line) {
-            var idx = Strings.peekRight(line, 0, needle);
-            return {line: line, idx: idx || -1};
-        });
-        var maxColumn = linesAndIndentIndicies.max(function(ea) { return ea.idx; }).idx;
+        var lines = Strings.lines(this.getTextRange(range)),
+            linesAndIndentIndicies = lines.map(function(line) {
+                var idx = Strings.peekRight(line, 0, needle);
+                return {line: line, idx: idx || -1};
+            }),
+            maxColumn = linesAndIndentIndicies.max(function(ea) { return ea.idx; }).idx;
         if (maxColumn < 0) return null;
         var indentedLines = linesAndIndentIndicies.map(function(lineAndIdx) {
             var l = lineAndIdx.line, i = lineAndIdx.idx;
             return i <= 0 ? l : l.slice(0,i) + ' '.times(maxColumn-i) + l.slice(i);
         });
         return this.replace(range, indentedLines.join('\n'));
-    },
+    }
+
 },
+
 'file access', {
     getTargetFilePath: function() {
         // a codeeditor can target a file. This method figures out if the

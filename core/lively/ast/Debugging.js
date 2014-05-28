@@ -15,6 +15,7 @@ Object.extend(lively.ast, {
         if (title) m.setTitle(title);
         m.openInWorldCenter().comeForward();
     }
+
 });
 
 cop.create('DebugGlobalErrorHandlerLayer')

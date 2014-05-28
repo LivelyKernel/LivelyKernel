@@ -1056,10 +1056,10 @@ handleOnCapture);
     },
 
     createClipboardCapture: function(handler) {
-        var input = $('<input id="clipboardAccess" type="text" style="width:1px;height:1px;outline:0;position:absolute;top:-1px;left:-1px"/>'),
+        var input = lively.$('<input id="clipboardAccess" type="text" style="width:1px;height:1px;outline:0;position:absolute;top:-1px;left:-1px"/>'),
             world = lively.morphic.World.current(),
             morph = this;
-        $('body').append(input);
+        lively.$('body').append(input);
         input[0].addEventListener('copy', handler, false);
         input[0].addEventListener('paste', handler, false);
         var scroll = world.getScrollOffset();
@@ -1067,7 +1067,7 @@ handleOnCapture);
         world.setScroll(scroll.x, scroll.y);
         Global.setTimeout(function() {
             var focused = morph.isFocused();
-            $('#clipboardAccess').remove();
+            lively.$('#clipboardAccess').remove();
             focused && morph.focus();
         }, 20);
     },
@@ -1093,7 +1093,7 @@ handleOnCapture);
                     var pos = world.firstHand().getPosition();
                     pasteTarget.addMorph(pastedMorph);
                     pastedMorph.setPosition(pasteTarget.localize(pos));
-                    alertOK('Pasted ' + pasteTarget);
+                    alertOK('Pasted ' + pastedMorph);
                     if (pastedMorph.isMorphClipboardCarrier) {
                         pastedMorph.submorphs.forEach(function(ea) { pasteTarget.addMorph(ea); });
                         pastedMorph.remove();
@@ -1442,6 +1442,16 @@ lively.morphic.World.addMethods(
             self.onWindowScroll(evt);
         };
         this.registerForVisibilityChange(false);
+        this.registerForBrowserSpecificEvents(false);
+    },
+    registerForBrowserSpecificEvents: function(capturing) {
+        var world = this;
+        function handler(evt) {
+            evt = evt || window.event;
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            return world.onHashChange(evt);
+        }
+        window.onhashchange = handler;
     },
     registerForVisibilityChange: function(capturing) {
         var world = this;
@@ -1511,7 +1521,8 @@ lively.morphic.World.addMethods(
             return true;
         }
 
-        if (!evt.isRightMouseButtonDown()) evt.hand.removeOpenMenu(evt);
+        if (this.currentMenu && !evt.isRightMouseButtonDown() && !evt.getTargetMorph().isMenuItemMorph)
+            evt.hand.removeOpenMenu(evt);
 
         if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo) && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget();
@@ -1719,6 +1730,11 @@ lively.morphic.World.addMethods(
         // * specific prefixes: document[lively.Config.get('browserPrefix') + 'VisibilityState'];
     },
 
+    onHashChange: function(evt) {
+        // see https://developer.mozilla.org/en-US/docs/Web/API/Window.onhashchange
+        // evt object should have fields newURL and oldURL
+    },
+
     onWindowScroll: function(evt) {
         this.cachedWindowBounds = null;
     },
@@ -1758,12 +1774,12 @@ lively.morphic.World.addMethods(
 
     scrollToAnimated: function(x, y, time, thenDo) {
         if (UserAgent.isChrome) {
-             $('body').animate({scrollLeft: x, scrollTop: y}, time, 'swing', thenDo);
+             lively.$('body').animate({scrollLeft: x, scrollTop: y}, time, 'swing', thenDo);
              return;
         }
         var el = UserAgent.fireFoxVersion ? 'html' : 'body';
-        $(el).animate({scrollLeft: x}, time/2, 'swing', function() {
-            $(el).animate({scrollTop: y}, time/2, 'swing', thenDo);
+        lively.$(el).animate({scrollLeft: x}, time/2, 'swing', function() {
+            lively.$(el).animate({scrollTop: y}, time/2, 'swing', thenDo);
         });
     },
 

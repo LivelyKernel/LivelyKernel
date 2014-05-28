@@ -351,8 +351,8 @@ Global.Strings = {
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function iterator(depth, index, node) {
             // 1. Create stringified representation of node
-            nodeList[index] = (indent.times(depth)) + nodePrinter(node);
-            var children = childGetter(node),
+            nodeList[index] = (indent.times(depth)) + nodePrinter(node, depth);
+            var children = childGetter(node, depth),
                 childIndex = index + 1;
             if (!children || !children.length) return childIndex;
             // 2. If there are children then assemble those linear inside nodeList

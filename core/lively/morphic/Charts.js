@@ -2299,7 +2299,6 @@ Object.extend(lively.morphic.Charts.Utils, {
         // },{
         //     ...
         // }]
-        
         var attributeSuperSet = [];
         
         // build a superset of the attributes, which occur in the data arrays
@@ -2332,6 +2331,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         }
         
         var joined = [];
+        var overrideWarning = {};
             
         attributeSuperSet.each(function(joinValue) {
             // build a joinedItem-Object for each attribute in the super-set
@@ -2350,7 +2350,9 @@ Object.extend(lively.morphic.Charts.Utils, {
                     // don't write the actual join attribute into it, since this was done before
                     if (key == joinAttribute) return;
                     
-                    if (joinedItem[key] != undefined) {
+                    if (joinedItem[key] != undefined && !overrideWarning[key]) {
+                        // suppress the warnings for this key to not show as many alerts as overridden values
+                        overrideWarning[key] = true;
                         alert(key + " exists in more than one datasource and was overridden by the join. \
                         You may want to rename one of the columns before joining to preserve all data values.");
                     }
@@ -4670,9 +4672,10 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                     
                     // save the colHeadCells to re-attach the listeners on reload
                     _this.colHeadCells.push(ea);
+                } else {
+                    if (!ea) debugger;
+                    ea.setFill(Color.white);
                 }
-                else 
-                    ea.setFill(Color.white)
                 ea.setClipMode("hidden");
                 ea.setWhiteSpaceHandling("nowrap");
                 ea.setBorderColor(Color.rgb(144, 144, 144));
@@ -4726,7 +4729,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             "Statistics",
             "Sort",
             "Rename",
-            "Hide"
+            "Remove"
             ];
     },
     handleClick: function(cell, method) {
@@ -4784,13 +4787,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
                 }
                 var description = "Enter new name";
                 $world.prompt(description, renameColumn);
-            case "Hide":
+                break;
+            case "Remove":
                 var data = this.component.data;
                 data.map(function(ea) {
                     delete ea[attribute];
                     return ea;
                 });
                 this.component.onContentChanged();
+                break;
         }
     },
 
@@ -5007,9 +5012,19 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
             return this.length;
         }
         
+        // Array.prototype.min does not find a zero, so use Math instead
+        var min = function() {
+            return Math.min.apply(null, this);
+        }
+        
+        // Since min did't work, we don't trust max either
+        var max = function() {
+            return Math.max.apply(null, this);
+        }
+        
         return [
-            {name: "min", calculation: Array.prototype.min},
-            {name: "max", calculation: Array.prototype.max},
+            {name: "min", calculation: min},
+            {name: "max", calculation: max},
             {name: "avg", calculation: avg},
             {name: "length", calculation: length}
         ];

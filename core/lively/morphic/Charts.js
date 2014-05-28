@@ -2287,7 +2287,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         var y = 10 + originY;
         this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
     },
-    hashStringToColor: function(str) {
+    asColor: function(str) {
        function djb2(str){
           var hash = 5381;
           for (var i = 0; i < str.length; i++) {

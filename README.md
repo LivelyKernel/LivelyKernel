@@ -1,8 +1,10 @@
 # Lively Web [![Build Status](https://secure.travis-ci.org/LivelyKernel/LivelyKernel.png?branch=master)](http://travis-ci.org/LivelyKernel/LivelyKernel)
 
-Lively Web is browser-based runtime and development environment that makes creation of Web applications much more immediate and direct. Please see [lively-kernel.org](http://lively-kernel.org/) for more general information about the Lively Web project.
+Lively Web is browser-based runtime and development environment that makes creation of (Web) applications much more immediate and direct. All development happens "live", i.e. you change your application and the system while it is running. This is not only more fun than tedious compile/test/reload workflows but also much faster.
 
-For feedback, announcements and discussions, please feel invited to subscribe to our [mailing list](http://lively-kernel.org/list/index.html).
+- See [Dan Ingall's talk from JS Conf '12](http://blip.tv/play/g_MngvTbawI.html?p=1) for a first impression.
+- To get started, dive into the [interactive Lively-101 world](http://lively-web.org/users/robertkrahn/Lively-101.html).
+- To get your own online workspace [follow the "How To" instructions here](http://lively-web.org/welcome.html).
 
 ## Installation
 

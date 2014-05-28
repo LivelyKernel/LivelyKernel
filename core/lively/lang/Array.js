@@ -158,29 +158,20 @@ Object.extend(Array.prototype, {
     },
 
     max: function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Functions.K;
-        var value, result, resultValue;
-        this.forEach(function(element, index) {
-            value = iterator(element, index);
-            if (!result || value >= resultValue) {
-                result = element;
-                resultValue = value;
-            }
-        });
+        iterator = iterator || Functions.K;
+        var result;
+        this.reduce(function(max, ea, i) {
+            var val = iterator.call(context, ea, i);
+            if (typeof val !== "number" || val <= max) return max;
+            result = ea; return val;
+        }, -Infinity);
         return result;
     },
 
     min: function(iterator, context) {
-        iterator = iterator ? iterator.bind(context) : Functions.K;
-        var value, result, resultValue;
-        this.forEach(function(element, index) {
-            value = iterator(element, index);
-            if (!result || value < resultValue) {
-                result = element;
-                resultValue = value;
-            }
-        });
-        return result;
+        iterator = iterator || Functions.K;
+        return this.max(function(ea, i) {
+            return -iterator.call(context, ea, i); });
     },
 
     partition: function(iterator, context) {

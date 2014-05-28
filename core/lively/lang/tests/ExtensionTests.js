@@ -451,6 +451,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEquals(4, arr.pluck('y').min());
         this.assertEqualState({x:2,y:12}, arr.min(function(ea) { return ea.x }));
         this.assertEqualState({x:9,y:4}, arr.min(function(ea) { return ea.y }));
+
+        this.assertEquals(2, [5,3,2,6,4,3,2].min());
+        this.assertEquals(-10, [-3,-3,-5,-10].min());
+        this.assertEquals(-10, [-3,-3,-5,-10].min());
+        this.assertEquals(-5, [-3,null,-5,null].min());
+        this.assertEquals(0, [0, 10].min());
+        this.assertMatches({x: 'foo'}, [{x: 'bar'},{x: 'foo'}, {x: 'baz'}].min(function(ea) { return ea.x.charCodeAt(2); }));
     },
 
     testMax: function() {
@@ -459,6 +466,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertEquals(12, arr.pluck('y').max());
         this.assertEqualState({x:9,y:4}, arr.max(function(ea) { return ea.x }));
         this.assertEqualState({x:2,y:12}, arr.max(function(ea) { return ea.y }));
+
+        this.assertEquals(6, [5,3,2,6,4,-3,2].max());
+        this.assertEquals(-1, [-3,-2,-1,-10].max());
+        this.assertEquals(-2, [-3,-2,null,-10].max());
+        this.assertEquals(0, [0, -10].max());
+        this.assertMatches({x: 'baz'}, [{x: 'bar'},{x: 'foo'}, {x: 'baz'}].max(function(ea) { return ea.x.charCodeAt(2); }));
     },
 
     testInspect: function() {
@@ -570,6 +583,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         var hist = data.histogram([0,3,6]); // 3 bins
         this.assertEquals([[1,2],[3,4],[]], hist, Strings.print(hist));
     }
+
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {

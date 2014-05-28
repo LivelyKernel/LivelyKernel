@@ -107,7 +107,7 @@ Object.extend(lively.data.FileUpload, {
             handlerClasses = lively.data.FileUpload.Handler.allSubclasses();
         Array.from(files).map(function(file) {
             var handlerClass = handlerClasses.detect(function(handlerClass) {
-                return handlerClass.prototype.handles(file); });
+                return handlerClass.prototype.handles(file, evt); });
             if (!handlerClass) return null;
             var handler = new handlerClass(evt, file);
             i++;

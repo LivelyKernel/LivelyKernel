@@ -639,6 +639,11 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     ed.$morph.setShowWarnings(!showsWarnings);
                     alertOK('showing warnings ' + (!showsWarnings ? 'enabled': 'disabled'));
                 }
+            }, {
+                name: "guess tab size",
+                exec: function(ed) {
+                    ed.$morph.guessAndSetTabSize();
+                }
             }]);
     },
 

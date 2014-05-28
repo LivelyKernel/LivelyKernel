@@ -1,4 +1,4 @@
-module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.net.SessionTracker', 'lively.morphic.Graphics').toRun(function() {
+module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.net.SessionTracker', 'lively.morphic.Graphics', 'lively.ide.FileSystem').toRun(function() {
 
 Object.subclass('lively.ide.CommandLineInterface.Command',
 "initializing", {
@@ -583,100 +583,6 @@ Object.extend(lively.ide.CommandLineInterface, {
 // file search related
 lively.module("lively.ide.CommandLineSearch");
 
-Object.subclass("lively.ide.CommandLineSearch.FileInfo",
-// see lively.ide.CommandLineSearch.parseDirectoryList
-"properties", {
-    path: '', fileName: '',
-    isDirectory: false,
-    lastModified: null, mode: '',
-    isLink: false, linkCount: 0,
-    user: '', group: '', size: 0,
-    rootDirectory: null
-},
-"initializing", {
-    initialize: function(rootDirectory) {
-        this.rootDirectory = rootDirectory;
-    }
-},
-'parsing from directory list', {
-    reader: [ // the order is important!
-        function mode(lineString, fileInfo) {
-            var idx = lineString.indexOf(' ');
-            fileInfo.mode = lineString.slice(0, idx);
-            fileInfo.isDirectory = fileInfo.mode[0] === 'd';
-            return lineString.slice(idx+1).trim();
-        },
-        function linkCount(lineString, fileInfo) {
-            var idx = lineString.indexOf(' ');
-            fileInfo.linkCount = Number(lineString.slice(0, idx));
-            return lineString.slice(idx+1).trim();
-        },
-        function user(lineString, fileInfo) {
-            var idx = lineString.indexOf(' ');
-            fileInfo.user = lineString.slice(0, idx);
-            return lineString.slice(idx+1).trim();
-        },
-        function group(lineString, fileInfo) {
-            var idx = Strings.peekRight(lineString, 0, /\s\s+/);
-            fileInfo.group = lineString.slice(0, idx).trim();
-            return lineString.slice(idx).trim();
-        },
-        function size(lineString, fileInfo) {
-            var idx = lineString.indexOf(' ');
-            fileInfo.size = Number(lineString.slice(0, idx));
-            return lineString.slice(idx+1).trim();
-        },
-        function lastModified(lineString, fileInfo) {
-            var matches = Strings.reMatches(lineString, /[^s]+\s+[0-9:\s]+/);
-            if (!matches || !matches[0]) return lineString;
-            fileInfo.lastModified = new Date(matches[0].match + ' GMT');
-            return lineString.slice(matches[0].end).trim();
-        },
-        function fileName(lineString, fileInfo) {
-            var string = lineString.replace(/^\.\/+/g, '').replace(/\/\//g, '/'),
-                nameAndLink = string && string.split(' -> '),
-                isLink = string === '' ? false : string && nameAndLink.length === 2,
-                path = isLink ? nameAndLink[0] : string,
-                fileName = path && path.indexOf(fileInfo.rootDirectory) === 0 ? path.slice(fileInfo.rootDirectory.length) : path;
-            fileInfo.fileName = string === '' ? '.' : fileName;
-            fileInfo.path = path;
-            fileInfo.isLink = isLink;
-            return fileName;
-        }],
-
-    readFromDirectoryListLine: function(line) {
-        if (!line.trim().length) return false;
-        var lineRest = line;
-        this.reader.forEach(function(reader) {
-            lineRest = reader(lineRest, this)
-        }, this);
-        return true;
-    }
-},
-'printing', {
-    toString: function() { return this.path; }
-});
-
-Object.extend(lively.ide.CommandLineInterface, {
-    path: {
-        join: function(/*paths*/) {
-            var paths = Array.from(arguments);
-            return paths.reduce(append, paths.shift());
-            function append(path1, path2) {
-                path1 = path1 || '', path2 = path2 || '';
-                if (!path1.endsWith('/')) path1 += '/';
-                while (path2.startsWith('/')) path2 = path2.slice(1);
-                return (path1 + path2).split('/').reduce(function(parts, focus) {
-                    if (focus == '..') parts.pop();
-                    else if (focus == '.') ;/*ignore*/
-                    else parts.push(focus);
-                    return parts;
-                }, []).join('/');
-            }
-        }
-    }
-});
-
 Object.extend(lively.ide.CommandLineSearch, {
 
     doGrepFromWorkspace: function(string, path, thenDo) {
@@ -810,7 +716,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         options = options || {};
         var commandString = this.findFilesCommandString(pattern, options),
             rootDirectory = options.rootDirectory,
-            parseDirectoryList = this.parseDirectoryList,
+            parseDirectoryList = lively.ide.FileSystem.parseDirectoryListFromLs,
             lastFind = lively.ide.CommandLineSearch.lastFind;
         if (lastFind) lastFind.kill();
         var result = [],
@@ -821,16 +727,6 @@ Object.extend(lively.ide.CommandLineSearch, {
             });
         lively.ide.CommandLineSearch.lastFind = cmd;
         return options.sync ? result : cmd;
-    },
-
-    parseDirectoryList: function(string, rootDirectory) {
-        // line like "-rw-r—r—       1 robert   staff       5298 Dec 17 14:04:02 2012 test.html"
-        var lines = Strings.lines(string);
-        return lines.map(function(line) {
-            if (!line.trim().length) return null;
-            var fileInfo = new lively.ide.CommandLineSearch.FileInfo(rootDirectory);
-            return fileInfo.readFromDirectoryListLine(line) ? fileInfo : null;
-        }).compact();
     },
 
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {

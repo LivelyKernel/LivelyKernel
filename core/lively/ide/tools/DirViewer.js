@@ -637,7 +637,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});
     },
         doActionForFileItem: function doActionForFileItem(fileItem) {
-        var j = lively.ide.CommandLineInterface.path.join;
+        var j = lively.ide.FileSystem.join;
         var fullPath = j(this.dirState.path, fileItem.path);
         if (fileItem.isDirectory) {
             this.goto(fullPath);
@@ -702,7 +702,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         };
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     if (!item) return [];
-    var j = lively.ide.CommandLineInterface.path.join;
+    var j = lively.ide.FileSystem.join;
     var fullPath = j(this.dirState.path, item.path);
     if (item.isDirectory) return [copyPath];
     return [copyPath, openInSCB, openInTextEditor];
@@ -723,7 +723,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         this.fetchAndDisplayDirContent();
     },
         gotoParentDir: function gotoParentDir() {
-        var j = lively.ide.CommandLineInterface.path.join;
+        var j = lively.ide.FileSystem.join;
         this.goto(j(this.dirState.path, ".."));
     },
         gotoRoot: function gotoRoot() {
@@ -737,9 +737,9 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             if (!filter) {
                 return true
             } else if (Object.isString(filter)) {
-                return fileInfo.fileName.toLowerCase().include(filter);
+                return fileInfo.path.toLowerCase().include(filter);
             } else if (Object.isRegExp(filter)) {
-                return filter.test(fileInfo.fileName);
+                return filter.test(fileInfo.path);
             } else { return true; }
         });
     },
@@ -747,7 +747,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         return items.map(function(ea) {
             return {
                 isListItem: true,
-                string: ea.fileName,
+                string: ea.path || ea.fileName,
                 value: ea,
                 cssClasses: [ea.isDirectory ? 'directory' : 'file']
             }
@@ -756,13 +756,13 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         itemsSort: function itemsSort(sortKey, items) {
         return items.sortBy(function(item) {
             if (sortKey === 'name') {
-                return item.fileName;
+                return item.path;
             } else if (sortKey === 'time') {
                 return -item.lastModified;
             } else if (sortKey === 'size') {
                 return -item.size;
             } else {
-                return item.fileName;
+                return item.path;
             }
         });
     },

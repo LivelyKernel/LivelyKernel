@@ -1029,22 +1029,22 @@ AsyncTestCase.subclass('lively.tests.ChartsTests.AsyncDashboardTest',
                 _this.assert(script.notified);
                
                 // do not use the variable anymore
-                script.content.codeEditor.setTextString("");
-                script.notify();
-                script.notifyDashboard();
+                // script.content.codeEditor.setTextString("");
+                // script.notify();
+                // script.notifyDashboard();
                 
                 // reset notification flag
-                script.notified = false;
+                // script.notified = false;
                 // set the widgets value to change the interaction variable
-                widget.setValue(0);
+                // widget.setValue(0);
                 
                 // wait some seconds because setValue calls onContentChanged and this is asynchronous
-                setTimeout(function() {
+                // setTimeout(function() {
                     // test that the script was not notified this time
-                    _this.assert(!script.notified);
+                //     _this.assert(!script.notified);
                     
-                    _this.done();
-                }, 30);
+                //     _this.done();
+                // }, 30);
             }, 30);
         });
     },

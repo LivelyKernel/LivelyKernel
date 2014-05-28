@@ -19658,6 +19658,34 @@ function IncrementalSearch() {
 
 oop.inherits(IncrementalSearch, Search);
 
+// regexp handling
+
+function isRegExp(obj) {
+    return obj instanceof RegExp;
+}
+
+function regExpToObject(re) {
+    var string = String(re),
+        start = string.indexOf('/'),
+        flagStart = string.lastIndexOf('/');
+    return {
+        expression: string.slice(start+1, flagStart),
+        flags: string.slice(flagStart+1)
+    }
+}
+
+function stringToRegExp(string, flags) {
+    try {
+        return new RegExp(string, flags);
+    } catch (e) { return string; }
+}
+
+function objectToRegExp(obj) {
+    return stringToRegExp(obj.expression, obj.flags);
+}
+
+// iSearch class
+
 ;(function() {
 
     this.activate = function(ed, backwards) {
@@ -19740,13 +19768,21 @@ oop.inherits(IncrementalSearch, Search);
 
     this.addString = function(s) {
         return this.highlightAndFindWithNeedle(false, function(needle) {
-            return needle + s;
+            if (!isRegExp(needle))
+              return needle + s;
+            var reObj = regExpToObject(needle);
+            reObj.expression += s;
+            return objectToRegExp(reObj);
         });
     }
 
     this.removeChar = function(c) {
         return this.highlightAndFindWithNeedle(false, function(needle) {
-            return needle.length > 0 ? needle.substring(0, needle.length-1) : needle;
+            if (!isRegExp(needle))
+              return needle.substring(0, needle.length-1);
+            var reObj = regExpToObject(needle);
+            reObj.expression = reObj.expression.substring(0, reObj.expression.length-1);
+            return objectToRegExp(reObj);
         });
     }
 
@@ -19767,6 +19803,18 @@ oop.inherits(IncrementalSearch, Search);
 
     this.onPaste = function(text) {
         this.addString(text);
+    }
+
+    this.convertNeedleToRegExp = function() {
+        return this.highlightAndFindWithNeedle(false, function(needle) {
+            return isRegExp(needle) ? needle : stringToRegExp(needle, 'ig');
+        });
+    }
+
+    this.convertNeedleToString = function() {
+        return this.highlightAndFindWithNeedle(false, function(needle) {
+            return isRegExp(needle) ? regExpToObject(needle).expression : needle;
+        });
     }
 
     this.statusMessage = function(found) {
@@ -19963,6 +20011,28 @@ exports.iSearchCommands = [{
     name: 'recenterTopBottom',
     bindKey: 'Ctrl-l',
     exec: function(iSearch) { iSearch.$editor.execCommand('recenterTopBottom'); },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'selectAllMatches',
+    bindKey: 'Ctrl-space',
+    exec: function(iSearch) {
+        var ed = iSearch.$editor,
+            hl = ed.session.$isearchHighlight,
+            ranges = hl && hl.cache ? hl.cache
+                .reduce(function(ranges, ea) {
+                    return ranges.concat(ea ? ea : []); }, []) : [];
+        iSearch.deactivate(false);
+        ranges.forEach(ed.selection.addRange.bind(ed.selection));
+    },
+    readOnly: true,
+    isIncrementalSearchCommand: true
+}, {
+    name: 'searchAsRegExp',
+    bindKey: 'Alt-r',
+    exec: function(iSearch) {
+        iSearch.convertNeedleToRegExp();
+    },
     readOnly: true,
     isIncrementalSearchCommand: true
 }];

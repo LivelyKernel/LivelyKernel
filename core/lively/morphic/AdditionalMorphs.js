@@ -79,8 +79,9 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     fromImageMorph: function(imgMorph) {
         var imgNode = imgMorph.renderContext().imgNode;
         var ext = pt(imgNode.naturalWidth, imgNode.naturalHeight);
-        this.setExtent(ext);
+        this.adaptCanvasSizeHTML(this.renderContext(), this.getExtent(), ext);
         this.getContext().drawImage(imgNode, 0,0);
+        this.setExtent(ext);
         return this;
     },
 
@@ -310,14 +311,12 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         if (this._adaptCanvasSizeHTMLInProgress) return;
         this._adaptCanvasSizeHTMLInProgress = true;
         try {
-            var $node = lively.$(ctx.shapeNode),
-                x = $node.width(),
-                y = $node.height();
             if (oldExtent && newExtent && (oldExtent.x !== newExtent.x || oldExtent.y !== newExtent.y)) {
-                var imgData = this.getImageData();
-                $node.attr('width', x);
-                $node.attr('height', y);
-                this.putImageData(imgData, x, y);
+                var $node = lively.$(ctx.shapeNode),
+                    imgData = this.getImageData();
+                $node.attr('width', newExtent.x);
+                $node.attr('height', newExtent.y);
+                this.putImageData(imgData, newExtent.x, newExtent.y);
                 this.onCanvasChanged();
             }
         } finally {

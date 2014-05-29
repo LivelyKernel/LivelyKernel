@@ -312,9 +312,11 @@ Object.extend(lively.net.SessionTracker, {
     _sessions: lively.net.SessionTracker._sessions || {},
 
     defaultActions: {
+
         reportServices: function(msg, session) {
             session.answer(msg, {services: Object.keys(session.getActions())});
         },
+
         remoteEvalRequest: function(msg, session) {
             var result;
             if (!Config.get('lively2livelyAllowRemoteEval')) {
@@ -329,6 +331,17 @@ Object.extend(lively.net.SessionTracker, {
             }
             session.answer(msg, {result: String(result)});
         },
+
+        completions: function(msg, session) {
+            lively.require('lively.ide.codeeditor.Completions').toRun(function() {
+                var lister = new lively.ide.codeeditor.Completions.ProtocolLister();
+                var completions = lister.getCompletions(
+                    msg.data.expr,
+                    function(string) { return eval(string); });
+                session.answer(msg, completions);
+            });
+        },
+
         copyObject: function(msg, session) {
             var obj, result = '', error = null, withObjectDo = msg.data.withObjectDo;
             try {
@@ -343,6 +356,7 @@ Object.extend(lively.net.SessionTracker, {
             }
             session.answer(msg, {result: String(result), error: error});
         },
+
         askFor: function(msg, session) {
             var query = msg.data.query,
                 promptMethod = query.toLowerCase().include('password') ? 'passwordPrompt' : 'prompt';
@@ -350,6 +364,7 @@ Object.extend(lively.net.SessionTracker, {
                 session.answer(msg, {answer: input});
             });
         },
+
         chatMessage: function(msg, session) {
             lively.log('Got chat message from %s: %s', msg.data.user, msg.data.message);
             var chat = $morph('Lively2LivelyChat');
@@ -366,10 +381,12 @@ Object.extend(lively.net.SessionTracker, {
             }
             session.answer(msg, {message: 'chat message received', error: null});
         },
+
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
             session.answer(msg, {error: 'messageNotUnderstood'});
         }
+
     },
 
     registerActions: function(actions) {

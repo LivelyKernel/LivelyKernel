@@ -38,7 +38,9 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         doListProtocol: function doListProtocol() {
             var string = this.getSelectionOrLineString(),
                 completions = this.getCompletions(string);
-            new lively.morphic.Text.ProtocolLister(this).openNarrower(completions);
+            lively.require("lively.ide.codeeditor.Completions").toRun(function() {
+                new lively.ide.codeeditor.Completions.ProtocolLister(this).openNarrower(completions);
+            }.bind(this));
         },
         printInspect: function printInspect() {
             var s = this.getSelectionMaybeInComment();

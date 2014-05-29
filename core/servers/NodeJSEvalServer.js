@@ -95,15 +95,22 @@ function getProtoChain(obj) {
 }
 
 function getDescriptorOf(originalObj, proto) {
-    if (originalObj === proto) {
-        var descr = originalObj.toString()
-        if (descr.length > 50) descr = descr.slice(0,50) + '...';
-        return descr;
+    function shorten(s, len) {
+        if (s.length > len) s = s.slice(0,len) + '...';
+        return s.replace(/\n/g, '').replace(/\s+/g, ' ');
     }
+
+    if (originalObj === proto) {
+        if (typeof originalObj !== 'function') return shorten(originalObj.toString(), 50);
+        var funcString = originalObj.toString(),
+            body = shorten(funcString.slice(funcString.indexOf('{')+1, funcString.lastIndexOf('}')), 50);
+        return signatureOf(originalObj.displayName || originalObj.name || 'function', originalObj) + ' {' + body + '}';
+    }
+
     var klass = proto.hasOwnProperty('constructor') && proto.constructor;
     if (!klass) return 'prototype';
-    if (typeof klass.type === 'string' && klass.type.length) return klass.type;
-    if (typeof klass.name === 'string' && klass.name.length) return klass.name;
+    if (typeof klass.type === 'string' && klass.type.length) return shorten(klass.type, 50);
+    if (typeof klass.name === 'string' && klass.name.length) return shorten(klass.name, 50);
     return "anonymous class";
 }
 

@@ -806,8 +806,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     doListProtocol: function() {
-        var pl = new lively.morphic.Text.ProtocolLister(this);
-        pl.evalSelectionAndOpenNarrower();
+        lively.require("lively.ide.codeeditor.Completions").toRun(function() {
+            new lively.ide.codeeditor.Completions.ProtocolLister(this).evalSelectionAndOpenNarrower();
+        }.bind(this));
     },
 
     doInspect: function() {

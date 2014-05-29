@@ -983,14 +983,14 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             name: "editor",
             sourceModule: "lively.ide.CodeEditor",
             textMode: "javascript",
-            textString: "// code in here is evaluated in the context of the connected session\n\
-        \n\
-        ",
+            textString: "// code in here is evaluated in the context of the connected session\n",
             doListProtocol: function doListProtocol() {
             var string = this.getSelectionMaybeInComment(), self = this;
             this.withCompletionsDo(string, function(err, result) {
                 if (err) { self.setStatusMessage(err, Color.red); return; }
-                new lively.morphic.Text.ProtocolLister(self).openNarrower(result);
+                lively.require("lively.ide.codeeditor.Completions").toRun(function() {
+                    new lively.ide.codeeditor.Completions.ProtocolLister(self).openNarrower(result);
+                });
             });
         },
             doit: function doit(printResult, editor) {
@@ -1150,7 +1150,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         lively.bindings.connect(this.get("ConnectionChoice"), "selection", this, "switchConnectionChoice");
         this.doNotSerialize = ["_targetSession"];
         this.get('ConnectionInput').setList([]);
-        this.get('editor').textString = '// code in here is evaluated in the context of the connected session';
+        this.get('editor').textString = '// code in here is evaluated in the context of the connected session\n';
     },
         selectTargetSession: function selectTargetSession(sess) {
         this._targetSession = sess;

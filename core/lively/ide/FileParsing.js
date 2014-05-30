@@ -413,7 +413,7 @@ Object.subclass('lively.ide.FileFragment',
 
 
     addSibling: function(newSrc) {
-        if (this.type == 'propertyDef' && !newSrc.startsWith(',\n')) newSrc = ',\n' + newSrc;
+        if (this.type == 'propertyDef' && !newSrc.startsWith(',\n')) newSrc = ',\n\n' + newSrc;
         var owner = this.findOwnerFragment(),
             ownerSrc = owner.getSourceCode(),
             stopIndexInOwner = this.stopIndex - owner.startIndex,

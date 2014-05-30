@@ -637,7 +637,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});
     },
         doActionForFileItem: function doActionForFileItem(fileItem) {
-        var j = lively.ide.FileSystem.join;
+        var j = lively.ide.FileSystem.joinPaths;
         var fullPath = j(this.dirState.path, fileItem.path);
         if (fileItem.isDirectory) {
             this.goto(fullPath);
@@ -702,7 +702,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         };
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     if (!item) return [];
-    var j = lively.ide.FileSystem.join;
+    var j = lively.ide.FileSystem.joinPaths;
     var fullPath = j(this.dirState.path, item.path);
     if (item.isDirectory) return [copyPath];
     return [copyPath, openInSCB, openInTextEditor];
@@ -723,7 +723,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         this.fetchAndDisplayDirContent();
     },
         gotoParentDir: function gotoParentDir() {
-        var j = lively.ide.FileSystem.join;
+        var j = lively.ide.FileSystem.joinPaths;
         this.goto(j(this.dirState.path, ".."));
     },
         gotoRoot: function gotoRoot() {

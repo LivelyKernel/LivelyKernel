@@ -57,19 +57,13 @@ snippet case
 
 # while (...) {...}
 snippet wh
-	while (${1:/* condition */}) {
-		${0:/* code */}
-	}
+	while (${1:/* condition */}) {${0:/* code */}}
 # try
 snippet try
-	try {
-		${0:/* code */}
-	} catch (e) {}
+	try {${0:/* code */}} catch (e) {}
 # do...while
 snippet do
-	do {
-		${2:/* code */}
-	} while (${1:/* condition */});
+	do {${2:/* code */}} while (${1:/* condition */});
 # Object Method
 snippet :f
 regex /([,{[])|^\s*/:f/
@@ -174,8 +168,8 @@ regex /^\s*([^\.]+)?/\.?addMe?t?h?o?d?s?/
 snippet Oe
 	Object.extend(${1:obj}, {$0});
 # collection iter
-regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect))/
-	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) { ${0:${M4?return :}}; }${4:, this});
+regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect|map|filter))/
+	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) {$0});
 # collection inject
 regex /(\.?[^\.\s]+|^\s*)/\.?inje?c?t?/
 	${M1?:${1:list}}.inject(${2:collector}, function($2, ea) { ${0:return $2;} });

@@ -544,16 +544,22 @@ Global.Functions = {
         var functions = Array.from(arguments);
         var endCallback, intermediateResult;
         return functions.reverse().reduce(function(prevFunc, func) {
+            var nextActivated = false;
             return function() {
                 var args = Array.from(arguments);
                 if (!endCallback) endCallback = args.pop();
                 function next(/*err and args*/) {
+                    nextActivated = true;
                     var args = Array.from(arguments),
                         err = args.shift();
-                    if (err) endCallback(err);
+                    if (err) endCallback && endCallback(err);
                     else prevFunc.apply(null, args);
                 }
-                func.apply(Global, args.concat([next]));
+                try {
+                    func.apply(Global, args.concat([next]));
+                } catch (e) {
+                    console.error('composeAsync: ', e.stack || e);
+                    !nextActivated && endCallback && endCallback(e); }
             }
         }, function() { endCallback.apply(null, [null].concat(Array.from(arguments))); });
     },

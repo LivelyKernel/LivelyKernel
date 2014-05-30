@@ -905,6 +905,39 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         });
     },
 
+    testComposeAsyncWithError: function() {
+        var test = this, aRun = 0, bRun = 0, cRun = 0;
+        Functions.composeAsync(
+            function a(a,b, thenDo) { aRun++; thenDo(null, (a*b).barrr()); },
+            function b(a, thenDo) { bRun++; thenDo(null, a + 1); }
+        )(3,4, function(err, result) {
+            cRun++;
+            test.assertEquals(1, aRun, 'aRun');
+            test.assertEquals(0, bRun, 'bRun');
+            test.assertEquals(1, cRun, 'cRun');
+            test.assert(!result, 'result? ' + result);
+            test.assert(err instanceof TypeError, 'error? ' + err);
+        });
+        this.waitFor(function() { return !!cRun; }, 10, function() { this.done(); });
+    },
+
+    testComposeAsyncWithErrorDontActivateTwice: function() {
+        var test = this, aRun = 0, bRun = 0, cRun = 0;
+        Functions.composeAsync(
+            function a(a,b, thenDo) { aRun++; thenDo(null, a * b);
+                throw new Error('afterthought'); /*throwing this error should not invoke the end handler*/},
+            function b(a, thenDo) { bRun++; thenDo(null, a + 1); }
+        )(4,5, function(err, result) {
+            cRun++;
+            test.assertEquals(1, aRun, 'aRun');
+            test.assertEquals(1, bRun, 'bRun');
+            test.assertEquals(1, cRun, 'cRun');
+            test.assertEquals(21, result, 'result? ' + result);
+            test.assert(!err, 'err? ' + err);
+        });
+        this.waitFor(function() { return !!cRun; }, 30, function() { this.done(); });
+    },
+
     testFlip: function() {
         function foo(a,b,c) { return '' + a + b + c; }
         this.assertEquals('213', Functions.flip(foo)(1,2,3));

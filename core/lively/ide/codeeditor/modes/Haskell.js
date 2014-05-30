@@ -8,22 +8,33 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
 });
 
 Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
+
     lineNoErrRe: /:([0-9]+):([0-9]+):/,
     lineNoStackRe:  /:([0-9]+):(?:([0-9]+)\-)?([0-9]+)$/,
+
     // session support
     _sessions: [],
     _currentSession: null,
+
     _sessionOrId: function(sessOrId) {
         var id =  Object.isString(sessOrId) ? sessOrId : sessOrId.id;
         return this._sessions.detect(function(ea) { return ea.id === id; });
     },
+    
     ensureSession: function(sessOptions) {
         if (!sessOptions || !sessOptions.id) sessOptions = 'default';
         var sess = this._sessionOrId(sessOptions);
         return sess ? sess : this.addSession(sessOptions);
     },
-    getCurrentSession: function() { return this._currentSession = this.ensureSession(this._currentSession); },
-    setCurrentSession: function(sess) { return this._currentSession = this.ensureSession(sess); },
+    
+    getCurrentSession: function() {
+        return this._currentSession = this.ensureSession(this._currentSession);
+    },
+
+    setCurrentSession: function(sess) {
+        return this._currentSession = this.ensureSession(sess);
+    },
+
     getSessions: function() {
         // lively.ide.codeeditor.modes.Haskell.Interface._sessions = []
         // lively.ide.codeeditor.modes.Haskell.Interface.getSessions()
@@ -32,6 +43,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         if (!s.length) this.addSession({id: 'default', baseDirectory: lively.shell.cwd()});
         return s;
     },
+
     addSession: function(options) {
         var existing = this._sessionOrId(options);
         if (existing) return existing;
@@ -130,16 +142,22 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         function evalHaskellCode(session, code, thenDo) {
             var prompt = "<lively λ>";
             var webR = URL.nodejsBase.withFilename('HaskellServer/eval').asWebResource().beAsync(),
-                data = {sessionId: session.id, baseDirectory: session.baseDirectory, expr: code, prompt: prompt};
+                data = {
+                    sessionId: session.id,
+                    baseDirectory: session.baseDirectory,
+                    expr: code,
+                    prompt: prompt,
+                    evalId: 'haskell-eval-' + Strings.newUUID()
+                };
             webR.post(JSON.stringify(data), "application/json").withJSONWhenDone(function(json, status) {
                 if (json.error) { thenDo && thenDo('Haskell error ' + json.error, ''); return; }
                 var resultString = json.result.result;
                 var modulePrefixIdx = resultString.indexOf('|')+1;
                 var modulePrefix = resultString.slice(0, modulePrefixIdx);
-                json.result.output = resultString
+                resultString = resultString
                     .split(modulePrefix).last().trim()
                     .replace(new RegExp('\\n?'+prompt+"$"), '');
-                thenDo && thenDo(null, json.result);
+                thenDo && thenDo(null, resultString);
             });
         }
     },
@@ -406,45 +424,40 @@ HaskellMode.addMethods({
         "Alt-i": "haskellInfoForThingAtPoint"
     },
 
-    // commands: {test: {exec: function(ed) { show(123); }}},
-    // keybindings: {"Alt-a": "test"},
-    // keyhandler: null,
-    // initKeyHandler: function() {
-    //     var h = this.keyhandler = lively.ide.ace.createKeyHandler({
-    //         keyBindings: this.keybindings,
-    //         commands: this.commands
+    keyhandler: null,
 
-    // keyhandler: null,
-    // initKeyHandler: function() {
-    //     var h = this.keyhandler = lively.ide.ace.createKeyHandler({
-    //         keyBindings: this.keybindings,
-    //         commands: this.commands
-    //     });
-    // },
+    initKeyHandler: function() {
+        var h = this.keyhandler = lively.ide.ace.createKeyHandler({
+            keyBindings: this.keybindings,
+            commands: this.commands
+        });
+    },
 
-    // attach: function(ed) {
-    //     this.initKeyHandler();
-    //     ed.keyBinding.addKeyboardHandler(this.keyhandler);
-    // },
+    attach: function(ed) {
+        this.initKeyHandler();
+        ed.keyBinding.addKeyboardHandler(this.keyhandler);
+    },
 
-    // detach: function(ed) {
-    //     this.keyhandler = null;
-    //     ed.keyBinding.removeKeyboardHandler(this.keyhandler);
-    // },
+    detach: function(ed) {
+        this.keyhandler = null;
+        ed.keyBinding.removeKeyboardHandler(this.keyhandler);
+    },
 
-    // doEval: function doEval(codeEditor, insertResult) {
-    //     // FIXME: Cleanup really needed!
-    //     var sourceString = codeEditor.getSelectionOrLineString();
-    //     var noDefRe = /^\s*(<class|data|i(mport|n(fix(|[lr])|stance))|module|primitive|type|newtype)>/;
-    //     evalHaskellCode(wrapHaskellCode(sourceString), printResult);
-    //     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    //     function printResult(err, result) {
-    //         if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
-    //         if (!insertResult && err) { codeEditor.world().alert(err); return;}
-    //         if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
-    //         codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
-    //     }
-
+    doEval: function doEval(codeEditor, insertResult) {
+        // FIXME: Cleanup really needed!
+        var sourceString = codeEditor.getSelectionOrLineString();
+        var noDefRe = /^\s*(<class|data|i(mport|n(fix(|[lr])|stance))|module|primitive|type|newtype)>/;
+        var haskell = lively.ide.codeeditor.modes.Haskell.Interface;
+        var sess = haskell.getCurrentSession();
+        haskell.ghciEval(sess, sourceString, printResult);
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function printResult(err, result) {
+            if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
+            if (!insertResult && err) { codeEditor.world().alert(err); return;}
+            if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
+            codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
+        }
+    }
 });
 
 (function setupHaskellClientState() {

@@ -105,7 +105,13 @@ Object.extend(lively.data.FileUpload, {
         // handler for specific file types
         var pos = evt.getPosition(), i = 0,
             handlerClasses = lively.data.FileUpload.Handler.allSubclasses();
-        Array.from(files).map(function(file) {
+
+        if (evt.isAltDown()) {
+            this.uploadFilesToServer(files, evt);
+            return;
+        }
+
+        Array.from(files).forEach(function(file) {
             var handlerClass = handlerClasses.detect(function(handlerClass) {
                 return handlerClass.prototype.handles(file, evt); });
             if (!handlerClass) return null;
@@ -117,7 +123,7 @@ Object.extend(lively.data.FileUpload, {
                 readMethod: options.readMethod || 'asDataURL',
                 pos: pos.addXY(15*i,15*i)});
             handler.startReading();
-        })
+        });
     },
 
     handleDroppedItems: function(items, evt) {
@@ -142,6 +148,43 @@ Object.extend(lively.data.FileUpload, {
                 return;
             }
         }
+    },
+
+    uploadFilesToServer: function(files) {
+        // use XHR2 form data object to upload data via POST /upload
+        // implemented by subserver UploadServer
+
+        var formData = new Global.FormData(),
+            files = Array.from(files);
+        files.forEach(function(file) { formData.append('file', file); });
+
+        alertOK('Uploading ...' + files.pluck("name").join(', '));
+
+        // files will be put into a designated directory on server once
+        // uploaded, let user choose this dir here
+        Functions.composeAsync(
+
+            function askForLocation(defaultLocation, next) {
+                $world.prompt('Location to upload files to', function(input) {
+                    next(null, input || defaultLocation);
+                }, defaultLocation);
+            },
+
+            function upload(location, next) {
+                formData.append('location', location);
+                URL.root.withFilename('upload').asWebResource()
+                    .enableShowingProgress().createProgressBar("Uploading")
+                    .beAsync().post(formData)
+                    .withJSONWhenDone(function(json, stat) { next(null, json, stat); });
+            },
+
+            function report(uploadReport, postStatus, next) {
+                alertOK('uploaded files: \n' + JSON.stringify(uploadReport, null, 2));
+                next();
+            }
+
+        )(lively.shell.getWorkingDirectory(), function(err) {});
+
     }
 });
 

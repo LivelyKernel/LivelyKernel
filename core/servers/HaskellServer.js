@@ -29,7 +29,7 @@ function censorJSON(jso) {
 
 var haskellState = global.haskellState || (global.haskellState = {processes: []});
 
-global.printHaskellServerState = function printHaskellServerState() {
+global.printHaskellServerState = function printHaskellServerState(thenDo) {
     
     function printEvalState(evalState, i) {
         return util.format(
@@ -55,9 +55,11 @@ global.printHaskellServerState = function printHaskellServerState() {
         ].concat(procState.evalQueue.map(printEvalState)).join('\n  ');
     }
 
-    var output = haskellState.processes.map(printProcState).join('\n\n');
-    
+    var output = haskellState.processes.length ?
+        haskellState.processes.map(printProcState).join('\n\n')
+        : 'no haskell processes running';
     log(output);
+    thenDo && thenDo(null, output);
 }
 
 global.resetHaskellState = function resetHaskellState(thenDo) {
@@ -453,4 +455,15 @@ module.exports = function(route, app) {
         });
     });
 
+    app.post(route + 'reset', function(req, res) {
+        resetHaskellState(function(err) {
+            if (err) res.status(500).end(String(err)); else res.end('OK');
+        })
+    });
+
+    app.get(route + 'info', function(req, res) {
+        printHaskellServerState(function(err, report) {
+            if (err) res.status(500).end(String(err)); else res.end(report);
+        })
+    });
 }

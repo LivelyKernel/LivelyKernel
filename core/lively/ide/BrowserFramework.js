@@ -1021,14 +1021,17 @@ Object.subclass('lively.ide.BrowserNode',
     cleanupSource: function(oldDefs, newDefs) {
         // delete those oldDefs that are not also in newDefs from runtime
         if (!this.browser.evaluate) return;
+        var node = this;
         oldDefs.withoutAll(newDefs).forEach(function(def){
             var pathAndProp = def.split("#"),
                 path = pathAndProp[0],
                 prop = pathAndProp[1],
-                object = lively.Class.forName(path);
-            if (!object)
-                return console.warn('Class/object not found: ' + path);
-            delete object.prototype[prop];
+                obj = lively.Class.forName(path);
+            if (!obj) return console.warn('Class/obj not found: ' + path);
+            var parentFragment = node.target.findOwnerFragment(),
+                propHolder = parentFragment 
+                    && (parentFragment.type === "klassExtensionDef" ?  obj : obj.prototype);
+            if (propHolder) delete propHolder[prop];
             console.log("Deleted old " + path + ".prototype." + prop);
         });
     },

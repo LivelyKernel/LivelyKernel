@@ -168,7 +168,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         var cmd = infoCommand(tokenString);
         this.ghciEval(session, cmd, function(err, json) {
             if (err) { thenDo(err, null); return; }
-            var out = json.output;
+            var out = json;
             thenDo(null, validResponse(out) ? out : null);
         });
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -201,6 +201,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
             setTimeout(function() { delete tokenInfoState.cache[token.value]; }, cacheTTL);
         }
     },
+
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // reset
     reset: function(thenDo) {
@@ -208,11 +209,13 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         this.clientReset();
         this.serverReset(thenDo);
     },
+
     clientReset: function() {
         this._sessions = [];
         this.addSession({id: 'default', baseDirectory: lively.shell.cwd()});
         this._currentSession = null;
     },
+
     serverReset: function(thenDo) {
         this.serverConnection('reset').post().whenDone(function(content, status) {
             thenDo && thenDo(status.isSuccess() ? null : {status: status, content: content});
@@ -224,11 +227,13 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
     serverConnection: function(serviceName) {
         return URL.nodejsBase.withFilename('HaskellServer/' + serviceName).asWebResource().beAsync();
     },
+
     serverInfo: function(thenDo) {
-        this.serverConnection('processes').get().withJSONWhenDone(function(json, status) {
-            thenDo(status.isSuccess() ? null : json || status, json);
+        this.serverConnection('info').get().whenDone(function(report, status) {
+            thenDo(status.isSuccess() ? null : report || status, report);
         });
     },
+
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // reporting
     withHaskellOutputWindowDo: function(func) {
@@ -242,6 +247,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         win.name = name;
         func(null, win);
     },
+
     showOutput: function(msg) {
         this.withHaskellOutputWindowDo(function(err, win) {
             win.targetMorph.textString = msg;
@@ -252,7 +258,8 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
 
 lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Haskell.ChangeHandler',
 "settings", {
-    targetMode: "ace/mode/haskell"
+    targetMode: "ace/mode/haskell",
+    showTypeOnSelectionChange: false
 },
 "initializing", {
     initialize: function() {}
@@ -293,6 +300,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ha
     },
 
     onSelectionChange: function(evt) {
+        if (!this.showTypeOnSelectionChange) return;
         var haskell = lively.ide.codeeditor.modes.Haskell.Interface
         var ed = evt.codeEditor;
         var token = ed.tokenAtPoint();
@@ -306,6 +314,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ha
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // UI
 Object.extend(lively.ide.codeeditor.modes.Haskell, {
+
     doHoogleSearchWithNarrower: function(codeEditor) {
         var currentHoogleCommand, currentHoogleCommandKillInitialized;
         function runHoogle(input, flags, thenDo) {
@@ -362,6 +371,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
             }
         }
     }
+
 });
 
 HaskellMode.addMethods({
@@ -371,10 +381,13 @@ HaskellMode.addMethods({
     foldingRules: new (lively.ide.ace.require("ace/mode/folding/cstyle").FoldMode)(),
     // FIXME currently ace has this wrong but I should submit a fix...
     blockComment: {start: "{-", end: "-}"},
+
     commands: {
+
         doHoogleSearch: {
             exec: function(ed) { lively.ide.codeeditor.modes.Haskell.doHoogleSearchWithNarrower(ed.$morph); }
         },
+
         checkHaskellCode: {
             exec: function(ed) {
                 var haskell = lively.ide.codeeditor.modes.Haskell.Interface;
@@ -393,41 +406,53 @@ HaskellMode.addMethods({
                 });
             }
         },
+
         loadHaskellModule: {
             exec: function(ed) {
                 ed.$morph.doSave();
                 (function() { lively.ide.commands.exec('haskell.ghciLoad', ed.$morph); }).delay(0);
             }
         },
+
         reloadHaskellModule: {
             exec: function(ed) {
                 ed.$morph.doSave();
                 (function() { lively.ide.commands.exec('haskell.reload', ed.$morph); }).delay(0);
             }
         },
+
         haskellInfoForThingAtPoint: {
             exec: function(ed) {
                 var haskell = lively.ide.codeeditor.modes.Haskell.Interface
                 var editor = ed.$morph;
-                var token = editor.tokenAtPoint();
+                var token = ed.selection.isEmpty() ?
+                    editor.tokenAtPoint() : {
+                      index: 0, start: 0, type: "unknown token",
+                      value: ed.$morph.getTextRange()
+                    };
                 haskell.tokenInfo(token, function(err, tokenInfo) {
                     tokenInfo && editor.setStatusMessage(tokenInfo, Color.black);
                 });
             }
         }
     },
+
     keybindings: {
         "Alt-h": "doHoogleSearch",
         "Alt-c": "checkHaskellCode",
         "Alt-l": "loadHaskellModule",
         "Alt-r": "reloadHaskellModule",
-        "Alt-i": "haskellInfoForThingAtPoint"
+        "Alt-i": "haskellInfoForThingAtPoint",
+        "Alt-y": "haskellInfoForThingAtPoint"
     },
 
     keyhandler: null,
 
     initKeyHandler: function() {
-        var h = this.keyhandler = lively.ide.ace.createKeyHandler({
+        Properties.forEachOwn(this.keybindings, function(key, commandName) {
+            if (this.commands[commandName]) this.commands[commandName].bindKey = key;
+        }, this);
+        return this.keyhandler = lively.ide.ace.createKeyHandler({
             keyBindings: this.keybindings,
             commands: this.commands
         });
@@ -457,6 +482,19 @@ HaskellMode.addMethods({
             if (result && !Object.isString(result)) result = Objects.inspect(result, {maxDepth: 3});
             codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
         }
+    },
+
+    morphMenuItems: function(items, editor) {
+        var mode = this;
+        items.push(['Haskell',[
+            ['hoogle search (Alt-h)', function() { mode.commands.doHoogleSearch.exec(editor.aceEditor); }],
+            ['check Haskell code (Alt-c)', function() { mode.commands.checkHaskellCode.exec(editor.aceEditor); }],
+            ['load Haskell module (Alt-l)', function() { mode.commands.loadHaskellModule.exec(editor.aceEditor); }],
+            ['reload Haskell module (Alt-r)', function() { mode.commands.reloadHaskellModule.exec(editor.aceEditor); }],
+            ['haskell info for thing at point (Alt-i)', function() { mode.commands.haskellInfoForThingAtPoint.exec(editor.aceEditor); }]
+        ]]);
+
+        return items;
     }
 });
 
@@ -469,6 +507,7 @@ HaskellMode.addMethods({
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     require('lively.ide.commands.default').toRun(function() {
         Object.extend(lively.ide.commands.byName, {
+
             'haskell.reset': {
                 description: 'reset Haskell client and server',
                 exec: function() {
@@ -478,6 +517,7 @@ HaskellMode.addMethods({
                     return true;
                 }
             },
+
             'haskell.ghciLoad': {
                 description: 'haskell ghci :load file into current session',
                 exec: function(codeEditor) {
@@ -488,23 +528,25 @@ HaskellMode.addMethods({
                         return true;
                     }
                     haskell.ghciEval(haskell.getCurrentSession(), ':load ' + path, function(err, result) {
-                        if (result.output.trim().split('\n').length > 2) haskell.showOutput(result.output);
-                        else $world.setStatusMessage(result.output);
+                        if (result.trim().split('\n').length > 2) haskell.showOutput(result);
+                        else $world.setStatusMessage(result);
                     })
                     return true;
                 }
             },
+
             'haskell.reload': {
                 description: 'Haskell session reload (ghci :reload)',
                 exec: function(session) {
                     session = session || haskell.getCurrentSession();
                     haskell.ghciEval(session, ":reload\n", function(err, result) {
-                        if (result.output.trim().split('\n').length > 2) haskell.showOutput(result.output);
-                        else $world.setStatusMessage(result.output);
+                        if (result.split('\n').length > 2) haskell.showOutput(result);
+                        else $world.setStatusMessage(result);
                     })
                     return true;
                 }
             },
+
             'haskell.selectSession': {
                 description: 'select a Haskell eval session',
                 exec: function(codeEditor) {
@@ -555,14 +597,15 @@ HaskellMode.addMethods({
                     return true;
                 }
             },
+
             'haskell.serverInfo': {
                 description: 'show Haskell session info (server)',
                 exec: function() {
                     var haskell = lively.ide.codeeditor.modes.Haskell.Interface;
-                    haskell.serverInfo(function(err, state) {
-                        var name = 'HaskellServerInfo';
-                        var info = JSON.stringify(err || state, 0, 2);
-                        var infoText = $morph(name);
+                    haskell.serverInfo(function(err, report) {
+                        var name = 'HaskellServerInfo',
+                            info = typeof report === 'string' ? report : JSON.stringify(err || report, 0, 2),
+                            infoText = $morph(name);
                         if (infoText) {
                             infoText.textString = info;
                         } else {
@@ -576,7 +619,14 @@ HaskellMode.addMethods({
                     });
                 }
             }
+
         });
+    });
+})();
+
+(function registerModeHandler() {
+    lively.module('lively.ide.codeeditor.DocumentChange').runWhenLoaded(function() {
+        lively.ide.CodeEditor.DocumentChangeHandler.registerModeHandler(lively.ide.codeeditor.modes.Haskell.ChangeHandler);
     });
 })();
 

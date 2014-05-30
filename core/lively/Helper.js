@@ -191,8 +191,10 @@ lively.test = {
         var id = Strings.newUUID().replace(/-/g, '_');
         var klass = (!!callback ? AsyncTestCase : TestCase).subclass('lively.test.Test_' + id);
 
-        if (tests.setUp) { klass.addMethods({setUp: tests.setUp}); delete tests.setUp; }
-        if (tests.tearDown) { klass.addMethods({tearDown: tests.tearDown}); delete tests.tearDown; }
+        var setUp = tests.setUp || tests.detect(function(ea) { return ea.name === 'setUp'; });
+        if (setUp) { klass.addMethods({setUp: setUp}); delete tests.setUp; tests.remove(setUp); }
+        var tearDown = tests.tearDown || tests.detect(function(ea) { return ea.name === 'tearDown'; });
+        if (tearDown) { klass.addMethods({tearDown: tearDown}); delete tests.tearDown; tests.remove(tearDown); }
 
         var testMethods = tests.reduce(function(methods, method, i) {
             methods['test' + (method.name || String(i)).capitalize()] = method;

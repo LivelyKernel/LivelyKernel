@@ -132,13 +132,14 @@ Object.subclass('lively.Main.Loader',
         // none has the same meaning as in display rule, none of the
         // sub-elements can overwrite it whereas -moz-none allows
         // child elements to overwrite -moz-user-select
-        cssDef += "*:not(:focus) {\n"
+        cssDef += ""
+                + "*:not(:focus) {\n"
                 + "  -moz-user-select: -moz-none;\n"
                 + "  -webkit-user-select: none;\n"
                 + "  -ms-user-select: none;\n"
                 + "  user-select: none;\n"
                 + "}\n"
-                + ".selectable *, .visibleSelection:focus, .visibleSelection:focus * {\n"
+                + ".selectable *, .visibleSelection:focus {\n"
                 + "  -moz-user-select: element;\n"
                 + "  -webkit-user-select: auto;\n"
                 + "  -ms-user-select: auto;\n"

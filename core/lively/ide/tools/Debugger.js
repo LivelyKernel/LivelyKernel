@@ -552,7 +552,11 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.updateDebugger(frame, result);
     },
         updateDebugger: function updateDebugger(frame, result) {
-        if (frame.pc == null) { // finished frame
+        if (result instanceof lively.ast.Continuation) {
+            this.setTopFrame(result.currentFrame);
+            if (result.error && result.error.toString())
+                this.getWindow().setTitle(result.error.toString());
+        } else if (frame.pc == null) { // finished frame
             frame = frame.getParentFrame();
             if (frame) {
                 frame.alreadyComputed[frame.pc.astIndex] = result;
@@ -563,10 +567,6 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             this.setTopFrame(lively.ast.AcornInterpreter.Interpreter.stripInterpreterFrames(result.unwindException.top));
             if (result.toString && result.toString())
                 this.getWindow().setTitle(result.toString());
-        } else if (result instanceof lively.ast.Continuation) {
-            this.setTopFrame(result.currentFrame);
-            if (result.error && result.error.toString())
-                this.getWindow().setTitle(result.error.toString());
         } else
             this.setCurrentFrame(frame); // simple pc advancement
     }

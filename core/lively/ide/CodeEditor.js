@@ -718,6 +718,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     ast = lively.ast.acorn.parse(str = __evalStatement);
                     acorn.walk.addAstIndex(ast);
                     acorn.walk.addSource(ast, str);
+                    // In case str starts with a comment, set str to program node
+                    ast.source = str;
                     return interpreter.runWithContext(ast, ctx, Global);
                 }
             };

@@ -1235,7 +1235,9 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
         var expectedLength = owner.getFileString().trim().length + fragment.getSourceCode().length;
         next.addSibling(fragment.getSourceCode());
         var string = owner.getFileString().trim();
-        this.assertEquals(expectedLength+2, string.length, 'strange length');
+        // expected length also includes added whitespace/newlines:
+        expectedLength += 3;
+        this.assertEquals(expectedLength, string.length, 'strange length');
         this.assertEquals(owner.subElements().length, 2);
         this.assertEquals(owner.subElements()[1].getSourceCode(), fragment.getSourceCode());
     },

@@ -4952,7 +4952,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
 lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     initialize: function($super) {
         $super();
-        this.valCount = 1;
+        this.prevFunction = "";
     },
     update: function($super, data) {
         this.component.data = data;
@@ -4967,7 +4967,7 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
         var heuristics = this.getStatisticFunctions();
         
         heuristics.each(function(ea) {
-            result.push({heuristic: ea.name, value: ea.calculation.apply(data)});
+            result.push({heuristic: ea.name, value: ea.calculation(data)});
         });
         
         this.data = result;
@@ -4978,20 +4978,34 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
         var data = this.backupData;
         var description = "Write heuristic function";
         var heuristicFunction;
-        var _this = this;
         var callback = function(functionString) {
             if (functionString) {
-                var heuristicFunction = new Function("args", functionString);
-                _this.data.push({heuristic: "val" + _this.valCount, value: heuristicFunction.apply(data)});
-                _this.valCount++;
-                _this.update(_this.data);
+                this.prevFunction = functionString;
+                // extract the name and the function-string
+                // this is not very nice, but works for the moment
+                var splitString = functionString.split("=");
+                var name = splitString[0].trim();
+                var func = splitString.slice(1).join("=").trim();
+                eval("var heuristicFunction = " + func);
+                
+                // check whether this function already exists,
+                // replace it, if this is the case
+                var heuristic = this.data.filter(function(ea) {
+                    return ea.heuristic == name;
+                }).first();
+                if (heuristic) {
+                    heuristic.value = heuristicFunction(data);
+                } else {
+                    this.data.push({heuristic: name, value: heuristicFunction(data)});
+                }
+                this.update(this.data);
             }
-        }
-    
+        }.bind(this);
         
-        var exampleInput = "var sum = 0;\nthis.each(function(ea) {\n\tsum += ea;\n});\nreturn sum;";
-        // var prompt = $world.prompt(description, callback, {input: exampleInput});
-        var dialog = new lively.morphic.EditDialog(description, callback, {input: exampleInput});
+        if (this.prevFunction.length == 0) {
+            this.prevFunction = "sum = function(dataArray) {\n\tvar s = 0;\n\tdataArray.each(function(value) {\n\t\ts += value;\n\t});\n\treturn s;\n}";
+        }
+        var dialog = new lively.morphic.EditDialog(description, callback, {input: this.prevFunction});
         var position = this.getPositionInWorld();
         dialog.openIn($world, position);
         dialog.inputText.enableSyntaxHighlighting();
@@ -5014,10 +5028,10 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     getStatisticFunctions: function() {
         
         // calculate the average value
-        var avg = function() {
+        var avg = function(dataArray) {
             var sum = 0;
             var count = 0;
-            this.each(function(ea) {
+            dataArray.each(function(ea) {
                 if (Number.isFinite(ea)) {
                     sum += ea;
                     count++;
@@ -5028,18 +5042,16 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
         }
         
         // get the number of items
-        var length = function() {
-            return this.length;
+        var length = function(dataArray) {
+            return dataArray.length;
         }
         
-        // Array.prototype.min does not find a zero, so use Math instead
-        var min = function() {
-            return Math.min.apply(null, this);
+        var min = function(dataArray) {
+            return dataArray.min();
         }
         
-        // Since min did't work, we don't trust max either
-        var max = function() {
-            return Math.max.apply(null, this);
+        var max = function(dataArray) {
+            return dataArray.max();
         }
         
         return [

@@ -41,23 +41,23 @@ Object.extend(apps.RInterface, {
                             // console.log(result.state);
                             if (result.state == 'ERROR') {
                                 console.log(results.last().error);
-                                callback(results.last().error, results);
+                                callback && callback(results.last().error, results);
                                 return;
                             }
                             if (['COMPLETE', 'INTERRUPT'].include(result.state)) {
-                                callback(null, results);
+                                callback && callback(null, results);
                                 return;
                             }
                             // results are delivered one step at a time, so if the timeout expires
                             // we might not see all the results that have been generated.  tough.
                             if (timeout && Date.now()-startTime > timeout) {
                                 self.livelyREvaluate_stopEval(id, function(err,res) { if (err) show(err) });
-                                callback({error: 'timeout', id: id}, results);
+                                callback && callback({error: 'timeout', id: id}, results);
                                 return;
                             }
                             // if this is an indefinite evaluation, deliver results as they arrive.
                             if (indefinite && results.length) {
-                                callback(null, results);
+                                callback && callback(null, results);
                                 results = [];
                             }
                             // if we found any results this time, don't wait long before asking again.

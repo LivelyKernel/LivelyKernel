@@ -5173,7 +5173,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
 'default category', {
     
     initialize: function($super) {
-
         $super();
         this.description = "JsonViewer";
         this.extent = pt(400, 200);
@@ -5464,7 +5463,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.JsonViewer',
             if (depth <= Object.isArray(data) ? 1 : 0) {
                 var firstTree = root.submorphs.find(function (ea) {
                     return ea instanceof lively.morphic.Tree;
-                })
+                });
                 if (firstTree)
                     expand(firstTree, maxDepth, depth + 1);
             } else {

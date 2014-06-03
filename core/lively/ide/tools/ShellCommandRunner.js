@@ -176,7 +176,9 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     },
         onKeyDown: function onKeyDown(evt) {
         if (this.showsHalos) return $super(evt);
-        var sig = evt.getKeyString();
+        var prevSig = this.prevSig; // for signaling the process
+        var sig = evt.getKeyString({ignoreModifiersIfNoCombo: true});
+        if (sig) this.prevSig = sig;
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('output').focus(); evt.stop(); return true;
             case 'Alt-Down': case 'F2': this.get('commandLine').focus(); evt.stop(); return true;
@@ -184,8 +186,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         if (this.isRunning()) {
             switch(sig) {
                 case 'Control-C': this.killCommand('SIGINT'); evt.stop(); return true;
-                case 'Control-D': this.killCommand('SIGQUIT'); evt.stop(); return true;
-                case 'Esc': this.killCommand('SIGKILL'); evt.stop(); return true;
+                case 'Control-D': this.killCommand(prevSig === sig ? 'SIGKILL' : 'SIGQUIT'); evt.stop(); delete this.prevKey; return true;
             }
         }
         return $super(evt);
@@ -252,9 +253,13 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             });
         },
         morphMenuItems: function morphMenuItems() {
-            var items = $super();
+            var items = $super(), self = this;
             items.push(['Browse Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.browseRunningShellCommands'); }]);
             items.push(['Show Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.showRunningShellCommands'); }]);
+            items.push(['Send signal...', 
+                ["SIGHUP","SIGINT","SIGQUIT","SIGKILL","SIGUSR1","SIGUSR2"].map(function(sig) {
+                    return [sig, self.killCommand.bind(self, "SIGHUP")]
+                })]);
             return items;
         }
     }],

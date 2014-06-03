@@ -260,7 +260,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     evt.stop(); return true;
 },
     onWorldResize: function onWorldResize() {
-    this.alignInWorld();
+    Functions.debounceNamed(this.id + '-onWorldResize', 300, this.alignInWorld.bind(this))();
 },
     reset: function reset() {
     this.setExtent(lively.pt(100.0,30.0));

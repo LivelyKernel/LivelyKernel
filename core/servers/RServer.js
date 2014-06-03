@@ -1,8 +1,8 @@
-var util = require('util');
-var i = util.inspect
+var util  = require('util');
+var i     = util.inspect
 var spawn = require("child_process").spawn;
-var fs = require('fs');
-var path = require('path');
+var fs    = require('fs');
+var path  = require('path');
 
 var domain = require('domain').create();
 domain.on('error', function(er) {
@@ -15,7 +15,8 @@ var debug = false;
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 function evalAtStartup(rState, thenDo) {
-    // thenDo()
+
+    console.log('initializing R process...');
     var initCode = ".libPaths(paste(getwd(), '/R-libraries', sep=''))\n"
              + "options(repos=structure(c(CRAN=\"http://cran.us.r-project.org\")), keep.source=TRUE, error=quote(dump.frames(\"lively_R_dump\", TRUE)))\n"
              + "pkgTest <- function(x) {\n"
@@ -25,26 +26,33 @@ function evalAtStartup(rState, thenDo) {
              + "    }\n"
              + "}\n"
              + "pkgTest('LivelyREvaluate')\n";
+
     evalRExpression(rState, {timeout: 10*1000}, initCode,
-        function(err, result) { thenDo(err) })
+        function(err, result) {
+            console.log('initializing R process done');
+            thenDo(err) });
+
 }
 
 function runR(rState, args, thenDo) {
-    if (rState.process) { thenDo(null, rState); return }
-    var cmd = "R", dir = process.env.WORKSPACE_LK;
-    var options = {cwd: dir, stdio: 'pipe', env: process.env};
-    if (debug) console.log('Running command: %s', [cmd].concat(args));
-    rState.process = spawn(cmd, args, options);
 
+    if (rState.process) { thenDo(null, rState); return }
+
+    var cmd = "R", dir = process.env.WORKSPACE_LK,
+        options = {cwd: dir, stdio: 'pipe', env: process.env};
+
+    if (debug) process.stdout.write('[RServer] Running command: %s', [cmd].concat(args));
+
+    rState.process = spawn(cmd, args, options);
     domain.add(rState.process);
 
     debug && rState.process.stdout.on('data', function (data) {
-        console.log('STDOUT: ' + data); });
+        process.stdout.write('[RServer] STDOUT: ' + data); });
     debug && rState.process.stderr.on('data', function (data) {
-        console.log('STDERR: ' + data); });
+        process.stdout.write('[RServer] STDERR: ' + data); });
 
     rState.process.on('close', function (code) {
-        debug && console.log('R process exited with code ' + code);
+        debug && process.stdout.write('[RServer] process exited with code ' + code);
         rState.process.stdout.removeAllListeners();
         rState.process.stderr.removeAllListeners();
         rState.process.removeAllListeners();
@@ -57,6 +65,7 @@ function runR(rState, args, thenDo) {
 function evalRExpression(rState, options, expr, thenDo) {
     // listen to Rrrrrr and send the expression to the R process
     // options = {timeout: MILLISECONDS}
+
     if (!rState.process) {
         runR(rState, ['--no-readline', '--quiet', '--slave'], function(err, rState) {
             if (err || !rState.process) thenDo(err || 'Error: R process could not be started.');
@@ -64,26 +73,14 @@ function evalRExpression(rState, options, expr, thenDo) {
         });
         return;
     }
+
     var startTime = Date.now(),
         endMarker = startTime + ' is done',
         output = '',
         done = false,
         timeout = options.timeout || 1000,
         p = rState.process;
-    function capture(data) { output += data.toString(); }
-    function attach() {
-        p.stdout.on('data', capture);
-        p.stderr.on('data', capture);
-        p.on("close", detach);
-    }
-    function detach(err) {
-        p.stdout.removeListener('data', capture);
-        p.stderr.removeListener('data', capture);
-        p.removeListener('close', detach);
-        clearInterval(resultPoll);
-        done = true;
-        thenDo(err, output);
-    }
+
     attach();
     setTimeout(function() { if (!done) detach('timeout'); }, timeout);
     var resultPoll = setInterval(function() {
@@ -93,9 +90,31 @@ function evalRExpression(rState, options, expr, thenDo) {
         //done = true;  duplication
         detach(null);
     }, 40);
-    expr = util.format('%s\nwrite("%s", stderr())\n', expr.trim(), endMarker);
-    p.stdin.write(expr);
+
+    var transformed = util.format('%s\nwrite("%s", stderr())\n', expr.trim(), endMarker);
+    p.stdin.write(transformed);
+
     if (debug) console.log('R evaluates: %s', expr);
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function capture(data) { output += data.toString(); }
+
+    function attach() {
+        p.stdout.on('data', capture);
+        p.stderr.on('data', capture);
+        p.on("close", detach);
+    }
+
+    function detach(err) {
+        p.stdout.removeListener('data', capture);
+        p.stderr.removeListener('data', capture);
+        p.removeListener('close', detach);
+        clearInterval(resultPoll);
+        done = true;
+        thenDo(err, output);
+    }
+
 }
 
 function withLivelyREvaluateDo(rState, options, expr, thenDo) {
@@ -109,25 +128,32 @@ function withLivelyREvaluateDo(rState, options, expr, thenDo) {
 }
 
 function startEvalInSubprocess(rState, options, id, expr, thenDo) {
+
     var code = util.format("LivelyREvaluate::evaluate('%s', '%s', exit=%s, debug=%s)",
         id, expr.trim().replace(/\'/g, '\\\''), (options.exit ? 'TRUE' : 'FALSE'), (options.debug ? 'TRUE' : 'FALSE'));
+
     withLivelyREvaluateDo(rState, options, code, thenDo);
+
     //getSubprocessResult(rState, options, id, thenDo);         ael - wait for client to send explicitly
 }
 
 function getSubprocessResult(rState, options, id, thenDo) {
+
     var tempFile = path.join(process.env.WORKSPACE_LK, id + ".json"),
         code = util.format("LivelyREvaluate::getEvalResult('%s',mergeEnvs=%s, format='JSON',file='%s')", id, ((options.merge===false) ? 'FALSE' : 'TRUE'), tempFile);
+
     withLivelyREvaluateDo(rState, options, code, function(errOrNull) {
         // on normal completion errOrNull will be null; it can also be 'timeout'
         // if (errOrNull) console.log("**** Error from withLivelyREvaluate: ", errOrNull)
         fs.exists(tempFile, function(exists) {
+
             if (!exists) {
                 if (errOrNull == 'timeout')
                     thenDo(null, {processState: 'PENDING', result: null}); // assume R's just busy
                 else thenDo('R produced no file');      // something actually went wrong
                 return;
             }
+
             fs.readFile(tempFile, function(err, content) {
                 if (err) { thenDo(err); return; }
                 try {
@@ -136,10 +162,11 @@ function getSubprocessResult(rState, options, id, thenDo) {
                 } catch(err) {
                     thenDo(String(err));
                 }
-            })
+            });
             
-        })
-    })
+        });
+    });
+
 }
 
 function stopSubprocess(rState, options, id, thenDo) {
@@ -147,14 +174,14 @@ function stopSubprocess(rState, options, id, thenDo) {
     withLivelyREvaluateDo(rState, options, code, thenDo);
 }
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 function cleanup(subserver) {
     console.log('RServer is shutting down...');
     if (state.process) state.process.kill();
     subserver && subserver.removeAllListeners();
     state = {};
 }
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = domain.bind(function(route, app, subserver) {
 
@@ -192,18 +219,25 @@ module.exports = domain.bind(function(route, app, subserver) {
     });
 
     app.get(route + 'evalAsync', function(req,res) {
-        var id = req.query.id, timeout = req.query.timeout, merge = req.query.merge==='true';
+
+        var id = req.query.id,
+            timeout = req.query.timeout,
+            merge = req.query.merge==='true';
+
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;
         }
+
         getSubprocessResult(state, {timeout: timeout, merge: merge}, id, function(err, result) {
             if (err) { res.status(500).json({error: String(err)}).end(); return; }
             res.json(result).end();
         });
+
     });
 
     app.del(route + 'evalAsync', function(req,res) {
-        var id = req.query.id, timeout = req.query.timeout;
+        var id = req.query.id,
+            timeout = req.query.timeout;
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;
         }
@@ -228,4 +262,8 @@ module.exports = domain.bind(function(route, app, subserver) {
     app.get(route, function(req, res) {
         res.end("RServer is running!");
     });
+
 });
+
+module.exports.rState = state;
+module.exports.reset = cleanup;

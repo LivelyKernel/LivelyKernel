@@ -3239,6 +3239,9 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             _this.notifyNextComponent();
         }).fail(function () {
             //don't propagate
+            console.warn("promise was rejected");
+            _this.applyErrorStyle();
+            _this.throwError(arguments);
         });
     },
     
@@ -6414,7 +6417,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
                     break;
                 case "json":
                     var jsonConversionPromise = _this.convertBlobToString(eachFile).then(function(jsonString) {
-                        return JSON.parse(jsonString);
+                        try {
+                            return JSON.parse(jsonString);
+                        } catch(exception) {
+                            return new $.Deferred().reject(exception);
+                        }
                     });
                     dataPromises.push(jsonConversionPromise);
                     break;
@@ -6554,8 +6561,11 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.DataImporter', {
     },
     
     pipePromisesToData: function() {
+        var _this = this;
         this.data = $.when.apply(null, this.promises).then(function() {
             return Array.prototype.slice.apply(arguments);
+        }, function() {
+            return {error : arguments};
         });
     },
     

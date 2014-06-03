@@ -8,7 +8,6 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
     },
 
     asItem: function(file, evt) {
-        debugger;
         var files = Array.from(evt.dataTransfer.files);
         var idx = files.indexOf(file);
         return evt.dataTransfer.items[idx];

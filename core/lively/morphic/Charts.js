@@ -4296,11 +4296,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var _this = this;
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
             var rangeArguments = _this.extractArgumentsForRange(eachMapping.value);
-            var morphCreatorUtils = {
-                range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, rangeArguments)
-            }
+
+            var valueFn = function(datum, morph) {
+                
+                var morphCreatorUtils = {
+                    range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, rangeArguments),
+                    horizontal: _this.morphCreatorUtils.public.horizontal.bind(null, morph)
+                }
             
-            var valueFn = function(datum) {
+                
                 var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
                 with (env.interaction)
                 with (lively.morphic.Charts.Utils)
@@ -4426,13 +4430,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                 morph.setRotation(valueFn(datum), morph);
             },
             position: function(valueFn, morph, datum) {
-                morph.setPosition(valueFn(datum), morph);
+                morph.setPosition(valueFn(datum, morph), morph);
             },
             x: function(valueFn, morph, datum) {
-                morph.setPosition(lively.pt(valueFn(datum), morph.getPosition().y));
+                morph.setPosition(lively.pt(valueFn(datum, morph), morph.getPosition().y));
             },
             y: function(valueFn, morph, datum) {
-                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum)));
+                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum, morph)));
             },
             borderWidth: function(valueFn, morph, datum) {
                 morph.setBorderWidth(valueFn(datum));
@@ -4494,6 +4498,7 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
 'default category', {
     initialize: function(data) {
         this.ranges = {};
+        this.width = 20;
         var _this = this;
         // publicly exposed utils functions
         this.public = {
@@ -4512,6 +4517,10 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
                     _this.ranges[property] = { samples : sampleValues, values: values };
                 }
                 return _this.interpolate.bind(_this, samples, _this.ranges[property].values);
+            },
+            horizontal: function(morph){
+                _this.width += morph.getExtent().x + 20;
+                return _this.width - morph.getExtent().x - 20; ;
             }
         }
     },

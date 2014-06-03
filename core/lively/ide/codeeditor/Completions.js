@@ -208,6 +208,14 @@ function getCompletions(evalFunc, string, thenDo) {
                 var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
                 ed.replace(range, '');
             }
+            var id = completion.match(/^[^\(]+/)[0];
+            var needsBrackets = !lively.Class.isValidIdentifier(id);
+            if (needsBrackets) {
+                var range = ed.aceEditor.find({needle: '.', backwards: true, preventScroll: true})
+                ed.replace(range, '');
+                if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
+                completion = '[' +  completion + ']';
+            }
             ed.printObject(ed.aceEditor, completion, true);
         };
         lively.ide.tools.SelectionNarrowing.getNarrower({

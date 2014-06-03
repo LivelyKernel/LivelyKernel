@@ -189,7 +189,8 @@ Object.extend(lively.data.FileUpload, {
 });
 
 (function loadFileUploadHandlers() {
-    var handlerModules = ["lively.data.ODFImport",
+    var handlerModules = ["lively.data.DirectoryUpload",
+                          "lively.data.ODFImport",
                           "lively.data.PDFUpload",
                           "lively.data.ImageUpload",
                           "lively.data.VideoUpload",

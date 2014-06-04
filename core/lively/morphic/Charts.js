@@ -4726,6 +4726,7 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
     getContextMenuItems: function() {
         return [
             "Statistics",
+            "Histogram",
             "Sort",
             "Rename",
             "Remove"
@@ -4737,6 +4738,8 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
             case "Statistics":
                 this.openStatisticsWindow(cell);
                 break;
+            case "Histogram":
+                this.openHistogram(cell);
             case "Sort":
                 this.sortTable(cell);
                 break;
@@ -4816,6 +4819,15 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         inspector.setDescription("Statistics - " + attribute);
         inspector.openInWorld(cell.getPositionInWorld());
         inspector.content.createStatistics(columnData);
+    },
+    openHistogram: function(cell) {
+        var columnData = this.component.data;
+        var attribute = cell.getTextString();
+        
+        var inspector = lively.morphic.Charts.Component.createWindow("Histogram");
+        inspector.setDescription("Histogram - " + attribute);
+        inspector.openInWorld(cell.getPositionInWorld());
+        inspector.content.update(columnData);
     },
 
 
@@ -5031,9 +5043,11 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
             ];
     },
     handleClick: function($super, cell, method) {
-        if (method == "Add heuristic") {
+        switch (method) {
+        case "Add heuristic":
             this.addHeuristic();
-        } else {
+            break;
+        default:
             $super(cell, method);
         }
     },
@@ -7093,15 +7107,56 @@ lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Histogram", {
         
         this.description = "Histogramm";
         this.extent = pt(400, 400);
-        
-        this.binSize = 1;
     },
 
     update: function(data) {
+        this.removeAllMorphs();
         var bins = this.createBins(data);
-        
+        this.drawBars(bins);
         return data;
     },
+    
+    createBins: function(data) {
+        var bins = {};
+        
+        data.each(function(ea) {
+            if (bins[ea] == undefined) {
+                bins[ea] = 1;
+            } else {
+                bins[ea]++;
+            }
+        });
+        
+        return bins;
+    },
+    
+    drawBars: function(bins) {
+        var values = [];
+        
+        Properties.own(bins).each(function(ea) {
+            values.push(bins[ea]);
+        });
+        
+        var max = values.max();
+        var width = 20;
+        var padding = 5;
+        var heightFactor = 300;
+        
+        Properties.own(bins).each(function(attr, idx) {
+            var height = bins[attr] / max * heightFactor;
+            var posX = (width + padding) * idx;
+            var bar = lively.morphic.Morph.makeRectangle(lively.rect(posX, 0, width, height));
+            bar.setFill(Color.rgb(66, 139, 202));
+            bar.setBorderWidth(0);
+            bar.setToolTip(attr);
+            
+            this.addMorph(bar);
+        }.bind(this));
+        
+    }
+    
+    
 });
+
 
 }) // end of module

@@ -1195,7 +1195,8 @@ Object.extend(lively.morphic.Charts.Component, {
             "EntityViewer",
             "InteractionPanel",
             "DataImporter",
-            "WebPage"
+            "WebPage",
+            "Histogram"
         ];
     }
 });
@@ -4700,8 +4701,6 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.Table', {
         var table = this;
         cell.onMouseUp = function(evt) {
             if (evt.isRightMouseButtonDown()) {
-                // activate the cell, just for "beauty"-reasons
-                this.activate();
                 table.showContextMenu(this);
             } else if (evt.isLeftMouseButtonDown()) {
                 table.handleClick(cell, "Sort");
@@ -4953,6 +4952,8 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     initialize: function($super) {
         $super();
         this.prevFunction = "";
+        this.statisticContext = "";
+        this.confirm = false;
     },
     update: function($super, data) {
         this.component.data = data;
@@ -4960,14 +4961,19 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     },
     removalNeedsConfirmation: function() {
         // check whether heuristic was added manually
-        return this.valCount != 1;
+        return this.confirm;
     },
     createStatistics: function(data) { 
         var result = [];
         var heuristics = this.getStatisticFunctions();
+        var _this = this;
         
         heuristics.each(function(ea) {
-            result.push({heuristic: ea.name, value: ea.calculation(data)});
+            var item = {heuristic: ea.name, value: ea.calculation(data)};
+            // build up a string containing the calculated heuristics
+            // to use these values in own functions later (see addHeuristic)
+            _this.statisticContext += "var " + item.heuristic + " = " + item.value + "; ";
+            result.push(item);
         });
         
         this.data = result;
@@ -4975,18 +4981,22 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
         this.update(result);
     },
     addHeuristic: function() {
-        var data = this.backupData;
+        var columnData = this.backupData;
         var description = "Write heuristic function";
         var heuristicFunction;
         var callback = function(functionString) {
             if (functionString) {
+                this.confirm = true;
+                functionString = functionString.trim();
                 this.prevFunction = functionString;
-                // extract the name and the function-string
-                // this is not very nice, but works for the moment
-                var splitString = functionString.split("=");
-                var name = splitString[0].trim();
-                var func = splitString.slice(1).join("=").trim();
-                eval("var heuristicFunction = " + func);
+                
+                // simple regex for function names
+                var nameRegex = /[A-Za-z][A-Za-z0-9_]*/g;
+                // first occurence is 'function', second one is the actual name
+                var name = functionString.match(nameRegex)[1];
+                
+                // evaluate the function with all previously claculated heuristics in scope
+                eval(this.statisticContext + " var heuristicFunction = " + functionString);
                 
                 // check whether this function already exists,
                 // replace it, if this is the case
@@ -4994,16 +5004,18 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
                     return ea.heuristic == name;
                 }).first();
                 if (heuristic) {
-                    heuristic.value = heuristicFunction(data);
+                    heuristic.value = heuristicFunction(columnData);
                 } else {
-                    this.data.push({heuristic: name, value: heuristicFunction(data)});
+                    heuristic = {heuristic: name, value: heuristicFunction(columnData)};
+                    this.data.push(heuristic);
                 }
+                this.statisticContext += "var " + heuristic.heuristic + " = " + heuristic.value + "; ";
                 this.update(this.data);
             }
         }.bind(this);
         
         if (this.prevFunction.length == 0) {
-            this.prevFunction = "sum = function(dataArray) {\n\tvar s = 0;\n\tdataArray.each(function(value) {\n\t\ts += value;\n\t});\n\treturn s;\n}";
+            this.prevFunction = "function sum(dataArray) {\n\tvar s = 0;\n\tdataArray.each(function(value) {\n\t\ts += value;\n\t});\n\treturn s;\n}";
         }
         var dialog = new lively.morphic.EditDialog(description, callback, {input: this.prevFunction});
         var position = this.getPositionInWorld();
@@ -7072,6 +7084,24 @@ lively.morphic.Box.subclass("lively.morphic.Charts.MappingLineCategory",
         if (this.owner)
             this.owner.applyLayout();
     }
+});
+
+lively.morphic.Charts.Content.subclass("lively.morphic.Charts.Histogram", {
+    
+    initialize : function($super) {
+        $super();
+        
+        this.description = "Histogramm";
+        this.extent = pt(400, 400);
+        
+        this.binSize = 1;
+    },
+
+    update: function(data) {
+        var bins = this.createBins(data);
+        
+        return data;
+    },
 });
 
 }) // end of module

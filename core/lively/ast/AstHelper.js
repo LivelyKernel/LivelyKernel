@@ -979,13 +979,13 @@ Object.extend(lively.ast.acorn, {
             if (found) return;
             var idx = node.astIndex;
             if (idx < astIndexToFind) return;
-            if (node.astIndex === astIndexToFind) { found = node; return; };
+            if (node.astIndex === astIndexToFind) { found = node; return; }
             next();
         });
         return found;
     };
     // FIXME: global (and temporary) findNodeByAstIndex is used by __getClosure and defined in Rewriting.js
-    findNodeByAstIndex = acorn.walk.findNodeByAstIndex;
+    Global.findNodeByAstIndex = acorn.walk.findNodeByAstIndex;
 
     acorn.walk.findStatementOfNode = function(ast, target) {
         // find the statement that a target node is in. Example:

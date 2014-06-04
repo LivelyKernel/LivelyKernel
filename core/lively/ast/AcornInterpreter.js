@@ -279,6 +279,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             scope = newScope
             fState = fState[2]; // parentFrameState
         } while (fState && fState != Global);
+        // lastly, add Global scope
+        newScope = new lively.ast.AcornInterpreter.Scope(Global);
+        if (scope)
+            scope.setParentScope(newScope);
+        else
+            topScope = newScope;
 
         // recreate lively.ast.AcornInterpreter.Function object
         func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope);

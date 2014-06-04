@@ -1940,6 +1940,8 @@ lively.morphic.World.addMethods(
                         return [name, function(evt){ require("lively.morphic.Charts").toRun( function (){
                             var component = new lively.morphic.Charts.Component.create(name);
                             component.openInHand();
+                            component.onDragStart({hand: $world.firstHand()});
+                            $world.draggedMorph = component;
                         }); }]
                     })
                 })()

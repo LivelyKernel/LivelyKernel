@@ -931,7 +931,7 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Component", {
         this.componentBody.addMorph(newContent);
         this.content.update(this.data);
         
-        this.description.setTextString(this.content.description);
+        this.setDescription(this.content.description);
     },
 
     createMinimizer: function() {
@@ -2717,7 +2717,11 @@ lively.morphic.Charts.Component.subclass("lively.morphic.Charts.DataFlowComponen
             });
             
             var dialog = $world.openPublishPartDialogFor(container);
-            dialog.get('CategoryText').setTextString("PartsBin/ChartsParts/")
+            dialog.get('CategoryText').setTextString("PartsBin/ChartsParts/");
+            
+            // selectedComponents.each(function(ea) {
+            //     $world.addMorph(ea);
+            // });
         }
     },
 
@@ -4128,13 +4132,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             var prototypeInstance = copiedMorphs[index];
             prototypeInstance.mappings = mappings;            
 
-            mappingFunction(prototypeInstance, ea);
+            mappingFunction(prototypeInstance, ea, index);
             
             // apply submorphMappings
             submorphMappings.each(function(aMapping) {
                 var id = aMapping.submorphPrototype.savedID;
                 var submorphClone = prototypeInstance.getSubmorphsByAttribute("savedID", id).first();
-                aMapping.mappingFunction(submorphClone, ea);
+                aMapping.mappingFunction(submorphClone, ea, index);
                 submorphClone.mappings = submorphMappings.mappings;
             });
             
@@ -4297,14 +4301,13 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
             var rangeArguments = _this.extractArgumentsForRange(eachMapping.value);
 
-            var valueFn = function(datum, morph) {
+            var valueFn = function(datum, index, morph) {
                 
                 var morphCreatorUtils = {
                     range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, rangeArguments),
                     horizontal: _this.morphCreatorUtils.public.horizontal.bind(null, morph)
                 }
-            
-                
+
                 var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
                 with (env.interaction)
                 with (lively.morphic.Charts.Utils)
@@ -4319,17 +4322,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             if (setterFn) {
                 return setterFn.bind(null, valueFn);
             } else {
-                return function(morph, datum) {
-                    morph[eachMapping.attribute] = valueFn(datum);
+                return function(morph, datum, index) {
+                    morph[eachMapping.attribute] = valueFn(datum, index);
                 }
             }
         });
         
         var _this = this;
-        var combinedMappingFunction = function(morph, datum) {
+        var combinedMappingFunction = function(morph, datum, datumIndex) {
             mappingFunctions.each(function(eachMappingFunction, index) {
                 try {
-                    eachMappingFunction(morph, datum);
+                    eachMappingFunction(morph, datum, datumIndex);
                     mappingCategory.hideErrorAt(index);
                 } catch (e) {
                     mappingCategory.showErrorAt(index);
@@ -4414,44 +4417,44 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
     getAttributeMap: function() {
         return {
-            extent: function(valueFn, morph, datum) {
-                morph.setExtent(valueFn(datum));
+            extent: function(valueFn, morph, datum, index) {
+                morph.setExtent(valueFn(datum, index));
             },
-            height: function(valueFn, morph, datum) {
-                morph.setExtent(lively.pt(morph.getExtent().x, valueFn(datum)));
+            height: function(valueFn, morph, datum, index) {
+                morph.setExtent(lively.pt(morph.getExtent().x, valueFn(datum, index)));
             },
-            width: function(valueFn, morph, datum) {
-                morph.setExtent(lively.pt(valueFn(datum), morph.getExtent().y));
+            width: function(valueFn, morph, datum, index) {
+                morph.setExtent(lively.pt(valueFn(datum, index), morph.getExtent().y));
             },
-            color: function(valueFn, morph, datum) {
-                morph.setFill(valueFn(datum));
+            color: function(valueFn, morph, datum, index) {
+                morph.setFill(valueFn(datum, index));
             },
-            rotation: function(valueFn, morph, datum) {
-                morph.setRotation(valueFn(datum), morph);
+            rotation: function(valueFn, morph, datum, index) {
+                morph.setRotation(valueFn(datum, index), morph);
             },
-            position: function(valueFn, morph, datum) {
-                morph.setPosition(valueFn(datum, morph), morph);
+            position: function(valueFn, morph, datum, index) {
+                morph.setPosition(valueFn(datum, index, morph), morph);
             },
-            x: function(valueFn, morph, datum) {
-                morph.setPosition(lively.pt(valueFn(datum, morph), morph.getPosition().y));
+            x: function(valueFn, morph, datum, index) {
+                morph.setPosition(lively.pt(valueFn(datum, index, morph), morph.getPosition().y));
             },
-            y: function(valueFn, morph, datum) {
-                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum, morph)));
+            y: function(valueFn, morph, datum, index) {
+                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum, index, morph)));
             },
-            borderWidth: function(valueFn, morph, datum) {
-                morph.setBorderWidth(valueFn(datum));
+            borderWidth: function(valueFn, morph, datum, index) {
+                morph.setBorderWidth(valueFn(datum, index));
             },
-            borderColor: function(valueFn, morph, datum) {
-                morph.setBorderColor(valueFn(datum));
+            borderColor: function(valueFn, morph, datum, index) {
+                morph.setBorderColor(valueFn(datum, index));
             },
             // events
-            click: function(valueFn, morph, datum){
-              morph.onClick = valueFn(datum);  
+            click: function(valueFn, morph, datum, index){
+              morph.onClick = valueFn(datum, index);
             },
-            dbclick: function(valueFn, morph, datum){
-              morph.onDoubleClick = valueFn(datum);  
+            dbclick: function(valueFn, morph, datum, index){
+              morph.onDoubleClick = valueFn(datum, index);
             },
-            hover: function(valueFn, morph, datum) {
+            hover: function(valueFn, morph, datum, index) {
                 //TODO: improve hover function, maybe tow functions for mouseOver and mouseOut
                 // save standard properties
                 var stdColor, stdPosition, stdBorderWidth;
@@ -4460,25 +4463,25 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     stdPosition = morph.getPosition();
                     stdBorderWidth = morph.getBorderWidth();
                 }, 10);
-                morph.onMouseOver = valueFn(datum);
+                morph.onMouseOver = valueFn(datum, index);
                 morph.onMouseOut = function(){
                     morph.setFill(stdColor);
                     morph.setPosition(stdPosition);
                     morph.setBorderWidth(stdBorderWidth);
                 }
             },
-            mouseover: function(valueFn, morph, datum){
+            mouseover: function(valueFn, morph, datum, index){
                 morph.onMouseOver = valueFn();
             },
-            mousemove: function(valueFn, morph, datum){
+            mousemove: function(valueFn, morph, datum, index){
                 // attention: have to click on element before mousemove is active
                 morph.onMouseMove = valueFn();
             },
-            mouseout: function(valueFn, morph, datum){
+            mouseout: function(valueFn, morph, datum, index){
                 morph.onMouseOut = valueFn();
             },
-            tooltip: function(valueFn, morph, datum){
-                morph.setToolTip(valueFn(datum));
+            tooltip: function(valueFn, morph, datum, index){
+                morph.setToolTip(valueFn(datum, index));
             },
         };
     },

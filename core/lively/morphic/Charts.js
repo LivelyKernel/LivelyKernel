@@ -2001,115 +2001,6 @@ Object.subclass('lively.morphic.Charts.Utils',
 });
 
 Object.extend(lively.morphic.Charts.Utils, {
-    arrangeOnCircle : function(data, radius, center, morphName) {
-        // define morphs as array of all morphs which should be arranged
-        var morphs = [];
-        data.each(function (eachDatum){
-            if (morphName)    
-                morphs.push(eachDatum.morphs[morphName]);
-            else 
-                morphs = morphs.concat(Properties.ownValues(eachDatum.morphs));
-        });
-        
-        // determine the margin, dependent of the maximum extent of all elements and the radius
-        if (!Object.isObject(center)) {
-            var maxOrigin = morphs.reduce(function (max, el) {
-                var origin = el.getPosition().subPt(el.bounds().topLeft());
-                var maxValue = Math.max(origin.x, origin.y);
-                return pt(Math.max(maxValue, max.x), Math.max(maxValue, max.y));
-            }, pt(0, 0));
-            center = pt(10 + maxOrigin.x + radius, 10 + maxOrigin.y + radius);
-        }
-        
-        var path = [];
-        var curId = 0;
-        for (var i = -90; i <= 270; i = i + 360.0 / (morphs.length)){
-            var morph = morphs[curId];
-            var radianMeasure = +(i / 360 * 2 * Math.PI).toFixed(4);
-            var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
-            morph.setPosition(newPt);
-            if (morph.oldRotation !== undefined) morph.setRotation(morph.oldRotation);
-            morph.oldRotation = morph.getRotation();
-            morph.rotateBy(Math.PI / 2.0 + radianMeasure);
-            curId++;
-        }
-    },
-    arrangeOnPath: function(path, entity, rotateElements, morphName) {
-        
-        function sign(x) {
-            return x ? x < 0 ? -1 : 1 : 0;
-        }
-        
-        var morphs = [];
-    	var morphObjects = entity.pluck("morphs");
-    	morphObjects.each(function (eachMorphObject){
-    	    if (morphName){
-    	        morphs.push(eachMorphObject[morphName])
-    	    } else {
-    	        morphs = morphs.concat(Properties.ownValues(eachMorphObject));
-    	    }
-    	});
-	
-    	if (!morphs.length)
-    	    return;
-    	
-    	// determine overall length of the path
-    	var length = path.reduce(function (sum, cur, i, all) {
-    		if (i > 0)
-    			return sum + cur.dist(all[i - 1]);
-    		else
-    			return sum;
-    	}, 0);
-      
-        var distance;
-        if (path[0].subPt(path[path.length - 1]).r() < 0.1) {
-            // path is closed, leave space between last and first element
-    	    distance = length / (morphs.length);
-        } else {
-            // path is open, distribute elements evenly from start to end
-            distance = length / (morphs.length - 1);
-        }
-        
-        // set position of first morph and remove it from the array
-        morphs[0].setPosition(path[0]);
-        morphs.splice(0, 1);
-    
-        var lastPt = path[0];
-    	var curPt = path[0];
-    	var curPathIndex = 1;
-    	var rotation = 0;
-
-    	morphs.each( function (morph, index) {
-    		var distanceToTravel = distance;
-    		while (distanceToTravel) {
-    			var pieceLength = curPt.dist(path[curPathIndex]);
-    			if (pieceLength >= distanceToTravel || (index == morphs.length - 1 && curPathIndex == path.length - 1)) {
-    			
-    				var direction = path[curPathIndex].subPt(curPt);
-    				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
-    				morph.setPosition(curPt);
-    				if (morph.oldRotation) morph.setRotation(morph.oldRotation);
-    				if (rotateElements) {
-    				    if (curPt.y == lastPt.y) {
-    				        rotation = Math.PI / 2 + sign(lastPt.x - curPt.x) * (Math.PI / 2);
-    				    } else {
-    				        var sign = curPt.y > lastPt.y ? 1 : -1;
-    				        rotation = Math.atan((curPt.x - lastPt.x) / (lastPt.y - curPt.y)) + sign * Math.PI / 2;
-    				    }
-    				    morph.oldRotation = morph.getRotation();
-			            morph.rotateBy(rotation);
-    				}
-    				//lastPt = curPt;
-    				distanceToTravel = 0;
-    			} else {
-    				curPt = path[curPathIndex];
-    				lastPt = path[curPathIndex - 1];
-    				curPathIndex++;
-    				distanceToTravel -= pieceLength;
-    			}
-    		}
-    	});
-    },
     createConnection: function (entity1, entity2, connections) {
         connections.each( function (conn) {
             conn.morph.setEnd = function (point) {this.setVertices([pt(0, 0), point.subPt(this.getPosition())])};
@@ -2174,51 +2065,9 @@ Object.extend(lively.morphic.Charts.Utils, {
             }
         });
     },
-    arrangeHorizontal: function(morphs, y, width, morphName) {
-        console.log(morphs)
-        if (!Object.isNumber(y)) {
-            var maxY = morphs.pluck("morph").reduce(function (max, el) {
-                var origin = el.getPosition().subPt(el.bounds().topLeft());
-                return Math.max(origin.y, max);
-            }, 0);
-            y = 10 + maxY;
-        }
-        if (!Object.isNumber(width)) {
-            width = this.defaultWidth;
-        }
-        
-        var originX = morphs[0].morphs[Properties.own(morphs[0].morphs)[0]].getOrigin().x;
-        if (morphName) originX = morphs[0].morphs[morphName].getOrigin().x;
-        var x = 10 + originX;
-        this.arrangeOnPath([pt(x, y), pt(x + width, y)], morphs);
-    },
+    
     defaultWidth: 350,
-    arrange2D: function(data, propertyX, propertyY, rect, morphName) {
-        // TODO: smart margin
-        var bounds = rect || lively.rect(10, 10, 500, 500);
-
-        var xMax = Math.max.apply(null, data.pluck(propertyX));
-        var xMin = Math.min.apply(null, data.pluck(propertyX));
-        var yMax = Math.max.apply(null, data.pluck(propertyY));
-        var yMin = Math.min.apply(null, data.pluck(propertyY));
-        
-        var invalidNumbers = [xMax, xMin, yMax, yMin].some(function(ea) { return isNaN(ea)});
-        if (invalidNumbers) {
-            alert("arrange2D encountered NaN values in data");
-        }
-        
-        data.each(function (ea) {
-            var x = (ea[propertyX] - xMin) / (xMax - xMin);
-            var y = (ea[propertyY] - yMin) / (yMax - yMin);
-            
-            if (morphName)
-                ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
-            else
-                Properties.own(ea.morphs).each(function (morphName){
-                   ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
-                });
-        });
-    },
+    
     pathToMorph: function(pathString) {
         if (Object.isString(pathString))
             pathString = [pathString];
@@ -2269,40 +2118,7 @@ Object.extend(lively.morphic.Charts.Utils, {
         this.arrangeOnPath([startPt, startPt.addPt(pt(0, 20 * entries.length))], container);
         return container;
     },
-    arrangeVertical: function(morphs, x, height, morphName) {
-        if (!Object.isNumber(x)) {
-            var maxX = morphs.pluck("morph").reduce(function (max, el) {
-                var origin = el.getPosition().subPt(el.bounds().topLeft());
-                return Math.max(origin.x, max);
-            }, 0);
-            x = 10 + maxX;
-        }
-        if (!Object.isNumber(height)) {
-            height = this.defaultWidth;
-        }
-
-        // add margin
-        var originY = morphs[0].morphs[Properties.own(morphs[0].morphs)[0]].getOrigin().y;
-        if (morphName) originY = morphs[0].morphs[morphName].getOrigin().y;
-        var y = 10 + originY;
-        this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
-    },
-    asColor: function(str) {
-       function djb2(str){
-          var hash = 5381;
-          for (var i = 0; i < str.length; i++) {
-            hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
-          }
-          return hash;
-        }
-        
-      var hash = djb2(str);
-      var r = (hash & 0xFF0000) >> 16;
-      var g = (hash & 0x00FF00) >> 8;
-      var b = hash & 0x0000FF;
-      var colorString = "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
-      return Color.fromString(colorString);
-    },
+    
 
     aggregateBy: function (data, attribute) {
         var getFunction = function(propertyName, optAggregationFunction) {
@@ -4101,8 +3917,17 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             this.morphInput.cachedName = morphName;
         }
         
-        this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils(data);
+        this.activeMappingContext = {
+            data: data,
+            index: null,
+            morph: null,
+            morphAttribute: null,
+            expressionString: null,
+            rangeArguments: null
+        };
         
+        this.morphCreatorUtils = new lively.morphic.Charts.MorphCreatorUtils(this.activeMappingContext);
+
         var sampleDatum = data[0];
         var mainCategory = this.getMappingCategoryFor(prototypeMorph);
         var mappings = mainCategory.getAllMappings();
@@ -4130,7 +3955,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
         this.copiedMorphs = copiedMorphs;
         data = data.map(function(ea, index) {
             var prototypeInstance = copiedMorphs[index];
-            prototypeInstance.mappings = mappings;            
+            prototypeInstance.mappings = mappings;
+            
+            _this.updateMappingContext({index: index, morph:  prototypeInstance});
 
             mappingFunction(prototypeInstance, ea, index);
             
@@ -4303,28 +4130,32 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
             var valueFn = function(datum, index, morph) {
                 
-                var morphCreatorUtils = {
-                    range: _this.morphCreatorUtils.public.range.bind(null, eachMapping.attribute, rangeArguments),
-                    horizontal: _this.morphCreatorUtils.public.horizontal.bind(null, morph)
-                }
+                _this.updateMappingContext({rangeArguments: rangeArguments});
 
                 var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
                 with (env.interaction)
                 with (lively.morphic.Charts.Utils)
                 with (datum)
-                with (morphCreatorUtils) {
+                with (_this.morphCreatorUtils.public) {
                     // the IIFE allows function declarations within the value fields
                     return eval("(function() { return " + eachMapping.value + ";})();");
                 }
             };
             
             var setterFn = attributeMap[eachMapping.attribute];
-            if (setterFn) {
-                return setterFn.bind(null, valueFn);
-            } else {
-                return function(morph, datum, index) {
-                    morph[eachMapping.attribute] = valueFn(datum, index);
+            
+
+            return function(morph, datum, index) {
+                _this.updateMappingContext({morphAttribute : eachMapping.attribute, expressionString : eachMapping.value});
+                var value = valueFn(datum, index, morph);
+                
+                if (!setterFn) {
+                    setterFn = function(value, morph) {
+                        morph[eachMapping.attribute] = value;
+                    }
                 }
+                
+                setterFn(value, morph);
             }
         });
         
@@ -4414,47 +4245,47 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             return lively.ast.acorn.nodeSource(codeString, node);
         }
     },
-
+    
     getAttributeMap: function() {
         return {
-            extent: function(valueFn, morph, datum, index) {
-                morph.setExtent(valueFn(datum, index));
+            extent: function(value, morph) {
+                morph.setExtent(value);
             },
-            height: function(valueFn, morph, datum, index) {
-                morph.setExtent(lively.pt(morph.getExtent().x, valueFn(datum, index)));
+            height: function(value, morph) {
+                morph.setExtent(lively.pt(morph.getExtent().x, value));
             },
-            width: function(valueFn, morph, datum, index) {
-                morph.setExtent(lively.pt(valueFn(datum, index), morph.getExtent().y));
+            width: function(value, morph) {
+                morph.setExtent(lively.pt(value, morph.getExtent().y));
             },
-            color: function(valueFn, morph, datum, index) {
-                morph.setFill(valueFn(datum, index));
+            color: function(value, morph) {
+                morph.setFill(value);
             },
-            rotation: function(valueFn, morph, datum, index) {
-                morph.setRotation(valueFn(datum, index), morph);
+            rotation: function(value, morph) {
+                morph.setRotation(value);
             },
-            position: function(valueFn, morph, datum, index) {
-                morph.setPosition(valueFn(datum, index, morph), morph);
+            position: function(value, morph) {
+                morph.setPosition(value);
             },
-            x: function(valueFn, morph, datum, index) {
-                morph.setPosition(lively.pt(valueFn(datum, index, morph), morph.getPosition().y));
+            x: function(value, morph) {
+                morph.setPosition(lively.pt(value, morph.getPosition().y));
             },
-            y: function(valueFn, morph, datum, index) {
-                morph.setPosition(lively.pt(morph.getPosition().x, valueFn(datum, index, morph)));
+            y: function(value, morph) {
+                morph.setPosition(lively.pt(morph.getPosition().x, value));
             },
-            borderWidth: function(valueFn, morph, datum, index) {
-                morph.setBorderWidth(valueFn(datum, index));
+            borderWidth: function(value, morph) {
+                morph.setBorderWidth(value);
             },
-            borderColor: function(valueFn, morph, datum, index) {
-                morph.setBorderColor(valueFn(datum, index));
+            borderColor: function(value, morph) {
+                morph.setBorderColor(value);
             },
             // events
-            click: function(valueFn, morph, datum, index){
-              morph.onClick = valueFn(datum, index);
+            click: function(value, morph){
+              morph.onClick = value;
             },
-            dbclick: function(valueFn, morph, datum, index){
-              morph.onDoubleClick = valueFn(datum, index);
+            dbclick: function(value, morph){
+              morph.onDoubleClick = value;
             },
-            hover: function(valueFn, morph, datum, index) {
+            hover: function(value, morph) {
                 //TODO: improve hover function, maybe tow functions for mouseOver and mouseOut
                 // save standard properties
                 var stdColor, stdPosition, stdBorderWidth;
@@ -4463,29 +4294,34 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
                     stdPosition = morph.getPosition();
                     stdBorderWidth = morph.getBorderWidth();
                 }, 10);
-                morph.onMouseOver = valueFn(datum, index);
+                morph.onMouseOver = value;
                 morph.onMouseOut = function(){
                     morph.setFill(stdColor);
                     morph.setPosition(stdPosition);
                     morph.setBorderWidth(stdBorderWidth);
                 }
             },
-            mouseover: function(valueFn, morph, datum, index){
-                morph.onMouseOver = valueFn();
+            mouseover: function(value, morph){
+                morph.onMouseOver = value;
             },
-            mousemove: function(valueFn, morph, datum, index){
+            mousemove: function(value, morph){
                 // attention: have to click on element before mousemove is active
-                morph.onMouseMove = valueFn();
+                morph.onMouseMove = value;
             },
-            mouseout: function(valueFn, morph, datum, index){
-                morph.onMouseOut = valueFn();
+            mouseout: function(value, morph){
+                morph.onMouseOut = value;
             },
-            tooltip: function(valueFn, morph, datum, index){
-                morph.setToolTip(valueFn(datum, index));
+            tooltip: function(value, morph){
+                morph.setToolTip(value);
             },
         };
     },
-    
+    updateMappingContext: function(newObjectAttributes) {
+        var _this = this;
+        Object.keys(newObjectAttributes).each(function(key) {
+            _this.activeMappingContext[key] = newObjectAttributes[key];
+        });
+    },
     getPrototypeMorph: function() {
         var morph = this.getSubmorphsByAttribute("isPrototypeMorph", true).first();
         if (!morph) {
@@ -4499,33 +4335,50 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
 
 Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
 'default category', {
-    initialize: function(data) {
+    initialize: function(activeMappingContext) {
         this.ranges = {};
         this.width = 20;
+        this.activeMappingContext = activeMappingContext;
         var _this = this;
         // publicly exposed utils functions
-        this.public = {
-            range: function(property, valueFunctionString, samples) {
-                var sampleValues = samples;
-                debugger
-                var valueFunction = function (datum) { return eval(valueFunctionString) };
-                if (!Object.isArray(samples)) {
-                    // put all arguments but the first one into an array
-                    sampleValues = Array.prototype.slice.call(arguments).slice(1, arguments.length);
-                }
-                if (!_this.ranges[property]) {
-                    var values = data.map(function (ea) {
-                        return valueFunction(ea);
-                    })
-                    _this.ranges[property] = { samples : sampleValues, values: values };
-                }
-                return _this.interpolate.bind(_this, samples, _this.ranges[property].values);
-            },
-            horizontal: function(morph){
-                _this.width += morph.getExtent().x + 20;
-                return _this.width - morph.getExtent().x - 20; ;
-            }
+        
+        this.public = {};
+        
+        var methods = ["range", "horizontal", "arrange2D", "arrangeOnCircle", "arrangeOnPath", "arrangeVertical", "asColor"];
+        methods.each(function(currentMethod){
+        	_this.public[currentMethod] = _this[currentMethod].bind(_this);
+        });
+    },
+    
+    range: function(samples) {
+        if (!Object.isArray(samples))
+            samples = Array.prototype.slice.apply(arguments);
+
+        var context = this.activeMappingContext;
+        var property = context.morphAttribute;
+        var valueFunctionString = context.rangeArguments;
+        var data = context.data;
+        
+        var sampleValues = samples;
+        var valueFunction = function (datum) { return eval(valueFunctionString) };
+        if (!Object.isArray(samples)) {
+            // put all arguments but the first one into an array
+            sampleValues = Array.prototype.slice.call(arguments).slice(1, arguments.length);
         }
+
+        if (!this.ranges[property]) {
+            var values = data.map(function (ea) {
+                return valueFunction(ea);
+            })
+            this.ranges[property] = { samples : sampleValues, values: values };
+        }
+        return this.interpolate.bind(this, samples, this.ranges[property].values);
+    },
+    horizontal: function(){
+        var morph = this.activeMappingContext.morph;
+        
+        this.width += morph.getExtent().x + 20;
+        return this.width - morph.getExtent().x - 20; ;
     },
     interpolate: function(samples, values, value) {
         var min = values.min();
@@ -4584,6 +4437,175 @@ Object.subclass('lively.morphic.Charts.MorphCreatorUtils',
             start.b + value * (end.b - start.b),
             start.a + value * (end.a - start.a)
         );
+    },
+    arrangeOnCircle : function(data, radius, center, morphName) {
+        // define morphs as array of all morphs which should be arranged
+        var morphs = [];
+        data.each(function (eachDatum){
+            if (morphName)    
+                morphs.push(eachDatum.morphs[morphName]);
+            else 
+                morphs = morphs.concat(Properties.ownValues(eachDatum.morphs));
+        });
+        
+        // determine the margin, dependent of the maximum extent of all elements and the radius
+        if (!Object.isObject(center)) {
+            var maxOrigin = morphs.reduce(function (max, el) {
+                var origin = el.getPosition().subPt(el.bounds().topLeft());
+                var maxValue = Math.max(origin.x, origin.y);
+                return pt(Math.max(maxValue, max.x), Math.max(maxValue, max.y));
+            }, pt(0, 0));
+            center = pt(10 + maxOrigin.x + radius, 10 + maxOrigin.y + radius);
+        }
+        
+        var path = [];
+        var curId = 0;
+        for (var i = -90; i <= 270; i = i + 360.0 / (morphs.length)){
+            var morph = morphs[curId];
+            var radianMeasure = +(i / 360 * 2 * Math.PI).toFixed(4);
+            var newPt = center.addPt(pt(Math.cos(radianMeasure) * radius, Math.sin(radianMeasure) * radius));
+            morph.setPosition(newPt);
+            if (morph.oldRotation !== undefined) morph.setRotation(morph.oldRotation);
+            morph.oldRotation = morph.getRotation();
+            morph.rotateBy(Math.PI / 2.0 + radianMeasure);
+            curId++;
+        }
+    },
+    arrangeOnPath: function(path, entity, rotateElements, morphName) {
+        
+        function sign(x) {
+            return x ? x < 0 ? -1 : 1 : 0;
+        }
+        
+        var morphs = [];
+    	var morphObjects = entity.pluck("morphs");
+    	morphObjects.each(function (eachMorphObject){
+    	    if (morphName){
+    	        morphs.push(eachMorphObject[morphName])
+    	    } else {
+    	        morphs = morphs.concat(Properties.ownValues(eachMorphObject));
+    	    }
+    	});
+	
+    	if (!morphs.length)
+    	    return;
+    	
+    	// determine overall length of the path
+    	var length = path.reduce(function (sum, cur, i, all) {
+    		if (i > 0)
+    			return sum + cur.dist(all[i - 1]);
+    		else
+    			return sum;
+    	}, 0);
+      
+        var distance;
+        if (path[0].subPt(path[path.length - 1]).r() < 0.1) {
+            // path is closed, leave space between last and first element
+    	    distance = length / (morphs.length);
+        } else {
+            // path is open, distribute elements evenly from start to end
+            distance = length / (morphs.length - 1);
+        }
+        
+        // set position of first morph and remove it from the array
+        morphs[0].setPosition(path[0]);
+        morphs.splice(0, 1);
+    
+        var lastPt = path[0];
+    	var curPt = path[0];
+    	var curPathIndex = 1;
+    	var rotation = 0;
+
+    	morphs.each( function (morph, index) {
+    		var distanceToTravel = distance;
+    		while (distanceToTravel) {
+    			var pieceLength = curPt.dist(path[curPathIndex]);
+    			if (pieceLength >= distanceToTravel || (index == morphs.length - 1 && curPathIndex == path.length - 1)) {
+    			
+    				var direction = path[curPathIndex].subPt(curPt);
+    				curPt = curPt.addPt(direction.normalized().scaleBy(distanceToTravel));
+    				morph.setPosition(curPt);
+    				if (morph.oldRotation) morph.setRotation(morph.oldRotation);
+    				if (rotateElements) {
+    				    if (curPt.y == lastPt.y) {
+    				        rotation = Math.PI / 2 + sign(lastPt.x - curPt.x) * (Math.PI / 2);
+    				    } else {
+    				        var sign = curPt.y > lastPt.y ? 1 : -1;
+    				        rotation = Math.atan((curPt.x - lastPt.x) / (lastPt.y - curPt.y)) + sign * Math.PI / 2;
+    				    }
+    				    morph.oldRotation = morph.getRotation();
+			            morph.rotateBy(rotation);
+    				}
+    				//lastPt = curPt;
+    				distanceToTravel = 0;
+    			} else {
+    				curPt = path[curPathIndex];
+    				lastPt = path[curPathIndex - 1];
+    				curPathIndex++;
+    				distanceToTravel -= pieceLength;
+    			}
+    		}
+    	});
+    },
+    arrange2D: function(data, propertyX, propertyY, rect, morphName) {
+        // TODO: smart margin
+        var bounds = rect || lively.rect(10, 10, 500, 500);
+
+        var xMax = Math.max.apply(null, data.pluck(propertyX));
+        var xMin = Math.min.apply(null, data.pluck(propertyX));
+        var yMax = Math.max.apply(null, data.pluck(propertyY));
+        var yMin = Math.min.apply(null, data.pluck(propertyY));
+        
+        var invalidNumbers = [xMax, xMin, yMax, yMin].some(function(ea) { return isNaN(ea)});
+        if (invalidNumbers) {
+            alert("arrange2D encountered NaN values in data");
+        }
+        
+        data.each(function (ea) {
+            var x = (ea[propertyX] - xMin) / (xMax - xMin);
+            var y = (ea[propertyY] - yMin) / (yMax - yMin);
+            
+            if (morphName)
+                ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+            else
+                Properties.own(ea.morphs).each(function (morphName){
+                   ea.morphs[morphName].setPosition(pt(x, y).scaleBy(bounds.width, bounds.height).addPt(bounds.topLeft()));
+                });
+        });
+    },
+    arrangeVertical: function(morphs, x, height, morphName) {
+        if (!Object.isNumber(x)) {
+            var maxX = morphs.pluck("morph").reduce(function (max, el) {
+                var origin = el.getPosition().subPt(el.bounds().topLeft());
+                return Math.max(origin.x, max);
+            }, 0);
+            x = 10 + maxX;
+        }
+        if (!Object.isNumber(height)) {
+            height = this.defaultWidth;
+        }
+
+        // add margin
+        var originY = morphs[0].morphs[Properties.own(morphs[0].morphs)[0]].getOrigin().y;
+        if (morphName) originY = morphs[0].morphs[morphName].getOrigin().y;
+        var y = 10 + originY;
+        this.arrangeOnPath([pt(x, y), pt(x, y + height)], morphs);
+    },
+    asColor: function(str) {
+        function djb2(str){
+            var hash = 5381;
+            for (var i = 0; i < str.length; i++) {
+                hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+            }
+            return hash;
+        }
+        
+        var hash = djb2(str);
+        var r = (hash & 0xFF0000) >> 16;
+        var g = (hash & 0x00FF00) >> 8;
+        var b = hash & 0x0000FF;
+        var colorString = "#" + ("0" + r.toString(16)).substr(-2) + ("0" + g.toString(16)).substr(-2) + ("0" + b.toString(16)).substr(-2);
+        return Color.fromString(colorString);
     },
 });
 

@@ -122,7 +122,15 @@ Object.subclass('lively.Closure',
         // }
         var src = closureVars.length > 0 ? 'var ' + closureVars.join(',') + ';\n' : '';
         if (specificSuperHandling) src += '(function superWrapperForClosure() { return ';
-        src += '(' + funcSource + ')';
+        if (lively.Config.get('loadRewrittenCode')) {
+            module('lively.ast.Rewriting').load(true);
+            var fnAst = lively.ast.acorn.parse('(' + funcSource + ')').body[0].expression,
+                rewrittenAst = lively.ast.Rewriting.rewriteFunction(fnAst, lively.ast.Rewriting.getCurrentASTRegistry()),
+                astIdx = rewrittenAst.body.body[0].handler.body.body[1].expression.arguments.last().name;
+            funcSource = escodegen.generate(rewrittenAst);
+            src += '__createClosure(' + astIdx + ', Global, ' + funcSource + ');';
+        } else
+            src += '(' + funcSource + ')';
 
         if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
 

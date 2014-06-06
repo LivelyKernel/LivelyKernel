@@ -122,17 +122,21 @@ Object.subclass('lively.Closure',
         // }
         var src = closureVars.length > 0 ? 'var ' + closureVars.join(',') + ';\n' : '';
         if (specificSuperHandling) src += '(function superWrapperForClosure() { return ';
+        src += '(' + funcSource + ')';
+        if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
         if (lively.Config.get('loadRewrittenCode')) {
             module('lively.ast.Rewriting').load(true);
-            var fnAst = lively.ast.acorn.parse('(' + funcSource + ')').body[0].expression,
-                rewrittenAst = lively.ast.Rewriting.rewriteFunction(fnAst, lively.ast.Rewriting.getCurrentASTRegistry()),
-                astIdx = rewrittenAst.body.body[0].handler.body.body[1].expression.arguments.last().name;
-            funcSource = escodegen.generate(rewrittenAst);
-            src += '__createClosure(' + astIdx + ', Global, ' + funcSource + ');';
-        } else
-            src += '(' + funcSource + ')';
+            var fnAst = lively.ast.acorn.parse(src),
+                rewrittenAst = lively.ast.Rewriting.rewrite(fnAst, lively.ast.Rewriting.getCurrentASTRegistry()),
+                retVal = rewrittenAst.body[0].block.body.last();
 
-        if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
+            // FIXME: replace last ExpressionStatement with ReturnStatement
+            retVal.type = 'ReturnStatement';
+            retVal.argument = retVal.expression;
+            delete retVal.expression;
+
+            src = '(function() { ' + escodegen.generate(rewrittenAst) + '}).bind(this)();';
+        }
 
         try {
             var func = eval(src) || this.couldNotCreateFunc(src);

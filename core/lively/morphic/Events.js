@@ -2293,7 +2293,7 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
             lively.bindings.signal(evt.world, 'pressedKeys', evt.getKeyString());
         } else {
             var keysNoModifier = evt.getKeyString({ignoreModifiersIfNoCombo: true});
-            keysNoModifier && keysNoModifier.length > 0 && lively.log(keysNoModifier);
+            keysNoModifier && keysNoModifier.length > 0 && lively.morphic.log(keysNoModifier);
         }
         return true;
     }

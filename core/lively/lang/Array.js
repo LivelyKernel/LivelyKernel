@@ -770,6 +770,7 @@ Global.Grid = {
         // interpret the keys as column names and add ea objects values as cell
         // values of a new row. For the example object this would create the
         // table: [["x","y","z"],[1,2,null],[3,null,null],[null,null,4]]
+        if (!Object.isArray(objects)) objects = [objects];
         var table = [[]], columns = table[0],
             rows = objects.inject([], function(rows, ea) {
                 return rows.concat([Object.keys(ea).inject([], function(row, col) {

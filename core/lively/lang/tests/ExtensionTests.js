@@ -641,6 +641,11 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.GridTest', {
         this.assertEqualState(
             expected,
             Grid.tableFromObjects(objects));
+
+        // gracefully handle non-arrays
+        var object = {x:1,y:2},
+            expected = [["x","y"],[1,2]];
+        this.assertEqualState(expected, Grid.tableFromObjects(object));
     }
 });
 

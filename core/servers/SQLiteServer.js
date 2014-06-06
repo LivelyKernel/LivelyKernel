@@ -19,7 +19,7 @@ function getDB(dbAccessCode, thenDo) {
 
 function ensureDB(key, fileName, thenDo ) {
     // fileName === ":memory:" for in-mem DB
-    getDB(key, function(err, db) {
+    getDB(key, function(_, db) {
         if (db) {
             thenDo(null, 'db ' + key + ' exists');
         } else {
@@ -29,10 +29,17 @@ function ensureDB(key, fileName, thenDo ) {
                 fileName = path.join(process.env.WORKSPACE_LK || process.cwd(), fileName);
                 if (debug) console.log('Creating file-based SQLite DB %s', fileName);
             }
-            dbs[key] = new sqlite3.Database(fileName);
-            var msg = 'db ' + key + ' (' + fileName + ') created';
+
+            var msg, error;
+            try {
+                dbs[key] = new sqlite3.Database(fileName);
+                msg = 'db ' + key + ' (' + fileName + ') created';
+            } catch (e) {
+                error = String(e.stack || e);
+                msg = "Error creating SQLite database " + fileName + ':\n' + error;
+            }
             if (debug) console.log(msg);
-            thenDo(null, msg)
+            thenDo(error, msg);
         }
     });
 }

@@ -30,7 +30,9 @@ lively.ide.ace.require('ace/mode/sql').Mode.addMethods({
     morphMenuItems: function(items, editor) {
         var mode = this;
         items.push(['SQL', [["change DB accessor", function() {
-            mode.commands.changeDBAccessor.exec(editor);
+            editor.withAceDo(function(ed) {
+                mode.commands.changeDBAccessor.exec(ed);
+            });
         }]]]);
         return items;
     },
@@ -45,7 +47,6 @@ lively.ide.ace.require('ace/mode/sql').Mode.addMethods({
             },
             function(err, result) {
                 if (doQuery) {
-                    
                     var objToPrint = Object.isArray(result) ? result.map(Strings.printTable) : Objects.inspect(result);
                     codeEditor.printObject(codeEditor.aceEditor, objToPrint);
                 } else {

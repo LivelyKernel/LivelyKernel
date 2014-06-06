@@ -613,9 +613,21 @@ HaskellMode.addMethods({
                         } else {
                             infoText = $world.addCodeEditor({
                                 title: "Haskell processes",
+                                textMode: "text",
+                                extent: pt(700,200),
                                 content: info
                             });
                             infoText.name = name;
+                            infoText.withAceDo(function(ed) {
+                                ed.getKeyboardHandler().addCommands({
+                                    name: 'reloadHaskellServerInfo',
+                                    bindKeys: 'cmd-u',
+                                    exec:function(ed) {
+                                        show("???")
+                                        lively.ide.commands.exec('haskell.serverInfo');
+                                    }
+                                });
+                            })
                         }
                         infoText.getWindow().comeForward();
                     });

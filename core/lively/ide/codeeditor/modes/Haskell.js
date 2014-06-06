@@ -20,13 +20,13 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
         var id =  Object.isString(sessOrId) ? sessOrId : sessOrId.id;
         return this._sessions.detect(function(ea) { return ea.id === id; });
     },
-    
+
     ensureSession: function(sessOptions) {
         if (!sessOptions || !sessOptions.id) sessOptions = 'default';
         var sess = this._sessionOrId(sessOptions);
         return sess ? sess : this.addSession(sessOptions);
     },
-    
+
     getCurrentSession: function() {
         return this._currentSession = this.ensureSession(this._currentSession);
     },
@@ -98,7 +98,9 @@ Object.extend(lively.ide.codeeditor.modes.Haskell.Interface, {
     },
 
     getGHCErrors: function(ghcOutput) {
-        return this.parseAnnotations(this.clean(ghcOutput.err));
+        return this.parseAnnotations(this.clean(ghcOutput.err)).reject(function(ea) {
+            return ea.message.startsWith('The function `main\' is not defined');
+        });
     },
 
     getHLintWarnings: function(hlintOutput) {

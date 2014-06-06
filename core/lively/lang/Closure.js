@@ -142,7 +142,12 @@ Object.subclass('lively.Closure',
             var func = eval(src) || this.couldNotCreateFunc(src);
             this.addFuncProperties(func);
             this.originalFunc = func;
-            if (lively.Config.get('loadRewrittenCode')) func._cachedAst.source = funcSource;
+            if (lively.Config.get('loadRewrittenCode')) {
+                func._cachedAst.source = funcSource;
+                // FIXME: adjust start and end of FunctionExpression (because of brackets)
+                func._cachedAst.start++;
+                func._cachedAst.end--;
+            }
             return func;
         } catch (e) {
             alert('Cannot create function ' + e + ' src: ' + src);

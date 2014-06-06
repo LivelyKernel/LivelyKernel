@@ -1,9 +1,12 @@
 module('lively.ide.codeeditor.modes.R').requires('lively.ide.codeeditor.ace').toRun(function() {
 
-lively.ide.ace.require('ace/mode/r').Mode.addMethods({
+var RMode = lively.ide.ace.require('ace/mode/r').Mode
+
+RMode.addMethods({
+
     morphMenuItems: function(items, editor) {
         var mode = this,
-            livelyREvaluateEnabled = !mode.livelyEvalMethod || mode.livelyEvalMethod === 'lively-R-evaluate',
+            livelyREvaluateEnabled = mode.livelyEvalMethod === 'lively-R-evaluate',
             s = editor.getSession();
         items.push(['R',
             [[Strings.format('[%s] lively-R-evaluate', livelyREvaluateEnabled ? 'x' : ' '),
@@ -17,7 +20,7 @@ lively.ide.ace.require('ace/mode/r').Mode.addMethods({
         // FIXME: Cleanup really needed!
         if (!module('apps.RInterface').isLoaded()) module('apps.RInterface').load(true);
         var sourceString = codeEditor.getSelectionOrLineString();
-        if (!this.livelyEvalMethod || this.livelyEvalMethod == 'lively-R-evaluate') {
+        if (this.livelyEvalMethod == 'lively-R-evaluate') {
             apps.RInterface.livelyREvaluate_startEval(sourceString, function(err, result) {
                 if (!insertResult && !err) addOverlay(err, result);
                 else printResult(err, result);
@@ -28,7 +31,9 @@ lively.ide.ace.require('ace/mode/r').Mode.addMethods({
                 else printResult(err, result);
             });
         }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         function addOverlay(err, result) {
             module("lively.ide.codeeditor.TextOverlay").load(true);
             var range = codeEditor.getSelection().getRange();
@@ -40,6 +45,7 @@ lively.ide.ace.require('ace/mode/r').Mode.addMethods({
                     text = [out.error, out.waning, out.message, out.value].compact().join(' ');
                 codeEditor.addTextOverlay({start: pos, text: text});
             });
+
             (function() {
                 function removeOverlay() {
                     codeEditor.removeTextOverlay();
@@ -47,7 +53,9 @@ lively.ide.ace.require('ace/mode/r').Mode.addMethods({
                 }
                 codeEditor.aceEditor.addEventListener('change', removeOverlay);
             }).delay(0.8);
+
         }
+
         function printResult(err, result) {
             if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
             if (!insertResult && err) { codeEditor.world().alert(err); return;}

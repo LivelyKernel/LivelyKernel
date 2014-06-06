@@ -397,6 +397,7 @@ function syntaxCheck(options, thenDo) {
         cleanupTempFilesFunc, tempFileName;
 
     async.series([
+        
         function(next) {
             withTempFileDo({path: path}, function(err, fn, cleanup) {
                 tempFileName = fn;
@@ -404,17 +405,26 @@ function syntaxCheck(options, thenDo) {
                 next(err);
             });
         },
+
         function(next) { fs.writeFile(tempFileName, source, next); },
+
         function(next) { console.log(source); next(); },
+
         function(next) {
             log('running ghc...');
-            task.proc = exec("ghc -Wall -fno-code -fno-warn-unused-binds -fno-warn-type-defaults -fno-warn-name-shadowing -fno-warn-missing-signatures " + tempFileName, {cwd: path}, function(code, out, err) {
+            var cmd = "ghc -Wall -fno-code "
+                    + "-fno-warn-unused-binds "
+                    + "-fno-warn-type-defaults "
+                    + "-fno-warn-name-shadowing "
+                    + "-fno-warn-missing-signatures " + tempFileName;
+            task.proc = exec(cmd, {cwd: path}, function(code, out, err) {
             // task.proc = exec("ghc -v0 " + tempFileName, function(code, out, err) {
             // task.proc = exec("ghc -c --make " + tempFileName, function(code, out, err) {
                 result.ghc.code = code; result.ghc.out = out; result.ghc.err = err;
                 next(task.killInitialized && 'killed');
             });
         },
+
         function(next) {
             log('running hlint...');
             task.proc = exec("hlint " + tempFileName, function(code, out, err) {
@@ -423,6 +433,7 @@ function syntaxCheck(options, thenDo) {
                 next(err || (task.killInitialized && 'killed'));
             });
         }
+
     ], function(err) {
         // cleanupTempFilesFunc && cleanupTempFilesFunc();
         finishTask(id, err, result);
@@ -438,7 +449,6 @@ module.exports = function(route, app) {
             var msg = {error: 'Cannot deal with request', message: 'No expression'};
             res.status(400).json(msg).end(); return;
         }
-        debugger;
         haskellEvalQueued(req.body, function(err, result) {
             res.end(censorJSON({error: err && String(err), result: result}));
         });

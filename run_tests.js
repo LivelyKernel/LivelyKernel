@@ -111,6 +111,7 @@ var browserTests = [
     // ide / SCB
     "lively.ide.tests.ASTEditingSupport",
     "lively.ide.tests.CodeEditor",
+    'lively.ide.codeeditor.tests.JumpChar',
     'lively.ide.codeeditor.tests.TextOverlays',
     "lively.ide.tests.FileParserTests",
     "lively.ide.tests.ModuleLookup",

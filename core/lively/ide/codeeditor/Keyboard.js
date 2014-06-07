@@ -169,6 +169,18 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     },
 
     setupTextManipulationBindings: function(kbd) {
+
+        function joinLine(ed) {
+            if (!ed.selection.isEmpty()) ed.selection.clearSelection();
+            var pos = ed.getCursorPosition(),
+                rowString = ed.session.doc.getLine(pos.row),
+                whitespaceMatch = rowString.match(/^\s*/),
+                col = (whitespaceMatch && whitespaceMatch[0].length) || 0;
+            ed.moveCursorToPosition({row: pos.row, column: col});
+            ed.removeToLineStart();
+            ed.remove('left');
+        }
+
         this.addCommands(kbd, [{
                 name: 'removeSelectionOrLine',
                 bindKey: {win: 'Ctrl-X', mac: 'Command-X'},
@@ -204,7 +216,28 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) { ed.navigateLineEnd(); ed.insert('\n'); },
                 multiSelectAction: 'forEach',
                 readOnly: false
-            },{
+            }, {
+                name: 'joinLineAbove',
+                exec: joinLine,
+                multiSelectAction: 'forEach',
+                readOnly: false
+            }, {
+                name: 'joinLineBelow',
+                exec: function(ed) { ed.navigateDown(); joinLine(ed); },
+                multiSelectAction: 'forEach',
+                readOnly: false
+            }, {
+                name: 'duplicateLine',
+                exec: function(ed) { ed.execCommand('copylinesdown'); },
+                multiSelectAction: 'forEach',
+                readOnly: false
+            }, {
+                name: "movelinesup",
+                exec: function(editor) { editor.moveLinesUp(); }
+            }, {
+                name: "movelinesdown",
+                exec: function(editor) { editor.moveLinesDown(); }
+            }, {
                 name: "blockoutdent",
                 bindKey: {win: "Ctrl-[", mac: "Command-["},
                 exec: function(ed) { ed.blockOutdent(); },
@@ -344,6 +377,36 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     ed.selection.setRange({start: {row: startLine, column: 0}, end: ed.getCursorPosition()});
                 },
                 multiSelectAction: "forEach"
+            }, {
+                name: 'curlyBlockOneLine',
+                exec: function(ed) {
+                    // "if (foo) {\n 3+3;\n}" -> "if (foo) { 3+3; }"
+                    function stringLeftOfPosIncludes(pos, string) {
+                        var before = ed.session.getTextRange({start: {column: 0, row: pos.row}, end: pos}),
+                            idx = before.indexOf(string);
+                        return idx > -1 && idx;
+                    }
+    
+                    var pos = ed.selection.getCursor();
+                    // are we right from a "}" and on the same line?
+                    var endBracket = ed.find(/\}/, {start: pos, backwards: true, preventScroll: true});
+                    // if not search forward
+                    if (!endBracket || endBracket.end.row !== pos.row) {
+                        endBracket = ed.find(/\}/, {start: pos, backwards: false, preventScroll: true});
+                    }
+                    if (!endBracket) return;
+                    ed.moveCursorToPosition(endBracket.end);
+                    pos = endBracket.end;
+                    var matchingBracketPos = ed.session.findMatchingBracket(pos);
+                    if (!matchingBracketPos) return;
+                    while (pos.row !== matchingBracketPos.row) {
+                        joinLine(ed); ed.insert(' ');
+                        pos = ed.selection.getCursor();
+                    }
+                    ed.selection.moveCursorToPosition(matchingBracketPos);
+                },
+                multiSelectAction: 'forEach',
+                readOnly: false
             }]);
     },
 

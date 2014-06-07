@@ -321,6 +321,7 @@ lively.morphic.Morph.addMethods(
             this.owner.setName(this.name);
             this.owner.setTitle(options.title || this.name);
         }
+        return this.getWindow();
     },
     openInWorldCenter: function() {
         // redundant functionality as in openPartItem

@@ -835,6 +835,19 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.openPresentationController': {description: 'open presentation controller', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPresentationController(); return true; }},
     'lively.PartsBin.open': {description: 'open PartsBin', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openPartsBin(); return true; }},
+
+    'lively.ide.openIframe': {
+        description: 'open url in iframe',
+        exec: function() {
+            $world.prompt('Enter URL', function(url) {
+                if (!url || !url.length) return;
+                lively.morphic.World.loadInIFrameWithWindow(
+                    url, $world.visibleBounds().insetByPt(pt(300, 200))).comeForward();
+            }, {historyId: 'lively.ide.openIframeHistory'});
+            return true;
+        }
+    },
+
     'lively.Config.openPreferences': {description: 'customize user preferences and config options', exec: function() { $world.openPreferences(); return true; }},
 
     // network helper

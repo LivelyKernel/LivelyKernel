@@ -26,6 +26,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupSnippetBindings(kbd);
             self.setupASTNavigation(kbd);
             self.setupKeyboardMacroBindings(kbd);
+            self.setupToolSpecificBindings(kbd);
             self.setupUsefulHelperBindings(kbd);
             self.setupJumpChar(kbd);
             self.setupUserKeyBindings(kbd, codeEditor);
@@ -1000,6 +1001,59 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         }]);
     },
 
+    setupToolSpecificBindings: function(kbd) {
+        kbd.addCommands([{
+            name: "runtests",
+            exec: function(ed) {
+                // hack: get currently active system browser and do "run test command"
+                var win = $world.getActiveWindow();
+                var focus = $world.focusedMorph();
+                var browser = win && win.targetMorph && win.targetMorph.ownerWidget;
+                if (!browser || !browser.isSystemBrowser) {
+                    alert('Currently not in a SCB!');
+                    return;
+                }
+                var cmd = new lively.ide.RunTestMethodCommand(browser);
+                if (!cmd.isActive()) {
+                    alert('Not in a test method or class!');
+                    return;
+                }
+                cmd.runTest();
+                focus.focus();
+            }
+        }, {
+            name: "resizeWindow",
+            exec: function(ed, how) {
+                var win = $world.getActiveWindow();
+                if (!win) return;
+                var worldB = $world.visibleBounds().insetBy(20), winB = win.bounds(), bounds = worldB;
+                if (!win.normalBounds) {
+                    win.normalBounds = winB;
+                }
+                var thirdW = Math.max(660, bounds.width/3);
+                var thirdColBounds = bounds.withWidth(thirdW);
+                switch(how) {
+                    case 'fullscreen': break;
+                    case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
+                    case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
+                    case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
+                    case 'bottom': bounds = bounds.withY(bounds.y + bounds.height/2);
+                    case 'top': bounds = bounds.withHeight(bounds.height/2); break;
+                    case "shrinkWidth": win.resizeBy(pt(-20,0)); return;
+                    case "growWidth": win.resizeBy(pt(20,0)); return;
+                    case "shrinkHeight": win.resizeBy(pt(0,-20)); return;
+                    case "growHeight":  win.resizeBy(pt(0,20)); return;
+                    case 'reset': bounds = win.normalBounds || pt(500,400).extentAsRectangle().withCenter(bounds.center()); break;
+                    default: return;
+                }
+                if (how === 'reset') {
+                    delete win.normalBounds;
+                }
+                win.setBounds(bounds);
+            }
+        }]);
+    },
+
     setupUsefulHelperBindings: function(kbd) {
         kbd.addCommands([{
             name: 'insertDate',
@@ -1011,6 +1065,20 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             multiSelectAction: 'forEach',
             handlesCount: true
+        }, {
+            name: "stringifySelection",
+            exec: function(editor) {
+                var sel = editor.selection;
+                if (!sel || sel.isEmpty()) return;
+                var range =  editor.getSelectionRange(),
+                    selString = editor.session.getTextRange(range),
+                    stringified = selString
+                        .split('\n')
+                        .invoke('replace' ,/"/g, '\\"')
+                        .invoke('replace' ,/(.+)/g, '"$1\\n"')
+                        .join('\n+ ');
+                editor.session.doc.replace(range, stringified);
+            }
         }, {
             name: 'browseURLOrPathInWebBrowser',
             exec: function(ed, args) {

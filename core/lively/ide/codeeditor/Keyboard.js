@@ -708,6 +708,35 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: function(ed) {
                     ed.$morph.guessAndSetTabSize();
                 }
+            }, {
+                name: "describeKey",
+                exec: function(ed) {
+                    function uninstall() {
+                        commandExecHandler && ed.commands.removeEventListener('exec', commandExecHandler);
+                        ed.keyBinding.$callKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers.getOriginal();
+                    }
+                    var origCallKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers,
+                        lastKeys = [],
+                        commandExecHandler = ed.commands.addEventListener('exec', function(e) {
+                            uninstall();
+                            e.stopPropagation(); e.preventDefault();
+                            $world.addCodeEditor({
+                                title: 'describe key "' + lastKeys.join(' ') + '"',
+                                content: Strings.format('"%s" is bound to\n%s',
+                                    lastKeys.join(' '), Object.inspect(e.command)),
+                                textMode: 'text'
+                            });
+                            return true;
+                        });
+                    ed.keyBinding.$callKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers.wrap(function(proceed, hashId, keyString, keyCode, e) {
+                        if (e) {
+                            lively.morphic.EventHandler.prototype.patchEvent(e);
+                            lastKeys.push(e.getKeyString({ignoreModifiersIfNoCombo: true}));
+                        }
+                        return proceed(hashId, keyString, keyCode, e);
+                    });
+                    ed.showCommandLine("Press key(s) to find out what command the key is bound to");
+                }
             }]);
     },
 

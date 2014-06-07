@@ -62,10 +62,12 @@ Object.subclass("lively.ide.CodeEditorTextOverlay.Overlay",
             endRow = config.lastRow,
             overlays = this.overlays || [],
             classNames = [this.baseClassName];
+
         overlays.forEach(function(overlay) {
             if (overlay.start.row < startRow || overlay.start.row > endRow) return;
-            var x = config.padding + (config.characterWidth * overlay.start.column),
-                y = config.lineHeight * (overlay.start.row-config.firstRowScreen),
+            var screenPos = session.documentToScreenPosition(overlay.start.row, overlay.start.column),
+                x = config.padding + (config.characterWidth * screenPos.column),
+                y = config.lineHeight * (screenPos.row-config.firstRowScreen),
                 classes = classNames.concat(overlay.classNames).join(" ");
             html.pushAll([
                 "<span",

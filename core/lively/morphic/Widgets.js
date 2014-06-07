@@ -2080,6 +2080,10 @@ lively.morphic.World.addMethods(
         return this.openDialog(new lively.morphic.InformDialog(message, callback));
     },
     prompt: function (message, callback, defaultInputOrOptions) {
+        // options = {
+        //   input: STRING, -- optional, prefilled input string
+        //   historyId: STRING -- id to identify the input history for this prompt
+        // }
         return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInputOrOptions))
     },
     passwordPrompt: function (message, callback, options) {

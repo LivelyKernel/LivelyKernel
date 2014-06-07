@@ -450,7 +450,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         found = i;
                         if (!isEmptyLine(lines[i-1]) && isEmptyLine(lines[i])) break;
                     }
-                    ed.selection[ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: pos.row+found, column: 0});
+                    ed.selection[ed.emacsMark && ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: pos.row+found, column: 0});
                 },
                 readOnly: true
             }, {
@@ -465,7 +465,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         found = i;
                         if (!isEmptyLine(lines[i+1]) && isEmptyLine(lines[i])) break;
                     }
-                    ed.selection[ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: found, column: 0});
+                    ed.selection[ed.emacsMark && ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: found, column: 0});
                 },
                 readOnly: true
             }, {
@@ -725,7 +725,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'forwardSexp',
             bindKey: 'Ctrl-Alt-f|Ctrl-Alt-Right',
             exec: function(ed) {
-                move('forwardSexp', ed.$morph, ed.emacsMark());
+                move('forwardSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
             },
             multiSelectAction: 'forEach',
             readOnly: true
@@ -733,7 +733,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'backwardSexp',
             bindKey: 'Ctrl-Alt-b|Ctrl-Alt-Left',
             exec: function(ed) {
-                move('backwardSexp', ed.$morph, ed.emacsMark());
+                move('backwardSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
             },
             multiSelectAction: 'forEach',
             readOnly: true
@@ -741,8 +741,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'backwardUpSexp',
             bindKey: 'Ctrl-Alt-u|Ctrl-Alt-Up',
             exec: function(ed) {
-                ed.pushEmacsMark(ed.getCursorPosition());
-                move('backwardUpSexp', ed.$morph, ed.emacsMark());
+                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
+                move('backwardUpSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
             },
             multiSelectAction: 'forEach',
             readOnly: true
@@ -750,8 +750,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'forwardDownSexp',
             bindKey: 'Ctrl-Alt-d|Ctrl-Alt-Down',
             exec: function(ed) {
-                ed.pushEmacsMark(ed.getCursorPosition());
-                move('forwardDownSexp', ed.$morph, ed.emacsMark());
+                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
+                move('forwardDownSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
             },
             multiSelectAction: 'forEach',
             readOnly: true
@@ -759,7 +759,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'markDefun',
             bindKey: 'Ctrl-Alt-h',
             exec: function(ed) {
-                ed.pushEmacsMark(ed.getCursorPosition());
+                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
                 select('rangeForFunctionOrDefinition', ed.$morph);
             },
             multiSelectAction: 'forEach',
@@ -835,7 +835,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         return rev ? markerRange.start < idx : markerRange.start > idx; }),
                     nextPos = next && ed.$morph.indexToPosition(next.start);
                 if (!nextPos) return;
-                ed.pushEmacsMark(pos);
+                ed.pushEmacsMark && ed.pushEmacsMark(pos);
                 ed.moveCursorToPosition(nextPos)
             },
             multiSelectAction: 'forEach',

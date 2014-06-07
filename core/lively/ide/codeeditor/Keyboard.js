@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.Keyboard').requires().toRun(function() {
+module('lively.ide.codeeditor.Keyboard').requires('lively.ide.codeeditor.JumpChar').toRun(function() {
 
 module("lively.ide.CodeEditor");
 
@@ -27,6 +27,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupASTNavigation(kbd);
             self.setupKeyboardMacroBindings(kbd);
             self.setupUsefulHelperBindings(kbd);
+            self.setupJumpChar(kbd);
             self.setupUserKeyBindings(kbd, codeEditor);
             kbd.hasLivelyKeys = true;
         });
@@ -956,6 +957,10 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             multiSelectAction: 'forEach',
             handlesCount: true
         }]);
+    },
+
+    setupJumpChar: function(kbd) {
+        lively.ide.codeeditor.JumpChar.setup(kbd);
     },
 
     setupUserKeyBindings: function(kbd, codeEditor) {

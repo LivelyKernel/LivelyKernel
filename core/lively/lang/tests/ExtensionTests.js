@@ -858,6 +858,63 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         });
     },
 
+    testQueueUntil: function() {
+        var calls = [];
+        function worker(thenDo) {
+            var workerState = 22;
+            calls.push("workerCalled");
+            setTimeout(function() {
+                thenDo(null, ++workerState);
+            }, 200);
+        }
+
+        function thenDo1(err, arg) { calls.push("thenDo1Called:"+arg); }
+        function thenDo2(err, arg) { calls.push("thenDo2Called:"+arg); }
+        function thenDo3(err, arg) { calls.push("thenDo3Called:"+arg); }
+        function thenDo4(err, arg) { calls.push("thenDo4Called:"+arg); }
+
+        Functions.queueUntil('testQueueUntil', worker, thenDo1);
+        Functions.queueUntil('testQueueUntil', worker, thenDo2);
+
+        setTimeout(function() {
+            Functions.queueUntil('testQueueUntil', worker, thenDo3);
+        }, 100);
+
+        this.waitFor(function() { return calls.length > 1; }, 10, function() {
+            var expected = ["workerCalled", "thenDo1Called:23", "thenDo2Called:23", "thenDo3Called:23"];
+            this.assertEquals(expected, calls);
+
+            calls = [];
+            Functions.queueUntil('testQueueUntil', worker, thenDo4);
+            this.waitFor(function() { return calls.length > 1; }, 10, function() {
+                var expected = ["workerCalled", "thenDo4Called:23"];
+                this.assertEquals(expected, calls);
+                this.done();
+            });
+        });
+    },
+
+    testQueueUntilWithError: function() {
+        var calls = [];
+        function worker(thenDo) {
+            var workerState = 22;
+            calls.push("workerCalled");
+            throw new Error('foo');
+        }
+
+        function thenDo1(err, arg) { calls.push(err.message); }
+        function thenDo2(err, arg) { calls.push(err.message); }
+
+        Functions.queueUntil('testQueueUntil', worker, thenDo1);
+        Functions.queueUntil('testQueueUntil', worker, thenDo2);
+
+        this.waitFor(function() { return calls.length > 1; }, 10, function() {
+            var expected = ["workerCalled", "foo", "workerCalled", "foo"];
+            this.assertEquals(expected, calls);
+            this.done();
+        });
+    },
+
     testThrottleCommand: function() {
         var called = 0, result = [];
         Array.range(1,4).forEach(function(i) {

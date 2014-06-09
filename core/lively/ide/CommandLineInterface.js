@@ -345,15 +345,27 @@ Object.extend(lively.ide.CommandLineInterface, {
         lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, function(cmd) { show(cmd.resultString()); });
         lively.ide.CommandLineInterface.kill();
         */
+
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
         if (thenDo) options.whenDone = thenDo;
+
         var session = lively.net.SessionTracker.getSession(),
             lively2LivelyShellAvailable = session && session.isConnected(),
             commandClass = lively2LivelyShellAvailable && !options.sync ?
                 lively.ide.CommandLineInterface.PersistentCommand :
-                lively.ide.CommandLineInterface.Command,
-            cmd = new commandClass(commandString, options);
+                lively.ide.CommandLineInterface.Command;
+
+        // prepare for askpass command
+        if (lively2LivelyShellAvailable) {
+            var env = options
+            options.env = Object.extend(options.env || {}, {
+                "ASKPASS_SESSIONID": session.sessionId,
+                "ASKPASS_SESSIONTRACKER_URL": String(session.sessionTrackerURL.withFilename('connect'))
+            });
+        }
+
+        var cmd = new commandClass(commandString, options);
         this.scheduleCommand(cmd, options.group);
         return cmd;
     },
@@ -473,6 +485,7 @@ Object.extend(lively.ide.CommandLineInterface, {
             {command: 'rm -rfd diff-tmp/'}
         ], function(result) { thenDo(result.diff.resultString(true)); });
     },
+
     diff: function(string1, string2, thenDo) {
         return lively.ide.CommandLineInterface.runAll([
             {command: 'mkdir -p diff-tmp/'},

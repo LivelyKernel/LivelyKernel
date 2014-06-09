@@ -1,6 +1,8 @@
 var spawn = require('child_process').spawn,
     exec  = require('child_process').exec,
     util  = require('util'),
+    fs    = require('fs'),
+    path  = require('path'),
     i     = util.inspect,
     dir   = process.env.WORKSPACE_LK,
     debug = false,
@@ -114,6 +116,8 @@ function startExec(cmdInstructions) {
  * interface for starting commands, will call spawn or exec and install listeners
  */
 function runShellCommand(cmdInstructions) {
+    prepareForAskpass(cmdInstructions);
+
     var callback = cmdInstructions.callback,
         shellCommand = {
             process: cmdInstructions.isExec ? startExec(cmdInstructions) : startSpawn(cmdInstructions),
@@ -156,6 +160,28 @@ function runShellCommand(cmdInstructions) {
 function formattedResponseText(type, data) {
     var s = String(data);
     return '<SHELLCOMMAND$' + type.toUpperCase() + s.length + '>' + s;
+}
+
+
+/*
+ * ASKPASS support for tunneling sudo / ssh / git password requests back to the
+ * browser session
+ */
+var askPassScript = '';
+;(function setupAskpass() {
+    var isWindows = process.platform !== 'linux'
+                 && process.platform !== 'darwin'
+                 && process.platform.include('win');
+
+    var baseName = 'bin/askpass' + (isWindows ? ".win.sh" : ".sh");
+    askPassScript = path.join(process.env.WORKSPACE_LK, baseName);
+    if (!isWindows) fs.chmod(askPassScript, 0755);
+})();
+
+function prepareForAskpass(cmdInstructions) {
+    var env = cmdInstructions.env || {};
+    if (!env["ASKPASS_SESSIONID"] || !askPassScript) return;
+    env['SUDO_ASKPASS'] = env['SSH_ASKPASS'] = env['GIT_ASKPASS'] = askPassScript;
 }
 
 /*

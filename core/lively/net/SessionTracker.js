@@ -359,7 +359,7 @@ Object.extend(lively.net.SessionTracker, {
 
         askFor: function(msg, session) {
             var query = msg.data.query,
-                promptMethod = query.toLowerCase().include('password') ? 'passwordPrompt' : 'prompt';
+                promptMethod = query.match(/password|sudo/i) ? 'passwordPrompt' : 'prompt';
             $world[promptMethod](query, function(input) {
                 session.answer(msg, {answer: input});
             });

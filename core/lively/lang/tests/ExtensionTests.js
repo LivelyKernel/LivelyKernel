@@ -858,7 +858,7 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         });
     },
 
-    testQueueUntil: function() {
+    testWorkerWithCallbackQueue: function() {
         var calls = [];
         function worker(thenDo) {
             var workerState = 22;
@@ -873,19 +873,19 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         function thenDo3(err, arg) { calls.push("thenDo3Called:"+arg); }
         function thenDo4(err, arg) { calls.push("thenDo4Called:"+arg); }
 
-        Functions.queueUntil('testQueueUntil', worker, thenDo1);
-        Functions.queueUntil('testQueueUntil', worker, thenDo2);
+        var proc = Functions.workerWithCallbackQueue('testWorkerWithCallbackQueue', worker).whenDone(thenDo1);
+        this.assertIdentity(proc, Functions.workerWithCallbackQueue('testWorkerWithCallbackQueue', worker), 'not identical process');
+        proc.whenDone(thenDo2);
 
-        setTimeout(function() {
-            Functions.queueUntil('testQueueUntil', worker, thenDo3);
-        }, 100);
+        setTimeout(function() { proc.whenDone(thenDo3); }, 100);
 
         this.waitFor(function() { return calls.length > 1; }, 10, function() {
             var expected = ["workerCalled", "thenDo1Called:23", "thenDo2Called:23", "thenDo3Called:23"];
             this.assertEquals(expected, calls);
 
             calls = [];
-            Functions.queueUntil('testQueueUntil', worker, thenDo4);
+            var proc2 = Functions.workerWithCallbackQueue('testWorkerWithCallbackQueue', worker).whenDone(thenDo4);
+            this.assert(proc2 !== proc, 'new process equals old?');
             this.waitFor(function() { return calls.length > 1; }, 10, function() {
                 var expected = ["workerCalled", "thenDo4Called:23"];
                 this.assertEquals(expected, calls);
@@ -894,7 +894,28 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         });
     },
 
-    testQueueUntilWithError: function() {
+    testWorkerWithCallbackQueueWithTimout: function() {
+        var calls = [];
+        function worker(thenDo) {
+            setTimeout(function() {
+                calls.push("workerCalled");
+                thenDo(null); }, 200);
+        }
+
+        function thenDo1(err, arg) { calls.push("thenDo1Called:" + (err ? err.message : null)); }
+        function thenDo2(err, arg) { calls.push("thenDo2Called:" + (err ? err.message : null)); }
+
+        var proc = Functions.workerWithCallbackQueue('testWorkerWithCallbackQueueWithTimout', worker, 100).whenDone(thenDo1);
+        setTimeout(function() { proc.whenDone(thenDo2); }, 50);
+
+        this.waitFor(function() { return calls.length > 1; }, 10, function() {
+            var expected = ["thenDo1Called:timeout", "thenDo2Called:timeout"];
+            this.assertEquals(expected, calls);
+            this.done();
+        });
+    },
+
+    testWorkerWithCallbackQueueWithError: function() {
         var calls = [];
         function worker(thenDo) {
             var workerState = 22;
@@ -905,14 +926,35 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         function thenDo1(err, arg) { calls.push(err.message); }
         function thenDo2(err, arg) { calls.push(err.message); }
 
-        Functions.queueUntil('testQueueUntil', worker, thenDo1);
-        Functions.queueUntil('testQueueUntil', worker, thenDo2);
+        Functions.workerWithCallbackQueue('testWorkerWithCallbackQueueWithError', worker).whenDone(thenDo1);
+        Functions.workerWithCallbackQueue('testWorkerWithCallbackQueueWithError', worker).whenDone(thenDo2);
 
         this.waitFor(function() { return calls.length > 1; }, 10, function() {
-            var expected = ["workerCalled", "foo", "workerCalled", "foo"];
+            var expected = ["workerCalled", "foo", "foo"];
             this.assertEquals(expected, calls);
             this.done();
         });
+    },
+
+    testWorkerWithCallbackQueueCancel: function() {
+        var calls = [];
+        function worker(thenDo) {
+            calls.push("workerCalled");
+            setTimeout(function() { thenDo(null); }, 40);
+        }
+
+        function thenDo1(err, arg) { calls.push("thenDo1Called"); }
+        function thenDo2(err, arg) { calls.push("thenDo2Called"); }
+
+        var proc = Functions.workerWithCallbackQueue('testWorkerWithCallbackQueue', worker).whenDone(thenDo1);
+        proc.cancel();
+        setTimeout(function() { Functions.workerWithCallbackQueue('testWorkerWithCallbackQueue', worker).whenDone(thenDo2); }, 20);
+
+        this.delay(function() {
+            var expected = ['workerCalled', 'thenDo2Called'];
+            this.assertEquals(expected, calls);
+            this.done();
+        }, 120);
     },
 
     testThrottleCommand: function() {

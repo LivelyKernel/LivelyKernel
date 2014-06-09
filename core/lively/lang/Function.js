@@ -532,12 +532,12 @@ Global.Functions = {
         return queue;
     },
 
-    queueUntil: function(id, workerFunc, thenDoFunc) {
+    workerWithCallbackQueue: function(id, workerFunc, optTimeout) {
         // This functions helps when you have a long running computation that
         // multiple call sites (independent from each other) depend on. This
         // function does the houskeeping to start the long running computation
-        // just once and invoke the depending callbacks once the computation is
-        // done
+        // just once and returns an object that allows to schedule callbacks
+        // once the workerFunc is done
         // this is how it works:
         // if id does not exist, workerFunc is called, otherwise ignored.
         // workerFunc is expected to call thenDoFunc with arguments: error, arg1, ..., argN
@@ -546,16 +546,23 @@ Global.Functions = {
         // thenDoFunc once workerFunc is done
 
         var store = Functions._queueUntilCallbacks || (Functions._queueUntilCallbacks = {}),
-            queueCallbacks = store[id] || (store[id] = []),
-            isRunning = queueCallbacks.length > 0;
+            queueCallbacks = store[id],
+            isRunning = !!queueCallbacks;
 
-        queueCallbacks.push(thenDoFunc);
+        if (isRunning) return queueCallbacks;
 
-        if (isRunning) return;
+        var callbacksRun = false, canceled = false;
+        
+        function cleanup() {
+            if (timeoutProc) clearTimeout(timeoutProc);
+            callbacksRun = true;
+            delete store[id];
+        }
 
         function runCallbacks(args) {
-            delete store[id];
-            queueCallbacks.forEach(function(cb) {
+            if (callbacksRun) return;
+            cleanup();
+            queueCallbacks.callbacks.forEach(function(cb) {
                 try { cb.apply(null, args); } catch (e) {
                     console.error(
                         "Error when invoking callbacks in queueUntil ["
@@ -565,9 +572,36 @@ Global.Functions = {
             });
         }
 
-        try {
-            workerFunc(function(/*args*/) { runCallbacks(arguments); });
-        } catch (e) { runCallbacks([e]); }
+        // timeout
+        if (optTimeout) {
+            var timeoutProc = setTimeout(function() {
+                if (callbacksRun) return;
+                runCallbacks([new Error("timeout")]);
+            }, optTimeout);
+        }
+
+        // init the store
+        queueCallbacks = store[id] = {
+            callbacks: [],
+            cancel: function() {
+                canceled = true;
+                cleanup();
+            },
+            whenDone: function(cb) {
+                queueCallbacks.callbacks.push(cb);
+                return queueCallbacks;
+            }
+        };
+
+        // call worker, but delay so we can immediately return
+        setTimeout(function() {
+            if (canceled) return;
+            try {
+                workerFunc(function(/*args*/) { runCallbacks(arguments); });
+            } catch (e) { runCallbacks([e]); }
+        }, 0);
+
+        return queueCallbacks;
     },
 
     composeAsync: function(/*functions*/) {

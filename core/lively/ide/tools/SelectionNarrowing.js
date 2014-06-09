@@ -53,6 +53,22 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         }
         return string;
     },
+
+    doFilter: function doFilter(candidates, input) {
+        var container = this;
+        // split input by spaces and turn each string ino a regexp
+        var regexps = input.split(' ')
+            .map(function(part) { try { return new RegExp(part, 'i'); } catch(e) { return null } })
+            .compact();
+        return {
+            filters: regexps,
+            filtered: candidates.select(function(ea) {
+                return regexps.all(function(re) {
+                    var string = container.candidateToString(ea);
+                    return string.match(re); }); }) 
+        }
+    },
+
     ensureItems: function ensureItems(length, layout) {
         var container = this;
         function createListItem(string, i) {
@@ -106,19 +122,12 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // do filter operation
-        var list = state.allCandidates,
-            // split input by spaces and turn each string ino a regexp
-            regexps = state.filters = input.split(' ')
-                .map(function(part) { try { return new RegExp(part, 'i'); } catch(e) { return null } })
-                .compact(),
-            filteredList = list.select(function(ea) {
-                return regexps.all(function(re) {
-                    var string = container.candidateToString(ea);
-                    return string.match(re); }); });
-        var prevFiltered = state.filteredCandidates;
-        if (prevFiltered.equals(filteredList)) return;
+        var filterResult = container.doFilter(state.allCandidates, input),
+            prevFiltered = state.filteredCandidates;
+        state.filters = filterResult.filters;
+        if (prevFiltered.equals(filterResult.filtered)) return;
         state.previousCandidateProjection = null;
-        state.filteredCandidates = filteredList;
+        state.filteredCandidates = filterResult.filtered;
         this.selectN(0);
     },
     getListItems: function getListItems() {

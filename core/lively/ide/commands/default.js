@@ -572,7 +572,7 @@ Object.extend(lively.ide.commands.byName, {
                     run = Functions.composeAsync(askForSource, doSearch)
                 }
             }
-            
+
             run(function(err, searchWindow) { if (err) show(err); });
 
             return true;
@@ -817,7 +817,6 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
     'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
-    'lively.ide.openLively2LivelyWorkspace': {description: 'open Lively2LivelyWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace").createMorph().openInWorldCenter().comeForward(); }); return true; }},
     'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'pastel_on_dark', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
     'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function() { $world.openVersionViewer(); return true; }},
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
@@ -903,6 +902,88 @@ Object.extend(lively.ide.commands.byName, {
                 if (err) { show(err); return; }
                 if (!suggestions.length) { alertOK(word + ' is OK!'); return; }
                 openNarrowerForSuggestions(suggestions);
+            });
+            return true;
+        }
+    },
+
+    // lively-2-lively
+    'lively.net.lively2lively.openWorkspace': {description: 'open Lively2LivelyWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace").createMorph().openInWorldCenter().comeForward(); }); return true; }},
+    'lively.net.lively2lively.listSessions': {
+        description: 'list lively-2-lively sessions',
+        exec: function() {
+
+            var foundCandidates = []
+
+            var searcher = Functions.debounce(200, function(input, callback) {
+                lively.net.tools.Functions.withSessionsDo(
+                    lively.net.tools.Functions.getLocalSession(),
+                    function(err, sessions) {
+                        if (err) { callback([String(err)]); return; }
+                        var candidates = sessions.map(function(session) {
+                            return {
+                                isListItem: true,
+                                string: lively.net.tools.Functions.getSessionTitle(session),
+                                value: session
+                            };
+                        });
+                        candidates = narrower.doFilter(candidates, input).filtered;
+                        if (candidates.length === 0) candidates = ['nothing found'];
+                        foundCandidates = candidates;
+                        callback(candidates);
+                    });
+            });
+
+            function candidateBuilder(input, callback) {
+                if (!foundCandidates.length || input === "") {
+                    callback(['searching...']);
+                    searcher(input, callback);
+                } else {
+                    callback(narrower.doFilter(foundCandidates, input).filtered);
+                }
+            };
+
+            var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.net.lively2lively.listSessions.NarrowingList',
+                reactivateWithoutInit: true,
+                spec: {
+                    prompt: 'search for session: ',
+                    candidates: [],
+                    maxItems: 25,
+                    candidatesUpdater: candidateBuilder,
+                    keepInputOnReactivate: true,
+                    actions: [{
+                        name: 'open workspace',
+                        exec: function(candidate) {
+                            lively.net.tools.Functions.openWorkspaceForSession(candidate);
+                        }
+                    }, {
+                        name: 'open world preview',
+                        exec: function(candidate) {
+                            lively.net.tools.Functions.openWorldPreview(candidate,
+                                lively.net.tools.Functions.getSessionTitle(candidate));
+                        }
+                    }, {
+                        name: 'visit world',
+                        exec: function(candidate) {
+                            lively.net.tools.Functions.visitWorldOfSession(candidate);
+                        }
+                    }, {
+                        name: 'force refresh sessions',
+                        exec: function(_) {
+                            var s = lively.net.tools.Functions.getLocalSession();
+                            s && s.isConnected() && s.getSessions(function() {
+                                foundCandidates = [];
+                                alertOK('refreshed...');
+                            }, true);
+                        }
+                    }, {
+                        name: 'show event logger',
+                        exec: function(candidate) {
+                            lively.net.tools.Functions.showEventLogger();
+                        }
+                    }]
+                }
             });
             return true;
         }

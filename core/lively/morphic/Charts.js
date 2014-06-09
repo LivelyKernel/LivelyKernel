@@ -4964,7 +4964,7 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
     initialize: function($super) {
         $super();
         this.prevFunction = "";
-        this.statisticContext = "";
+        this.functionSet = this.getStatisticFunctions();
         this.confirm = false;
     },
     update: function($super, data) {
@@ -4975,12 +4975,12 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
         // check whether heuristic was added manually
         return this.confirm;
     },
-    createStatistics: function(data) { 
+    createStatistics: function(data) {
         var result = [];
-        var heuristics = this.getStatisticFunctions();
+        this.statisticContext = "";
         var _this = this;
         
-        heuristics.each(function(ea) {
+        this.functionSet.each(function(ea) {
             var item = {heuristic: ea.name, value: ea.calculation(data)};
             // build up a string containing the calculated heuristics
             // to use these values in own functions later (see addHeuristic)
@@ -5002,13 +5002,9 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
                 functionString = functionString.trim();
                 this.prevFunction = functionString;
                 
-                // simple regex for function names
-                var nameRegex = /[A-Za-z][A-Za-z0-9_]*/g;
-                // first occurence is 'function', second one is the actual name
-                var name = functionString.match(nameRegex)[1];
-                
-                // evaluate the function with all previously claculated heuristics in scope
+                // evaluate the function with all previously calculated heuristics in scope
                 eval(this.statisticContext + " var heuristicFunction = " + functionString);
+                var name = heuristicFunction.name;
                 
                 // check whether this function already exists,
                 // replace it, if this is the case
@@ -5016,10 +5012,22 @@ lively.morphic.Charts.Table.subclass('lively.morphic.Charts.StatisticTable', {
                     return ea.heuristic == name;
                 }).first();
                 if (heuristic) {
+                    // update the value, which is shown in the table
                     heuristic.value = heuristicFunction(columnData);
+                    // update the function in the functionSet
+                    var func = this.functionSet.find(function(ea) {
+                        return ea.name == name;
+                    });
+                    func.calculation = heuristicFunction;
                 } else {
+                    // add the data, which is shown in the table
                     heuristic = {heuristic: name, value: heuristicFunction(columnData)};
                     this.data.push(heuristic);
+                    // add the function to the functionSet
+                    this.functionSet.push({
+                        name: name,
+                        calculation: heuristicFunction
+                    });
                 }
                 this.statisticContext += "var " + heuristic.heuristic + " = " + heuristic.value + "; ";
                 this.update(this.data);

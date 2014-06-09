@@ -102,29 +102,29 @@ Object.subclass('lively.net.SessionTrackerConnection',
     },
 
     getSessions: function(cb, forceFresh) {
-        // if timeout specified throttle requests so that they happen at most
-        // timeout-often
+        var getSessionsTimeout = 3000;
         var to = this.getSessionsCacheInvalidationTimeout;
-        if (forceFresh) delete this._getSessionsCachedResult;
-        if (to && this._getSessionsCachedResult) {
+        var session = this;
+    
+        if (!forceFresh && to && this._getSessionsCachedResult) {
             cb && cb(this._getSessionsCachedResult); return; }
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // queue requests
-        var self = this;
-        if (!this._getSessionsQueue) this._getSessionsQueue = [];
-        this._getSessionsQueue.push(cb);
-        if (this._getSessionsInProgress) return;
-        // start request if currently no one ongoing
-        this._getSessionsInProgress = true;
-        this.sendTo(this.trackerId, 'getSessions', {}, function(msg) {
-            self._getSessionsInProgress = false;
-            var sessions = msg && msg.data; cb;
-            if (to) {
-                self._getSessionsCachedResult = sessions;
-                (function() { self._getSessionsCachedResult = null; }).delay(to/1000);
-            }
-            while ((cb = self._getSessionsQueue.shift())) cb && cb(sessions);
-        });
+    
+        function sendSessionsQuery(thenDo) {
+            session.sendTo(session.trackerId, 'getSessions', {}, function(msg) {
+                var sessions = msg && msg.data; cb;
+                if (to) {
+                    session._getSessionsCachedResult = sessions;
+                    (function() { session._getSessionsCachedResult = null; }).delay(to/1000);
+                }
+                thenDo(null, sessions);
+            });
+        }
+    
+        var proc = Functions.workerWithCallbackQueue(
+            session.sessionId + '-getSessions',
+            sendSessionsQuery, getSessionsTimeout);
+    
+        proc.whenDone(function(err, sessions) { cb(sessions); });
     },
 
     getUserInfo: function(thenDo) {

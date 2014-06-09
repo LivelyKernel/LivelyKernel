@@ -1,4 +1,4 @@
-module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec').toRun(function() {
+module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions').toRun(function() {
 
 Object.extend(lively.net.tools.Lively2Lively, {
 
@@ -675,132 +675,29 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         }
         }],
         zoom: 1,
-        getLocalSession: function getLocalSession() {
-                    return lively.net.SessionTracker.createSession();
-                },
-        getSessionTitle: function getSessionTitle(session) {
-                // this.getSessionTitle({user: 'test', worldURL: URL.source, id: 123})
-                if (!session) return "no Lively world selected";
-                var maxLength = 100;
-                // making the title short enough to fit on the title line...
-                var user = session.user, worldName = session.worldURL;
-            // var currentSess = lively.net.SessionTracker().getSession();
-            // var isThisSession = currentSess.sessionId === session.id;
-                // the user name should go on there in every case
-                var worldNameMaxLength = maxLength - user.length;
-                var lastActivity = '';
-                if (session.lastActivity) {
-                    lastActivity += new Date(session.lastActivity).relativeTo(new Date()) + ' ago';
-                }
-                worldNameMaxLength -= lastActivity.length;
-                var worldNameMaxLength = maxLength - user.length;
-                if (worldName.length > worldNameMaxLength) {
-                    // if the url does not fit in the remaining space...
-                    var url = URL.create(worldName);
-                    var fn = url.filename();
-                    // ...test if the file name portion does fit...
-                    if (fn.length > worldNameMaxLength) {
-                        // ...if not make the filename so short that it fits...
-                        worldName = fn.truncate(worldNameMaxLength);
-                    } else {
-                        // ... otherwise put the filename on and put enough of the
-                        // beginning of the url in the title as possibe (though,
-                        // if the beginning would be shorter than 5 chars, leave it
-                        // out)
-                        worldName = worldName.slice(0,-fn.length);
-                        worldName = worldName.truncate(worldNameMaxLength-fn.length);
-                        if (worldName.length < 5) {
-                            worldName = "..." + fn;
-                        } else {
-                            worldName += fn;
-                        }
-                    }
-                }
-                return user + ', ' + lastActivity + ' (' + worldName+ ')';
-            },
-        onLoad: function onLoad() {
-                    this.updateSessions();
-                },
-        openWorldPreview: function openWorldPreview() {
-                var preview = this.get('lively2livelyPreview');
-                if (!preview) {
-                    preview = new lively.morphic.HtmlWrapperMorph(pt(400,400));
-                    this.world().addFramedMorph(preview, this.get('SessionList').getSelectedItem().string);
-                    var win = preview.getWindow();
-                    win.openInWorldCenter();
-                    var zoomInBtn = new lively.morphic.Button(lively.rect(0,0,20,20), '+');
-                    var zoomOutBtn = new lively.morphic.Button(lively.rect(0,0,20,20), '-');
-                    win.addMorph(zoomInBtn);
-                    win.addMorph(zoomOutBtn);
-                    zoomInBtn.align(zoomInBtn.getPosition(), preview.bounds().topLeft().addXY(10,10));
-                    zoomOutBtn.align(zoomOutBtn.getPosition(), preview.bounds().topLeft().addXY(10,35));
-                    connect(zoomInBtn, 'fire', preview, 'zoomIn');
-                    connect(zoomOutBtn, 'fire', preview, 'zoomOut');
-                    preview.zoom = 1;
-                }
-                preview.applyStyle({
-                    enableGrabbing: false, clipMode: 'auto',
-                    resizeWidth: true, resizeHeight: true
-                });
-                preview.name = 'lively2livelyPreview';
 
-                preview.worldId = this.get('SessionList').selection.id;
-                preview.addScript(function setZoom(zoom) {
-                    this.jQuery().children()
-                        .css({'-webkit-transform': Strings.format('scale(%s,%s)', zoom,zoom)});
-                });
-                preview.addScript(function zoomIn() { this.setZoom(this.zoom += 0.2); });
-                preview.addScript(function zoomOut() { this.setZoom(this.zoom -= 0.2); });
-                preview.addScript(function update() {
-                    if (this.inUpdate) return;
-                    this.inUpdate = true;
-                    var session = lively.net.SessionTracker.getSession(),
-                        id = this.worldId,
-                        preview = this;
-                        session.remoteEval(id, '"["+document.body.scrollHeight+","+document.body.scrollWidth+"]"', function(msg) {
-                        var scale;
-                        try {
-                            var size = eval(msg.data.result), extent = pt(size[0], size[1]);
-                            scale = extent && preview.getExtent().scaleByPt(extent.inverted());
-                        } catch(e) {
-                            show('Error in generating view of remote world:\n'+e);
-                        }
-                        if (!scale) { preview.inUpdate = false; return; }
-                        var previewCode = "document.documentElement.innerHTML;";
-                        session.remoteEval(id, previewCode, function(msg) {
-                            var html = msg.data.result;
-                            try {
-                                preview.jQuery().html('');
-                                lively.$(lively.$.parseHTML(html, null, false/*keepScripts*/ ))
-                                    .css({left: '0px', top: '0px'})
-                                        .appendTo(preview.jQuery());
-                                preview.setZoom(preview.zoom);
-                            } finally {
-                                preview.inUpdate = false;
-                            }
-                        });
-                    });
-                });
-                preview.update();
-                preview.startStepping(5*1000, 'update');
-            },
-        reset: function reset() {
-                connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
-                connect(this.get("PreviewButton"), 'fire', this, 'openWorldPreview');
-                connect(this.get("SendMorphButton"), 'fire', this, 'sendMorphOnUserClick');
-                connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
-                this.get("SessionList").selection = null;
-                this.get("SessionList").setList([]);
-                // this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
-                this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
-                this.stopStepping();
-            },
-        sendMorph: function sendMorph(id, morph) {
-            var sess = this.getLocalSession();
-            sess.sendObjectTo(id, morph,
-                {withObjectDo: function(m) { m.openInWorldCenter(); }},
-                function(msg) { alertOK('send object result:\n' + (msg.data.error || msg.data.result)); });
+        onLoad: function onLoad() {
+            this.updateSessions();
         },
+
+        openWorldPreview: function openWorldPreview() {
+            lively.net.tools.Functions.openWorldPreview(
+                this.get('SessionList').selection,
+                this.get('SessionList').getSelectedItem().string);
+        },
+
+        reset: function reset() {
+            lively.bindings.connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
+            lively.bindings.connect(this.get("PreviewButton"), 'fire', this, 'openWorldPreview');
+            lively.bindings.connect(this.get("SendMorphButton"), 'fire', this, 'sendMorphOnUserClick');
+            lively.bindings.connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
+            this.get("SessionList").selection = null;
+            this.get("SessionList").setList([]);
+            // this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
+            this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
+            this.stopStepping();
+        },
+
         sendMorphOnUserClick: function sendMorphOnUserClick() {
         var world = this.world(),
             sessInspector = this,
@@ -816,8 +713,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             if (!morph || morph === world) { alert('Sending the world is not supported, sorry.'); return; }
             morph.show();
             world.confirm('Send morph "' + (morph.name || morph) + '" to ' + worldName + '?', function(answer) {
-                if (!answer) { lively.log('Morph send canceled'); return; }
-                sessInspector.sendMorph(sel.id, morph);
+                if (!answer) { lively.morphic.log('Morph send canceled'); return; }
+                lively.net.tools.Functions.sendMorph(
+                    lively.net.tools.Functions.getLocalSession(),
+                    sel, morph);
             });
         };
         (function() {
@@ -825,115 +724,49 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 removeAfterUpdate: true});
         }).delay(0.2);
     },
+
         openWorkspaceForSelectedSession: function openWorkspaceForSelectedSession() {
-        var world = this.world(),
-            sessInspector = this,
-            sel = this.get("SessionList").selection;
-        if (!sel) { alert('No session selected!'); return }
-        // ----
-        var worldURL = sel.worldURL, user = sel.user,
-            workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
-        workspace.openInWorldCenter().comeForward();
-        (function() {
-            workspace.targetMorph.showNameInput();
-            (function() {
-                var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
-                    return item.value.user === user && item.value.worldURL === worldURL;
-                });
-                workspace.get('ConnectionInput').setSelection(sel);
-            }).delay(.5);
-        }).delay(0);
-    },
+            var sel = this.get("SessionList").selection;
+            if (!sel) { alert('No session selected!'); return }
+            lively.net.tools.Functions.openWorkspaceForSession(sel);
+        },
+
         visitWorldOfSelectedSession: function visitWorldOfSelectedSession() {
-        var sel = this.get("SessionList").selection;
-        sel && sel.worldURL && window.open(sel.worldURL);
-    },
+            var sel = this.get("SessionList").selection;
+            sel && lively.net.tools.Functions.visitWorldOfSession(sel);
+        },
+
         showEventLogger: function showEventLogger() {
+            lively.net.tools.Functions.showEventLogger();
+        },
 
-        // this are events from the connected tracker
-
-        var ed = $world.addCodeEditor({
-            title: 'l2l event log',
-            content: '',
-            textMode: 'text',
-            fontSize: 8
-        });
-
-        ed.addScript(function update() {
-            // this.startStepping(5000, 'update');
-            // this.startStepping(5000, 'update');
-            // this.stopStepping();
-            if (this._isUpdating) return;
-            this._isUpdating = true;
-
-            var s = lively.net.SessionTracker.getSession();
-            var self = this;
-
-            if (s && s.isConnected()) {
-                var gotAnswer = false;
-                Functions.waitFor(4000, function() { return !!gotAnswer; }, function(err) {
-                    if (err) self._isUpdating = false;
-                });
-                s.sendTo(s.trackerId, 'getEventLog', {limit: 3000}, function(answer) {
-                    self._isUpdating = false;
-                    var log = answer.data.log;
-
-                    self.saveExcursion(function(reset) {
-                        self.textString = log.length + '\n\n' + log.map(function(ea) {
-                            return Strings.format("[%s] %s", ea.timestamp, ea.message)
-                        }).reverse().join('\n');
-                        reset();
-                    });
-
-                });
-            } else {
-                self._isUpdating = false;
-            }
-        });
-
-        ed.startStepping(5000, 'update');
-
-        ed.getWindow().openInWorldCenter().comeForward();
-    },
-        setWorkspaceTarget: function setWorkspaceTarget(session) {
-
-                },
         updateSessions: function updateSessions() {
-        // lively.net.SessionTracker.closeSessions()
+            var sessionListMorph = this.get('SessionList'),
+                localSession = lively.net.tools.Functions.getLocalSession();
+    
+            lively.net.tools.Functions.withSessionsDo(localSession, function(err, sessions) {
+                if (err) {
+                    sessionListMorph.setList([]);
+                    sessionListMorph.selection = null;
+                    return;
+                }
 
-        var sessionListMorph = this.get('SessionList'),
-            self = this,
-            localSession = this.getLocalSession();
+                var items = sessions.map(function(ea) {
+                    return {
+                        isListItem: true,
+                        string: lively.net.tools.Functions.getSessionTitle(ea),
+                        value: ea
+                    }
+                });
 
-        if (!localSession.isConnected()) {
-            sessionListMorph.setList([]);
-            sessionListMorph.selection = null;
-            // thi.get('Title').textString = 'not connected';
-            return;
+                var id = sessionListMorph.selection && sessionListMorph.selection.id;
+                sessionListMorph.setList(items);
+                var prevSel  = sessionListMorph.itemList.detect(function(item) {
+                    return item.value.id === id; })
+                sessionListMorph.setSelection(prevSel);
+            })
         }
 
-        localSession.getSessions(function(remotes) {
-
-            var items = Object.keys(remotes).map(function(trackerId) {
-                return Object.keys(remotes[trackerId]).map(function(sessionId) {
-                    var sess = remotes[trackerId][sessionId];
-                    return {isListItem: true, string: self.getSessionTitle(sess), value: sess};
-                });
-            }).flatten();
-
-            var sorted = items
-                .groupBy(function(ea) { return ea.value.user })
-                .mapGroups(function(_, group) {
-                    return group.sortBy(function(ea) { return ea.value.lastActivity; }).reverse(); })
-                .toArray().flatten();
-
-            var id = sessionListMorph.selection && sessionListMorph.selection.id;
-            sessionListMorph.setList(sorted);
-            var prevSel  = sessionListMorph.itemList.detect(function(item) { return item.value.id === id; })
-            sessionListMorph.setSelection(prevSel);
-        });
-
-    }
     }],
     titleBar: "Lively2LivelyInspector",
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

@@ -487,7 +487,7 @@ Object.extend(lively.net.SessionTracker, {
 Object.extend(lively.net.SessionTracker, {
     sessionLister: {
         withSessionListDo: function(session, doFunc, forceFresh) {
-            if (!session.isConnected()) { doFunc(new Error('Not connected'), []); return; }
+            if (!session || !session.isConnected()) { doFunc(new Error('Not connected'), []); return; }
             session.getSessions(function(remotes) {
                 var list = Object.keys(remotes).map(function(trackerId) {
                     return Object.keys(remotes[trackerId]).map(function(sessionId) {

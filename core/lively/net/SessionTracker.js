@@ -416,6 +416,12 @@ Object.extend(lively.net.SessionTracker, {
         if (!this._onBrowserShutdown) {
             this._onBrowserShutdown = Global.addEventListener('beforeunload', function(evt) {
                 lively.net.SessionTracker.closeSessions();
+                // since this is also called when the user is just asked if she
+                // wants to navigate to another page, we might stay after all...
+                // re-establish the connection in those cases after a few seconds:
+                (function() {
+                    lively.net.SessionTracker.createSession();
+                }).bind(this).delay(10);
             }, true);
         }
         lively.bindings.signal(this, 'sessionCreated', s);

@@ -141,7 +141,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                         text.setHandStyle("default");
         var cssClasses = ["Morph","Text","list-item"];
         text.setStyleClassNames(cssClasses);
-        
+
                     });
                     itemMorphs = itemMorphs.slice(0,requiredLength);
                 });
@@ -219,7 +219,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         action.exec();
     },
         focusChanged: function focusChanged(newFocus) {
-    
+
     },
         getCSSClassesForItem: function getCSSClassesForItem(item) {
         return item.value && item.value.matchedAs ? [item.value.matchedAs] : [];
@@ -247,12 +247,12 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         var self = this,
             input = this.get('filter').getInput(),
             searchInputAndFilter = this.splitInputInSearchTermAndFilters(input);
-    
+
         function onError(err) {
             show('Error in search: ' + (err.stack || err));
             self.reset();
         }
-    
+
         if (this.filterState.searchTerm === searchInputAndFilter.searchTerm) {
             this.applyFilter(searchInputAndFilter.filters);
         } else {
@@ -268,7 +268,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                     false && show('applying filter done');
                     if (err) onError(err); else next();
                 });
-                
+
             },
             function(next) { false && alertOK(':)') }].doAndContinue();
         }
@@ -343,14 +343,14 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             filterFocused   = filter.isFocused(),
             keys            = evt.getKeyString(),
             wasHandled      = true;
-        
+
         function ensureSelectionIsInView(topOrBottom) {
             var visible = fl.getVisibleIndexes();
             // if (visible.include(fl.selectedLineNo)) return;
             var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
             fl.selectAt(newIdx);
         }
-        
+
         switch (keys) {
             case 'Enter':
                 var sel = fl.getSelection();
@@ -372,7 +372,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             case 'Alt-S': this.userQueryForSort(); break;
             default: wasHandled = false;
         }
-        
+
         if (!wasHandled) {
             return filterFocused ? false : $super(evt);
         } else {
@@ -381,7 +381,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
     },
         onMouseUp: function onMouseUp(evt) {
         var tgt = evt.getTargetMorph();
-    
+
         if (tgt && tgt.isListItemMorph) {
             if (this.prevClicked === tgt) {
                 this.prevClicked = null;
@@ -416,7 +416,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                 this.itemsSort.curry(sortKey),
                 this.itemsForList.bind(this)),
             processedItems = processItems(items);
-    
+
             // dirsAndFiles = items.groupBy(function(item) {
             //     return item.isDirectory ? 'directory' : 'file'}),
             // dirsAndFilesSorted = dirsAndFiles.mapGroups(function(_, group) {
@@ -507,7 +507,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
     this.setTitle("CodeSearch");
     this.name = 'CodeSearch';
 },
-    
+
     searchOnServer: function searchOnServer(searchString, thenDo) {
         lively.ide.CommandLineSearch.doGrep(searchString, null, function(lines, baseDir) {
             var candidates = lines.map(function(line) {
@@ -814,7 +814,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             ed.targetMorph.get('ObjectEditorScriptList').setSelection(find.selector);
             return;
         }
-        
+
         var mod = find.object[find.selector].sourceModule || (find.parent && find.parent.sourceModule);
         if (mod) {
             lively.ide.browse(find.objectName, find.selector, mod.namespaceIdentifier);
@@ -832,7 +832,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         }
 
         show('cannot browse ' + find.type + ' ' + find.methodName);
-    
+
     },
 
     startSearch: function startSearch(searchTerm) {
@@ -847,7 +847,20 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         var input = this.get('filter').getInput();
         this.reset();
         this.startSearch(input);
+    },
+
+    onKeyDown: function onKeyDown(evt) {
+        var keys = evt.getKeyString();
+        switch (keys) {
+            case 'Command-L': // [L]ocation
+            case 'Control-L':
+                var cb = this.get('serversearchCheckBox')
+                cb.setChecked(!cb.isChecked());
+                evt.stop(); return true;
+        }
+        return $super(evt);
     }
+
 });
 
 Object.extend(lively.ide.tools.CodeSearch, {

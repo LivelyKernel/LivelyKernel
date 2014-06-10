@@ -7,10 +7,10 @@ Object.subclass('lively.net.WebSocket',
         // It will internally use a WebSocket object and manage (re)opening
         // connections on its own
         // For the server code see the WebSocketExample subserver
-        var url = new URL(Config.nodeJSURL + '/WebSocketExample/connect');
+        var url = URL.nodejsBase.withFilename("WebSocketExample/connect").toString();
         var ws = new lively.net.WebSocket(url, {protocol: 'lively-json'});
         connect(ws, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
-        connect(ws, 'helloWorldReply', Global, 'show');
+        connect(ws, 'lively-message', Global, 'show');
         ws.send({action: 'helloWorld', data: 'message from Lively'});
     }
 },

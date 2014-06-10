@@ -3854,9 +3854,6 @@ alignSubmorphs: function alignSubmorphs() {
     this.doNotSerialize = ['currentMenu']
     this.currentMenu = null;
     this.buildSpec();
-},
-    session: function session() {
-    return lively.net.SessionTracker.getSession();
 }
 });
 

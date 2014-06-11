@@ -906,7 +906,7 @@
                 'core/lively/Base.js',
                 'core/lively/ModuleSystem.js']
             return JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles,"core/lively/store/Interface.js") :
+                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles,"core/lively/store/Interface.js","core/lively/ast/Debugging.js") :
                 normalBootstrapFiles;
         })(),
         codeBase = (function findCodeBase() {

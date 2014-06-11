@@ -41,7 +41,7 @@ var acornLibs = [
     }
 })();
 
-module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
+module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
 
 (function extendAcorn() {
 
@@ -871,17 +871,6 @@ module("lively.ast.acorn").requires("lively.ide.SourceDatabase").requiresLib({ur
     }
 
 })();
-
-lively.ide.ModuleWrapper.addMethods(
-'acorn lib', {
-    acornParse: function() {
-        return acorn.parse(this.getSource());
-    },
-
-    acornGetSource: function(node) {
-        return this.getSourceFragment(node.start, node.end);
-    }
-});
 
 Object.extend(lively.ast.acorn, {
 

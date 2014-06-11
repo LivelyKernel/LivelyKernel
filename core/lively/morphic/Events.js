@@ -295,6 +295,14 @@ Object.subclass('lively.morphic.EventHandler',
     },
 
     handleError: function(error, target, eventSpec) {
+        // mr 2014-05-11: e.unwindException has to be used because e is unwrapped when rewritten
+        if (lively.Config.get('loadRewrittenCode') && error.unwindException && error.unwindException.isUnwindException) {
+            require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
+                var cont = lively.ast.Continuation.fromUnwindException(error.unwindException);
+                lively.ast.openDebugger(cont.currentFrame, error.toString());
+            });
+        }
+
         var world = lively.morphic.World.current();
         var title = Strings.format(
             'Error in handleEvent when calling %s>>%s',

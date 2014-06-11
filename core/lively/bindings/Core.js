@@ -238,6 +238,9 @@ Object.subclass('AttributeConnection',
                 updater.call(this, callOrSetTarget, newValue, oldValue) :
                 callOrSetTarget(newValue, oldValue);
         } catch(e) {
+            // FIXME: checks should not be scatter all over the code
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
+                throw e.unwindException;
             dbgOn(Config.debugConnect);
             var world = Global.lively &&
                 lively.morphic.World &&

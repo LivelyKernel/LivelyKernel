@@ -11,8 +11,8 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
 + "	box-shadow: 0 0 4px white, inset 0 0 5px white;\n"
 + "}\n"
 + ".tab-list-item span {\n"
-+ "	font-family: Verdana;\n"
-+ "	font-size: 11pt;\n"
++ "	font-family: Monaco, Consolas, monospace;\n"
++ "	font-size: 10pt;\n"
 + "	color: white !important;\n"
 + "	font-width: bold !important;\n"
 + "	text-shadow: none !important;\n"
@@ -138,7 +138,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
     initLayout: function initLayout(noOfCandidates) {
         var visibleBounds = lively.morphic.World.current().visibleBounds(),
             layout = {
-                listItemHeight: 22,
+                listItemHeight: 20,
                 inputLineHeight: 18,
                 padding: 20,
                 // computed below:

@@ -1,4 +1,4 @@
-module('lively.ast.Debugging').requires('lively.ast.Rewriting').toRun(function() {
+module('lively.ast.Debugging').requires('lively.ast.AcornInterpreter').toRun(function() {
 
 Object.extend(lively.ast, {
 

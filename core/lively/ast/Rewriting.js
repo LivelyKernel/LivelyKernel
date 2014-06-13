@@ -162,6 +162,9 @@ Object.extend(lively.ast.Rewriting, {
                 'core/lively/bindings/Core.js', 'core/lively/persistence/Serializer.js',
                 'core/lively/Main.js', 'core/lively/net/WebSockets.js', 'core/cop/Layers.js',
                 'core/lively/OldModel.js', 'core/lively/Data.js', 'core/lively/Network.js',
+                'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
+                /* 'core/lively/ast/Rewriting.js',*/ 'core/lively/ast/AstHelper.js',
+                'core/lively/ast/acorn.js',
                 // neccessary to be able to load everything else dynamically
                 'core/lively/store/Interface.js'
             ];

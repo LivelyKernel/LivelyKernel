@@ -671,6 +671,12 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         var src = '(function(a) { var a; return a; })(123);',
             node = this.parse(src);
         this.assertEquals(123, this.interpret(node), 'variable declaration overwrote argument');
+    },
+
+    test50AccesingSlotOnUndefined: function() {
+        var src = 'var foo; foo.bar',
+            node = this.parse(src);
+        this.assertRaises(this.interpret.curry(node), /TypeError.*property.*bar.*undefined/);
     }
 
 });

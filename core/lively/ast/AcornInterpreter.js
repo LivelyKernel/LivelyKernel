@@ -971,7 +971,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             this.accept(node.property, state);
             property = state.result;
         }
-        var getter = object.__lookupGetter__(property);
+        var getter = object != null ? object.__lookupGetter__(property) : false;
         if (getter) {
             state.result = this.invoke(object, getter, [], state.currentFrame, false/*isNew*/)
         } else {

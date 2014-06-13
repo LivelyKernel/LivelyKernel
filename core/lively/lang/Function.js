@@ -619,7 +619,7 @@ Global.Functions = {
             var nextActivated = false;
             return function() {
                 var args = Array.from(arguments);
-                if (!endCallback) endCallback = args.pop();
+                if (!endCallback) endCallback = args.length === 0 ? function() {} : args.pop();
                 function next(/*err and args*/) {
                     nextActivated = true;
                     var args = Array.from(arguments),

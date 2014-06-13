@@ -3,6 +3,7 @@
 
 var inspect = require("util").inspect;
 var WebSocketServer = require('./support/websockets').WebSocketServer;
+
 var actions = {
     helloWorld: function(c, msg) {
         console.log("Got message %s", inspect(msg));
@@ -16,12 +17,23 @@ var actions = {
 module.exports = function(route, app, subserver) {
     var webSocketHandler = new WebSocketServer();
     webSocketHandler.debug = true; // logs infos
+
+    webSocketHandler.on('lively-message', function(msg, connection) {
+        if (actions[msg.action]) {
+            actions[msg.action](connection, msg);
+        } else {
+            connection.send({action: msg.action + "Reply", error: 'message not understood'})
+        }
+    });
+
     webSocketHandler.listen({
         route: route + 'connect',
         subserver: subserver,
-        actions: actions
     });
+
     app.get(route, function(req, res) {
         res.end("WebSocketExample is running!");
     });
+    
 }
+

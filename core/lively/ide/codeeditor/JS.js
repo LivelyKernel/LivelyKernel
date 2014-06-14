@@ -99,53 +99,76 @@ Object.subclass('lively.ide.codeeditor.JS.ScopeAnalyzer',
                    "Global", "Functions", "Objects", "Strings",
                    "module", "lively", "pt", "rect", "rgb"],
 
-    scopeVisitor: acorn.walk.make({
-        Identifier: function(node, scope, c) {
-            scope.identifiers.push(node);
-        },
-        Function: function(node, scope, c) {
-            var inner = {vars: {}, identifiers: [], containingScopes: []};
-            scope && (scope.containingScopes.push(inner));
-            for (var i = 0; i < node.params.length; ++i)
-                inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
-            if (node.id) {
-                var decl = node.type == "FunctionDeclaration";
-                (decl ? scope : inner).vars[node.id.name] =
-                    {type: decl ? "function" : "function name", node: node.id};
-            }
-            c(node.body, inner, "ScopeBody");
-        },
-        TryStatement: function(node, scope, c) {
-            c(node.block, scope, "Statement");
-            if (node.handler) {
+    scopeVisitor: (function() {
+
+        function findJsLintGlobalDeclarations(node) {
+            // node.body
+            if (!node || !node.comments) return [];
+            return node.comments
+                .filter(function(ea) { return ea.text.trim().startsWith('global') })
+                .map(function(ea) {
+                    return ea.text.replace(/^\s*global\s*/, '')
+                        .split(',').invoke('trim')
+                        .map(function(name) { return {type: 'jsLintGlobal', node: ea, name: name}; });
+                }).flatten();
+        }
+
+        return acorn.walk.make({
+            Identifier: function(node, scope, c) {
+                scope.identifiers.push(node);
+            },
+            Program: function(node, scope, c) {
+                findJsLintGlobalDeclarations(node).forEach(function(g) {
+                    scope.vars[g.name] = g; });
+                for (var i = 0; i < node.body.length; ++i)
+                  c(node.body[i], scope, "Statement");
+            },
+            Function: function(node, scope, c) {
                 var inner = {vars: {}, identifiers: [], containingScopes: []};
                 scope && (scope.containingScopes.push(inner));
-                inner.vars[node.handler.param.name] = {type: "catch clause", node: node.handler.param};
-                c(node.handler.body, inner, "ScopeBody");
+                for (var i = 0; i < node.params.length; ++i)
+                    inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
+                if (node.id) {
+                    var decl = node.type == "FunctionDeclaration";
+                    (decl ? scope : inner).vars[node.id.name] =
+                        {type: decl ? "function" : "function name", node: node.id};
+                }
+                findJsLintGlobalDeclarations(node.body).forEach(function(g) {
+                    inner.vars[g.name] = g; });
+                c(node.body, inner, "ScopeBody");
+            },
+            TryStatement: function(node, scope, c) {
+                c(node.block, scope, "Statement");
+                if (node.handler) {
+                    var inner = {vars: {}, identifiers: [], containingScopes: []};
+                    scope && (scope.containingScopes.push(inner));
+                    inner.vars[node.handler.param.name] = {type: "catch clause", node: node.handler.param};
+                    c(node.handler.body, inner, "ScopeBody");
+                }
+                if (node.finalizer) c(node.finalizer, scope, "Statement");
+            },
+            VariableDeclaration: function(node, scope, c) {
+                for (var i = 0; i < node.declarations.length; ++i) {
+                    var decl = node.declarations[i];
+                    scope.vars[decl.id.name] = {type: "var", node: decl.id};
+                    if (decl.init) c(decl.init, scope, "Expression");
+                }
             }
-            if (node.finalizer) c(node.finalizer, scope, "Statement");
-        },
-        VariableDeclaration: function(node, scope, c) {
-            for (var i = 0; i < node.declarations.length; ++i) {
-                var decl = node.declarations[i];
-                scope.vars[decl.id.name] = {type: "var", node: decl.id};
-                if (decl.init) c(decl.init, scope, "Expression");
-            }
-        }
-    }),
+        })
+    })(),
 
     findGlobalVarReferences: function(src) {
-        var ast = Object.isString(src) ? null : src;
-        var rootScope = {vars: {}, identifiers: [], containingScopes: []}, ast;
+        var ast = Object.isString(src) ? null : src,
+            rootScope = {vars: {}, identifiers: [], containingScopes: []};
         if (!ast) {
-            try { ast = lively.ast.acorn.parse(src);
+            try { ast = lively.ast.acorn.parse(src, {withComments: true});
             } catch(e) { ast = e; }
         }
         if (ast instanceof Error) return [];
         try {
             acorn.walk.recursive(ast, rootScope, this.scopeVisitor);
         } catch (e) {
-            show('ast scope anlyzation error: ' + e + '\n' + e.stack);
+            show('ast scope analyzation error: ' + e + '\n' + e.stack);
             return [];
         }
         return this.findGlobalVarReferencesIn(rootScope);
@@ -177,7 +200,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
 },
 "parsing", {
     parse: function(src, session) {
-        var options = {};
+        var options = {withComments: true};
         options.type = session.$astType;
         return lively.ast.acorn.fuzzyParse(src, options);
     }

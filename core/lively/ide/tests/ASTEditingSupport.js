@@ -124,6 +124,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 'testing', {
+
     testFindGlobalVar: function() {
         var src = "var x = 3; (function() { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; })",
             sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
@@ -132,6 +133,28 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
         this.assertMatches(
             {end: 58, start: 55, name: 'bar', type: "Identifier"},
             result[0], ""+Objects.inspect(result[0], {maxDepth: 1}));
+    },
+
+    testJSLintStyleGlobalDeclaration: function() {
+        var src = "/*global bar, zork*/\nx = 3; (function() { /*global x, foo*/\nfoo = 3; var baz = 5; x = 98; y = 99; bar = 2; Object.bar = 3; })",
+            sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
+            result = sut.findGlobalVarReferences(src);
+
+        var expected = [{
+          end: 22,
+          name: "x",
+          start: 21,
+          type: "Identifier"
+        },{
+          end: 91,
+          name: "y",
+          start: 90,
+          type: "Identifier"
+        }];
+
+        this.assertEquals(2, result.length, 'global ref not found');
+        this.assertMatches(expected,
+            result, ""+Objects.inspect(result, {maxDepth: 1}));
     },
 
     testFindGlobalStuff: function() {

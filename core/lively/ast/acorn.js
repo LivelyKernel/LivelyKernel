@@ -874,7 +874,36 @@ module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: fu
 
 Object.extend(lively.ast.acorn, {
 
-    parse: function(source, options) { return acorn.parse(source, options); },
+    parse: function(source, options) {
+        if (options && options.withComments) {
+            delete options.withComments;
+            var comments = [];
+            options.onComment = function(isBlock, text, start, end, line, column) {
+                comments.push({
+                    isBlock: isBlock,
+                    text: text, node: null,
+                    start: start, end: end,
+                    line: line, column: column
+                });
+            };
+        }
+
+        var ast = acorn.parse(source, options);
+
+        if (ast && comments) { // adding nodes to comments
+            ast.allComments = comments;
+            comments.forEach(function(comment) { 
+                var node = lively.ast.acorn.nodesAt(comment.start, ast)
+                        .reverse().detect(function(node) {
+                            return node.type === 'BlockStatement' || node.type === 'Program'; })
+                if (!node) node = ast;
+                if (!node.comments) node.comments = [];
+                node.comments.push(comment);
+            });
+        }
+
+        return ast;
+    },
 
     parseFunction: function(source, options) {
         options = options || {};
@@ -933,7 +962,7 @@ Object.extend(lively.ast.acorn, {
         if (options.type === 'LabeledStatement') { safeSource = '$={' + source + '}'; }
         try {
             // we only parse to find errors
-            ast = acorn.parse(safeSource || source);
+            ast = lively.ast.acorn.parse(safeSource || source, options);
             if (safeSource) ast = null; // we parsed only for finding errors
             else if (options.addSource) acorn.walk.addSource(ast, source);
         } catch (e) { err = e; }
@@ -950,7 +979,7 @@ Object.extend(lively.ast.acorn, {
             show('' + err + err.stack);
         }
         if (!ast) {
-            ast = acorn.parse_dammit(source);
+            ast = acorn.parse_dammit(source, options);
             if (options.addSource) acorn.walk.addSource(ast, source);
             ast.isFuzzy = true;
             ast.parseError = err;

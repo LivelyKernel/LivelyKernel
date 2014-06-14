@@ -93,6 +93,25 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
         tests.forEach(function(test, i) {
             this.assertMatches(test.expected, test.subject, 'incorrect location for test ' + (i+1));
         }, this);
+    },
+
+    testParseWithComments: function() {
+        var src = 'var x = 3; // comment1\n// comment1\nfunction foo() { var y = 3; /*comment2*/ return y }; x + foo();',
+            ast = lively.ast.acorn.parse(src, {withComments: true}),
+            comments = ast.comments,
+            expectedTopLevelComments = [{
+              start: 11, end: 22,
+              isBlock: false, text: " comment1"
+            },{
+              start: 23, end: 34,
+              isBlock: false, text: " comment1"
+            }],
+            expectedScopedComments = [{
+              start: 63, end: 75,
+              isBlock: true, text: "comment2"
+            }];
+        this.assertMatches(expectedTopLevelComments, ast.comments, 'topLevel');
+        this.assertMatches(expectedScopedComments, ast.body[1].body.comments, 'scoped');
     }
 
 });

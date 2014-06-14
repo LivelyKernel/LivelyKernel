@@ -1035,8 +1035,11 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             this.withSessionsDo(function(sessions) {
                 var s = sessions
                     .select(function(s) { return s.user === user && s.worldURL === url; })
-                    .sortBy(function(s) { return Math.max(s.lastActivity, s.timeOfRegistration); })
-                    .last()
+                    .sortBy(function(s) { 
+                        return Math.max(
+                            s.lastActivity || 0,
+                            s.timeOfRegistration || 0,
+                            s.timeOfRegistration || 0); }).last();
                 doFunc(s ? null : new Error('Cannot find session with ' + user + ' and ' + url), s);
             }, true/*force fresh list*/);
             return;

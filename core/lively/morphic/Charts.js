@@ -4124,22 +4124,22 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
     generateMappingFunction: function(mappingObjects, mappingCategory) {
         
         var attributeMap = this.getAttributeMap();
+        var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
         
         // holds an array of functions where each accepts a morph and sets the specified
         // property to the result of the specified expression
         var _this = this;
+        var currentMappingContext = this.morphCreatorUtils.public;
         var mappingFunctions = mappingObjects.map(function(eachMapping) {
             var rangeArguments = _this.extractArgumentsForRange(eachMapping.value);
-
-            var valueFn = function(datum, index, morph) {
-                
+            
+            var valueFn = function(datum) {
                 _this.updateMappingContext({rangeArguments: rangeArguments});
-
-                var env = $morph("Dashboard") ? $morph('Dashboard').env : { interaction: {} };
+    
                 with (env.interaction)
                 with (lively.morphic.Charts.Utils)
                 with (datum)
-                with (_this.morphCreatorUtils.public) {
+                with (currentMappingContext) {
                     // the IIFE allows function declarations within the value fields
                     return eval("(function() { return " + eachMapping.value + ";})();");
                 }

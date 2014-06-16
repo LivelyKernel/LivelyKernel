@@ -288,11 +288,19 @@ lively.Class = {
 
     anonymousCounter: 0,
 
-    initializerTemplate: (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toString(),
+    initializerTemplate: (lively.Config.get('loadRewrittenCode') ?
+        (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toStringRewritten().replace(/__0/g, 'Global').replace(/__1/g, '__1') :
+        (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toString()),
 
     newInitializer: function(name) {
         // this hack ensures that class instances have a name
-        return eval(lively.Class.initializerTemplate.replace(/CLASS/g, name) + ";" + name);
+        var src = lively.Class.initializerTemplate.replace(/CLASS/g, name);
+        if (lively.Config.get('loadRewrittenCode')) {
+            var idx = src.match('.*createAndShift\([^\)]*, ([0-9]+)\)')[2];
+            src = '__createClosure(' + idx + ', Global, ' + src + ');';
+        } else
+            src += ' ' + name;
+        return eval(src);
     },
 
     initializer: function initializer() {

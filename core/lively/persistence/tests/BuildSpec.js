@@ -177,6 +177,13 @@ Functions.timeToRun(function() {
         var recreated = buildSpec.createMorph();
         this.assertEquals("TileLayout", recreated.getLayouter().constructor.name);
         this.assertEquals(10, recreated.getLayouter().spacing);
+    },
+    test16PreservesShapeForEllipse: function() {
+        // enter comment here
+        var ellipse = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,42,42));
+        var spec = ellipse.buildSpec();
+        this.assertEquals(spec.attributeStore.shape != undefined, true);
+        this.assertEquals(spec.createMorph().getShape().constructor.name == 'Ellipse', true);        
     }
 
 });

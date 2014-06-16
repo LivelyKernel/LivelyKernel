@@ -144,6 +144,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             recv = argValues.shift(); // thisObj is first parameter
             argValues = argValues[0]; // the second arg are the arguments (as an array)
         }
+        var origFunc = func;
 
         if (this.shouldHaltAtNextCall()) // try to fetch interpreted function
             func = this.fetchInterpretedFunction(func) || func;
@@ -160,7 +161,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         }
         if (isNew) {
             if (this.isNative(func)) return new func();
-            recv = this.newObject(func);
+            recv = this.newObject(origFunc);
         }
 
         var result = func.apply(recv, argValues);
@@ -186,7 +187,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
 
     newObject: function(func) {
         var proto = func.prototype;
-        function constructor() {};
+        function constructor() {}
         constructor.prototype = proto;
         var newObj = new constructor();
         newObj.constructor = func;
@@ -287,7 +288,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             topScope = newScope;
 
         // recreate lively.ast.AcornInterpreter.Function object
-        func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope);
+        func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope, func);
         return func.asFunction();
     }
 
@@ -1040,7 +1041,10 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             }
         });
 
-        // TODO: prepare more stuff from optFunc
+        if (optFunc) {
+            fn.prototype = optFunc.prototype;
+            // TODO: prepare more stuff from optFunc
+        }
         this._cachedFunction = fn;
     },
 },

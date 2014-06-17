@@ -243,6 +243,32 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     }, 
                 varMapping: {key: key, self: this}});
     }
+    },
+    "private", {
+        augmentBuildSpec: function(options) {
+            var self = this;
+            if(!self.originalCreationFn)
+                self.originalCreationFn = this.baseSpec.createMorph;
+            var exclusions = options.select(function(each) { return typeof(each) === 'string' }) || [];
+            var remainingExclusions = options.select(function(each) { return !self.entanglesProp(each)}) || [];
+            this.baseSpec.createMorph = function() {
+                var m = self.originalCreationFn.apply(self.baseSpec, arguments)
+                self.entangleWith(m, exclusions);
+                return m;
+            };
+            if(this.subEntanglements) {
+                this.subEntanglements.forEach(function(subEnt) {
+                    var subExclusions = options.find(function(each) { 
+                        return typeof(each) == 'object' && each[subEnt.identifier]
+                    });
+                    subExclusions = subExclusions && subExclusions[subEnt.identifier];
+                    // remaining exclusions have been checked for uniqueness, so we are fine
+                    if(subExclusions)
+                        remainingExclusions = remainingExclusions.concat(subExclusions);
+                    subEnt.augmentBuildSpec(remainingExclusions); 
+                });
+            }
+    }
     });
 
 Object.extend(lively.persistence.Entanglement.Morph, {

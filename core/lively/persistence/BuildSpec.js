@@ -280,6 +280,10 @@ Object.subclass('lively.persistence.SpecObject',
         }
 
         return instance;
+    },
+    createEntanglement: function(refinements, options, depth) {
+        // this is currently restricted to the entanglement of morphs
+        return lively.persistence.Entanglement.Morph.fromSpec(this);
     }
 
 },

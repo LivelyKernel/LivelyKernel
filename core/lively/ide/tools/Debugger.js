@@ -521,8 +521,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         var frames = [];
         var frame = topFrame;
         do {
-            var func = frame.func.asFunction(),
-                name = func.displayName || frame.func.name() || '(anonymous function)';
+            var name = this.getFunctionName(frame.func, frame.getThis());
             frames.push({
                 isListItem: true,
                 string: frame.isResuming() ? name : name + " [native]",
@@ -575,6 +574,19 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.getWindow().setTitle(result.toString());
         } else
             this.setCurrentFrame(frame); // simple pc advancement
+    },
+        getFunctionName: function getFunctionName(func, obj) {
+            var fn = func.asFunction(),
+                name = '';
+            if (fn.displayName) {
+                name = fn.displayName.replace('$', ' >> ');
+            } else if (func.name()) {
+                if (obj.isMorph)
+                    name = obj.getName() + '(' + obj.id + ') >> ';
+                name += func.name();
+            } else
+                name = '(anonymous function)';
+            return name;
     }
     })],
     titleBar: "Debugger"

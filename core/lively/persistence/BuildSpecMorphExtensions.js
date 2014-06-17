@@ -29,7 +29,6 @@ lively.morphic.Morph.addMethods(
         showsHalos: {exclude: true},
         scripts: {exclude: true},
         id: {exclude: true},
-        shape: {exclude: true},
         registeredForMouseEvents: {exclude: true},
         partsBinMetaInfo: {exclude: true},
         eventHandler: {exclude: true},
@@ -84,13 +83,38 @@ lively.morphic.Morph.addMethods(
                 Properties.forEachOwn(spec.layout, function(name, prop) {
                     if (!excludes.include(name)) layout[name] = prop; });
             }
-        }
+        },
+        shape: { exclude: true,
+                 getter: function(morph, val) {
+                    if(morph.shape.constructor.name === 'Ellipse') {
+                        var shape = {}
+                        for ( var key in morph.shape ) {
+                            if(key != '_renderContext')
+                                shape[key] = morph.shape[key];
+                        }
+                        shape.constructor = morph.shape.constructor;
+                        return shape;
+                    } else {
+                        return null;
+                    }
+                },
+                recreate: function(instance, spec) {
+                    if(spec.shape && spec.shape.constructor.name === 'Ellipse') {
+                        var shape = new spec.shape.constructor();
+                        for ( var key in spec.shape )
+                            shape[key] = spec.shape[key];
+                        instance.setShape(shape);
+                    }
+                }
+            }
     },
 
     getBuildSpecProperties: function(rawProps) {
         rawProps = rawProps || Object.mergePropertyInHierarchy(this, "buildSpecProperties");
         var props = Object.keys(rawProps).groupBy(function(key) {
-                return rawProps[key].exclude ? 'excludes' : 'includes'; }),
+                if(this.shape && this.shape.constructor.name == 'Ellipse' && key == 'shape')
+                    return 'includes';
+                return rawProps[key].exclude ? 'excludes' : 'includes'; }, this),
             scripts = Functions.own(this).select(function(sel) {
                 return this[sel].hasLivelyClosure; }, this),
             ownProps = Properties.own(this)

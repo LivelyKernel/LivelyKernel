@@ -182,6 +182,7 @@ Functions.timeToRun(function() {
         // enter comment here
         var ellipse = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,42,42));
         var spec = ellipse.buildSpec();
+        debugger;
         this.assertEquals(spec.attributeStore.shape != undefined, true);
         this.assertEquals(spec.createMorph().getShape().constructor.name == 'Ellipse', true);        
     }

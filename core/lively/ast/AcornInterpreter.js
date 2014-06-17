@@ -1035,11 +1035,15 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // TODO: reactivate when necessary
             // evaluatedSource: function() { return ...; },
             // custom Lively stuff
-            methodName: this.name(),
+            methodName: (optFunc && optFunc.methodName) || this.name(),
+            declaredClass: (optFunc && optFunc.declaredClass),
+            sourceModule: (optFunc && optFunc.sourceModule),
             argumentNames: function() {
                 return self.argNames();
             }
         });
+        if (fn.methodName && fn.declaredClass)
+            fn.displayName = fn.declaredClass + '$' + fn.methodName;
 
         if (optFunc) {
             fn.prototype = optFunc.prototype;

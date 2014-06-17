@@ -103,6 +103,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     this.entangledAttributes[key] = value;
             }
         },
+    visualize: function() {
+        var inspector = lively.BuildSpec('lively.ide.tools.EntanglementInspector').createMorph().openInWorldCenter();
+        inspector.visualize(this);
+    },
         entanglesProp: function(propName) {
             var props = Object.mergePropertyInHierarchy(this.baseSpec.createMorph(), 'buildSpecProperties');
             if(typeof(propName) == 'string' && propName.startsWith('set'))

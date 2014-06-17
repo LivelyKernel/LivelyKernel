@@ -65,7 +65,51 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 })
             return this;
     }
-    });
+    },
+    "accessing", {
+        get: function(key) {
+            if(this.entangledAttributes[key] == undefined) {
+                // if the morph does not reference the property directly, it may still be found by name
+                var m = this.subEntanglements.find(function(subEnt) { return subEnt.entangledAttributes.name } );
+                if(!m){
+                    //if we still havent found a value mapped to the key, we continue with the get call in all
+                    // the sub entanglements
+                    m = this.subEntanglements.select(function(subEnt) { return subEnt.get(key) != undefined});
+                    if(m.length > 1)
+                        throw Error('Ambigous key \"' + key + '\"!');
+                    else
+                        return m.first().get(key);
+                } else {
+                    return m;
+                }
+            }
+            if (this.entangledAttributes[key].isMorphRef){
+                // could still be a morph ref
+                return lively.PropertyPath(this.entangledAttributes[key].path).get({submorphs: this.subEntanglements});
+            } else {
+                return this.entangledAttributes[key];
+            }
+        },
+        set: function(key, value) {
+            // set can also be supplied withthe arguments passed as an array
+            if(Array.isArray(key)){
+                this.set(key[0], key[1]);
+            } else {
+                // we only track changes to the object structure via the public interface of an object
+                // or to the buildSpecProperties of an object
+                if(this.subEntanglements[key])
+                    return; 
+                if(this.entangledAttributes[key] != value)
+                    this.entangledAttributes[key] = value;
+            }
+        },
+        entanglesProp: function(propName) {
+            var props = Object.mergePropertyInHierarchy(this.baseSpec.createMorph(), 'buildSpecProperties');
+            if(typeof(propName) == 'string' && propName.startsWith('set'))
+                propName = propName.replace('set', '_');
+            return propName in props;
+        }
+});
 
 Object.extend(lively.persistence.Entanglement.Morph, {
     fromMorph: function(morph) { return new this().fromMorph(morph); },

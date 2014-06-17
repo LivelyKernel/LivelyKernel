@@ -1,4 +1,5 @@
 module('lively.persistence.Entanglement').requires('lively.persistence.BuildSpec', 'lively.persistence.Serializer', 'lively.morphic.Core').toRun(function() {
+
 Object.subclass("lively.persistence.Entanglement.Morph", 
     "initializing", {
         initialize: function() {
@@ -8,4 +9,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             this.entangledMorphs = [];
         }
     })
+
+Object.extend(lively.persistence.Entanglement.Morph, {
+    fromMorph: function(morph) { return new this().fromMorph(morph); },
+    fromSpec: function(spec, ignore) { return new this().fromSpec(spec, ignore); }
+});
+
 }) // end of module

@@ -482,7 +482,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             }]
         }],
         browse: function browse() {
-        this.currentFrame && this.currentFrame.func.browse();
+        try {
+            this.currentFrame && this.currentFrame.func &&
+                this.currentFrame.func.browse(this.currentFrame.getThis());
+        } catch (e) {
+            alert(e.message);
+        }
     },
         reset: function reset() {
         this.doNotSerialize = ['topFrame', 'currentFrame'];

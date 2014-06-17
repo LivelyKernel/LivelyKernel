@@ -1140,6 +1140,21 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         return this.basicApply(frame);
     }
 
+},
+'meta programming', {
+
+    browse: function(thisObject) {
+        var fn = this.asFunction();
+        if (fn.sourceModule && fn.methodName && fn.declaredClass) {
+            $world.browseCode(fn.declaredClass, fn.methodName, fn.sourceModule.name());
+        } else if (thisObject && thisObject.isMorph) {
+            var ed = $world.openObjectEditorFor(thisObject);
+            ed.targetMorph.get('ObjectEditorScriptList').setSelection(fn.methodName || this.name());
+        } else
+            //TODO: Add browse implementation for other functions
+            throw new Error('Cannot browse anonymous function ' + this);
+    }
+
 });
 
 Object.subclass('lively.ast.AcornInterpreter.Scope',

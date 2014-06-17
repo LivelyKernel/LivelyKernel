@@ -243,7 +243,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
             return 'StoreHandle(' + Objects.inspect({path: this._path})
              + ', ' + Objects.inspect(this._store) + ')';
         } catch(e) {
-            return 'StoreHandle(' + this._path + ')'
+            return 'StoreHandle(' + this.fullPath() + ')'
         }
     }
 });
@@ -361,7 +361,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
 },
 'debugging', {
     toString: function() {
-        return 'L2LHandle(to ' + this._path + ')'
+        return 'L2LHandle(to ' + this.fullPath() + ')'
     }
 });
 

@@ -1044,6 +1044,8 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         });
         if (fn.methodName && fn.declaredClass)
             fn.displayName = fn.declaredClass + '$' + fn.methodName;
+        else if (optFunc && optFunc.displayName)
+            fn.displayName = optFunc.displayName;
 
         if (optFunc) {
             fn.prototype = optFunc.prototype;
@@ -1147,6 +1149,8 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         var fn = this.asFunction();
         if (fn.sourceModule && fn.methodName && fn.declaredClass) {
             $world.browseCode(fn.declaredClass, fn.methodName, fn.sourceModule.name());
+        } else if (thisObject && lively.Class.isClass(thisObject) && fn.displayName) {
+            $world.browseCode(thisObject.name, fn.displayName, (fn.sourceModule || thisObject.sourceModule).name());
         } else if (thisObject && thisObject.isMorph) {
             var ed = $world.openObjectEditorFor(thisObject);
             ed.targetMorph.get('ObjectEditorScriptList').setSelection(fn.methodName || this.name());

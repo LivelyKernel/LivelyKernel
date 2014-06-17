@@ -583,12 +583,18 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         getFunctionName: function getFunctionName(func, obj) {
             var fn = func.asFunction(),
                 name = '';
+            // TODO: use qualifiedMethodName instead?
             if (fn.displayName) {
-                name = fn.displayName.replace('$', ' >> ');
+                if (fn.declaredClass)
+                    name = fn.displayName.replace('$', ' >> ') + ' (proto)';
+                else if (lively.Class.isClass(obj))
+                    name = obj.name + ' >> ' + fn.displayName + ' (static)';
+                else
+                    name = fn.displayName;
             } else if (func.name()) {
                 if (obj.isMorph)
                     name = obj.getName() + '(' + obj.id + ') >> ';
-                name += func.name();
+                name += func.name() + ' (script)';
             } else
                 name = '(anonymous function)';
             return name;

@@ -185,8 +185,9 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         this.reset();
-        lively.bindings.noUpdate(function() {
-            if (this.labelString) this.setLabel(this.labelString);
+        this.labelString && lively.bindings.noUpdate(function() {
+            this.setLabel(this.labelString);
+            this.setCursorPosition(pt(this.labelString.length, 0));
         }.bind(this));
         lively.bindings.connect(this, 'textString', this, 'inputChange', {
             converter: function() { return this.sourceObj.getInput(); }

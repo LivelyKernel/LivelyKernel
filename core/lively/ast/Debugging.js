@@ -92,7 +92,7 @@ Object.extend(lively.ast, {
             var self = this,
                 dbgStmt = !!lively.Config.get('enableDebuggerStatements'),
                 items = [
-                ['debugger stmt ' + (dbgStmt ? 'on' : 'off'), function() {
+                ['[' + (dbgStmt ? ' ' : 'x') + '] ignore debugger', function() {
                     lively.Config.set('enableDebuggerStatements', !dbgStmt);
                     self.collapse();
                 }]
@@ -147,19 +147,5 @@ Object.extend(lively.ast, {
         lively.BuildSpec('lively.ast.DebuggingFlap').createMorph().openInWorld();
     });
 })();
-
-cop.create('DebugGlobalErrorHandlerLayer')
-.beGlobal()
-.refineClass(lively.morphic.World, {
-    logError: function(err, optName) {
-        if (err.isUnwindException) {
-            var msg = 'Caught UnwindingException!';
-            this.setStatusMessage(msg, Color.purple.darker(), 10);
-            return false;
-        } else {
-            return cop.proceed(err, optName);
-        }
-    }
-});
 
 }) // end of module

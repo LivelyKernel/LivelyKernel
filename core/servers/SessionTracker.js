@@ -229,13 +229,13 @@ util._extend(services, sessionActions);
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // SessionTracker
 // The main server component for managing sessions. A
-// session represents a onlinr connection of a lively
+// session represents a online connection of a Lively
 // world that can be used to communicate to/from that world
 // The SessionTracker will manage the connections to Lively
 // worlds and connections to other Lively servers (server-
 // to-server connections). Those connections are used to
 // a) route messages from one session to another (local
-// seends as well as remote sends requiring server-to-server
+// sends as well as remote sends requiring server-to-server
 // routing are supported).
 // Also, certain actions (getSessions, reportActivity) are
 // directly processed by the tracker and do not require

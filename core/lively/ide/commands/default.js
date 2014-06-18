@@ -270,6 +270,63 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.ide.resizeWindow': {
+        exec: function(how, window) {
+            var win = window || $world.getActiveWindow();
+            if (!win) return;
+
+            var worldB = $world.visibleBounds().insetBy(20),
+                winB = win.bounds(),
+                bounds = worldB;
+
+            if (!win.normalBounds) win.normalBounds = winB;
+
+            var thirdW = Math.max(660, bounds.width/3),
+                thirdColBounds = bounds.withWidth(thirdW);
+
+            if (!how) askForHow();
+            else doResize(how);
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+            function askForHow() {
+                var actions = ['fullscreen','center','right','left','bottom',
+                               'top',"shrinkWidth", "growWidth","shrinkHeight",
+                               "growHeight",'reset'];
+                lively.ide.tools.SelectionNarrowing.chooseOne(
+                    actions, function(err, candidate) { doResize(candidate); },
+                    {prompt: "How to resize the window?"});
+            }
+
+            function doResize(how) {
+                switch(how) {
+                    case 'fullscreen': break;
+                    case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
+                    case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
+                    case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
+                    case 'bottom': bounds = bounds.withY(bounds.y + bounds.height/2);
+                    case 'top': bounds = bounds.withHeight(bounds.height/2); break;
+                    case 'reset': bounds = win.normalBounds || pt(500,400).extentAsRectangle().withCenter(bounds.center()); break;
+                    default: return;
+                }
+
+                if (how === 'reset') delete win.normalBounds;
+
+                win.setBounds(bounds);
+            }
+
+            return true;
+        },
+    },
+    'lively.ide.resizeWindow.reset': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'reset'); }},
+    'lively.ide.resizeWindow.full': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'fullscreen'); }},
+    'lively.ide.resizeWindow.left': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'left'); }},
+    'lively.ide.resizeWindow.center': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'center'); }},
+    'lively.ide.resizeWindow.right': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'right'); }},
+    'lively.ide.resizeWindow.top': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'top'); }},
+    'lively.ide.resizeWindow.bottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'bottom'); }},
+
     'lively.morphic.Window.resizeVisibleMorphsToFitIntoVisibleBounds': {
         description: 'Resize visible morphs to fit into visible world bounds.',
         exec: function() {
@@ -1039,6 +1096,13 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-à"},
+    'lively.ide.resizeWindow.reset': {mac: "cmd-s-l r e s q", win: "ctrl-s-l r e s q"},
+    'lively.ide.resizeWindow.full': {mac: "cmd-s-l r e s f", win: "ctrl-s-l r e s f"},
+    'lively.ide.resizeWindow.left': {mac: "cmd-s-l r e s l", win: "ctrl-s-l r e s l"},
+    'lively.ide.resizeWindow.center': {mac: "cmd-s-l r e s c", win: "ctrl-s-l r e s c"},
+    'lively.ide.resizeWindow.right': {mac: "cmd-s-l r e s r", win: "ctrl-s-l r e s r"},
+    'lively.ide.resizeWindow.top': {mac: "cmd-s-l r e s t", win: "ctrl-s-l r e s t"},
+    'lively.ide.resizeWindow.bottom': {mac: "cmd-s-l r e s b", win: "ctrl-s-l r e s b"},
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',

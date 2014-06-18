@@ -2472,33 +2472,23 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     showTargetMorphMenu: function() {
 
         var target = this.targetMorph || this, itemFilter;
+
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
-                items[0] = ['Publish window', function(evt) {
-                    self.copyToPartsBinWithUserRequest();
-                }];
-                // set fixed support
-                var fixItem = items.find(function (ea) {
-                    return ea[0] == "set fixed" || ea[0] == "set unfixed" });
-                if (fixItem) {
-                    if (self.isFixed) {
-                        fixItem[0] = "set unfixed";
-                        fixItem[1] = function() {
-                            self.setFixed(false);
-                        }
-                    } else {
-                        fixItem[0] = "set fixed"
-                        fixItem[1] = function() {
-                            self.setFixed(true);
-                        }
-                    }
-                }
-                items[1] = ['Set window title', function(evt) {
+                var toRemove = items.detect(function(ea) { return ea[0].match(/select all submorphs/i); });
+                items.removeAt(items.indexOf(toRemove));
+
+                items.splice(1, 0, ['Set window title', function(evt) {
                     self.world().prompt('Set window title', function(input) {
                         if (input !== null) self.titleBar.setTitle(input || '');
                     }, self.titleBar.getTitle());
-                }];
+                }]);
+
+                items.splice(2, 0, ['Resize...', ["reset","full","left","center","right","top","bottom"].map(function(how) {
+                    return [how, function() { lively.ide.commands.exec('lively.ide.resizeWindow', how, self)}];
+                })]);
+
                 var browser = self.targetMorph.ownerWidget;
                 if (browser && browser.morphMenuItems) {
                     items.pushAll(browser.morphMenuItems());
@@ -2507,17 +2497,21 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             }
         }
 
-        var menu = target.createMorphMenu(itemFilter);
-        var menuBtnTopLeft = this.menuButton.bounds().topLeft();
-        var menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
+        var menu = target.createMorphMenu(itemFilter),
+            menuBtnTopLeft = this.menuButton.bounds().topLeft(),
+            menuTopLeft = menuBtnTopLeft.subPt(pt(menu.bounds().width, 0));
+
         menu.openIn(
             lively.morphic.World.current(),
             this.getGlobalTransform().transformPoint(menuTopLeft),
             false);
+
     },
     morphMenuItems: function($super) {
         var self = this, world = this.world(), items = $super();
-        items[0] = ['Publish window', function(evt) { self.copyToPartsBinWithUserRequest(); }];
+        items.push(['Resize...', ["reset","full","left","center","right","top","bottom"].map(function(how) {
+            return [how, function() { lively.ide.commands.exec('lively.ide.resizeWindow', how)}];
+        })]);
         items.push([
             'Set title', function(evt) {
                 world.prompt('Enter new title', function(input) {

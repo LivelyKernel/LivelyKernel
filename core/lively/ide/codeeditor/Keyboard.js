@@ -1021,56 +1021,6 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 cmd.runTest();
                 focus.focus();
             }
-        }, {
-            name: "resizeWindow",
-            exec: function(ed, how) {
-                var win = $world.getActiveWindow();
-                if (!win) return;
-
-                var worldB = $world.visibleBounds().insetBy(20),
-                    winB = win.bounds(),
-                    bounds = worldB;
-
-                if (!win.normalBounds) win.normalBounds = winB;
-
-                var thirdW = Math.max(660, bounds.width/3),
-                    thirdColBounds = bounds.withWidth(thirdW);
-
-                if (!how) askForHow();
-                else doResize(how);
-
-                // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-                function askForHow() {
-                    var actions = ['fullscreen','center','right','left','bottom',
-                                   'top',"shrinkWidth", "growWidth","shrinkHeight",
-                                   "growHeight",'reset'];
-                    lively.ide.tools.SelectionNarrowing.chooseOne(
-                        actions, function(err, candidate) { doResize(candidate); },
-                        {prompt: "How to resize the window?"});
-                }
-
-                function doResize(how) {
-                    switch(how) {
-                        case 'fullscreen': break;
-                        case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
-                        case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
-                        case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
-                        case 'bottom': bounds = bounds.withY(bounds.y + bounds.height/2);
-                        case 'top': bounds = bounds.withHeight(bounds.height/2); break;
-                        case "shrinkWidth": win.resizeBy(pt(-20,0)); return;
-                        case "growWidth": win.resizeBy(pt(20,0)); return;
-                        case "shrinkHeight": win.resizeBy(pt(0,-20)); return;
-                        case "growHeight":  win.resizeBy(pt(0,20)); return;
-                        case 'reset': bounds = win.normalBounds || pt(500,400).extentAsRectangle().withCenter(bounds.center()); break;
-                        default: return;
-                    }
-    
-                    if (how === 'reset') delete win.normalBounds;
-    
-                    win.setBounds(bounds);
-                }
-            }
         }]);
     },
 

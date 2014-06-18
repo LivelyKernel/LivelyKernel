@@ -1180,7 +1180,7 @@ lively.morphic.Morph.subclass('lively.morphic.Flap',
 'initialization', {
     initialize: function($super) {
         $super(this.defaultShape());
-        var args = $A(arguments)
+        var args = Array.from(arguments)
         args.shift()
         this.init.apply(this, args);
     },

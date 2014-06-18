@@ -27,6 +27,7 @@ var env = {
  * this is the state that holds on to running shell commands
  * [{process: null, stdout: '', stderr: '', lastExitCode: null}]
  */
+
 var shellCommands = global.shellCommands = [];
 function findShellCommand(pid) {
     for (var i = 0; i < shellCommands.length; i++) {
@@ -143,6 +144,7 @@ function runShellCommand(cmdInstructions) {
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
         shellCommand.emit('close', code);
+        shellCommands = shellCommands.filter(function(ea) { return ea !== shellCommand; });
         callback && callback(code, shellCommand.stdout, shellCommand.stdout);
     });
 
@@ -152,6 +154,7 @@ function runShellCommand(cmdInstructions) {
         shellCommand.stderr += err.stack;
         shellCommand.emit('output', {stderr: String(err.stack)});
         shellCommand.lastExitCode = 1;
+        shellCommands = shellCommands.filter(function(ea) { return ea !== shellCommand; });
     });
 
     return shellCommand;

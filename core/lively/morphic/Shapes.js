@@ -143,7 +143,7 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.External',
             hasScrollBarH = ctx.domInterface.showsVerticalScrollBarHTML(ctx.shapeNode, borderW),
             hasScrollBarV = ctx.domInterface.showsHorizontalScrollBarHTML(ctx.shapeNode, borderW);
         if (hasScrollBarV || hasScrollBarH) {
-            var scrollbarExt = lively.morphic.Morph.prototype.getScrollBarExtent();
+            var scrollbarExt = $world.getScrollBarExtent();
             baseVal = baseVal.addXY(hasScrollBarH ? scrollbarExt.x : 0, hasScrollBarV ? scrollbarExt.y : 0);
         }
         return baseVal.addXY(borderW*2, borderW*2);

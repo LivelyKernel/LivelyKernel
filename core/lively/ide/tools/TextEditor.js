@@ -13,6 +13,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     state: "expanded",
     draggingEnabled: true,
     layout: {adjustForNewBounds: true},
+    isTextEditor: true,
     submorphs: [{
         _BorderWidth: 1,
         _Position: lively.pt(4.0,22.0),

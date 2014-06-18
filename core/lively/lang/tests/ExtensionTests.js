@@ -761,7 +761,13 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.Strings', {
               + '\nwith:\n'+ ea.pattern
               + '\nbecause:\n ' + Objects.inspect(match));
         }, this);
-    }
+    },
+
+    testReMatches: function() {
+        var string = 'abc def abc xyz';
+        var expected = [{start: 4, end: 11, match: "def abc"}];
+        this.assertEqualState(expected, Strings.reMatches(string, /def\s[^\s]+/));
+    },
 
 });
 

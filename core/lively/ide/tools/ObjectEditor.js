@@ -1282,6 +1282,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 code = this.generateSourceForConnection(connection);
             }
             this.displayJavaScriptSource(code);
+            this.updateTitleBar();
         },
         displaySourceForScript: function displaySourceForScript(scriptName) {
     var codeSpec = scriptName ?
@@ -1293,6 +1294,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             mode: 'javascript'
         }
     this.displayJavaScriptSource(codeSpec.code, codeSpec.scriptName, codeSpec.mode);
+    this.updateTitleBar();
 },
         generateSourceForConnection: function generateSourceForConnection(connection) {
             var c = connection, targetObject = this.target;
@@ -1503,6 +1505,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         
             this.stopStepping();
             this.startStepping(500/*ms*/, 'update'); 
+            this.updateTitleBar();
         },
         sortedConnectionNamesOfObj: function sortedConnectionNamesOfObj(obj) {
     return obj.attributeConnections ?
@@ -1545,7 +1548,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             if (!Arrays.equal(connectionListItems, this.connectionList.getList())) {
                 this.connectionList.setList(connectionListItems);
             }
-        }
+        },
+        
+        updateTitleBar: function updateTitleBar() {
+        var targetName = this.target ? this.target.name || String(this.target) : '',
+            methodName = this.get('ObjectEditorScriptList').selection,
+                title = Strings.format('ObjectEditor%s%s',
+                targetName ? ' -- ' + targetName : '',
+                targetName && methodName ? '>>' + methodName : '');
+        this.getWindow().setTitle(title);
+    }
     }],
     titleBar: "ObjectEditor",
     initiateShutdown: function initiateShutdown(force) {

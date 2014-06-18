@@ -158,9 +158,10 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     });
 },
     expand: function expand() {
-    var self = this;
-    var isConnected = lively.net.SessionTracker.isConnected();
-    var items = [];
+    var self = this,
+        items = [],
+        isConnected = lively.net.SessionTracker.isConnected(),
+        allowRemoteEval = !!lively.Config.get('lively2livelyAllowRemoteEval');
     if (!isConnected) {
         items.push(['connect', function() {
             lively.net.SessionTracker.resetSession();
@@ -176,6 +177,10 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         }],
         ['open inspector', function() {
             lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter().comeForward();
+            self.collapse();
+        }],
+        ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {
+            lively.Config.set('lively2livelyAllowRemoteEval', !allowRemoteEval);
             self.collapse();
         }],
         ['reset connection', function() {

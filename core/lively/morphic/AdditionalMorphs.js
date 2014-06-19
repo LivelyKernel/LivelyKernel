@@ -58,18 +58,6 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         return this.pixelRatio;
     },
 
-    getCanvasExtent: function() {
-        var canvas = this.getContext().canvas;
-        return pt(canvas.width, canvas.height);
-    },
-
-    setCanvasExtent: function(ext) {
-        var canvas = this.getContext().canvas;
-        canvas.width = ext.x;
-        canvas.height = ext.y;
-        return ext;
-    },
-
     clear: function() {
         var ctx = this.getContext(),
             extent = this.getExtent(),
@@ -132,9 +120,8 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     fromImageMorph: function(imgMorph) {
         var imgNode = imgMorph.renderContext().imgNode;
         var ext = pt(imgNode.naturalWidth, imgNode.naturalHeight);
-        this.adaptCanvasSizeHTML(this.renderContext(), this.getExtent(), ext);
-        this.getContext().drawImage(imgNode, 0,0);
         this.setExtent(ext);
+        this.getContext().drawImage(imgNode, 0,0);
         return this;
     },
 

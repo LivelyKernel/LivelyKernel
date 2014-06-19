@@ -1044,7 +1044,13 @@ Trait('lively.persistence.StateSync.SynchronizedListMixin').mixin().applyTo(live
 Trait('lively.persistence.StateSync.SynchronizedSliderMixin',
 'modelCreation', {
     connectTo: function(targetObj, targetMethodName, options) {
-        connect(this, "value", targetObj, targetMethodName, options)
+        connect(this, "value", targetObj, targetMethodName, {updater:
+        function ($upd, value) {
+            this.sourceObj.changeTime = Date.now();
+            if (typeof this.targetObj[this.targetMethodName] == "function")
+                Functions.debounceNamed(this.sourceObj.id + "-slideValueChange", 20, $upd)(value, this.sourceObj, this);
+        }});
+
     },
     getModelData: function() {
         this.changeTime = Date.now();

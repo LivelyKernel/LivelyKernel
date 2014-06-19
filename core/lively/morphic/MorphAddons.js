@@ -432,7 +432,7 @@ lively.morphic.Morph.addMethods(
 
     getGridPoint: function() {
         return this.owner && this.owner.layout && this.owner.layout.grid ?
-            this.owner.layout.grid : pt(10,10);
+            this.owner.layout.grid : pt(Config.get('gridSpacing'), Config.get('gridSpacing'));
     }
 
 },

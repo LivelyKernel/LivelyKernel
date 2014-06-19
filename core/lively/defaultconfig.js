@@ -396,7 +396,7 @@ Config.addOptions(
     ["changeLocationOnSaveWorldAs", false],
     ["showWorldSave", true],
 
-    ["alignToGridSpace", 10, "determins the pixels to snap to during shift dragging with mouse"],
+    ["gridSpacing", 10, "determins the pixels to snap to alt-dragging the drag halo"],
 
     // Tests
     ["serverInvokedTest", false],

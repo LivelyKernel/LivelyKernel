@@ -645,6 +645,33 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             );
         console.log(escodegen.generate(result));
         this.assertASTMatchesCode(result, expected);
+    },
+
+    test31aDebuggerStatementInIf: function() {
+        var src = 'if (true) debugger; else 1;',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'if (true) {\n' +
+                this.debuggerThrow() +
+                '} else\n' +
+                '1;\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test31bDebuggerStatementInElse: function() {
+        var src = 'if (true) 1; else debugger;',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                'if (true)\n' +
+                '1;\n' +
+                'else {\n' +
+                this.debuggerThrow() +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
     }
 
 });

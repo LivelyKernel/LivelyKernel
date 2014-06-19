@@ -1061,6 +1061,27 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         };
     },
 
+    visitIfStatement: function(n, rewriter) {
+        n.test = this.accept(n.test, rewriter);
+
+        // Since visitDebuggerStatement creates an if block,
+        // make sure to wrap it in a block when it is the only statement
+        var newNode = this.accept(n.consequent, rewriter);
+        if (n.consequent.type == 'DebuggerStatement')
+            n.consequent = rewriter.newNode('BlockStatement', { body: [newNode] });
+        else
+            n.consequent = newNode;
+
+        if (n.alternate) {
+            newNode = this.accept(n.alternate, rewriter);
+            if (n.alternate.type == 'DebuggerStatement')
+                n.alternate = rewriter.newNode('BlockStatement', { body: [newNode] });
+            else
+                n.alternate = newNode
+        }
+        return n;
+    },
+
     visitDebuggerStatement: function(n, rewriter) {
         // do something to trigger the debugger
         var start = n.start, end = n.end, astIndex = n.astIndex;

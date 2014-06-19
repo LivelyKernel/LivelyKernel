@@ -200,8 +200,14 @@ lively.BuildSpec('lively.ide.tools.Differ', {
                 thenDo && thenDo(null, diff);
             });
         } else {
-            var patch = JsDiff.createPatch("foo", stringA, stringB);
-            thenDo && thenDo(null, patch);
+            var diff = JsDiff.createPatch("foo", stringA, stringB);
+            resultText.textString = diff;
+            resultText.emphasizeRegex(/^-.*/gm, {backgroundColor: Color.red, color: Color.white});
+            resultText.emphasizeRegex(/^\+.*/gm, {backgroundColor: Color.green, color: Color.white});
+            lively.bindings.noUpdate(function() {
+                this.get('typeSelector').selectAllAt([this.get('typeSelector').itemList.indexOf("unified")])
+            }.bind(this));
+            thenDo && thenDo(null, diff);
         }
     },
     diffWithJsDiff: function diffWithJsDiff(stringA, stringB, options, thenDo) {
@@ -263,7 +269,7 @@ lively.BuildSpec('lively.ide.tools.Differ', {
 });
 
 function createDiffer() {
-    return lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter();
+    return lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward();
 }
 
 Object.extend(lively.ide, {
@@ -276,6 +282,9 @@ Object.extend(lively.ide, {
         return lively.ide.diffJSON(jsonA, jsonB, options, thenDo);
     },
     diffVersions: function(urlOrPath, versionA, versionB, options, thenDo) { return createDiffer().diffVersions(urlOrPath, versionA, versionB, options, thenDo); },
+    diffNonInteractive: function(file, stringA, stringB, thenDo) {
+        thenDo(null, JsDiff.createPatch(file, stringA, stringB));
+    }
 });
 
 }) // end of module

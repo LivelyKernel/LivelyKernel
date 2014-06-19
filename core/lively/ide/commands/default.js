@@ -895,6 +895,82 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
+
+    'lively.ide.diffWorkspaces': {
+        description: 'diff workspaces',
+        exec: function(editor1, editor2) {
+
+            var editors;
+
+            Functions.composeAsync(
+                fetchEditorsIfRequired,
+                selectEditor1,
+                selectEditor2,
+                doDiff,
+                showDiff
+            )();
+
+            function fetchEditorsIfRequired(next) {
+                if (!editor1 || !editor2) editors = $world.withAllSubmorphsSelect(function(ea) {
+                    return ea.isCodeEditor && !ea.isCommandLine; }).reverse();
+                next(null);
+            }
+
+            function selectEditor1(next) {
+                if (editor1) next(null, editor1);
+                else selectMorph(editors, next);
+            }
+
+            function selectEditor2(editor1, next) {
+                if (editor2) next(null, editor1, editor2);
+                else selectMorph(editors.without(editor1), function(err, editor2) {
+                    next(err, editor1, editor2); });
+            }
+
+            function doDiff(ed1, ed2, next) {
+                var fn1 = ed1.getTargetFilePath() || 'no file',
+                    fn2 = ed2.getTargetFilePath() || 'no file';
+                var fn = fn1 === fn2 ? fn1 : fn1 + ' vs. ' + fn2;
+                lively.ide.diffNonInteractive(fn, ed1.textString, ed2.textString, function(err, diff) {
+                    next(err, fn, diff); });
+            }
+
+            function showDiff(fn, diff, next) {
+                lively.require('lively.ide.tools.Differ').toRun(function() {
+                    $world.addCodeEditor({
+                        title: "diff " + fn,
+                        content: diff,
+                        textMode: 'diff',
+                        extent: pt(700, 600)
+                    }).getWindow().comeForward();
+                    next();
+                })
+            }
+
+            function selectMorph(morphs, thenDo) {
+                var candidates = morphs.map(function(ea) {
+                    return {isListItem: true, value: ea, string: ea.name || String(ea)};
+                });
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                    name: 'lively.ide.diffWorkspaces',
+                    setup: function(narrower) { lively.bindings.connect(narrower, 'selection', Global, 'show'); },
+                    input: '',
+                    spec: {
+                        prompt: 'choose editor: ',
+                        candidates: candidates,
+                        actions: [function choose(morph) { thenDo(null, morph); }]
+                    }
+                });
+            }
+
+            // require('lively.ide.tools.Differ').toRun(function() {
+            //     lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward();
+            // });
+
+            return true;
+        }
+    },
+
     'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},
     'lively.ide.openDirViewer': {
         description: 'open directory viewer',

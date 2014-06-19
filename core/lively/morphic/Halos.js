@@ -271,7 +271,9 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         return true;
     },
     onDragEnd: function(evt) {
-        this.targetMorph.halos.invoke('alignAtTarget');
+        if (this.targetMorph.halos) {
+            this.targetMorph.halos.invoke('alignAtTarget');
+        }
         if (this.infoLabel) this.infoLabel.remove();
         this.dragEndAction(evt);
         return true;

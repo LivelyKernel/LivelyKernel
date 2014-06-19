@@ -1619,10 +1619,13 @@ lively.morphic.World.addMethods(
         return part;
     },
 
-    openVersionViewer: function(evt) {
+    openVersionViewer: function(path) {
        require('lively.net.tools.Wiki').toRun(function() {
-           var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
-           versionViewer.setPath(URL.source.relativePathFrom(URL.root));
+           var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter().comeForward();
+           var relPath = path ?
+               (URL.isURL(path) ? new URL(path).relativePathFrom(URL.root) : path) :
+               URL.source.relativePathFrom(URL.root);
+           versionViewer.setAndSelectPath(relPath);
         });
     },
 

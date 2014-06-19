@@ -522,6 +522,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             borderColor: this.highlightColor,
         });
         this.boundsRect = boundsRect;
+        boundsRect.isEpiMorph = true;
         boundsRect.disableEvents();
     },
 },
@@ -593,7 +594,10 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     becomeHighlighted: function() {
         var targetMorph = this.target;
         this.setFill(this.highlightColor);
-        this.target.owner.addMorph(this.boundsRect);
+        if (this.target.owner)
+            this.target.owner.addMorph(this.boundsRect);
+        else
+            debugger;
 
         if (targetMorph.hasOwnProperty("onFocus")){
             connect(targetMorph, "onFocus", this, "becomeNormal", { removeAfterUpdate: true })

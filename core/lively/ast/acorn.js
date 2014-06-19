@@ -142,12 +142,14 @@ module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: fu
         return nodes;
     };
 
-    acorn.walk.addSource = function(ast, source, completeSrc) {
+    acorn.walk.addSource = function(ast, source, completeSrc, forceNewSource) {
         source = Object.isString(ast) ? ast : source;
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
         completeSrc = !!completeSrc;
         return acorn.walk.forEachNode(ast, function(node) {
-            node.source || (node.source = completeSrc ? source : source.slice(node.start, node.end));
+            if (!node.source && !forceNewSource) return
+            node.source = completeSrc ?
+                source : source.slice(node.start, node.end);
         });
     };
 

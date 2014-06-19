@@ -1943,7 +1943,8 @@ lively.morphic.World.addMethods(
                 ['Set username', this.askForUserName.bind(this)],
                 ['My user config', this.showUserConfig.bind(this)],
                 ['Set world extent', this.askForNewWorldExtent.bind(this)],
-                ['Set background color', this.askForNewBackgroundColor.bind(this)]]
+                ['Set background color', this.askForNewBackgroundColor.bind(this)],
+                ['Set grid spacing', function() { lively.ide.commands.exec("lively.morphic.Morph.setGridSpacing") }]]
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [

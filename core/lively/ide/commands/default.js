@@ -191,6 +191,21 @@ Object.extend(lively.ide.commands.byName, {
         },
     },
 
+    'lively.morphic.Morph.setGridSpacing': {
+        description: 'set grid spacing',
+        exec: function(spacing) {
+            if (spacing) lively.Config.set("gridSpacing", spacing);
+            else {
+                $world.prompt('Set grid spacing to', function(input) {
+                    var n = Number(input);
+                    if (!n || isNaN(n)) $world.inform('Not a valid input: "' + input + '"');
+                    lively.Config.set("gridSpacing", n);
+                }, lively.Config.get("gridSpacing"));
+            }
+            return true;
+        },
+    },
+
     // lists
     'lively.morphic.List.selectItem': {
         exec: function() {

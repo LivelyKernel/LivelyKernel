@@ -1515,8 +1515,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         // a codeeditor can target a file. This method figures out if the
         // current one does
         var win = this.getWindow();
-        if (!win || !win.getLocation) return null;
-        return win.getLocation(true);
+        if (!win) return null;
+
+        // text editor 
+        if (win.getLocation) return win.getLocation(true);
+
+        // SCB
+        if (win.targetMorph && win.targetMorph.ownerWidget && win.targetMorph.ownerWidget.isSystemBrowser) {
+            var mod = win.targetMorph.ownerWidget.getSelectedModule();
+            if (mod) return String(mod.uri());
+        }
+
+        return null;
     }
 });
 

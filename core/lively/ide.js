@@ -8,10 +8,6 @@ if (Config.get("useAceEditor")) {
     module("lively.ide.CodeEditor").load();
 }
 
-if (Config.get('improvedJavaScriptEval')) {
-    module("lively.ide.JSEvaluation").load();
-}
-
 if (Config.get('useHistoryTracking', true)) {
     module("lively.ide.SystemCodeBrowserAddons").load();
 }

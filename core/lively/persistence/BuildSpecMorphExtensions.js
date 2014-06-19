@@ -138,7 +138,7 @@ lively.morphic.List.addMethods(
     },
     onFromBuildSpecCreated: function($super) {
         $super();
-        this.setList(this.itemList || []);
+        return this.setList(this.itemList || []);
     }
 });
 
@@ -292,7 +292,15 @@ lively.morphic.MorphList.addMethods(
         this.setList(this.itemList || []);
     },
     buildSpecProperties: {
-        itemList: {}
+        itemList: {recreate: function(instance, spec) { 
+            spec.storedItems && spec.storedItems.forEach(function(item) { instance.addItem(item); }) 
+            }
+        },
+        itemMorphs: {exclude: true}
+    },
+    buildSpec: function() {
+        var spec = $super();
+        spec.storedItems = this.itemList.map(function(item) { return item.morph.buildSpec() });
     }
 });
 

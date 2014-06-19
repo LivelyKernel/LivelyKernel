@@ -12,7 +12,8 @@ var log = function log(/*args*/) {
 
 function withDBDo(doFunc) {
     // FIXME
-    doFunc(null, lively.repository.fs.storage.db);
+    var db = lively.repository.fs.storage.db;
+    doFunc(db ? null : new Error('Cannot access database'), db);
 }
 
 function handleGetASTRegistryIndex(query, thenDo) {

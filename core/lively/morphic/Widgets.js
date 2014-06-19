@@ -2489,7 +2489,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                     }, self.titleBar.getTitle());
                 }]);
 
-                items.splice(2, 0, ['Resize...', ["reset","full","left","center","right","top","bottom"].map(function(how) {
+                items.splice(2, 0, ['Resize...', ["reset","fullscreen","left","center","right","top","bottom"].map(function(how) {
                     return [how, function() { lively.ide.commands.exec('lively.ide.resizeWindow', how, self)}];
                 })]);
 

@@ -315,7 +315,7 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTrait
         trait.remove();
         this.assertEquals(5, obj.m2());
         
-    }
+    },
 });
 
 }) // end of module

@@ -198,6 +198,59 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
         if (oldValue === undefined || newValue === undefined) getCb(newValue)
         else storeCb(oldValue, newValue)
     },
+    searchFor: function(aString, thenDo) {
+        // should return an array of objects which contain aString's words
+        // the objects structure is {path, shortString, changeTime}
+
+        var global = {lively: lively};
+        // copy from the StateSynchronization subserver
+        var searchForIn = function(searchStrings, object, initialPath) {
+            var searchInString = (function searchInString(string) {
+                    return searchStrings.all(function(searchString) {
+                        return searchString.test(string)});
+                }),
+                searchInObject = (function searchInObject(object) {
+                    if (typeof object === 'string') {
+                        return searchInString(object)
+                    } else if (typeof object === 'object') {
+                        return Object.getOwnPropertyNames(object).any(function(name) {
+                            if (searchInString(name)) {
+                                return true
+                            } else {
+                                return searchInObject(object[name])
+                            }
+                        })
+                    } else {
+                        return false
+                    }
+                })
+            var result = [];
+            // search through the contents of the db and remember all paths which had searchString in them or
+            (function search(object, path) {
+                if(object.hasOwnProperty("length")) {
+                    for(var i = 0; i < object.length; i++){
+                        if (searchInObject(object[i]))
+                            result.push({path: path.concat(i + ""),
+                                        shortString: object[i].shortString,
+                                        changeTime: object[i].changeTime,
+                                        author: object[i].author,
+                                    })
+                    }
+                } else {
+                    try {
+                        Object.getOwnPropertyNames(object).forEach(function(name) {
+                            search(object[name], path.concat(name))
+                        })
+                    }
+                    catch (e){ /* stop recursion */ }
+                }
+            })(object, global.lively.PropertyPath(initialPath || ""));
+            return result
+        };
+
+        thenDo(searchForIn(aString.split(/\s/).collect(function(ea) { return new RegExp(ea, "im")}),
+            this._store.db));
+    },
 
     drop: function(thenDo) {
         if (!thenDo) return
@@ -245,7 +298,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
         } catch(e) {
             return 'StoreHandle(' + this.fullPath() + ')'
         }
-    }
+    },
 });
 
 lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHandle',
@@ -307,6 +360,16 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         }
         if (!sess) alert("Connection not available. Setting aborted.");
         else send(newV, oldV);
+    },
+    searchFor: function(aString, thenDo) {
+        // should return an array of objects which contain aString's words
+        // the objects structure is {path, shortString, changeTime}
+        var sess = lively.net.SessionTracker.getSession();
+        if (!sess) return alert("Please reconnect to the database server.")
+        sess.send("syncSearch", aString, function(msg) {
+            if (msg.error || msg.data.error) return alert(msg.error || msg.data.error);
+            else return thenDo(msg.data);
+        });
     },
 
     drop: function(thenDo) {

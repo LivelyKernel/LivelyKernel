@@ -89,7 +89,7 @@ var retry = function(connection, msg) {
 };
 
 var searchForIn = function(searchStrings, object, initialPath) {
-        searchInString = (function searchInString(string) {
+    var searchInString = (function searchInString(string) {
             return searchStrings.all(function(searchString) { 
                 return searchString.test(string)});
         }),

@@ -482,7 +482,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             }]
         }],
         browse: function browse() {
-        this.currentFrame && this.currentFrame.func.browse();
+        try {
+            this.currentFrame && this.currentFrame.func &&
+                this.currentFrame.func.browse(this.currentFrame.getThis());
+        } catch (e) {
+            alert(e.message);
+        }
     },
         reset: function reset() {
         this.doNotSerialize = ['topFrame', 'currentFrame'];
@@ -521,7 +526,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         var frames = [];
         var frame = topFrame;
         do {
-            var name = frame.func.name() || '(anonymous function)';
+            var name = this.getFunctionName(frame.func, frame.getThis());
             frames.push({
                 isListItem: true,
                 string: frame.isResuming() ? name : name + " [native]",
@@ -574,6 +579,25 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 this.getWindow().setTitle(result.toString());
         } else
             this.setCurrentFrame(frame); // simple pc advancement
+    },
+        getFunctionName: function getFunctionName(func, obj) {
+            var fn = func.asFunction(),
+                name = '';
+            // TODO: use qualifiedMethodName instead?
+            if (fn.displayName) {
+                if (fn.declaredClass)
+                    name = fn.displayName.replace('$', ' >> ') + ' (proto)';
+                else if (lively.Class.isClass(obj))
+                    name = obj.name + ' >> ' + fn.displayName + ' (static)';
+                else
+                    name = fn.displayName;
+            } else if (func.name()) {
+                if (obj.isMorph)
+                    name = obj.getName() + '(' + obj.id + ') >> ';
+                name += func.name() + ' (script)';
+            } else
+                name = '(anonymous function)';
+            return name;
     }
     })],
     titleBar: "Debugger"

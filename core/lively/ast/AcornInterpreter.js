@@ -1035,11 +1035,17 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             // TODO: reactivate when necessary
             // evaluatedSource: function() { return ...; },
             // custom Lively stuff
-            methodName: this.name(),
+            methodName: (optFunc && optFunc.methodName) || this.name(),
+            declaredClass: (optFunc && optFunc.declaredClass),
+            sourceModule: (optFunc && optFunc.sourceModule),
             argumentNames: function() {
                 return self.argNames();
             }
         });
+        if (fn.methodName && fn.declaredClass)
+            fn.displayName = fn.declaredClass + '$' + fn.methodName;
+        else if (optFunc && optFunc.displayName)
+            fn.displayName = optFunc.displayName;
 
         if (optFunc) {
             fn.prototype = optFunc.prototype;
@@ -1134,6 +1140,23 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
     resume: function(frame) {
         return this.basicApply(frame);
+    }
+
+},
+'meta programming', {
+
+    browse: function(thisObject) {
+        var fn = this.asFunction();
+        if (fn.sourceModule && fn.methodName && fn.declaredClass) {
+            $world.browseCode(fn.declaredClass, fn.methodName, fn.sourceModule.name());
+        } else if (thisObject && lively.Class.isClass(thisObject) && fn.displayName) {
+            $world.browseCode(thisObject.name, fn.displayName, (fn.sourceModule || thisObject.sourceModule).name());
+        } else if (thisObject && thisObject.isMorph) {
+            var ed = $world.openObjectEditorFor(thisObject);
+            ed.targetMorph.get('ObjectEditorScriptList').setSelection(fn.methodName || this.name());
+        } else
+            //TODO: Add browse implementation for other functions
+            throw new Error('Cannot browse anonymous function ' + this);
     }
 
 });

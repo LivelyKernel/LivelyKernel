@@ -3,6 +3,10 @@ module('lively.morphic.AdditionalMorphs').requires('lively.morphic.Halos', 'live
 lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
 'settings', {
 
+    preserveContents: true,     // store pixel data when saving morph and resizing canvas
+
+    pixelRatio: pt(1, 1),       // ratio of canvas pixels to css pixels
+    
     defaultExtent: pt(300, 300)
 
 },
@@ -24,9 +28,34 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     setExtent: function($super, extent) {
-        var prevExtent = this.getExtent();
         $super(extent);
-        this.renderContextDispatch('adaptCanvasSize', prevExtent, extent);
+        this.renderContextDispatch('adaptCanvasSize', extent);
+    },
+
+    setCanvasExtent: function(canvasExtent) {
+        // set canvas extent without changing morph extent by adjusting pixelRatio
+        var morphExtent = this.getExtent();
+        this.pixelRatio = pt(canvasExtent.x / morphExtent.x, canvasExtent.y / morphExtent.y);
+        this.renderContextDispatch('adaptCanvasSize', morphExtent);
+    },
+
+    getCanvasExtent: function() {
+        // canvas extent for drawing is different if pixelRatio was changed
+        var canvas = this.getContext().canvas;
+        return pt(canvas.width, canvas.height); 
+    },
+    
+    getCanvasBounds: function() {
+        return this.getCanvasExtent().extentAsRectangle();
+    },
+
+    setPixelRatio: function(ratio) {
+        this.pixelRatio = ratio;
+        this.renderContextDispatch('adaptCanvasSize', this.getExtent());
+    },
+
+    getPixelRatio: function(ratio) {
+        return this.pixelRatio;
     },
 
     getCanvasExtent: function() {
@@ -54,15 +83,27 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         }
     },
 
-    onCanvasChanged: function() {
+    onCanvasWillChange: function(newExtent, oldExtent) {
+        // canvas is about to lose its contents (size changed)
+        // the value returned from here will be passed into onCanvasChanged() 
+        // the default is to save pixels and restore them in onCanvasChanged()
+        if (this.preserveContents)
+            return this.getImageData();
+    },
+
+    onCanvasChanged: function(newExtent, oldExtent, savedData) {
         // canvas created or loaded or size changed, need to redraw contents
+        // the default is to draw the pixels saved by onCanvasWillChange()
+        if (savedData && savedData.constructor === ImageData)
+            this.putImageData(savedData);
     }
 
 },
 'serialization', {
     onstore: function($super) {
         $super();
-        this._canvasSerializationDataURI = this.toDataURI();
+        if (this.preserveContents)
+            this._canvasSerializationDataURI = this.toDataURI();
     },
 
     onrestore: function($super) {
@@ -98,7 +139,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     toImage: function() {
-        return lively.morphic.Image.fromURL(this.toDataURI(), this.getExtent().extentAsRectangle());
+        return lively.morphic.Image.fromURL(this.toDataURI(), this.getCanvasBounds());
     },
 
     toImageDataArray: function(optBounds) {
@@ -142,7 +183,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
 },
 'image data', {
     getImageData: function(optBounds) {
-        optBounds = optBounds || this.innerBounds();
+        optBounds = optBounds || this.getCanvasBounds();
         return this.getContext().getImageData(
             optBounds.left(),optBounds.top(),
             optBounds.width, optBounds.height);
@@ -283,7 +324,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     replaceColor: function(fromColor, toColor, replacementBounds) {
-        replacementBounds = replacementBounds || this.innerBounds();
+        replacementBounds = replacementBounds || this.getCanvasBounds();
         if (fromColor.isColor) fromColor = fromColor.toTuple8Bit();
         if (toColor.isColor) toColor = toColor.toTuple8Bit();
         var ctx = this.getContext(),
@@ -321,17 +362,22 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     createCanvasNodeHTML: function(ctx) {
         return XHTMLNS.create('canvas');
     },
-    adaptCanvasSizeHTML: function(ctx, oldExtent, newExtent) {
-        if (this._adaptCanvasSizeHTMLInProgress) return;
+    adaptCanvasSizeHTML: function(ctx, morphExtent) {
+        if (!morphExtent || this._adaptCanvasSizeHTMLInProgress) return;
         this._adaptCanvasSizeHTMLInProgress = true;
         try {
-            if (oldExtent && newExtent && (oldExtent.x !== newExtent.x || oldExtent.y !== newExtent.y)) {
-                var $node = lively.$(ctx.shapeNode),
-                    imgData = this.getImageData();
-                $node.attr('width', newExtent.x);
-                $node.attr('height', newExtent.y);
-                this.putImageData(imgData, newExtent.x, newExtent.y);
-                this.onCanvasChanged();
+            var canvas = ctx.shapeNode,
+                oldWidth = canvas.width,
+                oldHeight = canvas.height,
+                newWidth = morphExtent.x * this.pixelRatio.x | 0, 
+                newHeight = morphExtent.y * this.pixelRatio.y | 0;
+            if (oldWidth !== newWidth || oldHeight !== newHeight) {
+                var oldExt = pt(oldWidth, oldHeight),
+                    newExt = pt(newWidth, newHeight);
+                var data = this.onCanvasWillChange(newExt, oldExt);
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                this.onCanvasChanged(newExt, oldExt, data);
             }
         } finally {
             this._adaptCanvasSizeHTMLInProgress = false;

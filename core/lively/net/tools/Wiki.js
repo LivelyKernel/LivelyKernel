@@ -216,6 +216,13 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         this.get('pathText').textString = path;
         this._path = path; this.getVersions();
     },
+        setAndSelectPath: function setAndSelectPath(path) {
+            this.setPath(path);
+            (function() {
+               this.get('pathText').focus();
+               this.get('pathText').selectAll();
+           }).bind(this).delay(0);
+        },
         showResult: function showResult(err, versions) {
             if (err) { show(err); versions && show(versions); return; }
             var items = versions.map(function(version) {
@@ -266,6 +273,9 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
     titleBar: "VersionViewer",
     setPath: function setPath(p) {
     this.targetMorph.setPath(p);
+},
+    setAndSelectPath: function setAndSelectPath(p) {
+    this.targetMorph.setAndSelectPath(p);
 }
 });
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

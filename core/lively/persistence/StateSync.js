@@ -814,16 +814,19 @@ Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function connectSavingProperties(anObject, options) {
     // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
     if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
+
+    var connectionOptions = {
+        updater: function($upd, value) {
+            this.sourceObj.changeTime = Date.now();
+            if (typeof this.targetObj[this.targetMethodName] == "function")
+                $upd(value, this.sourceObj, this);
+    }}
+    if (anObject.connectTo) return anObject.connectTo(anObject, "save", connectionOptions);
     (function walkRecursively(syncMorph) {
         this.submorphs.forEach(function(morph) {
             if (morph.name)
                 if (morph.connectTo)
-                    morph.connectTo(syncMorph, "save", {
-                        updater: function($upd, value) {
-                            this.sourceObj.changeTime = Date.now();
-                            if (typeof this.targetObj[this.targetMethodName] == "function")
-                                $upd(value, this.sourceObj, this);
-                    }});
+                    morph.connectTo(syncMorph, "save", connectionOptions);
                 else walkRecursively.call(morph, syncMorph)
         });
     }).call(anObject, anObject)

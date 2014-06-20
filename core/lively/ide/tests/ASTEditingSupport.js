@@ -67,7 +67,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         var src = "this.foo(bar, 23);";
         // this.foo(bar, 23);
         // lively.ast.acorn.nodeSource(src, lively.ast.acorn.nodesAt(5, src).last())
-        // acorn.walk.print(acorn.walk.findNodesIncluding(ast, 8))
+        // lively.ast.acorn.printAst(src)
         // acorn.walk.findNodesIncluding(ast, 8)
         var nav = this.sut;
         this.assertEquals(0, nav.backwardSexp(src, 18));

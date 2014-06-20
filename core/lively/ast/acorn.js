@@ -43,6 +43,8 @@ var acornLibs = [
 
 module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
 
+module('lively.ast.AstHelper').load();
+
 Object.extend(acorn.walk, {
 
     forEachNode: function(ast, func, state, options) {
@@ -782,6 +784,20 @@ Object.extend(acorn.walk, {
             return visitors[node.type](node, c);
         }
         return c(ast);
+    },
+
+    findSiblings: function(ast, node, beforeOrAfter) {
+        if (!node) return [];
+        var nodes = acorn.walk.findNodesIncluding(ast, node.start),
+            idx = nodes.indexOf(node),
+            parents = nodes.slice(0, idx),
+            parentWithBody = parents.reverse().detect(function(p) { return Object.isArray(p.body); }),
+            siblingsWithNode = parentWithBody.body;
+        if (!beforeOrAfter) return siblingsWithNode.without(node);
+        var nodeIdxInSiblings = siblingsWithNode.indexOf(node);
+        return beforeOrAfter === 'before' ?
+            siblingsWithNode.slice(0, nodeIdxInSiblings) :
+            siblingsWithNode.slice(nodeIdxInSiblings + 1);
     }
 
 });
@@ -900,19 +916,6 @@ Object.extend(lively.ast.acorn, {
     nodesAt: function(pos, ast) {
         ast = Object.isString(ast) ? this.parse(ast) : ast;
         return acorn.walk.findNodesIncluding(ast, pos);
-    },
-
-    transformReturnLastStatement: function(source) {
-        // lively.ast.acorn.transformReturnLastStatement('foo + 3;\n this.baz(99 * 3) + 4;')
-        // source = that.getTextRange()
-        var ast = lively.ast.acorn.parse(source),
-            last = ast.body.pop(),
-            newLastsource = 'return ' + lively.ast.acorn.nodeSource(source, last),
-            newLast = lively.ast.acorn.fuzzyParse(newLastsource).body.last(),
-            newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
-        ast.body.push(newLast);
-        ast.end += 'return '.length
-        return lively.ast.acorn.nodeSource(newSource, ast);
     }
 
 });

@@ -116,6 +116,52 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 
 });
 
+TestCase.subclass('lively.ast.tests.Transforming',
+'testing', {
+
+    testTransformToReturnLastStatement: function() {
+        var code = "var z = foo + bar; baz.foo(z, 3)",
+            expected = "var z = foo + bar; return baz.foo(z, 3)",
+            transformed = lively.ast.transform.returnLastStatement(code);
+        this.assertEquals(expected, transformed);
+    }
+
+})
+
+TestCase.subclass('lively.ast.tests.Querying',
+'testing', {
+
+
+    testFindVarDeclarationsInScopes: function() {
+
+        var code = "var decl1 = {prop: 23};\n"
+                 + "function foo(arg1, arg2) {\n"
+                 + "    var decl2;\n"
+                 + "    var decl3 = 23, decl4 = 42;\n"
+                 + "    return decl3 + decl4;\n"
+                 + "    function xxx() { return this.yyy }\n"
+                 + "}\n";
+
+        var ast = acorn.walk.addSource(code, null, null, true);
+
+        var result = lively.ast.query.findDeclarationsAtPos(0, ast);
+        var expected = ["decl1", "foo"];
+        this.assertEquals(expected, result.pluck('id').pluck('name'), "1");
+
+        var result = lively.ast.query.findDeclarationsAtPos(65, ast);
+        var expected = ["decl1", "foo", "decl2", "xxx"];
+        this.assertEquals(expected, result.pluck('id').pluck('name'), "2");
+    },
+
+    testFindTopLevelDeclarationsInSource: function() {
+        var code = "var x = 3;\n function baz() { var zork; return xxx; }\nvar y = 4, z;\nbar = 'foo';"
+        var decls = lively.ast.query.findTopLevelDeclarationsInSource(code);
+        var expected = ["x", "baz", "y", "z"];
+        this.assertEquals(expected, decls.pluck('id').pluck('name'), "1");
+    }
+
+});
+
 TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
 'testing', {
 

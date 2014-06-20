@@ -110,7 +110,7 @@ function write(storeName, pathString, value, precondition, clientId, thenDo) {
         // console.log('Store: stored %s in %s', i(value), path);
         fs.writeFile(folder + '/' + storeName + fileStoreSuffix, JSON.stringify(storePath.get(inMemoryStores)), function(err) { if(err) { console.warn(err); } });
     } else { 
-        console.warn('Store: could not store %s in %s, error: %s', value, path, i(err));
+        // console.warn('Store: could not store %s in %s, error: %s', value, path, i(err));
     }
     thenDo(err);
 }

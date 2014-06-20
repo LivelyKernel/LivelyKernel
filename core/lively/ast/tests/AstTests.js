@@ -119,10 +119,44 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
 TestCase.subclass('lively.ast.tests.Transforming',
 'testing', {
 
+    testReplaceNode: function() {
+        var code = 'var x = 3 + foo();',
+            ast = lively.ast.acorn.parse(code),
+            toReplace = ast.body[0].declarations[0].init.left,
+            replacement = {
+                start: 8, end: 9,
+                loc: {
+                  end: {column: 9, line: 1},
+                  start: {column: 8, line: 1}
+                },
+                type: "Literal",
+                value: "baz"
+            },
+            transformed = lively.ast.transform.replaceNode(ast, toReplace, replacement),
+            transformedString = lively.ast.acorn.stringify(transformed),
+            expected = 'var x = \'baz\' + foo();'
+
+        this.assertEquals(expected, transformedString);
+    },
+
     testTransformToReturnLastStatement: function() {
         var code = "var z = foo + bar; baz.foo(z, 3)",
             expected = "var z = foo + bar; return baz.foo(z, 3)",
             transformed = lively.ast.transform.returnLastStatement(code);
+        this.assertEquals(expected, transformed);
+    },
+
+    testTransformTopLevelVarDeclsForCapturing: function() {
+        var code = "var z = foo + bar; baz.foo(z, 3)",
+            expected = "Global.z = foo + bar; baz.foo(z, 3)",
+            transformed = lively.ast.transform.topLevelVarDecls(code, {declSubstitute: 'Global.'});
+        this.assertEquals(expected, transformed);
+    },
+
+    testTranformTopLevelVarDeclsForCapturing: function() {
+        var code = "var z = foo + bar; baz.foo(z, 3)",
+            expected = "Global.z = foo + bar; baz.foo(z, 3)",
+            transformed = lively.ast.transform.topLevelVarDecls(code, {declSubstitute: 'Global.'});
         this.assertEquals(expected, transformed);
     }
 

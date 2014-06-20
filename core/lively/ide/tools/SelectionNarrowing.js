@@ -65,7 +65,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             filtered: candidates.select(function(ea) {
                 return regexps.all(function(re) {
                     var string = container.candidateToString(ea);
-                    return string.match(re); }); }) 
+                    return string.match(re); }); })
         }
     },
 
@@ -269,9 +269,20 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         return state.filteredCandidates[this.currentSel];
     },
 
-    getActions: function getActions(state) {
-        return state.actions || state.spec.actions || [];
+    showFilteredItems: function showFilteredItems(state) {
+        $world.addCodeEditor({
+            title: "Contents of " + this.name,
+            content: state.filteredCandidates.pluck('string').join('\n'),
+            textMode: "text"
+        }).getWindow().openInWorldCenter().comeForward();
     },
+
+    getActions: function getActions(state) {
+        var actions = state.actions || state.spec.actions || [];
+        actions.push({name: "open filtered items in workspace", exec: this.showFilteredItems.bind(this, state)})
+        return actions;
+    },
+
     getAction: function getAction(state, n) {
         n = n || 0;
         return this.getActions(state)[n] || show.curry('No action ' + n);
@@ -393,7 +404,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                     default: return $super(evt);
                 }
             });
-    
+
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             // redefine exec code of commands locally so we dan't have to fiddle with keybindings
             inputLine.modifyCommand('golinedown', {exec: function (ed,args) { ed.$morph.owner.selectNext(); }});
@@ -444,7 +455,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             prevProj = this.state.previousCandidateProjection || lively.ArrayProjection.create(candidates, Math.min(candidates.length, layout.noOfCandidatesShown), prevSel),
             proj = lively.ArrayProjection.transformToIncludeIndex(prevProj, currentSel);
         this.state.previousCandidateProjection = proj;
-    
+
         var projectedCandidates = lively.ArrayProjection.toArray(proj),
             projectedCurrentSelection = lively.ArrayProjection.originalToProjectedIndex(proj, currentSel);
         this.ensureItems(projectedCandidates.length, layout).forEach(function(item, i) {
@@ -553,7 +564,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
         // this.removeAllMorphs()
         // this.openInWorld()
         // this.setVisible(true);
-    
+
         function randomString(length) {
             return Array.range(0, length).map(function() {
                 return String.fromCharCode(Numbers.random(65, 120));
@@ -566,7 +577,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
                 value: i
             };
         });
-    
+
         var spec = {
             init: function(narrower, run) { show('init done!'); run(); },
             candidates: list,
@@ -574,7 +585,7 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             actions: [function(candidate) { show('selected ' + candidate); }],
             close: function() { show('narrower closed'); }
         }
-    
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         this.open(spec);
     }
@@ -603,7 +614,10 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
         if (narrower && reactivateWithoutInit) { narrower.activate(); return }
         if (!narrower) {
             narrower = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
-            if (name) this.cachedNarrowers[name] = narrower;
+            if (name) {
+                this.cachedNarrowers[name] = narrower;
+                narrower.name = "NarrowList - " + name;
+            }
             lively.bindings.connect(narrower, 'confirmedSelection', narrower, 'deactivate');
             lively.bindings.connect(narrower, 'escapePressed', narrower, 'deactivate');
             setup && setup(narrower);

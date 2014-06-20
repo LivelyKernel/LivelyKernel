@@ -388,6 +388,21 @@ Object.extend(lively.ide.commands.byName, {
         },
     },
 
+    'lively.ide.commands.keys.toggleShowPressedKeys': {
+        description: 'toggle show pressed keys',
+        exec: function() {
+            var inspector = $morph("KeyPressInspector");
+            if (inspector) inspector.remove();
+            else {
+                inspector = lively.PartsBin.getPart("KeyPressInspector", "PartsBin/Debugging/");
+                inspector.openInWorld();
+                inspector.align(inspector.bounds().bottomRight(), $world.visibleBounds().bottomRight());
+                inspector.enableFixedPositioning();
+            }
+            return true;
+        },
+    },
+
     'lively.ide.codeditor.installCompletions': {
         description: 'install code editor completions',
         exec: function() {

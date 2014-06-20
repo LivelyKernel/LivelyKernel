@@ -352,7 +352,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.elements.forEach(function(ea, i) {
             if (ea) {
-                // ea can be of type Expression or 
+                // ea can be of type Expression or
                 retVal = this.accept(ea, depth, state, path.concat(["elements", i]));
             }
         }, this);
@@ -639,7 +639,7 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         var retVal;
         node.elements.forEach(function(ea, i) {
             if (ea) {
-                // ea can be of type Pattern or 
+                // ea can be of type Pattern or
                 retVal = this.accept(ea, depth, state, path.concat(["elements", i]));
             }
         }, this);
@@ -797,14 +797,14 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
 
     visitVariableDeclaration: function($super, node1, node2, state, path) {
         // node1.kind is "var" or "let" or "const"
-        this.compareField("kind", node1, node2, state); 
+        this.compareField("kind", node1, node2, state);
         $super(node1, node2, state, path);
     },
 
     visitUnaryExpression: function($super, node1, node2, state, path) {
         // node1.operator is an UnaryOperator enum:
         // "-" | "+" | "!" | "~" | "typeof" | "void" | "delete"
-        this.compareField("operator", node1, node2, state); 
+        this.compareField("operator", node1, node2, state);
 
         // node1.prefix has a specific type that is boolean
         if (node1.prefix) { this.compareField("prefix", node1, node2, state); }
@@ -815,21 +815,21 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
     visitBinaryExpression: function($super, node1, node2, state, path) {
         // node1.operator is an BinaryOperator enum:
         // "==" | "!=" | "===" | "!==" | | "<" | "<=" | ">" | ">=" | | "<<" | ">>" | ">>>" | | "+" | "-" | "*" | "/" | "%" | | "|" | "^" | "&" | "in" | | "instanceof" | ".."
-        this.compareField("operator", node1, node2, state); 
+        this.compareField("operator", node1, node2, state);
         $super(node1, node2, state, path);
     },
 
     visitAssignmentExpression: function($super, node1, node2, state, path) {
         // node1.operator is an AssignmentOperator enum:
         // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
-        this.compareField("operator", node1, node2, state); 
+        this.compareField("operator", node1, node2, state);
         $super(node1, node2, state, path);
     },
 
     visitUpdateExpression: function($super, node1, node2, state, path) {
         // node1.operator is an UpdateOperator enum:
         // "++" | "--"
-        this.compareField("operator", node1, node2, state); 
+        this.compareField("operator", node1, node2, state);
         // node1.prefix has a specific type that is boolean
         if (node1.prefix) { this.compareField("prefix", node1, node2, state); }
         $super(node1, node2, state, path);
@@ -838,7 +838,7 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
     visitLogicalExpression: function($super, node1, node2, state, path) {
         // node1.operator is an LogicalOperator enum:
         // "||" | "&&"
-        this.compareField("operator", node1, node2, state); 
+        this.compareField("operator", node1, node2, state);
         $super(node1, node2, state, path);
     },
 
@@ -856,12 +856,12 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ComparisonVisitor",
 
     visitIdentifier: function($super, node1, node2, state, path) {
         // node1.name has a specific type that is string
-        this.compareField("name", node1, node2, state); 
+        this.compareField("name", node1, node2, state);
         $super(node1, node2, state, path);
     },
 
     visitLiteral: function($super, node1, node2, state, path) {
-        this.compareField("value", node1, node2, state); 
+        this.compareField("value", node1, node2, state);
         $super(node1, node2, state, path);
     }
 });
@@ -902,7 +902,7 @@ Object.extend(lively.ast.acorn, {
             }
             acorn.walk.addSource(ast, source);
         }
-        
+
         function printFunc(ea) {
             var string = ea.path + ':' + ea.node.type, additional = [];
             if (printIndex) { additional.push(ea.index); }
@@ -968,7 +968,7 @@ Object.extend(lively.ast.acorn, {
 });
 
 (function extendAcornWalk() {
-    
+
     acorn.walk.findNodeByAstIndex = function(ast, astIndexToFind, addIndex) {
         addIndex = addIndex == null ? true : !!addIndex;
         if (!ast.astIndex && addIndex) acorn.walk.addAstIndex(ast);
@@ -1019,5 +1019,75 @@ Object.extend(lively.ast.acorn, {
         return ast;
     };
 
+
 })();
+
+(function setupASTHelper() {
+    lively.ast.query = {};
+    lively.ast.transform = {};
+})();
+
+Object.extend(lively.ast.query, {
+
+    scopesAtPos: function(pos, ast) {
+        return lively.ast.acorn.nodesAt(pos, ast).filter(function(node) {
+            return node.type === 'Program'
+                || node.type === 'FunctionDeclaration'
+                || node.type === 'FunctionExpression'
+        });
+    },
+
+    nodesInScopeOf: function(node) {
+        return lively.ast.acorn.withMozillaAstDo(node, {root: node, result: []}, function(next, node, state) {
+            state.result.push(node);
+            if (node !== state.root
+            && (node.type === 'Program'
+             || node.type === 'FunctionDeclaration'
+             || node.type === 'FunctionExpression')) return state;
+            next();
+            return state;
+        }).result;
+    },
+
+    findDeclarationsAtPos: function(pos, ast) {
+        var scopes = sut.scopesAtPos(pos, ast).map(function(scopeNode) {
+            return {
+                scope: scopeNode,
+                decls: this.nodesInScopeOf(scopeNode).filter(function(node) {
+                    if (node.type === 'FunctionDeclaration') return true;
+                    // node.id && show(node.id.name + ' - ' + node.start)
+                    if (node.type !== 'VariableDeclarator') return false;
+                    var statement = acorn.walk.findStatementOfNode(ast, node);
+                    return statement ? statement.start <= pos : false;
+                })
+            }
+        }, this)
+
+        return scopes.pluck('decls').flatten().uniq();
+    },
+
+    findTopLevelDeclarationsInSource: function(source) {
+        var ast = acorn.walk.addSource(source, null, null, true);
+        return this.findDeclarationsAtPos(ast.end, ast);
+    }
+
+});
+
+Object.extend(lively.ast.transform, {
+
+    returnLastStatement: function(source) {
+        // lively.ast.transformReturnLastStatement('foo + 3;\n this.baz(99 * 3) + 4;')
+        // source = that.getTextRange()
+        var ast = lively.ast.acorn.parse(source),
+            last = ast.body.pop(),
+            newLastsource = 'return ' + lively.ast.acorn.nodeSource(source, last),
+            newLast = lively.ast.acorn.fuzzyParse(newLastsource).body.last(),
+            newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
+        ast.body.push(newLast);
+        ast.end += 'return '.length
+        return lively.ast.acorn.nodeSource(newSource, ast);
+    }
+
+});
+
 }) // end of module

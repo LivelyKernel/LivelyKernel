@@ -613,7 +613,7 @@ Object.extend(lively.ChangeSet, {
         //check if it has any 'this' references
         var programNode = lively.ast.acorn.parse(source);
         var thisReferences = false;
-        lively.ast.acorn.simpleWalk(programNode, {
+        acorn.walk.simple(programNode, {
             ThisExpression: function(node) { thisReferences = true }
         });
         if(thisReferences)
@@ -2463,7 +2463,7 @@ Object.subclass('lively.ide.Differator',
         whitespace[string2] = [[],[]];
         differ.tokenize = function(input) {
             var strings = [];
-            lively.ast.acorn.tokens(input).each(function(token){
+            tokens(input).each(function(token){
                 if(token.type == "whitespace"){
                     whitespace[input][0].push(token.start);
                     whitespace[input][1].push(token.value.length);
@@ -2484,9 +2484,9 @@ Object.subclass('lively.ide.Differator',
                 else
                     if (previous && !previous.ranges[1])
                         //We condense a removal followed by an addition into a single change;
-                        //if something changed, we want to show it simultaneously on both sides 
+                        //if something changed, we want to show it simultaneously on both sides
                         previous.ranges[1] = [index2, index2 += e.value.length, styleSpec2];
-                    else if (previous && 
+                    else if (previous &&
                             whitespace[string2][1][whitespace[string2][0].indexOf(previous.ranges[1][1])]
                             == index2 - previous.ranges[1][1])
                         //We condense an addition followed by common whitespace followed by addition
@@ -2505,7 +2505,7 @@ Object.subclass('lively.ide.Differator',
                         //We condense an addition followed by a removal into a single change;
                         //if something changed, we want to show it simultaneously on both sides
                         previous.ranges[0] = [index1, index1 += e.value.length, styleSpec1];
-                    else if (previous && 
+                    else if (previous &&
                             whitespace[string1][1][whitespace[string1][0].indexOf(previous.ranges[0][1])]
                             == index1 - previous.ranges[0][1])
                         //We condense a removal followed by common whitespace followed by a removal
@@ -2531,6 +2531,59 @@ Object.subclass('lively.ide.Differator',
         }
         this.desynchronizations = desynchronizations;
         this.cursor = -1;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function tokens(input) {
+            // this returns an array of all tokens, including recreating the skipped ones (comments and whitespace)
+            var next = acorn.tokenize(input);
+            var tokens = [];
+            var token = next();
+            if(token.start > 0) {
+                whitespace = input.substring(0, token.start);
+                tokens.push({value: whitespace, start: 0, end: token.start, type: "whitespace"});
+            }
+            var previousEnd = token.end;
+            var whitespace, prevValue, prevType, prevIndex;
+            var _eof = acorn.tokTypes.eof;
+            var _slash = acorn.tokTypes.slash;
+            var _name = acorn.tokTypes.name;
+            var _bracketR = acorn.tokTypes.bracketR;
+            while(token.type !== _eof) {
+                prevType = token.type;
+                prevValue = token.value || prevType.type.valueOf();
+                prevIndex = tokens.length;
+                tokens.push({value: prevValue, start: token.start, end: token.end, type: prevType.type});
+                token = next();
+                if(token.start > previousEnd) {
+                    whitespace = input.substring(previousEnd, token.start);
+                    tokens.push({value: whitespace, start: previousEnd, end: token.start, type: "whitespace"});
+                }
+                if (token.type.type == "assign" && token.value == "/=" && prevType !== _name && prevType !== _bracketR) {
+                    debugger;
+                    token = next(true);
+                }
+                else if(token.type === _slash && prevValue === ")") {
+                    var count = 1;
+                    for(var i = prevIndex - 1; i > 0; i--) {
+                        var value = tokens[i].value;
+                        if(value == ")")
+                            count++;
+                        else if(value == "(")
+                            count--;
+                        if(count == 0)
+                            break;
+                    }
+                    if(i > 0 && ["if", "while", "for", "with"].indexOf(tokens[i - 1].value.valueOf()) > -1 ) {
+                        debugger;
+                        token = next(true);
+                    }
+                }
+                previousEnd = token.end;
+            }
+            return tokens;
+        }
+
     },
     next: function() {
         if(this.desynchronizations.length == 0)
@@ -2807,7 +2860,7 @@ Object.subclass('lively.ide.ReferencesCycler',
                 references.push([node.start, node.end]); };
         }
         var references = [];
-		lively.ast.acorn.simpleWalk(lively.ast.acorn.parse(source), options);
+		acorn.walk.simple(lively.ast.acorn.parse(source), options);
         this.references = references;
         this.cursor = -1;
     },
@@ -3372,7 +3425,7 @@ Object.extend(Global, {
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
                     var programNode = lively.ast.acorn.parse("var f = " + source);
-                    try { lively.ast.acorn.simpleWalk(programNode, options); }
+                    try { acorn.walk.simple(programNode, options); }
                     catch(t) { 
                         if(t === foundMarker) return true;
                         throw t;
@@ -3446,7 +3499,7 @@ Object.extend(Global, {
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
                     var programNode = lively.ast.acorn.parse(preamble + source);
-                    try { lively.ast.acorn.simpleWalk(programNode, options); }
+                    try { acorn.walk.simple(programNode, options); }
                     catch(t) { 
                         if(t === foundMarker) return true;
                         throw t;

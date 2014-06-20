@@ -876,11 +876,11 @@ Object.extend(lively.ast.acorn, {
         // state -- state variable that is passed along
         var vis = new lively.ast.MozillaAST.BaseVisitor(),
             origAccept = vis.accept;
-        vis.accept = function(node, st) {
-            var next = function() { origAccept.call(vis, node, st); }
-            return func(next, node, st);
+        vis.accept = function(node, depth, st, path) {
+            var next = function() { origAccept.call(vis, node, depth, st, path); }
+            return func(next, node, st, depth, path);
         }
-        return vis.accept(ast, state);
+        return vis.accept(ast, 0, state, []);
     },
 
     printAst: function(astOrSource, options) {
@@ -963,6 +963,10 @@ Object.extend(lively.ast.acorn, {
         }
 
         visitor.accept(ast2);
+    },
+
+    stringify: function(ast, options) {
+        return escodegen.generate(ast, options)
     }
 
 });
@@ -1075,6 +1079,27 @@ Object.extend(lively.ast.query, {
 
 Object.extend(lively.ast.transform, {
 
+    replaceNode: function(ast, targetNode, transformedNode) {
+        var pathToNode;
+        lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, state, depth, path) {
+            if (pathToNode) return; // already found
+            else if (node === targetNode) pathToNode = path;
+            else next();
+        });
+
+        if (!pathToNode) return null;
+
+        var copy = acorn.walk.copy(ast);
+        lively.PropertyPath(pathToNode).set(copy, transformedNode);
+        return copy;
+    },
+
+    topLevelVarDecls: function(source, options) {
+        // source = "foo = bar; var x;"
+        var decls = lively.ast.query.findTopLevelDeclarationsInSource(source);
+
+    },
+
     returnLastStatement: function(source) {
         // lively.ast.transformReturnLastStatement('foo + 3;\n this.baz(99 * 3) + 4;')
         // source = that.getTextRange()
@@ -1085,7 +1110,7 @@ Object.extend(lively.ast.transform, {
             newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
         ast.body.push(newLast);
         ast.end += 'return '.length
-        return lively.ast.acorn.nodeSource(newSource, ast);
+        return newSource.slice(ast.start, ast.end);
     }
 
 });

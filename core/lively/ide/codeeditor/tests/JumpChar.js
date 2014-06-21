@@ -97,7 +97,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.JumpChar',
         codeEditor.setExtent(pt(400,300));
         codeEditor.textString = Array.withN(10, Array.withN(50, 'a').join('')).join('\n')
         codeEditor.setCursorPosition(pt(0,0));
-        keys.simulateKey(ed, "Command" + '-J');
+        keys.simulateKey(ed, this.cmd + '-J');
         keys.simulateKey(ed, 'a');
         keys.simulateKey(ed, 'f');
 

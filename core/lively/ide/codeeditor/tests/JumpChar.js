@@ -106,7 +106,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.JumpChar',
         
         codeEditor.withOverlaySupport(function($overlay, ed) {
             overlays = $overlay.overlays; });
-        this.assertEquals(expected.length, overlays.length, 'overlays.length');
+        this.assert(expected.length <= overlays.length, 'overlays.length');
         this.assertMatches(expected, overlays, 'overlays');
 
         keys.simulateKey(ed, 'b');

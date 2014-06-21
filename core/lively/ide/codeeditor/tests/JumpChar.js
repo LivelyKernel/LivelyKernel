@@ -94,25 +94,26 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.JumpChar',
         var keys = lively.ide.ace.require('ace/lib/keys'),
             codeEditor = this.editor,
             ed = codeEditor.aceEditor;
-        codeEditor.textString = Array.withN(10, Array.withN(80, 'a').join('')).join('\n')
+        codeEditor.setExtent(pt(400,300));
+        codeEditor.textString = Array.withN(10, Array.withN(50, 'a').join('')).join('\n')
         codeEditor.setCursorPosition(pt(0,0));
-        keys.simulateKey(ed, this.cmd + '-J');
+        keys.simulateKey(ed, "Command" + '-J');
         keys.simulateKey(ed, 'a');
         keys.simulateKey(ed, 'f');
 
-        var overlays, expected = Array.range(0,21).map(function(i) {
-            return {start: {row:1,column:30+i},text:String.fromCharCode('a'.charCodeAt(0)+i)};
+        var overlays, expected = Array.range(0,19).map(function(i) {
+            return {start: {row:2,column:0+i},text:String.fromCharCode('a'.charCodeAt(0)+i)};
         });
         
         codeEditor.withOverlaySupport(function($overlay, ed) {
             overlays = $overlay.overlays; });
-        this.assert(expected.length <= overlays.length, 'overlays.length');
+        this.assertEquals(20, overlays.length, 'overlays.length');
         this.assertMatches(expected, overlays, 'overlays');
 
         keys.simulateKey(ed, 'b');
 
         var pos = codeEditor.getCursorPositionAce();
-        this.assertEqualState({row: 1, column: 32}, pos, 'jump-to-pos');
+        this.assertEqualState({row: 2, column: 2}, pos, 'jump-to-pos');
         this.done();
     },
 

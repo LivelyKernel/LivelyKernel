@@ -1054,7 +1054,7 @@ Object.extend(lively.ast.query, {
     },
 
     findDeclarationsAtPos: function(pos, ast) {
-        var scopes = sut.scopesAtPos(pos, ast).map(function(scopeNode) {
+        var scopes = lively.ast.query.scopesAtPos(pos, ast).map(function(scopeNode) {
             return {
                 scope: scopeNode,
                 decls: this.nodesInScopeOf(scopeNode).filter(function(node) {
@@ -1105,7 +1105,7 @@ Object.extend(lively.ast.transform, {
         // source = that.getTextRange()
         var ast = lively.ast.acorn.parse(source),
             last = ast.body.pop(),
-            newLastsource = 'return ' + lively.ast.acorn.nodeSource(source, last),
+            newLastsource = 'return ' + source.slice(last.start, last.end),
             newLast = lively.ast.acorn.fuzzyParse(newLastsource).body.last(),
             newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
         ast.body.push(newLast);

@@ -304,14 +304,13 @@ Object.extend(lively.ide.codeeditor.Completions, {
 });
 
 (function setupCompletionsOnLoad() {
-    if (UserAgent.isNodejs
-     || UserAgent.isWorker
-     || !lively.Config.get('computeCodeEditorCompletionsOnStartup'))
-     return;
-
     (function() {
+        if (UserAgent.isNodejs
+         || UserAgent.isWorker
+         || !lively.Config.get('computeCodeEditorCompletionsOnStartup'))
+         return;
         lively.ide.codeeditor.Completions.setupCompletions();
-    }).delay(5);
+    }).delay(3);
 })();
 
 }) // end of module

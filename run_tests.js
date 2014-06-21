@@ -175,16 +175,31 @@ if (filter) {
 
 prepareConfig();
 
-require(['lively.TestFramework'].concat(testList)).toRun(function() {
-    var suite = TestSuite.forAllAvailableTests(suiteFilter);
-    suite.runFinished = function() {
-        if (Global.testRun) {
-            testRun.onTestResult(suite.result.asJSON());
-        } else {
-            var result = suite.result.asJSONString();
-            postResult(result);
-            if (!getURLParam('stayOpen')) { exit.delay(0.5); }
-        }
-    };
-    suite.runAll();
-});
+(function setUserName() {
+    var s = lively.net.SessionTracker.getSession();
+    Functions.waitFor(1000, function() { return !! s.isConnected(); }, function() {
+        lively.morphic.World.current().setCurrentUser("run_tests-" + testRunId);
+    });
+})();
+
+if (lively.Config.get("serverTestDebug")) {
+    function sendLogMessage() {
+        var code = "console.log('debugging the tests in progress');";
+        URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post(code).content;
+    }
+    Global.travisDebugLogInterval = setInterval(sendLogMessage, 10*1000);
+} else {
+    require(['lively.TestFramework'].concat(testList)).toRun(function() {
+        var suite = TestSuite.forAllAvailableTests(suiteFilter);
+        suite.runFinished = function() {
+            if (Global.testRun) {
+                testRun.onTestResult(suite.result.asJSON());
+            } else {
+                var result = suite.result.asJSONString();
+                postResult(result);
+                if (!getURLParam('stayOpen')) { exit.delay(0.5); }
+            }
+        };
+        suite.runAll();
+    });
+}

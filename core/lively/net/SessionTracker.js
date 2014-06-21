@@ -127,6 +127,11 @@ Object.subclass('lively.net.SessionTrackerConnection',
         proc.whenDone(function(err, sessions) { cb(sessions); });
     },
 
+    setUserName: function(username) {
+        this.username = username;
+        this.whenOnline(function() { this.register(); }.bind(this));
+    },
+
     getUserInfo: function(thenDo) {
         // flatten the session data and group by user so that it becomes
         // easier to consume
@@ -504,14 +509,15 @@ Object.extend(lively.net.SessionTracker, {
 (function setupSessionTrackerConnection() {
     if (UserAgent.isNodejs || UserAgent.isWorker) return;
     lively.whenLoaded(function(world) {
-        if (!Config.get('lively2livelyAutoStart')) return;
+        if (!lively.Config.get('lively2livelyAutoStart')) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // 1) connect to tracker
-        var session = lively.net.SessionTracker.resetSession();
+        console.log('setupSessionTrackerConnection');
+        lively.net.SessionTracker.resetSession();
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // start UI
-        if (Config.get('lively2livelyEnableConnectionIndicator')) {
-            require('lively.net.tools.Lively2Lively').toRun(function() {
+        if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
+            lively.require('lively.net.tools.Lively2Lively').toRun(function() {
                 if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
                 lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
             });

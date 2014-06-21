@@ -2,6 +2,7 @@ module('lively.net.tests.SessionTracker').requires('lively.TestFramework', 'live
 
 AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'running', {
+
     setUp: function($super) {
         $super();
         this.setMaxWaitDelay(1*1000);
@@ -21,6 +22,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
     }
 },
 'testing', {
+
     testRegisterCurrentWorld: function() {
         this.sut.register();
         this.sut.whenOnline(function() {
@@ -69,7 +71,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         }.bind(this));
         this.waitFor(function() { return cameOnline; }, 100, function() {
             var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
-            this.assertEquals(1, Object.keys(sessions[id]).length, 'session removed to early?');
+            this.assertEquals(1, Object.keys(sessions[id]).length, 'session removed too early?');
             this.delay(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
                 this.assertEquals(0, Object.keys(sessions[id]).length, 'session not removed');
@@ -196,8 +198,24 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.assertEqualState(expected, result, '...' + Objects.inspect(result));
             this.done()
         });
-    }
+    },
 
+    testSetUserName: function() {
+        var online = false, sessions;
+        this.sut.register();
+        this.delay(function() { this.sut.setUserName("foobar"); }, 10);
+        this.sut.whenOnline(function() {
+            online = true
+        }.bind(this));
+        this.waitFor(function() { return !!online }, 10, function() {
+            this.sut.getSessions(function(_sessions) { sessions = _sessions; });
+        });
+        this.waitFor(function() { return !!sessions }, 10, function() {
+            var user =  sessions[this.sut.trackerId][this.sut.sessionId].user;
+            this.assertEquals('foobar', user)
+            this.done();
+        });
+    }
 });
 
 AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',

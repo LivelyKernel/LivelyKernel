@@ -212,6 +212,14 @@ var sessionActions = {
         connection.send({action: msg.action + 'Result', inResponseTo: msg.messageId, data: {success: true}});
     },
 
+    heartbeat: function(sessionServer, connection, msg) {
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {time: Date.now()}
+        });
+    },
+
     getEventLog: function(sessionServer, connection, msg) {
         var log = events.log.slice()
         if (msg.data.limit) log = log.slice(-1 * msg.data.limit);

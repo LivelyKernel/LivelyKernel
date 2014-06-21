@@ -528,7 +528,9 @@ Config.addOptions(
     ["lively2livelyCentral", "http://lively-web.org/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],
     ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.'],
     ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.'],
-    ["lively2livelyInformAboutReceivedMessages", true, 'Visually log when receiving a lively2lively message.']
+    ["lively2livelyInformAboutReceivedMessages", true, 'Visually log when receiving a lively2lively message.'],
+    ["lively2livelyTrackerHeartbeatInterval", 30*1000, 'In milliseconds. Ensure staying connected to the tracker by sending regular heartbeats. Change to undefined to disable heartbeats.'],
+    ["lively2livelyLogHeartbeatRoundtripTime", false, 'Logging heartbeat.']
 ],
 
 "Wiki", [

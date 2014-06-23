@@ -52,6 +52,30 @@ Object.extend(lively.net.tools.Functions, {
         return user + ', ' + lastActivity + ' (' + worldName+ ')';
     },
 
+    printSession: function(session) {
+
+        var id = session.id || "?",
+            trackerId = session.trackerId || "no tracker",
+            ip = session.remoteAddress || "no ip",
+            location = session.location ? session.location.locationString : "",
+            user = session.user || "no user",
+            url = session.worldURL || "no url",
+            created = session.timeOfCreation ? new Date(session.timeOfCreation).relativeTo(new Date) : "a while",
+            registered = session.timeOfRegistration ? new Date(session.timeOfRegistration).relativeTo(new Date) : "a while",
+            lastActive = session.lastActivity ? new Date(session.lastActivity).relativeTo(new Date) : "a while";
+
+        return Strings.format("id:            %s\n"
+                            + "trackerId:     %s\n"
+                            + "ip:            %s\n"
+                            + "location:      %s\n"
+                            + "user:          %s\n"
+                            + "url:           %s\n"
+                            + "created:       %s ago\n"
+                            + "registered:    %s ago\n"
+                            + "last activity: %s ago\n",
+            id, trackerId, ip, location, user, url, created, registered, lastActive);
+    },
+
     openWorkspaceForSession: function(session) {
         var worldURL = session.worldURL, user = session.user,
             workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();

@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 Object.extend(String.prototype, {
+
     asString: function() { // so code can treat, eg, Texts like Strings
         return this;
     },
@@ -41,15 +42,14 @@ Object.extend(String.prototype, {
     truncate: function(length, truncation) {
         length = length || 30;
         truncation = truncation === undefined ? '...' : truncation;
-        return this.length > length ? this.slice(0, length - truncation.length) + truncation : String(this);
+        return this.length > length ?
+            this.slice(0, length - truncation.length) + truncation : String(this);
     },
+
     regExpEscape: function() {
-    //from google' closure library
-
-      return this.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
-          replace(/\x08/g, '\\x08');
+        //from google' closure library
+        return this.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').replace(/\x08/g, '\\x08');
     },
-
 
     strip: function() {
         return this.replace(/^\s+/, '').replace(/\s+$/, '');
@@ -60,11 +60,10 @@ Object.extend(String.prototype, {
             len = parts.length;
         if (len == 1) return parts[0];
 
-        var camelized = this.charAt(0) == '-' ? parts[0].charAt(0).toUpperCase() + parts[0].substring(1) : parts[0];
-
+        var camelized = this.charAt(0) == '-' ?
+                parts[0].charAt(0).toUpperCase() + parts[0].substring(1) : parts[0];
         for (var i = 1; i < len; i++)
-        camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
-
+            camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
         return camelized;
     },
 
@@ -77,9 +76,8 @@ Object.extend(String.prototype, {
 
     toQueryParams: function(separator) {
         var match = this.strip().match(/([^?#]*)(#.*)?$/);
-        if (!match) {
-            return {};
-        }
+        if (!match) return {};
+
         var hash = match[1].split(separator || '&').inject({}, function(hash, pair) {
             if ((pair = pair.split('='))[0]) {
                 var key = decodeURIComponent(pair.shift());
@@ -108,8 +106,8 @@ Object.extend(String.prototype, {
         return count < 1 ? '' : new Array(count + 1).join(this);
     },
 
-    // http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
     hashCode: function() {
+        // http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
         var hash = 0, len = this.length;
         if (len == 0) return hash;
         for (var i = 0; i < len; i++) {

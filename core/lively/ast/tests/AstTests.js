@@ -123,18 +123,35 @@ TestCase.subclass('lively.ast.tests.Transforming',
         var code = 'var x = 3 + foo();',
             ast = lively.ast.acorn.parse(code),
             toReplace = ast.body[0].declarations[0].init.left,
-            replacement = {
-                start: 8, end: 9,
-                loc: {
-                  end: {column: 9, line: 1},
-                  start: {column: 8, line: 1}
-                },
-                type: "Literal",
-                value: "baz"
-            },
+            replacement = {type: "Literal", value: "baz"},
             transformed = lively.ast.transform.replaceNode(ast, toReplace, replacement),
             transformedString = lively.ast.acorn.stringify(transformed),
             expected = 'var x = \'baz\' + foo();'
+
+        this.assertEquals(expected, transformedString);
+    },
+
+    testReplaceNodeWithMany: function() {
+        var code = 'var x = 3, y = 2;',
+            ast = lively.ast.acorn.parse(code),
+            toReplace = ast.body[0],
+            replacement1 = lively.ast.acorn.parse("Global.x = 3").body[0],
+            replacement2 = lively.ast.acorn.parse("Global.y = 2").body[0],
+            replacement = [replacement1, replacement2],
+            transformed = lively.ast.transform.replaceNodeWithMany(ast, toReplace, replacement),
+            transformedString = lively.ast.acorn.stringify(transformed),
+            expected = 'Global.x = 3;\nGlobal.y = 2;'
+
+        this.assertEquals(expected, transformedString);
+    },
+
+    testOneVarDeclaratorPerDeclaration: function() {
+        var code = 'var x = 3, y = 2;',
+            ast = lively.ast.acorn.parse(code),
+            transformed = lively.ast.transform.oneDeclaratorPerVarDecl(ast),
+            // _ = show(lively.ast.acorn.printAst(transformed)),
+            transformedString = lively.ast.acorn.stringify(transformed),
+            expected = 'var x = 3;\nvar y = 2;'
 
         this.assertEquals(expected, transformedString);
     },
@@ -147,18 +164,25 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testTransformTopLevelVarDeclsForCapturing: function() {
-        return; // WIP
-        var code = "var z = foo + bar; baz.foo(z, 3)",
-            expected = "Global.z = foo + bar; baz.foo(z, 3)",
-            transformed = lively.ast.transform.topLevelVarDecls(code, {declSubstitute: 'Global.'});
-        this.assertEquals(expected, transformed);
+        var ast               = lively.ast.acorn.parse("var z = foo + bar; baz.foo(z, 3)"),
+            expected          = "Global.z = foo + bar;\nbaz.foo(z, 3);",
+            transformed       = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "Global", type: "Identifier"}),
+            transformedString = lively.ast.acorn.stringify(transformed);
+        this.assertEquals(expected, transformedString);
+    },
+
+    testTransformTopLevelVarAndFuncDeclsForCapturing: function() {
+        var ast               = lively.ast.acorn.parse("var z = 3, y = 4; function foo() { var x = 5; }"),
+            expected          = "Global.z = 3;\nGlobal.y = 4;\nGlobal.foo = function foo() {\n    var x = 5;\n};",
+            transformed       = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "Global", type: "Identifier"}),
+            transformedString = lively.ast.acorn.stringify(transformed);
+        this.assertEquals(expected, transformedString);
     }
 
 })
 
 TestCase.subclass('lively.ast.tests.Querying',
 'testing', {
-
 
     testFindVarDeclarationsInScopes: function() {
 
@@ -172,20 +196,31 @@ TestCase.subclass('lively.ast.tests.Querying',
 
         var ast = acorn.walk.addSource(code, null, null, true);
 
-        var result = lively.ast.query.findDeclarationsAtPos(0, ast);
-        var expected = ["decl1", "foo"];
-        this.assertEquals(expected, result.pluck('id').pluck('name'), "1");
+        var result = lively.ast.query.declsAt(0, ast);
+        var expected = [{declarations: [{id: {name: "decl1"}}]}, {id: {name: "foo"}}];
+        this.assertMatches(expected, result, "1");
+        this.assertEquals(2, result.length, '1 length');
 
-        var result = lively.ast.query.findDeclarationsAtPos(65, ast);
+        var result = lively.ast.query.declsAt(65, ast);
         var expected = ["decl1", "foo", "decl2", "xxx"];
-        this.assertEquals(expected, result.pluck('id').pluck('name'), "2");
+        var expected = [{declarations: [{id: {name: "decl1"}}]}, {id: {name: "foo"}},
+                        {declarations: [{id: {name: "decl2"}}]},
+                        {declarations: [{id: {name: "decl3"}}, {id: {name: "decl4"}}]},
+                        {id: {name: "xxx"}}];
+        this.assertMatches(expected, result, "2");
     },
 
-    testFindTopLevelDeclarationsInSource: function() {
+    testFindTopLevelDeclarations: function() {
         var code = "var x = 3;\n function baz() { var zork; return xxx; }\nvar y = 4, z;\nbar = 'foo';"
-        var decls = lively.ast.query.findTopLevelDeclarationsInSource(code);
+        var ast = lively.ast.acorn.parse(code);
+        var decls = lively.ast.query.topLevelDecls(ast);
+        var ids = decls.map(function(ea) {
+            return ea.type === 'FunctionDeclaration' ?
+                ea.id.name :
+                ea.declarations.map(function(ea) { return ea.id.name; });
+        }).flatten();
         var expected = ["x", "baz", "y", "z"];
-        this.assertEquals(expected, decls.pluck('id').pluck('name'), "1");
+        this.assertEquals(expected, ids, "1");
     }
 
 });

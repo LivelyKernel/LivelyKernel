@@ -200,7 +200,7 @@ Object.subclass('TestCase',
 
         var remainder = ' (' + a +' != ' + b +')';
         if (typeof a === 'string' || typeof b === 'string')
-            remainder += '\n<diff>\n' + Strings.diff(a, b) + '\n</diff>\n';
+            remainder += '\n<diff>\n' + Strings.diff(String(a), String(b)) + '\n</diff>\n';
 
         this.assert(false, (msg || '') + remainder);
     },

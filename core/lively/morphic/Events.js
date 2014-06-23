@@ -995,7 +995,7 @@ handleOnCapture);
         if (c === Event.KEY_UP) return this.onUpPressed(evt);
         if (c === Event.KEY_DOWN) return this.onDownPressed(evt);
         if (!this.isFocused()) return false;
-        if (evt.isCommandKey()) {
+        if (evt.isCommandKey() && !evt.isShiftDown()) {
             var result = this.processCommandKeys(evt);
             if (result) evt.stop();
             return result;

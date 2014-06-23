@@ -438,7 +438,7 @@ Object.extend(lively.morphic.World, {
             editor.iframe = this;
             editor.addScript(function boundEval(__evalStatement) {
                 var ctx = this.getDoitContext() || this,
-                    __evalStatement = lively.ast.acorn.transformReturnLastStatement(__evalStatement),
+                    __evalStatement = lively.ast.transform.returnLastStatement(__evalStatement),
                     interactiveEval = new Function(__evalStatement);
                 return this.iframe.run(interactiveEval);
             });

@@ -385,17 +385,8 @@ lively.morphic.Morph.addMethods(
                 var styleSheetRules = morph.getStyleSheetRules();
                 if (!styleSheetRules) return matchingRules;
                 return matchingRules.concat(styleSheetRules.select(function (rule) {
-                    try {
-                        var sel = sizzle.select(rule.getSelector(), morph, null, [startMorph]);
-                        return sel.length === 1;
-                    } catch(e) {
-                        sizzle.errors = sizzle.errors || [];
-                        var sel = rule.getSelector();
-                        if (sizzle.errors.include(sel)); return false;
-                        sizzle.errors.push(sel);
-                        console.error('Selector engine failed to deal with %s', sel);
-                        return false;
-                    }
+                    var sel = sizzle.select(rule.getSelector(), morph, null, [startMorph]);
+                    return sel && sel.length === 1;
                 }));
             });
         return this.sortStyleSheetRules(matchingRules);
@@ -1380,10 +1371,12 @@ if ( !xml ) {
         return elem[name];
     },
     error: function (msg) {
-        this.errors = this.errors || [];
-        if (this.errors.include(msg)); return false;
-        this.errors.push(msg);
-        console.error("Syntax error, unrecognized expression: %s", msg);
+        // do not display errors anymore (real intent of last change here)
+        //
+        // this.errors = this.errors || [];
+        // if (this.errors.include(msg)) return false;
+        // this.errors.push(msg);
+        // console.error("Syntax error, unrecognized expression: %s", msg);
         return false;
     },
 
@@ -1575,10 +1568,10 @@ if ( !xml ) {
     },
 
     addMatcher: function (higher, deeper) {
-        return higher ? function (elem, context) {
+        return higher ? (deeper ? function (elem, context) {
             var result = deeper.call(this, elem, context);
             return result && higher.call(this, result === true ? elem : result, context);
-        } : deeper;
+        } : false) : deeper;
     },
 
     // ["TAG", ">", "ID", " ", "CLASS"]

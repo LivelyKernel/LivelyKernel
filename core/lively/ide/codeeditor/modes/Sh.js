@@ -7,6 +7,8 @@ lively.ide.ace.require('ace/mode/sh').Mode.addMethods({
         lively.ide.commands.exec('lively.ide.execShellCommand', codeEditor, {
             insert: insertResult,
             count: 4,
+            addToHistory: true,
+            group: "shell-doit-" - codeEditor.id,
             shellCommand: codeEditor.getSelectionOrLineString()
         });
     }

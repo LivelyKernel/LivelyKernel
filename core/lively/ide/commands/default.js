@@ -770,7 +770,9 @@ Object.extend(lively.ide.commands.byName, {
         exec: function(codeEditor, args) {
             Global.event.stop();
             var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
-                openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/;
+                openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/,
+                addToHistory = args && args.addToHistory,
+                group = (args && args.group) || 'interactive-shell-command';
             function ensureCodeEditor(title) {
                 if (!openInWindow && codeEditor && codeEditor.isCodeEditor) return codeEditor;
                 var ed = $world.addCodeEditor({
@@ -781,7 +783,7 @@ Object.extend(lively.ide.commands.byName, {
                 return ed;
             }
             function runCommand(command) {
-                lively.shell.exec(command, function(cmd) {
+                lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
                     insertResult && ensureCodeEditor(command).printObject(null, cmd.resultString(true));
                 });
             }
@@ -876,6 +878,14 @@ Object.extend(lively.ide.commands.byName, {
             ed.startStepping(700, 'update');
             return ed;
 
+            return true;
+        }
+    },
+
+    'lively.ide.CommandLineInterface.showShellCommandHistory': {
+        description: "show shell command history",
+        exec: function() {
+            lively.ide.CommandLineInterface.history.showHistory();
             return true;
         }
     },

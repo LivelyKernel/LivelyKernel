@@ -1142,6 +1142,18 @@ Object.extend(lively.ide.commands.byName, {
                             }, true);
                         }
                     }, {
+                        name: 'print infos',
+                        exec: function(candidate) {
+                            var s = narrower.state.originalState || narrower.state;
+                            var sessions = s.filteredCandidates.pluck('value');
+                            $world.addCodeEditor({
+                                title: "Info for l2l sessions",
+                                content: sessions.map(lively.net.tools.Functions.printSession).join('\n\n'),
+                                textMode: 'text',
+                                extent: pt(600, 500)
+                            }).getWindow().comeForward().openInWorldCenter();
+                        }
+                    }, {
                         name: 'show event logger',
                         exec: function(candidate) {
                             lively.net.tools.Functions.showEventLogger();

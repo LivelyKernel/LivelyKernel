@@ -265,7 +265,7 @@ function SessionTracker(options) {
     this.inactiveSessionRemovalTime = options.inactiveSessionRemovalTime || 60*1000;
     this.server2serverReconnectTimeout = options.server2serverReconnectTimeout || 60*1000;
     this.initTrackerData();
-}
+};
 
 (function() {
 
@@ -531,7 +531,7 @@ function SessionTracker(options) {
         log(2, 'Connecting server2server: %s -> %s', this, url);
         // creates a connection to another lively session tracker
         url = this.fixRemoteServerURL(url) ;
-        var tracker = this, client = this.getServerToServerConnection(url) 
+        var tracker = this, client = this.getServerToServerConnection(url)
                                   || new WebSocketClient(url, {
                                         protocol: 'lively-json',
                                         sender: this.trackerId,
@@ -543,7 +543,7 @@ function SessionTracker(options) {
             if (client._trackerIsReconnecting) return;
             if (tracker.getServerToServerConnection(url)) { // accidental close, we will reconnect
                 client._trackerIsReconnecting = true;
-                tracker.startServerToServerConnectAttempt(url);            
+                tracker.startServerToServerConnectAttempt(url);
             } else { // close ok with us, cleanup
                 log(2, '%s removes server2server connection %s', tracker, url);
                 tracker.removeServerToServerConnection(url, client);
@@ -560,7 +560,7 @@ function SessionTracker(options) {
                 initReconnect();
             });
             client.on('error', function(err) {
-                console.error('ServerToServer connection %s got error: ', url, err); 
+                console.error('ServerToServer connection %s got error: ', url, err);
                 initReconnect();
             });
             tracker._dispatchLivelyMessageFromServerToServerConnection = tracker._dispatchLivelyMessageFromServerToServerConnection
@@ -638,7 +638,7 @@ function SessionTracker(options) {
             var sessions = tracker.getLocalSessions();
             log(3, '%s sending serverToServerSessionReport to %s', tracker, url, sessions);
             con.send({
-                action: 'reportSessions', 
+                action: 'reportSessions',
                 target: con.connection && con.connection.id,
                 data: util._extend(sessions, {trackerId: tracker.id()})
             },function(msg) { next(null, msg.data); });
@@ -655,17 +655,84 @@ function SessionTracker(options) {
         delete this._serverToServerSessionReportLoop;
     }
 
+    this.getOwnIPAddress = function(thenDo) {
+        var ifs = require('os').networkInterfaces(),
+            setting = Object.values(ifs).flatten().detect(function(intf) {
+                return intf.family === 'IPv4' && !intf.internal; }),
+            ip = setting && setting.address;
+        
+        thenDo(ip ? null : new Error('local ip not found'), ip);
+    };
+
     this.toString = function() {
         return util.format('SessionTracker(%s)', this.websocketServer);
-    }
+    };
+
+    this.getSessionListSimplified = function(options, thenDo) {
+        var tracker = this;
+
+        async.waterfall([
+            
+            // 1. get tracker -> session list
+            function(next) {
+                tracker.getSessionList({}, next.bind(null,null));
+            },
+
+            // 2. flatten list and add trackers as well
+            function(sessions, next) {
+                var trackerIds = Object.keys(sessions);
+
+                var participants = trackerIds.map(function(tid) {
+                    var sessionIds = Object.keys(sessions[tid]);
+                    var sessionsOfTracker = sessionIds.map(function(sid) { return sessions[tid][sid]; });
+                    sessionsOfTracker.forEach(function(s) { s.trackerId = tid; s.type = 'client'; });
+                    return sessionsOfTracker;
+                }).flatten();
+
+                var trackerSessions = trackerIds.map(function(tid) {
+                    return {
+                        id: tid,
+                        remoteAddress: null,
+                        type: "tracker"
+                    };
+                })
+
+                next(null, participants.concat(trackerSessions), trackerSessions);
+            },
+
+            // 3. get ips of trackers
+            function(participants, trackers, next) {
+                // get ips for remote trackers
+                async.eachLimit(trackers, 3, function(t, next) {
+                    // local?
+                    if (t.id === tracker.id()) {
+                        t.local = true;
+                        tracker.getOwnIPAddress(function(err, ip) {
+                            if (ip) t.remoteAddress = ip;
+                            next();
+                        })
+                    } else tracker.findConnection(t.id, function(err, con) {
+                        if (con && con.remoteAddress) t.remoteAddress = con.remoteAddress;
+                        next();
+                    });
+                }, function(err) { next(null, participants); });
+            },
+            
+            // 4. add geolocation info
+            function(participants, next) {
+                var geoip = require('./GeoIPServer');
+                async.eachLimit(participants, 3, function(ea, next) {
+                    if (!ea.remoteAddress) { next(null); return; }
+                    geoip.getIPLocation(ea.remoteAddress, function(err, ipInfo) {
+                        ea.location = ipInfo; next(); })
+                }, function(err) { next(null, participants); });
+            }
+
+        ], thenDo);
+
+    };
 
 }).call(SessionTracker.prototype);
-
-SessionTracker.servers = (global.tracker && global.tracker.constructor.servers) || {}
-Object.keys(SessionTracker.servers).forEach(function(route) {
-    var tracker = SessionTracker.servers[route];
-    tracker.shutdown(); tracker.listen();
-});
 
 SessionTracker.createServer = function(options) {
     // for creating session trackers. One Lively server can host multiple
@@ -702,9 +769,17 @@ SessionTracker.removeServer = function(route) {
     return true;
 }
 
-SessionTracker.default = function() {
-    return global.tracker;
-}
+SessionTracker.default = function() { return global.tracker; }
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+;(function setupSessionTrackerState() {
+    SessionTracker.servers = (global.tracker && global.tracker.constructor.servers) || {}
+    Object.keys(SessionTracker.servers).forEach(function(route) {
+        var tracker = SessionTracker.servers[route];
+        tracker.shutdown(); tracker.listen();
+    });
+})();
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // user data experiment
@@ -715,9 +790,9 @@ lively.userData = (function setupUserDataExpt() {
         if (!sess) return null;
         return sess[cookieField] || (sess[cookieField] = {});
     }
-    
+
     var userData = {};
-    
+
     userData.getUserDataFromRequest = function(request) {
         return request.session && getStoredUserData(request.session);
     }
@@ -785,14 +860,21 @@ module.exports = function(route, app, subserver) {
     });
 
     // json list of sessions of the default tracker
-    app.get(route + 'sessions', function(req, res) {
-        global.tracker.getSessionList({}, function(sessions) {
+    app.get(route + 'sessions/default', function(req, res) {
+        SessionTracker.default().getSessionList({}, function(sessions) {
             res.json(sessions).end();
         });
     });
 
-    app.get(route, function(req, res) {
-        // gather sessions from trackers on all routes
+    // json list of sessions of the default tracker
+    app.get(route + 'sessions/default-flattened', function(req, res) {
+        SessionTracker.default().getSessionListSimplified({}, function(err, sessions) {
+            res.json(sessions).end();
+        });
+    });
+
+    // gather sessions from trackers on all routes
+    app.get(route + 'sessions/all', function(req, res) {
         var tasks = Object.keys(SessionTracker.servers).reduce(function(tasks, route) {
             var tracker = SessionTracker.servers[route];
             tasks[route] = function(next) { tracker.getSessionList({}, function(sessions) { next(null, sessions); }); }
@@ -801,6 +883,10 @@ module.exports = function(route, app, subserver) {
         async.parallel(tasks, function(err, trackerSessions) {
             res.json(trackerSessions).end();
         });
+    });
+
+    app.get(route, function(req, res) {
+        res.end("Lively2Lively SessionTracker server")
     });
 }
 

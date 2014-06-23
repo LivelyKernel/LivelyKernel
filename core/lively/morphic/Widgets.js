@@ -1990,12 +1990,9 @@ lively.morphic.World.addMethods(
             return relatedMorph.bounds().topLeft().addPt(pt(5, 0));
         var pos = this.firstHand().getPosition();
         if (!newMorph) return pos;
-        var viewRect = this.visibleBounds().insetBy(80),
+        var viewRect = this.visibleBounds().insetBy(5),
             newMorphBounds = pos.extent(newMorph.getExtent());
-
-        // newShowRect(viewRect)
-        return viewRect.containsRect(newMorphBounds) ?
-            pos : viewRect.center().subPt(newMorphBounds.extent().scaleBy(0.5));
+        return viewRect.translateForInclusion(newMorphBounds).topLeft();
     },
 },
 'windows', {
@@ -2004,7 +2001,8 @@ lively.morphic.World.addMethods(
         if (Object.isString(optLoc)) {
             w.align(w.bounds()[optLoc](), this.visibleBounds()[optLoc]());
         } else {
-            w.setPosition(optLoc || this.positionForNewMorph(morph));
+            optLoc && w.setPosition(optLoc);
+            w.setPosition(this.positionForNewMorph(w));
         }
         return w;
     },

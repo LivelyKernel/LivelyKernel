@@ -10,6 +10,7 @@ TestCase.subclass('lively.morphic.tests.ColorTests',
 
 TestCase.subclass('lively.morphic.tests.RectangleTests',
 'testing', {
+
     testCreateGrid: function() {
         this.epsilon = 0.001;
         var bounds = new Rectangle(0,0, 100, 200),
@@ -50,6 +51,14 @@ TestCase.subclass('lively.morphic.tests.RectangleTests',
                         rect(20+50, 10,     50, 40),
                         rect(20+50, 10+160, 50, 40)]
         this.assertEquals(expected, result);
+    },
+
+    testTranslateForInclusion: function() {
+        var smallRect = lively.rect(90,60, 20,50),
+            bigRect   = lively.rect(0,0,100,100),
+            trans     = bigRect.translateForInclusion(smallRect),
+            expected  = lively.rect(80,50,20,50);
+        this.assertEquals(expected, trans);
     }
 
 });

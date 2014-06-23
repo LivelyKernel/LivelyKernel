@@ -497,6 +497,18 @@ Object.subclass('Rectangle',
         return this.insetBy(0 - delta);
     },
 
+    translateForInclusion: function(other) {
+        var x = other.x,
+            y = other.y,
+            r = x + other.width,
+            b = y + other.height;
+        if (r > this.right()) x -= r - this.right();
+        if (b > this.bottom()) y -= b - this.bottom();
+        if (x < this.x) x = this.x;
+        if (y < this.y) y = this.y;
+        return lively.rect(x,y, other.width, other.height);
+    },
+
     transformRectForInclusion: function(other) {
         var topLeft = this.topLeft().maxPt(other.topLeft()),
             newBottomRight = topLeft.addPt(other.extent()),

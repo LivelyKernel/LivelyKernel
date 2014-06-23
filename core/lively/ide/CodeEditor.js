@@ -723,6 +723,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     return interpreter.runWithContext(ast, ctx, Global);
                 }
             };
+
+        if (lively.Config.get('improvedJavaScriptEval')) {
+            var ast = lively.ast.acorn.parse(__evalStatement);
+            var subst = {name: "Global", type: "Identifier"};
+            var transformed = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, subst);
+            __evalStatement = lively.ast.acorn.stringify(transformed);
+        }
+
         try {
             var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx);
             if (Config.changesetsExperiment && $world.getUserName() &&

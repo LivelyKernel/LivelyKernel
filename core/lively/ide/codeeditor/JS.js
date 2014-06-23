@@ -215,26 +215,28 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
             session = evt.session,
             src = evt.codeEditor.textString,
             ast;
+
         // 1. parse
         try {
             ast = session.$ast = this.parse(src, session);
-        } catch(e) {
-            ast = session.$ast = e;
-        }
+        } catch(e) { ast = session.$ast = e; }
 
         // 2. update lively codemarker
         var marker = this.ensureLivelyCodeMarker(session);
         marker.modeId = this.targetMode;
         marker.markerRanges.length = 0;
+
         if (this.scopeAnalyzer && codeEditor.getShowWarnings()) {
             marker.markerRanges.pushAll(
                 this.scopeAnalyzer.findGlobalVarReferences(ast).map(function(ea) {
                     ea.cssClassName = "ace-global-var"; return ea; }));
         }
+
         if (ast.parseError && codeEditor.getShowErrors()) {
             ast.parseError.cssClassName = "ace-syntax-error";
             marker.markerRanges.push(ast.parseError);
         }
+
         marker.redraw(session);
 
         // 3. emit session astChange event

@@ -42,18 +42,18 @@ lively.morphic.Morph.addMethods(
         if (!ctx.morphNode.parentNode) {
             var parentNode = (this.owner && this.owner.renderContext().shapeNode) || ctx.parentNode;
             if (!parentNode) {
-                alert('Cannot render ' + this + ' without parentNode')
+                alert('Cannot render ' + this + ' without parentNode');
                 return;
             }
 
             if (ctx.domInterface.isHTML(parentNode)) {
-                var svgNode = ctx.domInterface.svgNode()
+                var svgNode = ctx.domInterface.svgNode();
                 parentNode.appendChild(svgNode);
                 parentNode = svgNode;
             }
 
             var afterNode = optMorphAfter && optMorphAfter.renderContext().getMorphNode();
-            if (afterNode && $A(parentNode.childNodes).include(afterNode))
+            if (afterNode && Array.from(parentNode.childNodes).include(afterNode))
                 parentNode.insertBefore(ctx.morphNode, afterNode);
             else
                 ctx.domInterface.append(parentNode, ctx.morphNode);

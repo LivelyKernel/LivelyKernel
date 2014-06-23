@@ -4,25 +4,27 @@ Object.extend(Global, {
 
     logStackFor: function(obj, methodName) {
         obj[methodName] = obj[methodName].wrap(function(proceed) {
-            var args = $A(arguments); args.shift();
+            var args = Array.from(arguments);
+            args.shift();
+
             MyLogDepth++;
             dbgOn(true);
             var result = proceed.apply(this, args);
-
             logStack();
             MyLogDepth--;
+
             return result
-        })
+        });
     },
 
     MyLogDepth: 0,
-    resetLogDepth: function() { MyLogDepth = 0 },
+    resetLogDepth: function() { MyLogDepth = 0; },
 
     logCall: function(args, from, shift) {
         var s = Strings.indent('', ' ', Global.MyLogDepth);
         if (from) s += String(from) + " ";
-        s += args.callee.qualifiedMethodName() + "("
-        var myargs = $A(args);
+        s += args.callee.qualifiedMethodName() + "(";
+        var myargs = Array.from(args);
         if (shift) myargs.shift(); // for loggin inside wrapper functions
         myargs.each(function(ea){ s += ea + ", "});
         s += ")";
@@ -40,13 +42,16 @@ Object.extend(Global, {
 
     logMethod: function(obj, methodName) {
         obj[methodName] = obj[methodName].wrap(function(proceed) {
-            var args = $A(arguments); args.shift();
+            var args = Array.from(arguments);
+            args.shift();
+
             MyLogDepth++;
-            console.log(logCallHelper(this, methodName, args, MyLogDepth * 2))
+            console.log(logCallHelper(this, methodName, args, MyLogDepth * 2));
             var result = proceed.apply(this, args);
             MyLogDepth--;
+
             return result
-        })
+        });
     },
 
 
@@ -54,7 +59,7 @@ Object.extend(Global, {
         var s = String(obj) + ":";
         Properties.own(obj).forEach(function(ea) {
             var value;
-            try { value = String(obj[ea])} catch (e) { };
+            try { value = String(obj[ea])} catch (e) { }
             s += " " + ea + ":" + value + "\n"
         });
         return s
@@ -62,14 +67,14 @@ Object.extend(Global, {
 
     printObjectFull: function(obj) {
         var s = "{";
-        for(ea in obj) {
+        for (ea in obj) {
             s += " " + ea + ":" + String(obj[ea]) + ", \n"
-        };
-        return s + "}"
+        }
+        return s + "}";
     },
 
     logObject: function(obj) {
-        console.log(printObject(obj))
+        console.log(printObject(obj));
     }
 });
 

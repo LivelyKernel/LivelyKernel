@@ -21,7 +21,7 @@ function printStack() {
         if (name && name !== 'anonymous') return name;
         var regExpRes = func.toString().match(/function (.+)\(/);
         return (regExpRes && regExpRes[1]) || String(func).replace(/\s+/g, ' ').truncate(50);
-    };
+    }
 
     var string = "== Stack ==\n", stack = getStack();
     stack.shift(); // for getStack
@@ -79,15 +79,13 @@ Object.subclass('lively.Helper.XMLConverter', {
     storeXMLDataInto: function(xml, jsObj) {
         jsObj.tagName = xml.tagName;
         jsObj.toString = function() { return jsObj.tagName };
-        $A(xml.attributes).forEach(function(attr) { jsObj[attr.name] = attr.value    });
+        Array.from(xml.attributes).forEach(function(attr) { jsObj[attr.name] = attr.value; });
         if (!xml.childNodes || xml.childNodes.length === 0) return jsObj;
-        jsObj.children = $A(xml.childNodes).collect(function(node) {
-            if (node.nodeType == Global.document.CDATA_SECTION_NODE) {
-                return {tagName: 'cdataSection', data: node.data, toString: function() { return 'CDATA'}};
-            }
-            if (node.nodeType == Global.document.TEXT_NODE) {
-                return {tagName: 'textNode', data: node.data, toString: function() { return 'TEXT'}};
-            }
+        jsObj.children = Array.from(xml.childNodes).collect(function(node) {
+            if (node.nodeType == Global.document.CDATA_SECTION_NODE)
+                return {tagName: 'cdataSection', data: node.data, toString: function() { return 'CDATA'; }};
+            else if (node.nodeType == Global.document.TEXT_NODE)
+                return {tagName: 'textNode', data: node.data, toString: function() { return 'TEXT'; }};
             return this.storeXMLDataInto(node, {});
         }, this);
         return jsObj;

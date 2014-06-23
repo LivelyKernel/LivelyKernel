@@ -1133,5 +1133,5 @@ lively.ArrayProjection = {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Deperectaed Global
+// Deprecated Global
 Global.$A = Array.from;

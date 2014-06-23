@@ -114,7 +114,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                             if (!option) return;
                             ed.find({backwards: true, needle: prefix});
                             ed.insertAtCursor(option, false, true);
-                        }, {})
+                        }, {});
                 });
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 //     completer = {
@@ -146,6 +146,32 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                 lively.bindings.connect(this, "input", this.owner, "sendInput", {});
             }
         })],
+
+        browseCommandHistory: function browseCommandHistory() {
+
+            var cmdLine = this.get('commandLine'),
+                cmds = lively.ide.CommandLineInterface.history.getCommands(),
+                group = this.getGroup(),
+                myCommands = cmds.filter(function(cmd) { return cmd.group === group; }),
+                restCommands = cmds.withoutAll(myCommands),
+                items = restCommands.concat(myCommands)
+                    .reverse()
+                    .uniqBy(function(a,b) { return a.commandString === b.commandString; })
+                    .map(function(ea) {
+                        return {isListItem: true, string: ea.commandString, value: ea}
+                    });
+
+            lively.ide.tools.SelectionNarrowing.chooseOne(items, function(err, candidate) {
+                if (!candidate) return;
+                cmdLine.setInput(candidate.commandString);
+            }, {});
+
+        },
+
+        getGroup: function getGroup() {
+            return this.name + '-' + this.id
+        },
+
         updateTitleBar: function updateTitleBar(cmd) {
         this.getWindow().setTitle(cmd.printState());
     },
@@ -182,6 +208,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         switch(sig) {
             case 'Alt-Up': case 'F1': this.get('output').focus(); evt.stop(); return true;
             case 'Alt-Down': case 'F2': this.get('commandLine').focus(); evt.stop(); return true;
+            case 'Alt-H': this.browseCommandHistory(); evt.stop(); return true;
         }
         if (this.isRunning()) {
             switch(sig) {
@@ -199,7 +226,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.doNotSerialize = ['currentCommand'];
         lively.bindings.connect(this.get('commandLine'), 'input', this, 'sendInput');
         this.getWindow().setTitle('execute Shell command');
-        this.get('commandLine').textString = '';
+        this.get('commandLine').setInput("");
         this.get('output').textString = '';
     },
         sendInput: function sendInput(input) {
@@ -209,7 +236,8 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     },
         runCommand: function runCommand(command) {
         this.get('output').textString = '';
-        var cmd = lively.ide.CommandLineInterface.run(command, {group: this.name + '-' + this.id}, function() {});
+        var cmd = lively.ide.CommandLineInterface.run(command, {
+            addToHistory: true, group: this.getGroup()}, function() {});
         this.listenForEvents(cmd);
         this.onStart(cmd);
     },
@@ -266,13 +294,6 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     titleBar: "execute Shell command",
     runCommand: function runCommand(command) {
     return this.targetMorph.runCommand(command);
-},
-    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-    $super();
-    var cmdLine = this.get('commandLine');
-    (function() {
-        cmdLine.commandHistory = lively.ide.tools.CommandLine.getHistory('lively.ide.execShellCommand');
-    }).delay(0);
 },
     attachTo: function attachTo(cmd) { this.targetMorph.attachTo(cmd); },
 });

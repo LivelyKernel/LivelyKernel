@@ -366,6 +366,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         }
 
         var cmd = new commandClass(commandString, options);
+        if (options.addToHistory) this.history.addCommand(cmd);
         this.scheduleCommand(cmd, options.group);
         return cmd;
     },
@@ -811,6 +812,63 @@ Object.extend(lively.ide.CommandLineSearch, {
         });
     }
 
+});
+
+Object.extend(lively.ide.CommandLineInterface, {
+    history: {
+        id: null,
+
+        setId: function(id) {
+            return lively.ide.CommandLineInterface.history.id = id;
+        },
+
+        clear: function() {
+            lively.ide.CommandLineInterface.history.setCommands([]);
+        },
+
+        ensureId: function() {
+            return lively.ide.CommandLineInterface.history.id
+                || lively.ide.CommandLineInterface.history.setDefaultId();
+        },
+
+        setDefaultId: function() {
+            var user = $world.getUserName(true) || 'anonymous',
+                id = user + 'shell-command-history'
+            return lively.ide.CommandLineInterface.history.setId(id);
+        },
+
+        addCommand: function(cmd) {
+            var h = lively.ide.CommandLineInterface.history,
+                rec = {time: Date.now(), group: cmd.getGroup(), commandString: cmd._commandString};
+            return h.setCommands(h.getCommands().concat([rec]))
+        },
+
+        setCommands: function(commands) {
+            return lively.LocalStorage.set(lively.ide.CommandLineInterface.history.ensureId(), JSON.stringify(commands));
+        },
+
+        getCommands: function() {
+            var id = lively.ide.CommandLineInterface.history.ensureId();
+            // lively.LocalStorage.
+            // lively.LocalStorage.get(id)
+            // lively.LocalStorage.set(id, '')
+            return JSON.parse(lively.LocalStorage.get(id) || "[]");
+        },
+
+        showHistory: function() {
+            var cmds = lively.ide.CommandLineInterface.history.getCommands();
+            $world.addCodeEditor({
+                title: "Shell command history",
+                textMode: 'text',
+                content: cmds.map(function(ea) {
+                    var ds = '?';
+                    try { ds = new Date(ea.time).format("yy-mm-dd HH:MM:ss") } catch (e) {}
+                    return Strings.format("[%s] %s", ds, ea.commandString);
+                }).join('\n')
+            }).getWindow().comeForward();
+        }
+
+    }
 });
 
 Object.extend(lively, {

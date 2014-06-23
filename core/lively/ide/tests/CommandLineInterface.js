@@ -30,6 +30,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Shell',
 
 TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
 'testing', {
+
     testParsePatch: function() {
         var patchString = "diff --git a/test.txt b/test.txt\n"
             + "index bb53c45..3b6c223 100644\n"
@@ -377,7 +378,19 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
 });
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
+'running', {
+    setUp: function($super) {
+        $super();
+        lively.ide.CommandLineInterface.history.setId("cmd-history-" + this.currentSelector);
+    },
+    tearDown: function($super) {
+        $super();
+        lively.ide.CommandLineInterface.history.clear();
+        lively.ide.CommandLineInterface.history.setDefaultId();
+    }
+},
 'testing', {
+
     testRunSimpleCommand: function() {
         var cmd = new lively.ide.CommandLineInterface.PersistentCommand('echo 1; sleep 0.5; echo 2', {});
         var result, listener = { onOut: function(out) { result = out; } };
@@ -415,8 +428,21 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
             this.assertEquals("Enter stuff:\ninput was aha", cmd.resultString());
             this.done();
         });
-    }
+    },
 
+    testCommandsAreRecordedInHistory: function() {
+        var t = Date.now(),
+            cmd1 = lively.ide.CommandLineInterface.run('echo 1', {addToHistory: true, }),
+            cmd2 = lively.ide.CommandLineInterface.run('echo 2', {addToHistory: true, group: 'test'});
+            cmd2 = lively.ide.CommandLineInterface.run('echo 3', {addToHistory: false, group: 'test'});
+        this.waitFor(function() { return cmd1.getStdout().trim() && cmd2.getStdout().trim(); }, 10, function() {
+            var hist = lively.ide.CommandLineInterface.history.getCommands();
+            this.assertMatches([
+                {group: null, commandString: "echo 1"},
+                {group: "test", commandString: "echo 2"}], hist);
+            this.done();
+        })
+    }
 });
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',

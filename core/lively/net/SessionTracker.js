@@ -510,7 +510,7 @@ Object.extend(lively.net.SessionTracker, {
     },
 
     getServerStatus: function() {
-        return this.localSessionTrackerURL.asWebResource().get().getJSON();
+        return this.localSessionTrackerURL.withFilename('sessions/all').asWebResource().get().getJSON();
     },
 
     resetSession: function() {

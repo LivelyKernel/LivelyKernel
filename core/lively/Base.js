@@ -74,7 +74,7 @@ Object.extend(Function.prototype, {
             // remember the module that contains the class def
             if (Global.lively && lively.Module && lively.Module.current)
                 klass.sourceModule = lively.Module.current();
-                
+
             // add a more appropriate toString implementation
             klass.toString = function(){
                 var name = this.type;
@@ -88,7 +88,7 @@ Object.extend(Function.prototype, {
                         return categories[category].include("initialize");
                     });
                 if(!category) category = "default category";
-                return (this.superclass.type || this.superclass.name) + ".subclass(" + name + 
+                return (this.superclass.type || this.superclass.name) + ".subclass(" + name +
                         ", '" + category + "', {initialize: " + this.prototype.initialize + "})";
             }
         };
@@ -288,14 +288,14 @@ lively.Class = {
 
     anonymousCounter: 0,
 
-    initializerTemplate: (lively.Config.get('loadRewrittenCode', true) ?
+    initializerTemplate: lively.Config.loadRewrittenCode ?
         (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toStringRewritten().replace(/__0/g, 'Global').replace(/__1/g, '__1') :
-        (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toString()),
+        (function CLASS(){ lively.Class.initializer.apply(this, arguments) }).toString(),
 
     newInitializer: function(name) {
         // this hack ensures that class instances have a name
         var src = lively.Class.initializerTemplate.replace(/CLASS/g, name);
-        if (lively.Config.get('loadRewrittenCode', true)) {
+        if (lively.Config.loadRewrittenCode) {
             var idx = src.match('.*createAndShift\([^\)]*, ([0-9]+)\)')[2];
             src = '__createClosure(' + idx + ', Global, ' + src + ');';
         } else

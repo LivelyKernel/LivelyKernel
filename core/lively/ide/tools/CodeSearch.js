@@ -650,7 +650,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         function(err) {
 
             // 1. add info about what is matched...
-            var re = new RegExp('.{0,20}' + searchString + '.{0,20}', 'i');
+            var re = new RegExp('.{0,20}' + searchString.regExpEscape() + '.{0,20}', 'i');
 
             found = found.map(function(found) {
 

@@ -629,14 +629,14 @@ ObjectLinearizerPlugin.subclass('LivelyWrapperPlugin', // for serializing lively
 },
 'rawNode handling', {
     captureRawNode: function(original, copy) {
-        var attribs = $A(original.rawNode.attributes).collect(function(attr) {
-            return {key: attr.name, value: attr.value, namespaceURI: attr.namespaceURI}
-        })
-        var rawNodeInfo = {
-            tagName: original.rawNode.tagName,
-            namespaceURI: original.rawNode.namespaceURI,
-            attributes: attribs,
-        };
+        var attribs = Array.from(original.rawNode.attributes).collect(function(attr) {
+                return { key: attr.name, value: attr.value, namespaceURI: attr.namespaceURI };
+            }),
+            rawNodeInfo = {
+                tagName: original.rawNode.tagName,
+                namespaceURI: original.rawNode.namespaceURI,
+                attributes: attribs
+            };
         copy[this.rawNodeInfoProperty] = rawNodeInfo;
     },
 

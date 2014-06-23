@@ -113,7 +113,9 @@ Object.subclass('XPathEmulatorResult', {
 
             res = document.documentElement;
             while (nodeNoStack.length > 0)
-            res = (res.children ? $A(res.children)[nodeNoStack.pop()] : $A(res.childNodes)[nodeNoStack.pop()]);
+            res = (res.children ?
+                Array.from(res.children)[nodeNoStack.pop()] :
+                Array.from(res.childNodes)[nodeNoStack.pop()]);
         }
 
         this.pointer += 1;

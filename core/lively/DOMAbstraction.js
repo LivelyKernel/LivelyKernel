@@ -179,7 +179,7 @@ Object.subclass('DocLinkConverter', {
     },
 
     convert: function(doc) {
-        var scripts = $A(doc.getElementsByTagName('script'));
+        var scripts = Array.from(doc.getElementsByTagName('script'));
         if (scripts.length <= 0) {
             console.warn('could not convert scripts in doc in DocLinkConverter because no scripts found!');
             return doc;

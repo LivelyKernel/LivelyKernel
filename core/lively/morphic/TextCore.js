@@ -1865,7 +1865,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var isolatedTextNode = textNode.cloneNode(false/*no children*/),
             string = Exporter.stringify(isolatedTextNode),
             midIdx = string.indexOf('</div>'),
-            childrenString = $A(textNode.childNodes).collect(function(ea) { return '    ' + Exporter.stringify(ea) }).join('\n');
+            childrenString = Array.from(textNode.childNodes).collect(function(ea) {
+                return '    ' + Exporter.stringify(ea);
+            }).join('\n');
         string = string.slice(0, midIdx) + '\n' + childrenString + '\n' + string.slice(midIdx);
         return string;
     }

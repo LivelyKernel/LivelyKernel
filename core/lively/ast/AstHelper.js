@@ -1067,6 +1067,10 @@ Object.extend(lively.ast.query, {
         return scopes.pluck('decls').flatten().uniq();
     },
 
+    topLevelScope: function(ast) {
+        return lively.ast.query.scopesAtPos(ast.end, ast).first();
+    },
+
     topLevelDecls: function(ast) {
         return lively.ast.query.declsAt(ast.end, ast);
     }
@@ -1121,31 +1125,19 @@ Object.extend(lively.ast.transform, {
         // transform "var x = 3, y = 2;" into "var x = 3; var y = 2;"
         ast = lively.ast.transform.oneDeclaratorPerVarDecl(ast);
 
-        var decls = lively.ast.query.topLevelDecls(ast);
+        var decls = lively.ast.query.topLevelDecls(ast).groupByKey('type'),
+            funcDecls = decls.FunctionDeclaration || [],
+            varDecls = decls.VariableDeclaration || [],
+            astCopy = makeCopy(ast),
+            topLevelScope = lively.ast.query.topLevelScope(astCopy);
 
-        return acorn.walk.copy(ast, {
-        
-            FunctionDeclaration: function(n, c) {
-                return decls.include(n) ?
-                    assign(n.id, Object.extend(acorn.walk.copy(n), {type: "FunctionExpression"})) :
-                    {
-                        start: n.start, end: n.end, type: 'FunctionDeclaration',
-                        id: c(n.id), params: n.params.map(c), body: c(n.body),
-                        source: n.source, astIndex: n.astIndex
-                    };
-            },
-            
-            VariableDeclaration: function(n, c) {
-                return decls.include(n) ?
-                    assign(n.declarations[0].id, n.declarations[0].init) :
-                    {
-                        start: n.start, end: n.end, type: 'VariableDeclaration',
-                        declarations: n.declarations.map(c), kind: n.kind,
-                        source: n.source, astIndex: n.astIndex
-                    };
-            }
-        
+        funcDecls.forEach(function(decl) {
+            topLevelScope.body.unshift(assign(decl.id, decl.id));
         });
+
+        return astCopy;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function assign(id, value) {
             return {
@@ -1159,6 +1151,23 @@ Object.extend(lively.ast.transform, {
               }
             }
         }
+
+        function makeCopy(ast) {
+            return acorn.walk.copy(ast, {
+            
+                VariableDeclaration: function(n, c) {
+                    return varDecls.include(n) ?
+                        assign(n.declarations[0].id, n.declarations[0].init) :
+                        {
+                            start: n.start, end: n.end, type: 'VariableDeclaration',
+                            declarations: n.declarations.map(c), kind: n.kind,
+                            source: n.source, astIndex: n.astIndex
+                        };
+                }
+            
+            })
+        }
+
     },
 
     oneDeclaratorPerVarDecl: function(ast) {

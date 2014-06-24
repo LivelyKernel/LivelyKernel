@@ -997,6 +997,19 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},
+    'lively.ide.openASTEditor': {
+        description: 'open AST editor',
+        exec: function(codeEditor) {
+            if (!codeEditor) {
+                var focused = lively.morphic.Morph.focusedMorph();
+                if (focused && focused.isCodeEditor) codeEditor = focused;
+            }
+            lively.require('lively.ide.tools.ASTEditor').toRun(function() {
+                lively.ide.tools.ASTEditor.openOn(codeEditor);
+            });
+            return true;
+        }
+    },
     'lively.ide.openDirViewer': {
         description: 'open directory viewer',
         isActive: Functions.True,
@@ -1214,6 +1227,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.openSystemCodeBrowser': {mac: "Command-B", win: "Control-B"},
     'lively.ide.openWorkspace': {mac: "Command-K", win: "Control-K"},
     'lively.ide.openObjectEditor': {mac: "Command-O", win: "Control-O"},
+    'lively.ide.openASTEditor': {mac: 'cmd-s-l a s t', win: 'ctrl-s-l a s t'},
     'lively.PartsBin.open': {mac: "Command-P", win: "Control-P"},
     'lively.morphic.World.resetScale': {mac: "Command-0", win: "Control-0"},
     'lively.morphic.World.escape': "esc",

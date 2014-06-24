@@ -29,6 +29,10 @@ development follow the steps below.
 
 Lively should now be running at [localhost:9001](http://localhost:9001/welcome.html).
 
+### VM distro (debian 7)
+
+Alternatively to the install instructions above you can run Lively via VirtualBox/Vagrant. See [LivelyKernel/lively-vagrant](https://github.com/LivelyKernel/lively-vagrant/blob/master/README.md) for setup instructions.
+
 ## Running the tests
 
 Start the server then run `$ npm test`.

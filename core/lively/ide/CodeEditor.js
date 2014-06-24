@@ -729,6 +729,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             var subst = {name: "Global", type: "Identifier"};
             var transformed = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, subst);
             __evalStatement = lively.ast.acorn.stringify(transformed);
+            $morph('log') && ($morph('log').textString = __evalStatement);
         }
 
         try {

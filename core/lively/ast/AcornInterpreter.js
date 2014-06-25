@@ -1008,7 +1008,12 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     initialize: function(node, scope, optFunc) {
         this.lexicalScope = scope;
         this.node = node;
+        this.source = undefined;
 
+        if (!optFunc && node.type == 'FunctionExpression' && node.source) {
+            // FIXME: make sure that source really is a FunctionExpression (and not the complete source)
+            optFunc = eval('(' + node.source + ')'); // multiple brackets don't hurt
+        }
         this.prepareFunction(optFunc);
     },
 
@@ -1040,6 +1045,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
             sourceModule: (optFunc && optFunc.sourceModule),
             argumentNames: function() {
                 return self.argNames();
+            },
+            toString: function() {
+                return self.getSource();
             }
         });
         if (fn.methodName && fn.declaredClass)
@@ -1049,6 +1057,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
         if (optFunc) {
             fn.prototype = optFunc.prototype;
+            this.source = optFunc.toString();
             // TODO: prepare more stuff from optFunc
         }
         this._cachedFunction = fn;
@@ -1077,7 +1086,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
     },
 
     getSource: function() {
-        var source = this.getAst().source;
+        var source = this.source || this.getAst().source;
         if (source) return source;
 
         var ast = this.getAst();

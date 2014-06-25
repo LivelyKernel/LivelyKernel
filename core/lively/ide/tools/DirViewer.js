@@ -787,10 +787,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         });
         return listItemMorph;
     },
-        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-        $super();
-        this.goto(lively.ide.CommandLineInterface.cwd());
-    },
+
     onKeyDown: function onKeyDown(evt) {
     var fl              = this.get('fileList'),
         dirInput        = this.get('targetDir'),
@@ -807,12 +804,13 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
         fl.selectAt(newIdx);
     }
-
     switch (keys) {
         case 'Enter':
-            var sel = !dirInputFocused && fl.getSelection();
-            if (sel) this.doActionForFileItem(sel);
-            else wasHandled = false;
+            var sel = fl.getSelection();
+            if (sel && (!dirInputFocused || this.dirState.path === dirInput.getInput()))
+                this.doActionForFileItem(sel);
+            else
+                wasHandled = false;
             break;
         case 'Shift-^': this.gotoParentDir(); break;
         case 'Control-N': case 'Down': fl.selectNext(); break;
@@ -912,6 +910,14 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     }
     }],
     titleBar: "DirViewer"
+});
+
+Object.extend(lively.ide.tools.DirViewer, {
+    on: function(path) {
+        var dirViewer = lively.BuildSpec('lively.ide.tools.DirViewer').createMorph();
+        dirViewer.targetMorph.goto(path || lively.ide.CommandLineInterface.cwd());
+        return dirViewer.openInWorldCenter().comeForward();
+    },
 });
 
 }) // end of module

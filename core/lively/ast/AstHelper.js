@@ -1143,7 +1143,7 @@ Object.extend(lively.ast.transform, {
             return {
               type: "ExpressionStatement", expression: {
                 type: "AssignmentExpression", operator: "=",
-                right: value,
+                right: value || {type: "Identifier", name: 'undefined'},
                 left: {
                     type: "MemberExpression", computed: false,
                     object: assignToObj, property: id

@@ -257,7 +257,7 @@ Object.subclass('lively.morphic.EventHandler',
 
         var world = lively.morphic.World.current();
         evt.world = world;
-        evt.hand = world.hands[0];
+        evt.hand = world ? world.hands[0] : undefined;
 
         evt.getPosition = function() {
             if (!evt.scaledPos) {

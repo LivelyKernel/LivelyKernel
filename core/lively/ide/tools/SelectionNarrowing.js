@@ -221,9 +221,11 @@ lively.BuildSpec('lively.ide.tools.NarrowingList', {
             this.selectN(0);
         } else if (keys === 'Right') {
             var inputLine = this.get('inputLine');
-            if (this.state.completeInputOnRightArrow && inputLine && inputLine.isAtDocumentEnd()) {
-                var item = this.getSelectedListItem(this.state);
-                var string = item && item.string || String(item)
+            var compl = this.state.completeInputOnRightArrow;
+            if (compl && inputLine && inputLine.isAtDocumentEnd()) {
+                var item = this.getSelectedListItem(this.state),
+                    string = Object.isFunction(compl) ?
+                        compl(item) : item && item.string || String(item);
                 inputLine.setInput(string);
                 inputLine.withAceDo(function(ed) { ed.selection.moveCursorFileEnd(); })
                 evt.stop(); return true;

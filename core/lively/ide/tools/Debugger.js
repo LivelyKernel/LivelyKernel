@@ -437,7 +437,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     delete item.children;
                     return;
                 }
-                var props = Properties.own(scope.getMapping()).sort();
+                var props = Properties.allOwnPropertiesOrFunctions(scope.getMapping()).sort();
                 var lookup = {};
                 if (item.children) item.children.each(function(i) { lookup[i.name] = i; });
                 item.children = [];

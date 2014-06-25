@@ -346,15 +346,16 @@ Global.Properties = {
         var a = [];
         for (var name in object) {
             if ((object.__lookupGetter__(name) || !Object.isFunction(object[name]))
-              && (predicate ? predicate(name, object) : true)) a.push(name);
+              && (predicate ? predicate(name, object) : true))
+              a.push(name);
         }
         return a;
     },
 
     allOwnPropertiesOrFunctions: function(obj, predicate) {
         var result = [];
-        Object.getOwnPropertyNames(obj).forEach(function(name){
-            if(predicate(obj, name)) 
+        Object.getOwnPropertyNames(obj).forEach(function(name) {
+            if (predicate ? predicate(obj, name) : true)
                 result.push(name);
         });
         return result;
@@ -363,7 +364,9 @@ Global.Properties = {
     own: function(object) {
         var a = [];
         for (var name in object) {
-            if (object.hasOwnProperty(name) && (object.__lookupGetter__(name) || !Object.isFunction(object[name]))) a.push(name);
+            if (object.hasOwnProperty(name) && (object.__lookupGetter__(name)
+                || !Object.isFunction(object[name])))
+                a.push(name);
         }
         return a;
     },
@@ -381,19 +384,26 @@ Global.Properties = {
     },
 
     nameFor: function(object, value) {
-        for (var name in object) { if (object[name] === value) return name; }
-        return undefined
+        for (var name in object) {
+            if (object[name] === value)
+                return name;
+        }
+        return undefined;
     },
 
     values: function(obj) {
         var values = [];
-        for (var name in obj) { values.push(obj[name]); }
+        for (var name in obj)
+            values.push(obj[name]);
         return values;
     },
 
     ownValues: function(obj) {
         var values = [];
-        for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
+        for (var name in obj) {
+            if (obj.hasOwnProperty(name))
+                values.push(obj[name]);
+        }
         return values;
     },
 
@@ -402,14 +412,18 @@ Global.Properties = {
     },
 
     any: function(obj, predicate) {
-        for (var name in obj) { if (predicate(obj, name)) return true; }
+        for (var name in obj) {
+            if (predicate(obj, name))
+                return true;
+        }
         return false;
     },
 
     allProperties: function(obj, predicate) {
         var result = [];
         for (var name in obj) {
-            if (predicate(obj, name)) result.push(name);
+            if (predicate ? predicate(obj, name) : true)
+                result.push(name);
         }
         return result;
     },

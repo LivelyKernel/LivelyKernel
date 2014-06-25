@@ -667,6 +667,14 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEqualState(['a', 'b', 'c'], this.interpret(node), 'wrong argument names returned');
     },
 
+    test48cLeakingFunctionImplementation: function() {
+        var fnStr = 'function foo(a, b, c) {}',
+            src = '(' + fnStr + ').toString();',
+            node = this.parse(src);
+        acorn.walk.addSource(node, src);
+        this.assertEqualState(fnStr, this.interpret(node), 'wrong function string/source was returned');
+    },
+
     test49SameFunctionArgAndVarDeclaration: function() {
         var src = '(function(a) { var a; return a; })(123);',
             node = this.parse(src);

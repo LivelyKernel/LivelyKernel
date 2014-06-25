@@ -101,7 +101,7 @@ Object.extend(acorn.walk, {
         ast = Object.isString(ast) ? acorn.parse(ast) : ast;
         completeSrc = !!completeSrc;
         return acorn.walk.forEachNode(ast, function(node) {
-            if (!node.source && !forceNewSource) return
+            if (node.source && !forceNewSource) return;
             node.source = completeSrc ?
                 source : source.slice(node.start, node.end);
         });

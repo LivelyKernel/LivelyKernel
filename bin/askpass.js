@@ -24,7 +24,7 @@ if (!clientSessionId) {
     process.exit(1);
 }
 
-var sessionTrackerURL = process.env.ASKPASS_SESSIONTRACKER_URL || 'http://lively-web.org:8080/nodejs/SessionTracker/connect',
+var sessionTrackerURL = process.env.L2L_SESSIONTRACKER_URL || 'http://lively-web.org:8080/nodejs/SessionTracker/connect',
     ws = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets')),
     wsClient = new ws.WebSocketClient(sessionTrackerURL, {protocol: 'lively-json', sender: 'askpass', debugLevel: 10});
 

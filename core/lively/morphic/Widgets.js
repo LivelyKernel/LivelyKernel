@@ -3643,7 +3643,33 @@ Object.extend(lively.ide, {
         }
         editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
         return editor;
+    },
+
+    openFileAsEDITOR: function (file, whenEditDone) {
+        var editor = lively.ide.openFile(file);
+
+        editor.closeVetoed = false; editor.wasStored = false;
+
+        lively.bindings.connect(editor, 'contentStored', whenEditDone, 'call', {
+            updater: function($upd) {
+                var editor = this.sourceObj;
+                editor.wasStored = true;
+                editor.initiateShutdown();
+                $upd(null,null, "saved");
+            }
+        });
+
+        editor.onOwnerChanged = function(owner) {
+            if (this.wasStored) return;
+            this.closeVetoed = !!owner;
+            (function() {
+                if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
+            }).bind(this).delay(.8);
+        };
+
+        return editor;
     }
+
 });
 
 

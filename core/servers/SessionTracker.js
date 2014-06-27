@@ -228,7 +228,51 @@ var sessionActions = {
             inResponseTo: msg.messageId,
             data: {log: log}
         });
-    }
+    },
+
+
+    whoAreYou: function(sessionServer, connection, msg) {
+        async.waterfall([
+
+            function initData(next) {
+                var data = {
+                    id: sessionServer.id(),
+                    route: sessionServer.route,
+                    type: 'tracker',
+                    ip: null
+                };
+                next(null, data);
+            },
+
+            function getIp(data, next) {
+                sessionServer.getOwnIPAddress(function(err, ip) {
+                    data.ip = ip; next(null, data);
+                });
+            }
+
+        ], function(err, data) {
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+                data: err ? {error: String(err)} : data
+            });
+        });
+
+    },
+
+    openEditor: function(sessionServer, connection, msg) {
+        var sess = sessionServer.getLastActiveLocalSession();
+        if (!sess) {
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+                data: {error: "'No last active session!'"}
+            });
+        } else {
+            msg.target = sess.id;
+            sessionServer.routeMessage(msg, connection);
+        }
+    },
 }
 
 var services = require("./LivelyServices").services;
@@ -660,7 +704,7 @@ function SessionTracker(options) {
             setting = Object.values(ifs).flatten().detect(function(intf) {
                 return intf.family === 'IPv4' && !intf.internal; }),
             ip = setting && setting.address;
-        
+
         thenDo(ip ? null : new Error('local ip not found'), ip);
     };
 
@@ -668,11 +712,17 @@ function SessionTracker(options) {
         return util.format('SessionTracker(%s)', this.websocketServer);
     };
 
+    this.getLastActiveLocalSession = function() {
+        var sessions = this.getLocalSessions({});
+        return Object.values(sessions[this.id()]).max(function(sess) {
+            return sess.lastActivity || 0; });
+    }
+
     this.getSessionListSimplified = function(options, thenDo) {
         var tracker = this;
 
         async.waterfall([
-            
+
             // 1. get tracker -> session list
             function(next) {
                 tracker.getSessionList({}, next.bind(null,null));
@@ -717,7 +767,7 @@ function SessionTracker(options) {
                     });
                 }, function(err) { next(null, participants); });
             },
-            
+
             // 4. add geolocation info
             function(participants, next) {
                 var geoip = require('./GeoIPServer');

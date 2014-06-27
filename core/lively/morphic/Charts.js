@@ -509,16 +509,19 @@ lively.morphic.Morph.subclass("lively.morphic.Charts.Dashboard", {
     
     update: function() {
         var _this = this;
-        Properties.own(this.env).each(function(ea) {
-            var viewer = _this.getSubmorphsByAttribute("envKey", ea)[0];
+        Properties.own(this.env).each(function(key) {
+            var viewer = _this.getViewerForKey(key);
             if (!viewer) {
-                viewer = _this.addViewer(ea);
+                viewer = _this.addViewer(key);
             }
         
-            viewer.update(_this.env[ea]);
+            viewer.update(_this.env[key]);
             viewer.updated = true;
         });
         this.removeUnusedViewers();
+    },
+    getViewerForKey: function(key) {
+        return this.getSubmorphsByAttribute("envKey", key)[0];
     },
     onrestore: function($super) {
         $super();

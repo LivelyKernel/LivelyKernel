@@ -4263,6 +4263,9 @@ lively.morphic.Charts.Content.subclass('lively.morphic.Charts.MorphCreator',
             width: function(value, morph) {
                 morph.setExtent(lively.pt(value, morph.getExtent().y));
             },
+            radius: function(value, morph) {
+                morph.setExtent(lively.pt(value, value));
+            },
             color: function(value, morph) {
                 morph.setFill(value);
             },

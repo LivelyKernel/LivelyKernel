@@ -440,6 +440,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         var ext = this.getExtent();
         var canvasMorph = new lively.morphic.CanvasMorph(ext);
         canvasMorph.getContext().drawImage(this.renderContext().imgNode, 0, 0, ext.x, ext.y);
+        canvasMorph.adaptCanvasSizeHTML(canvasMorph.renderContext(), canvasMorph.getExtent(), ext);
         this.setImageURL(canvasMorph.toDataURI(), true);
     }
 
@@ -3662,9 +3663,7 @@ Object.extend(lively.ide, {
         editor.onOwnerChanged = function(owner) {
             if (this.wasStored) return;
             this.closeVetoed = !!owner;
-            (function() {
-                if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
-            }).bind(this).delay(.8);
+            if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
         };
 
         return editor;
@@ -4106,6 +4105,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         node.layout.resizeWidth = true;
         this.icon = node.addMorph(this.createIcon());
         this.label = node.addMorph(this.createLabel());
+        if (this.item.isEditable)
+            this.editButton = node.addMorph(this.createEditButton(), this.label);
+        if (this.item.isInspectable)
+            this.inspectButton = node.addMorph(this.createInspectButton());
         this.node = this.addMorph(node);
     }
 },
@@ -4275,6 +4278,25 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.addMorph(node, optOtherNode);
         return node;
     },
+    createInspectButton: function() {
+        // create a button, that triggers a custom inspection for the respective item
+        var button = new lively.morphic.Button();
+        button.setExtent(pt(22,22));
+        button.setLabel('+');
+        button.label.setFontSize(13);
+        connect(button, "fire", this.item, "onInspect", {});
+        return button;
+    },
+    createEditButton: function() {
+        // create a button that triggers the editing mode ✎
+        var button = new lively.morphic.Button();
+        this.isEditing = false;
+        button.setExtent(pt(22,22));
+        button.setLabel('✎');
+        button.label.setFontSize(13);
+        connect(button, "fire", this, "toggleEdit", {});
+        return button;
+    },
 },
 'tree', {
     isChild: function() {
@@ -4374,13 +4396,22 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         edit.onEnterPressed = edit.onEscPressed;
         this.node.addMorph(edit);
         edit.growOrShrinkToFit();
-        edit.onBlur = function() { this.finishEditingDescription(edit); }.bind(this);
         (function() { edit.focus(); edit.selectAll(); }).delay(0);
+        return edit;
     },
     finishEditingDescription: function(edit) {
         if (this.item.onEdit) this.item.onEdit(edit.textString);
         edit.remove();
         this.updateLabel();
+    },
+    toggleEdit: function() {
+        if (!this.editing) {
+            this.editButton.setLabel('✓');
+            this.editing = this.editDescription();
+        } else {
+            this.editing = this.finishEditingDescription(this.editing);
+            this.editButton.setLabel('✎');
+        }
     }
 },
 'enumerating', {

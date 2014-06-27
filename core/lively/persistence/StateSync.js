@@ -482,6 +482,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             pos = lively.pt(targetMorph.getExtent().x - ext.x, 0);
         $super(lively.rect(pos.x, pos.y, ext.x, ext.y));
         this.updates = [];
+        this.connections = [];
 
         this.connectTo(targetMorph);
         this.initializeMorphic();
@@ -496,11 +497,12 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             throw new Error("Can not indicate changes for something which is not synchronized.")
         }
         if (this.target) {// disconnect ...
+            this.disconnect();
         }
         this.target = targetMorph;
-        connect(targetMorph, "extent", this, "adjustPosition");
-        connect(targetMorph, "position", this, "adjustPosition");
-        connect(targetMorph, "remove", this, "remove");
+        this.connections.push(connect(targetMorph, "extent", this, "adjustPosition"));
+        this.connections.push(connect(targetMorph, "position", this, "adjustPosition"));
+        this.connections.push(connect(targetMorph, "remove", this, "remove"));
     },
     initializeMorphic: function() {
         this.createBounds(this.target.getBounds());
@@ -513,6 +515,10 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         this.setBorderStylingMode(true);
         this.setStyleSheet(".Morph {border-width: 0; border-radius: 10px 10px 0 0}")
         this.enableMorphMenu();
+    },
+    disconnect: function() {
+        this.target = null;
+        this.connections.invoke('disconnect');
     },
     createBounds: function(rect) {
         var boundsRect = new lively.morphic.Box(rect);
@@ -643,7 +649,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
         return
     },
     copy: function(stringify) {
+        this.updateIndicator && this.updateIndicator.disconnect();
         var copy = this.constructor.prototype.copy.call(this, stringify);
+        this.updateIndicator && this.updateIndicator.connectTo(this);
         if (!stringify) {
             delete copy.synchronizationHandles;
             delete copy.noSave;

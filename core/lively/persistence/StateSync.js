@@ -1046,7 +1046,7 @@ Trait('lively.persistence.StateSync.SynchronizedCheckBoxMixin',
         return this.checked
     },
     mergeWithModelData: function(newValue, changeTime) {
-        if (typeof newValue == "boolean" && this.value !== newValue && this.changeTime < changeTime) {
+        if (typeof newValue == "boolean" && this.isChecked() !== newValue && this.changeTime < changeTime) {
             this.setChecked(newValue);
             return true;
         }
@@ -1068,9 +1068,11 @@ Trait('lively.persistence.StateSync.SynchronizedImageMixin',
     },
     mergeWithModelData: function(newImageURL, changeTime) {
         // there is the conscious decision to not synchronize the image extent, because it would break layouting of the forms.
-        if (typeof newImageURL == "string") {
+        if (typeof newImageURL == "string" && newImageURL !== this.getImageURL()) {
             this.setImageURL(newImageURL);
+            return true
         }
+        return false;
     },
 });
 Trait('lively.persistence.StateSync.SynchronizedImageMixin').mixin().applyTo(lively.morphic.Image);

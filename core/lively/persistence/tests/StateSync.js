@@ -386,6 +386,141 @@ lively.persistence.tests.StateSync.MorphMixin.subclass('lively.persistence.tests
             newNote.remove();
         })
     },
+});
+
+TestCase.subclass('lively.persistence.tests.StateSync.DefaultValues', 'tests', {
+    test01TextMorphModel: function() {
+        var text = new lively.morphic.Text(lively.rect(0, 0, 200, 20), "some text");
+        this.basicValueTest(text, [['some text', new lively.morphic.TextEmphasis()]], [['some other text', new lively.morphic.TextEmphasis()]], 0);
+        this.assertEquals(text.textString, 'some other text', "Although merged successfully, the new text is not used.");
+    },
+    test02ListMorphModel: function() {
+        var list = new lively.morphic.List();
+        list.setList([1, 2, 3])
+        this.basicValueTest(list, [1, 2, 3], [4, 5, 6])
+        this.assertEquals(list.getList(), [4, 5, 6], "Although merged successfully, the new list is not used.");
+    },
+    test03CheckboxModel: function() {
+        var checkbox = new lively.morphic.CheckBox(true);
+        this.basicValueTest(checkbox, true, false, 0)
+        this.assertEquals(checkbox.isChecked(), false, "Although merged successfully, the new list is not used.");
+    },
+    test04CodeEditor: function() {
+        var anEditor = new lively.morphic.CodeEditor(lively.rect(0, 0, 250, 250), "This is some source code.");
+        anEditor.evalEnabled = false;
+        anEditor.doSave();
+        this.basicValueTest(anEditor, {content: 'This is some source code.', mode: "javascript"}, {content: "Some text", mode: 'text'}, 0)
+        this.assertEquals(anEditor.savedTextString, "Some text", "Although merged successfully, the new list is not used.");
+    },
+    test05SliderModel: function() {
+        var slider = new lively.morphic.Slider(lively.rect(0, 0, 200, 20));
+        slider.setValue(3);
+        this.basicValueTest(slider, 3, 20, 0)
+        this.assertEquals(slider.getValue(), 20, "Although merged successfully, the new value is not used.");
+    },
+    test06ImageModel: function() {
+        var image = new lively.morphic.Image(lively.rect(0, 0, 100, 100), "http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png");
+        this.basicValueTest(image, "http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png", "data:image/png;base64,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\n" +
+"AABJRU5ErkJggg==\n")
+        this.assertEquals(image.getImageURL(), "data:image/png;base64,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\n" +
+"AABJRU5ErkJggg==\n", "Although merged successfully, the new value is not used.");
+    },
+    basicValueTest: function(morph, existingValue, newValue, changeTime) {
+        this.assert(morph.getModelData && morph.getModelData() !== undefined, 'The morph does not return a valid model.');
+        this.assertEqualState(morph.getModelData(), existingValue);
+        this.assert(!morph.mergeWithModelData(morph.getModelData()), "Merging with the same model should not yield in updates...");
+
+        if (changeTime !== undefined) morph.changeTime = changeTime;
+        this.assert(morph.mergeWithModelData(newValue, Date.now()), 'Merging should have updated the morph');
+    },
 })
 
 }) // end of module

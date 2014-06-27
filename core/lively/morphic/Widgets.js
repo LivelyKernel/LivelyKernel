@@ -2069,6 +2069,7 @@ lively.morphic.World.addMethods(
 
 },
 'dialogs', {
+
     openDialog: function(dialog) {
         var focusedMorph = lively.morphic.Morph.focusedMorph(),
             win = this.getActiveWindow();
@@ -2076,23 +2077,28 @@ lively.morphic.World.addMethods(
         this.addModal(dialog.panel, win && !win.isCollapsed() ? win : this);
         return dialog;
     },
-    confirm: function (message, callback) {
-        return this.openDialog(new lively.morphic.ConfirmDialog(message, callback));
+
+    confirm: function (message, callback, buttons) {
+        return this.openDialog(new lively.morphic.ConfirmDialog(message, callback, buttons));
     },
-    inform: function (message, callback) {
+
+    inform: function(message, callback) {
         return this.openDialog(new lively.morphic.InformDialog(message, callback));
     },
-    prompt: function (message, callback, defaultInputOrOptions) {
+
+    prompt: function(message, callback, defaultInputOrOptions) {
         // options = {
         //   input: STRING, -- optional, prefilled input string
         //   historyId: STRING -- id to identify the input history for this prompt
         // }
         return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInputOrOptions))
     },
-    passwordPrompt: function (message, callback, options) {
+
+    passwordPrompt: function(message, callback, options) {
         return this.openDialog(new lively.morphic.PasswordPromptDialog(message, callback, options));
     },
-    listPrompt: function (message, callback, list, defaultInput, optExtent) {
+
+    listPrompt: function(message, callback, list, defaultInput, optExtent) {
         // $world.listPrompt('test', alert, [1,2,3,4], 3, pt(400,300));
         module('lively.morphic.tools.ConfirmList').load(true);
         var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
@@ -2107,9 +2113,10 @@ lively.morphic.World.addMethods(
         return this.addModal(listPrompt);
     },
 
-    editPrompt: function (message, callback, defaultInputOrOptions) {
+    editPrompt: function(message, callback, defaultInputOrOptions) {
         return this.openDialog(new lively.morphic.EditDialog(message, callback, defaultInputOrOptions))
     }
+
 },
 'progress bar', {
     addProgressBar: function(optPt, optLabel) {
@@ -2776,18 +2783,26 @@ Object.subclass('lively.morphic.App',
 
 lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 'documentation', {
+
     connections: ['result']
+
 },
 'properties', {
+
     doNotSerialize: ['lastFocusedMorph'],
-    initialViewExtent: pt(300, 90),
+
+    initialViewExtent: lively.pt(300, 90),
+
     inset: 4
+
 },
 'initializing', {
+
     initialize: function(message, callback) {
         this.result = null;
         this.message = message || '?';
         if (callback) this.setCallback(callback);
+        this.buttons = ['Ok', 'Cancel'];
     },
 
     openIn: function($super, owner, pos) {
@@ -2838,35 +2853,42 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                 var morphsBelowLabel = this.panel.submorphs.without(this.label).select(function(ea) {
                         return ea.bounds().top() <= labelBoundsFit.bottom(); }),
                     diff = labelBoundsFit.height - bounds.height;
+                morphsBelowLabel.invoke('moveBy', panelExtent.subPt(origPanelExtent));
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);
             this.panel.moveBy(panelExtent.subPt(origPanelExtent).scaleBy(0.5).negated());
         }).bind(this).delay(0);
     },
-    buildCancelButton: function() {
-        var bounds = new Rectangle(0,0, 60, 30),
-            btn = new lively.morphic.Button(bounds, 'Cancel');
-        btn.align(btn.bounds().bottomRight().addXY(this.inset, this.inset), this.panel.innerBounds().bottomRight())
-        btn.applyStyle({moveHorizontal: true, moveVertical: true, padding: rect(pt(0,6),pt(0,6))})
-        this.cancelButton = this.panel.addMorph(btn);
-        lively.bindings.connect(btn, 'fire', this, 'removeTopLevel')
+
+    buildButton: function(title, place, total) {
+        place = Object.isNumber(place) ? place : 0;
+        var mult = (this.buttons.length) - place - 1,
+            bounds = new Rectangle(0,0, 75, 30),
+            btn = new lively.morphic.Button(bounds, title),
+            btnWidth = btn.bounds().width + this.inset;
+        btn.align(btn.bounds().bottomRight().addXY(this.inset, this.inset), this.panel.innerBounds().bottomRight().subXY(btnWidth * mult, 0));
+        lively.bindings.connect(btn, 'fire', this, 'removeTopLevel');
+        return this.panel.addMorph(btn);
     },
-    buildOKButton: function() {
-        var bounds = new Rectangle(0,0, 60, 30),
-            btn = new lively.morphic.Button(bounds, 'OK');
-        btn.align(btn.bounds().bottomRight().addXY(this.inset, 0), this.cancelButton.bounds().bottomLeft())
-        btn.applyStyle({moveHorizontal: true, moveVertical: true, padding: rect(pt(0,6),pt(0,6))})
-        this.okButton = this.panel.addMorph(btn);
-        lively.bindings.connect(btn, 'fire', this, 'removeTopLevel')
-    },
+
     buildView: function(extent) {
         this.buildPanel(extent.extentAsRectangle());
         this.buildLabel();
-        this.buildCancelButton();
-        this.buildOKButton();
+        this.buttons.each(function(title, idx) {
+            var btn = this.buildButton(title, idx);
+            btn.idx = idx;
+            if (title == 'Ok')
+                this.okButton = btn;
+            else if (title == 'Cancel')
+                this.cancelButton = btn;
+            else
+                lively.bindings.connect(btn, 'fire', this, 'result', {
+                    converter: function() { return source.idx; }});
+        }, this);
         return this.panel;
-    },
+    }
+
 },
 'view', {
     focus: function() { this.panel.focus(); }
@@ -2903,13 +2925,52 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 
 lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
 'properties', {
-    initialViewExtent: pt(260, 70),
+
+    initialViewExtent: lively.pt(260, 70),
+
 },
 'initializing', {
+
+    initialize: function($super, message, callback, buttons) {
+        $super(message, callback);
+        if (Object.isArray(buttons))
+            this.buttons = buttons;
+    },
+
     buildView: function($super, extent) {
         var panel = $super(extent);
-        lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
-            converter: function() { return false; }});
+
+        if (this.cancelButton)
+            lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
+                converter: function() { return false; }});
+        if (this.okButton)
+            lively.bindings.connect(this.okButton, 'fire', this, 'result', {
+                converter: function() { return true; }});
+
+        lively.bindings.connect(panel, 'onEscPressed', this, 'result', {
+            converter: function(evt) { Global.event && Global.event.stop(); return false; }});
+        lively.bindings.connect(panel, 'onEnterPressed', this, 'result', {
+            converter: function(evt) { Global.event && Global.event.stop(); return true; }});
+        return panel;
+    }
+
+});
+
+lively.morphic.AbstractDialog.subclass('lively.morphic.InformDialog',
+'properties', {
+
+    initialViewExtent: lively.pt(260, 70),
+
+},
+'initializing', {
+
+    initialize: function($super, message, callback) {
+        $super(message, callback);
+        this.buttons = ['Ok'];
+    },
+
+    buildView: function($super, extent) {
+        var panel = $super(extent);
         lively.bindings.connect(this.okButton, 'fire', this, 'result', {
             converter: function() { return true; }});
         lively.bindings.connect(panel, 'onEscPressed', this, 'result', {
@@ -2917,35 +2978,19 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
         lively.bindings.connect(panel, 'onEnterPressed', this, 'result', {
             converter: function(evt) { Global.event && Global.event.stop(); return true; }});
         return panel;
-    },
-});
+    }
 
-lively.morphic.AbstractDialog.subclass('lively.morphic.InformDialog',
-'properties', {
-    initialViewExtent: pt(260, 70),
-},
-'initializing', {
-    buildView: function($super, extent) {
-        var panel = $super(extent);
-        this.cancelButton.remove();
-        var btn = this.okButton;
-        btn.align(
-            btn.bounds().bottomRight().addXY(this.inset, this.inset),
-            panel.innerBounds().bottomRight());
-        lively.bindings.connect(btn, 'fire', this, 'result', {
-            converter: function() { return true; }});
-        lively.bindings.connect(panel, 'onEscPressed', this, 'result', {
-            converter: function(evt) { Global.event && Global.event.stop(); return false; }});
-        lively.bindings.connect(panel, 'onEnterPressed', this, 'result', {
-            converter: function(evt) { Global.event && Global.event.stop(); return true; }});
-        return panel;
-    },
 });
 
 lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
+'properties', {
+
+    initialViewExtent: lively.pt(580, 90),
+
+},
 'initializing', {
-    initialViewExtent: pt(580, 90),
+
     initialize: function($super, label, callback, defaultInputOrOptions) {
         $super(label, callback);
         var options;
@@ -2956,10 +3001,12 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         }
         this.options = options;
     },
+
     buildTextInput: function(bounds) {
         module('lively.ide.tools.CommandLine').load(true);
-        var opt = this.options || {}, histId = opt.historyId;
-        var input = lively.ide.tools.CommandLine.get(histId);
+        var opt = this.options || {},
+            histId = opt.historyId,
+            input = lively.ide.tools.CommandLine.get(histId);
         input.setBounds(this.label.bounds().insetByPt(pt(this.label.getPosition().x * 2, 0)));
         input.align(input.getPosition(), this.label.bounds().bottomLeft().addPt(pt(0,5)));
         lively.bindings.connect(input, 'savedTextString', this, 'result');
@@ -2975,7 +3022,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
         this.buildTextInput();
 
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
-            converter: function() { return null }});
+            converter: function() { return null; }});
         lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave')
 
         return panel;
@@ -3018,7 +3065,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PasswordPromptDialog',
         this.buildPasswordInput();
 
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
-            converter: function() { return null }});
+            converter: function() { return null; }});
         lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave')
 
         return panel;

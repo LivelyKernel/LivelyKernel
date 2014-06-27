@@ -731,7 +731,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             return success;
 
         function saveOld(answer) {
-            if (!answer) return;
+            if (answer == 1) return;
             var sibling = target.addSibling(oldS);
             try {
                 (new lively.ide.ClassElemFragmentNode(sibling, browser, self.parent))
@@ -744,8 +744,8 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             preserve = lively.Config.get("propertyPreservation", true);
         // The method has to be readded after it was removed, therefore the delay.
         if (preserve === undefined) $world.confirm("You changed the name of the method / property.\n" 
-                              + "Click OK to add the current code as a new method / property.\n"
-                              + "Click Cancel to change the original method / property.", saveOld);
+                              + "Do you want to add the current code as a new method / property\n"
+                              + "or rename the original method / property?", saveOld, ['Add as new', 'Rename']);
         else saveOld.delay(0, preserve);
     },
 

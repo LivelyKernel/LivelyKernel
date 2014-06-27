@@ -564,7 +564,9 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
         this.boundsRect.setBounds(this.target.getBounds());
     },
     morphMenuItems: function() {
-        return this.updates.map(function(ea) {
+        var targetMorph = this.target;
+        return [['Show current model', function() { inspect(targetMorph.getModelData());}]]
+        .concat(this.updates.map(function(ea) {
             var when = this.humanReadableTimeFor(ea.changeTime),
                 who = ea.author ? " " + ea.author + " changed " : "";
             if (ea.affectedMorphs && ea.affectedMorphs.length > 1) {
@@ -583,7 +585,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
                 }
                 return [when + " unspecified update"]
             }
-        }, this)
+        }, this));
     },
 },
 'updates', {

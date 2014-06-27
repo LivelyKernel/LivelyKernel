@@ -4084,6 +4084,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         node.layout.resizeWidth = true;
         this.icon = node.addMorph(this.createIcon());
         this.label = node.addMorph(this.createLabel());
+        if (this.item.isEditable)
+            this.editButton = node.addMorph(this.createEditButton(), this.label);
+        if (this.item.isInspectable)
+            this.inspectButton = node.addMorph(this.createInspectButton());
         this.node = this.addMorph(node);
     }
 },
@@ -4253,6 +4257,25 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.addMorph(node, optOtherNode);
         return node;
     },
+    createInspectButton: function() {
+        // create a button, that triggers a custom inspection for the respective item
+        var button = new lively.morphic.Button();
+        button.setExtent(pt(22,22));
+        button.setLabel('+');
+        button.label.setFontSize(13);
+        connect(button, "fire", this.item, "onInspect", {});
+        return button;
+    },
+    createEditButton: function() {
+        // create a button that triggers the editing mode ✎
+        var button = new lively.morphic.Button();
+        this.isEditing = false;
+        button.setExtent(pt(22,22));
+        button.setLabel('✎');
+        button.label.setFontSize(13);
+        connect(button, "fire", this, "toggleEdit", {});
+        return button;
+    },
 },
 'tree', {
     isChild: function() {
@@ -4352,13 +4375,22 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         edit.onEnterPressed = edit.onEscPressed;
         this.node.addMorph(edit);
         edit.growOrShrinkToFit();
-        edit.onBlur = function() { this.finishEditingDescription(edit); }.bind(this);
         (function() { edit.focus(); edit.selectAll(); }).delay(0);
+        return edit;
     },
     finishEditingDescription: function(edit) {
         if (this.item.onEdit) this.item.onEdit(edit.textString);
         edit.remove();
         this.updateLabel();
+    },
+    toggleEdit: function() {
+        if (!this.editing) {
+            this.editButton.setLabel('✓');
+            this.editing = this.editDescription();
+        } else {
+            this.editing = this.finishEditingDescription(this.editing);
+            this.editButton.setLabel('✎');
+        }
     }
 },
 'enumerating', {

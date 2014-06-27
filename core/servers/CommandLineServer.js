@@ -20,8 +20,13 @@ var env = {
     SHELL: '/bin/bash',
     PAGER:'ul | cat -s',
     MANPAGER:'ul | cat -s',
-    TERM:"xterm"
+    TERM:"xterm",
+    PATH: path.join(dir, 'bin') + path.delimiter + process.env.PATH
 }
+
+var isWindows = process.platform !== 'linux'
+             && process.platform !== 'darwin'
+             && process.platform.include('win');
 
 /*
  * this is the state that holds on to running shell commands
@@ -172,10 +177,6 @@ function formattedResponseText(type, data) {
  */
 var askPassScript = '';
 ;(function setupAskpass() {
-    var isWindows = process.platform !== 'linux'
-                 && process.platform !== 'darwin'
-                 && process.platform.include('win');
-
     var baseName = 'bin/askpass' + (isWindows ? ".win.sh" : ".sh");
     askPassScript = path.join(process.env.WORKSPACE_LK, baseName);
     if (!isWindows) fs.chmod(askPassScript, 0755);
@@ -186,6 +187,18 @@ function prepareForAskpass(cmdInstructions) {
     if (!env["ASKPASS_SESSIONID"] || !askPassScript) return;
     env['SUDO_ASKPASS'] = env['SSH_ASKPASS'] = env['GIT_ASKPASS'] = askPassScript;
 }
+
+/*
+ * EDITOR support
+ */
+var editorScript = '';
+;(function setupEditor() {
+    var baseName = 'bin/lively-as-editor.sh';
+    editorScript = path.join(process.env.WORKSPACE_LK, baseName);
+    if (!isWindows) fs.chmod(editorScript, 0755);
+})();
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 /*
  * Lively2Lively services

@@ -361,7 +361,9 @@ Object.extend(lively.ide.CommandLineInterface, {
             var env = options
             options.env = Object.extend(options.env || {}, {
                 "ASKPASS_SESSIONID": session.sessionId,
-                "ASKPASS_SESSIONTRACKER_URL": String(session.sessionTrackerURL.withFilename('connect'))
+                "L2L_EDITOR_SESSIONID": session.sessionId,
+                "EDITOR": "lively-as-editor.sh",
+                "L2L_SESSIONTRACKER_URL": String(session.sessionTrackerURL.withFilename('connect'))
             });
         }
 

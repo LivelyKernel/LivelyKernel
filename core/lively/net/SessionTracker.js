@@ -421,6 +421,19 @@ Object.extend(lively.net.SessionTracker, {
             });
         },
 
+        openEditor: function(msg, session) {
+            var args = msg.data.args;
+            if (!args.length) {
+                session.answer(msg, {error: 'no file specified'});
+                return;
+            }
+
+            lively.ide.openFileAsEDITOR(args[0], function(err, status) {
+                session.answer(msg, err ? {error: String(err)} : {status: status});
+            });
+
+        },
+
         chatMessage: function(msg, session) {
             lively.log('Got chat message from %s: %s', msg.data.user, msg.data.message);
             var chat = $morph('Lively2LivelyChat');

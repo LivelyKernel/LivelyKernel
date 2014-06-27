@@ -798,6 +798,9 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 
         var newFormJSON = lively.persistence.Serializer.serialize(copy);
 
+        // reconnect all parts, ensureing that new inputs are definitely connected.
+        Trait('lively.persistence.StateSync.SynchronizedMorphMixin').connectSavingProperties(this);
+
         // now update all other versions of this form
         this.form.handle.set(function(old, newV, thenDo) {
             if (self.form.json === "" || confirm("There seem to have been changes to the form elsewhere. Are you sure you want to overwrite those changes?")) {
@@ -823,7 +826,7 @@ Trait('lively.persistence.StateSync.SynchronizedMorphMixin',
 Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
 function connectSavingProperties(anObject, options) {
     // if there is another implementation of save, don't connect to it, rely on the user to do the connecting.
-    if ((options && options.forceConnecting) || anObject.hasOwnProperty("save")) return;
+    if (anObject.hasOwnProperty("save") && (!options || !options.forceConnecting)) return;
 
     var connectionOptions = {
         updater: function($upd, value) {

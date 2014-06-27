@@ -130,7 +130,8 @@ AsyncTestCase.subclass('lively.persistence.tests.StateSync.StoreHandle',
             })
         })
     },
-})
+});
+
 lively.persistence.tests.StateSync.StoreHandle.subclass('lively.persistence.tests.StateSync.L2LHandle', 
 'preparation', {
     setUp: function($super) {

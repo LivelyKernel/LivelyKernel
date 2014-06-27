@@ -4406,7 +4406,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.addMorph(node, optOtherNode);
         return node;
     },
-	
+
     createSearchBar: function(target) {
         if(target) {
             this.target = target; // make sure that the target is marshalled correctly
@@ -4419,6 +4419,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         // that corresponds with the object to be searched,
         // the search feature can not be implemented currently
     },
+
     createMoreEntry: function(hiddenChildren) {
         var item = {name: hiddenChildren.length + ' more'}
         var moreButton = this.moreButtonSpec().createMorph();

@@ -121,12 +121,12 @@ var searchForIn = function(searchStrings, object, initialPath) {
                             })
             }
         } else {
-            try {
-                Object.getOwnPropertyNames(object).forEach(function(name) {
+            Object.getOwnPropertyNames(object).forEach(function(name) {
+                try {
                     search(object[name], path.concat(name))
-                })
-            }
-            catch (e){ /* stop recursion */ }
+                }
+                catch (e){ /* stop recursion */ }
+            })
         }
     })(object, global.lively.PropertyPath(initialPath || ""));
     return result

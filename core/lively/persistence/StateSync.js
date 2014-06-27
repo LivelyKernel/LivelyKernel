@@ -237,18 +237,18 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.Store
                                     })
                     }
                 } else {
-                    try {
-                        Object.getOwnPropertyNames(object).forEach(function(name) {
+                    Object.getOwnPropertyNames(object).forEach(function(name) {
+                        try {
                             search(object[name], path.concat(name))
-                        })
-                    }
-                    catch (e){ /* stop recursion */ }
+                        }
+                        catch (e){ /* stop recursion */ }
+                    })
                 }
             })(object, global.lively.PropertyPath(initialPath || ""));
             return result
         };
 
-        thenDo(searchForIn(aString.split(/\s/).collect(function(ea) { return new RegExp(ea, "im")}),
+        thenDo(null, searchForIn(aString.split(/\s/).collect(function(ea) { return new RegExp(ea, "im")}),
             this._store.db));
     },
 
@@ -367,8 +367,7 @@ lively.persistence.StateSync.Handle.subclass('lively.persistence.StateSync.L2LHa
         var sess = lively.net.SessionTracker.getSession();
         if (!sess) return alert("Please reconnect to the database server.")
         sess.send("syncSearch", aString, function(msg) {
-            if (msg.error || msg.data.error) return alert(msg.error || msg.data.error);
-            else return thenDo(msg.data);
+            return thenDo(msg.error || msg.data.error, msg.data);
         });
     },
 

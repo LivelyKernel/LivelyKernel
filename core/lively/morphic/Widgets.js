@@ -4401,7 +4401,6 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         return node;
     },
 
-
     createSearchBar: function(target) {
         if(target) {
             this.target = target; // make sure that the target is marshalled correctly
@@ -4414,6 +4413,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         // that corresponds with the object to be searched,
         // the search feature can not be implemented currently
     },
+
     createInspectButton: function() {
         // create a button, that triggers a custom inspection for the respective item
         var button = new lively.morphic.Button();
@@ -4555,8 +4555,6 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.item.onEdit) this.item.onEdit(edit.textString);
         this.updateLabel();
         edit.remove();
-        // this.editButton.remove();
-        // this.node.addMorph(this.editButton);
     },
     toggleEdit: function() {
         if (!this.editing) {

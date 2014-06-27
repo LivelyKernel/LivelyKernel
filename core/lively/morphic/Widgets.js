@@ -440,6 +440,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         var ext = this.getExtent();
         var canvasMorph = new lively.morphic.CanvasMorph(ext);
         canvasMorph.getContext().drawImage(this.renderContext().imgNode, 0, 0, ext.x, ext.y);
+        canvasMorph.adaptCanvasSizeHTML(canvasMorph.renderContext(), canvasMorph.getExtent(), ext);
         this.setImageURL(canvasMorph.toDataURI(), true);
     }
 
@@ -3662,9 +3663,7 @@ Object.extend(lively.ide, {
         editor.onOwnerChanged = function(owner) {
             if (this.wasStored) return;
             this.closeVetoed = !!owner;
-            (function() {
-                if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
-            }).bind(this).delay(.8);
+            if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
         };
 
         return editor;
@@ -4327,8 +4326,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.addMorph(node, optOtherNode);
         return node;
     },
-
-
+	
     createSearchBar: function(target) {
         if(target) {
             this.target = target; // make sure that the target is marshalled correctly
@@ -4360,6 +4358,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         item.submorphs = [moreButton]
         return item;
     },
+
     createInspectButton: function() {
         // create a button, that triggers a custom inspection for the respective item
         var button = new lively.morphic.Button();
@@ -4511,8 +4510,6 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.item.onEdit) this.item.onEdit(edit.textString);
         this.updateLabel();
         edit.remove();
-        // this.editButton.remove();
-        // this.node.addMorph(this.editButton);
     },
     toggleEdit: function() {
         if (!this.editing) {

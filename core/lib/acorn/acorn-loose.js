@@ -106,6 +106,8 @@
         } else if (/unexpected character/i.test(msg)) {
           pos++;
           replace = false;
+        } else if (/regular expression/i.test(msg)) {
+          replace = true;
         } else {
           throw e;
         }
@@ -193,31 +195,32 @@
     return true;
   }
 
-  function node_t(start) {
+  function Node(start) {
     this.type = null;
     this.start = start;
     this.end = null;
   }
+  Node.prototype = acorn.Node.prototype;
 
-  function node_loc_t(start) {
+  function SourceLocation(start) {
     this.start = start || token.startLoc || {line: 1, column: 0};
     this.end = null;
     if (sourceFile !== null) this.source = sourceFile;
   }
 
   function startNode() {
-    var node = new node_t(token.start);
+    var node = new Node(token.start);
     if (options.locations)
-      node.loc = new node_loc_t();
+      node.loc = new SourceLocation();
     if (options.directSourceFile)
       node.sourceFile = options.directSourceFile;
     return node;
   }
 
   function startNodeFrom(other) {
-    var node = new node_t(other.start);
+    var node = new Node(other.start);
     if (options.locations)
-      node.loc = new node_loc_t(other.loc.start);
+      node.loc = new SourceLocation(other.loc.start);
     return node;
   }
 
@@ -231,14 +234,14 @@
 
   function getDummyLoc() {
     if (options.locations) {
-      var loc = new node_loc_t();
+      var loc = new SourceLocation();
       loc.end = loc.start;
       return loc;
     }
   };
 
   function dummyIdent() {
-    var dummy = new node_t(token.start);
+    var dummy = new Node(token.start);
     dummy.type = "Identifier";
     dummy.end = token.start;
     dummy.name = "✖";
@@ -603,7 +606,7 @@
         if (curLineStart != line && curIndent <= startIndent && tokenStartsLine())
           node.property = dummyIdent();
         else
-          node.property = parsePropertyName() || dummyIdent();
+          node.property = parsePropertyAccessor() || dummyIdent();
         node.computed = false;
         base = finishNode(node, "MemberExpression");
       } else if (token.type == tt.bracketL) {
@@ -729,6 +732,10 @@
 
   function parsePropertyName() {
     if (token.type === tt.num || token.type === tt.string) return parseExprAtom();
+    if (token.type === tt.name || token.type.keyword) return parseIdent();
+  }
+
+  function parsePropertyAccessor() {
     if (token.type === tt.name || token.type.keyword) return parseIdent();
   }
 

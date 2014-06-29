@@ -100,14 +100,12 @@ lively.morphic.Box.subclass('lively.morphic.OldList',
     moveUpInList: function(itemOrValue) {
         if (!itemOrValue) return;
         var idx = this.find(itemOrValue);
-        if (idx === undefined) return;
-        this.changeListPosition(idx, idx-1);
+        this.swapByIndex(idx, idx-1);
     },
     moveDownInList: function(itemOrValue) {
         if (!itemOrValue) return;
         var idx = this.find(itemOrValue);
-        if (idx === undefined) return;
-        this.changeListPosition(idx, idx+1);
+        this.swapByIndex(idx, idx+1);
     },
     clearSelections: function() { this.renderContextDispatch('clearSelections') }
 
@@ -872,24 +870,49 @@ lively.morphic.Box.subclass('lively.morphic.List',
     getItem: function(value) {
         return this.itemList[this.find(value)];
     },
+
     removeItemOrValue: function(itemOrValue) {
         var idx = this.find(itemOrValue), item = this.itemList[idx];
         this.updateList(this.itemList.without(item));
         return idx;
     },
 
-    moveUpInList: function(itemOrValue) {
-        // if (!itemOrValue) return;
-        // var idx = this.find(itemOrValue);
-        // if (idx === undefined) return;
-        // this.changeListPosition(idx, idx-1);
+    moveUpInList: function(itemOrValue, moveSelection) {
+        if (!itemOrValue) return;
+        var idx = this.find(itemOrValue);
+        this.swapByIndex(idx, idx-1);
+        if (moveSelection) lively.bindings.noUpdate(function() {
+            this.deselectAt(idx);
+            this.saveSelectAt(idx-1);
+        }.bind(this));
     },
-    moveDownInList: function(itemOrValue) {
-        // if (!itemOrValue) return;
-        // var idx = this.find(itemOrValue);
-        // if (idx === undefined) return;
-        // this.changeListPosition(idx, idx+1);
+
+    moveDownInList: function(itemOrValue, moveSelection) {
+        if (!itemOrValue) return;
+        var idx = this.find(itemOrValue);
+        this.swapByIndex(idx, idx+1);
+        if (moveSelection) lively.bindings.noUpdate(function() {
+            this.deselectAt(idx);
+            this.saveSelectAt(idx+1);
+        }.bind(this));
+    },
+
+    swapByIndex: function(fromIndex, toIndex) {
+        if (!Object.isNumber(fromIndex) || !Object.isNumber(toIndex)
+         || toIndex < 0 || toIndex >= this.itemList.length) return;
+
+        var fromItem = this.itemList[fromIndex],
+            toItem = this.itemList[toIndex];
+
+        this.itemList.swap(fromIndex, toIndex);
+        this.applyLayout();
+        this.rerender();
+    },
+
+    moveItemToIndex: function(itemOrValue, toIndex) {
+        return this.swapByIndex(this.find(itemOrValue), toIndex);
     }
+
 },
 "selection", {
     selectAt: function(idx) {
@@ -1092,7 +1115,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             this.setIsSelected(list.allowDeselectClick ? !this.selected : true);
         } else {
             var multiSelectWithShift = list.multipleSelectionMode === 'multiSelectWithShift',
-                hasSelection = !!list.selection,
+                hasSelection = !!list.getSelectedIndexes().length,
                 shiftPressed = evt.isShiftDown();
             if (multiSelectWithShift && !shiftPressed) {
                 var selected = this.selected;

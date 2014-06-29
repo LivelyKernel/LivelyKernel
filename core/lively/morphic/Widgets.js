@@ -4035,12 +4035,16 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 'documentation', {
     example: function() {
         var tree = new lively.morphic.Tree();
+        var image = new lively.morphic.Image.fromURL('http://emoji.fileformat.info/gemoji/warning.png');
+        image.setExtent(pt(24,24));
         tree.openInHand();
         tree.setItem({
             name: "root",
+            description: "root of all evil", 
+            isEditable: true, 
             children: [
                 {name: "item 1", children: [{name: "subitem", style: {color: Color.red}}]},
-                {name: "item 2", description: "description"}]
+                {name: "item 2", description: "description", isEditable: true, submorphs: [image]}]
         });
     }
 },
@@ -4058,7 +4062,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         } else {
             this.dragAndDrop = true;
         }
-        if (item) this.setItem(item);
+        if (item) 
+        {
+            this.setItem(item);
+        }
     },
 
     initializeLayout: function() {
@@ -4079,15 +4086,22 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var layouter = new lively.morphic.Layout.HorizontalLayout(node);
         layouter.setSpacing(5);
         layouter.setBorderSize(0);
+        // FIXME: Create an actual Layout that supports this ordering
+        layouter.layoutOrder = function(m) {
+            return this.container.submorphs.indexOf(m);
+        }
         node.setLayouter(layouter);
-        if (!node.layout) node.layout = {};
-        node.layout.resizeWidth = true;
         this.icon = node.addMorph(this.createIcon());
         this.label = node.addMorph(this.createLabel());
         if (this.item.isEditable)
-            this.editButton = node.addMorph(this.createEditButton(), this.label);
+            this.editButton = node.addMorph(this.createEditButton());
         if (this.item.isInspectable)
             this.inspectButton = node.addMorph(this.createInspectButton());
+        if (this.item.submorphs)
+            this.item.submorphs.forEach(function(submorph) { 
+                submorph.setExtent(pt(22,22)); 
+                node.addMorph(submorph);
+            });
         this.node = this.addMorph(node);
     }
 },
@@ -4106,6 +4120,8 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             } else {
                 this.initializeNode();
             }
+            this.label.fit();
+            this.node.applyLayout();
         });
     },
     getSelection: function() {
@@ -4257,6 +4273,69 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.addMorph(node, optOtherNode);
         return node;
     },
+    getSearchBarSpec: function() {
+        return lively.BuildSpec({
+            _BorderWidth: 1,
+            _Extent: lively.pt(247.0,31.0),
+            _Fill: Color.rgb(171,171,171),
+            _Position: lively.pt(229.0,163.0),
+            _StyleClassNames: ["Morph","Box"],
+            __layered_droppingEnabled__: true,
+            className: "lively.morphic.Box",
+            cycleIndicator: {
+                isMorphRef: true,
+                name: "CycleIndicator"
+            },
+            droppingEnabled: true,
+            layout: {
+                borderSize: 4.505,
+                resizeHeight: false,
+                spacing: 4.77,
+                type: "lively.morphic.Layout.HorizontalLayout"
+            },
+            name: "SearchBar",
+            sourceModule: "lively.morphic.Core",
+            submorphs: [{
+                _BorderRadius: 22.2,
+                _Extent: lively.pt(211.2,20.0),
+                _Fill: Color.rgb(255,255,255),
+                _FontFamily: "Arial, sans-serif",
+                _MaxTextWidth: 120.695652,
+                _MinTextWidth: 120.695652,
+                _Padding: lively.rect(4,2,0,0),
+                _Position: lively.pt(4.5,4.5),
+                _StyleClassNames: ["Morph","Text"],
+                className: "lively.morphic.Text",
+                droppingEnabled: false,
+                emphasis: [[0,11,{}]],
+                fixedWidth: true,
+                grabbingEnabled: false,
+                layout: {
+                    resizeWidth: true,
+                    scaleHorizontal: true
+                },
+                name: "SearchField",
+                sourceModule: "lively.morphic.TextCore",
+                submorphs: [],
+                textString: "Search Term"
+            },{
+                _BorderColor: null,
+                _Extent: lively.pt(22.0,22.0),
+                _Position: lively.pt(220.5,4.5),
+                className: "lively.morphic.Image",
+                droppingEnabled: true,
+                name: "CycleIndicator",
+                sourceModule: "lively.morphic.Widgets",
+                submorphs: [],
+                url: "http://emoji.fileformat.info/gemoji/warning.png"
+            }]
+        })
+    },
+
+    createSearchBar: function() {
+        this.searchBar = this.getSearchBarSpec().createMorph();
+        this.addMorph(this.searchBar, this.node);
+    },
     createInspectButton: function() {
         // create a button, that triggers a custom inspection for the respective item
         var button = new lively.morphic.Button();
@@ -4271,6 +4350,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var button = new lively.morphic.Button();
         this.isEditing = false;
         button.setExtent(pt(22,22));
+        button.setBorderStyle('hidden');
+        button.setBorderStylingMode(false);
+        button.setFill(Color.rgba(0,0,0,0));
+        button.setAppearanceStylingMode(false);
+        button.label.setFillOpacity(0);
         button.setLabel('✎');
         button.label.setFontSize(13);
         connect(button, "fire", this, "toggleEdit", {});
@@ -4314,6 +4398,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             if (this.icon) this.icon.setTextString("▼");
             this.showChildren();
         })
+        this.childNodes.forEach(function(tree) {
+            tree.label.fit();
+            tree.node.applyLayout();
+        });
     },
     expandAll: function() {
         this.withAllTreesDo(function(tree) {
@@ -4373,15 +4461,17 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         edit.setFixedWidth(true);
         edit.setBorderWidth(0);
         edit.onEnterPressed = edit.onEscPressed;
-        this.node.addMorph(edit);
+        this.node.addMorph(edit, this.editButton);
         edit.growOrShrinkToFit();
         (function() { edit.focus(); edit.selectAll(); }).delay(0);
         return edit;
     },
     finishEditingDescription: function(edit) {
         if (this.item.onEdit) this.item.onEdit(edit.textString);
-        edit.remove();
         this.updateLabel();
+        edit.remove();
+        // this.editButton.remove();
+        // this.node.addMorph(this.editButton);
     },
     toggleEdit: function() {
         if (!this.editing) {

@@ -1079,7 +1079,7 @@ Object.extend(lively.ide.commands.byName, {
             };
 
             narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                // name: 'lively.ide.findFile.Narrower',
+                name: 'lively.ide.findFile.Narrower',
                 reactivateWithoutInit: true,
                 setup: function(n) {
                     n.deactivate = n.deactivate.wrap(function(proceed) { dir = null; proceed(); });

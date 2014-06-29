@@ -72,7 +72,6 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
         this.assertMatches(genAst, ast, 'source code positions were not corrected');
 
         // sample some locations
-        console.log(ast);
         var tests = [{  // var = x = { z: 3 };
             expected: { start: { line: 1, column: 0 }, end: { line: 1, column: 17 } },
             subject: ast.body[0].loc
@@ -124,11 +123,22 @@ TestCase.subclass('lively.ast.tests.Transforming',
             ast = lively.ast.acorn.parse(code),
             toReplace = ast.body[0].declarations[0].init.left,
             replacement = {type: "Literal", value: "baz"},
-            transformed = lively.ast.transform.replaceNode(ast, toReplace, replacement),
-            transformedString = lively.ast.acorn.stringify(transformed),
+            result = lively.ast.transform.replaceNode(ast, toReplace, replacement),
+            transformedString = lively.ast.acorn.stringify(result.ast),
             expected = 'var x = \'baz\' + foo();'
 
         this.assertEquals(expected, transformedString);
+    },
+
+    testReplaceNodeKeepsSourceFormatting: function() {
+        var code              = 'var x = 3\n+ foo();',
+            ast               = lively.ast.acorn.parse(code, {addSource: true}),
+            toReplace         = ast.body[0].declarations[0].init.left,
+            replacement       = {type: "Literal", value: "baz"},
+            result            = lively.ast.transform.replaceNode(ast, toReplace, replacement, {source: code}),
+            expected          = 'var x = \'baz\'\n+ foo();';
+
+        this.assertEquals(expected, result.source);
     },
 
     testReplaceNodeWithMany: function() {
@@ -138,22 +148,32 @@ TestCase.subclass('lively.ast.tests.Transforming',
             replacement1 = lively.ast.acorn.parse("Global.x = 3").body[0],
             replacement2 = lively.ast.acorn.parse("Global.y = 2").body[0],
             replacement = [replacement1, replacement2],
-            transformed = lively.ast.transform.replaceNodeWithMany(ast, toReplace, replacement),
-            transformedString = lively.ast.acorn.stringify(transformed),
+            result = lively.ast.transform.replaceNodeWithMany(ast, toReplace, replacement),
+            transformedString = lively.ast.acorn.stringify(result.ast),
             expected = 'Global.x = 3;\nGlobal.y = 2;'
 
         this.assertEquals(expected, transformedString);
     },
 
-    testOneVarDeclaratorPerDeclaration: function() {
-        var code = 'var x = 3, y = 2;',
+    testReplaceNodeWithManyKeepsSource: function() {
+        var code = '/*bla\nbla*/\n  var x = 3,\n      y = 2;',
             ast = lively.ast.acorn.parse(code),
-            transformed = lively.ast.transform.oneDeclaratorPerVarDecl(ast),
-            // _ = show(lively.ast.acorn.printAst(transformed)),
-            transformedString = lively.ast.acorn.stringify(transformed),
-            expected = 'var x = 3;\nvar y = 2;'
+            toReplace = ast.body[0],
+            replacement = [lively.ast.acorn.parse("Global.x = 3").body[0],
+                           lively.ast.acorn.parse("Global.y = 2").body[0]],
+            result = lively.ast.transform.replaceNodeWithMany(ast, toReplace, replacement, {source: code}),
+            expected = '/*bla\nbla*/\n  Global.x = 3;\n  Global.y = 2;'
 
-        this.assertEquals(expected, transformedString);
+        this.assertEquals(expected, result.source);
+    },
+
+    testOneVarDeclaratorPerDeclaration: function() {
+        var code = '/*test*/var x = 3, y = 2;',
+            ast = lively.ast.acorn.parse(code),
+            result = lively.ast.transform.oneDeclaratorPerVarDecl(ast, {source: code}),
+            expected = '/*test*/var x = 3;\nvar y = 2;'
+
+        this.assertEquals(expected, result.source);
     },
 
     testTransformToReturnLastStatement: function() {
@@ -166,8 +186,18 @@ TestCase.subclass('lively.ast.tests.Transforming',
     testTransformTopLevelVarDeclsForCapturing: function() {
         var ast               = lively.ast.acorn.parse("var y, z = foo + bar; baz.foo(z, 3)"),
             expected          = "Global.y = undefined;\nGlobal.z = foo + bar;\nbaz.foo(z, 3);",
-            transformed       = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "Global", type: "Identifier"}),
-            transformedString = lively.ast.acorn.stringify(transformed);
+            result            = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "Global", type: "Identifier"}),
+            transformedString = lively.ast.acorn.stringify(result.ast);
+        this.assertEquals(expected, transformedString);
+    },
+
+    testTransformTopLevelVarDeclsAndVarUsageForCapturing: function() {
+        var ast               = lively.ast.acorn.parse("var z = 3, y = 4; function foo(y) { var x = 5 + z + y; }"),
+            expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4;\nfunction foo(y) {\n    var x = 5 +Global.z + y;\n}",
+            recorder          = {name: "Global", type: "Identifier"},
+            result            = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(ast, recorder),
+            transformedString = lively.ast.acorn.stringify(result.ast);
+
         this.assertEquals(expected, transformedString);
     },
 
@@ -175,8 +205,8 @@ TestCase.subclass('lively.ast.tests.Transforming',
         var ast               = lively.ast.acorn.parse("var z = 3, y = 4; function foo() { var x = 5; }"),
             expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4;\nfunction foo() {\n    var x = 5;\n}",
             recorder          = {name: "Global", type: "Identifier"},
-            transformed       = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, recorder),
-            transformedString = lively.ast.acorn.stringify(transformed);
+            result            = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, recorder),
+            transformedString = lively.ast.acorn.stringify(result.ast);
         this.assertEquals(expected, transformedString);
     }
 

@@ -2206,18 +2206,19 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
     documentation: "Event handling for Window morphs",
 },
 'settings and state', {
-    style: {borderWidth: 0, strokeOpacity: 0, padding: Rectangle.inset(0,2), accessibleInInactiveWindow: true},
+    style: {
+        borderWidth: 0,
+        strokeOpacity: 0,
+        padding: lively.rect(0,0,0,0),
+        accessibleInInactiveWindow: true
+    },
     connections: ['HelpText', 'fire'],
 },
 'initializing', {
-    initialize: function($super, bnds, inset, labelString, labelOffset) {
+    initialize: function($super, bnds, inset, labelString, labelOffset/*deprecated*/) {
         $super(bnds, labelString)
-        this.label.applyStyle({fontSize: 8})
-        if (labelOffset) {
-            this.label.setPosition(this.label.getPosition().addPt(labelOffset));
-        }
-        this.setAppearanceStylingMode(true);
-        this.setBorderStylingMode(true);
+        this.label.setPadding(lively.rect(0,0,0,0));
+        this.label.setExtent(this.getExtent());
     },
 });
 

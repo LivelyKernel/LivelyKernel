@@ -805,6 +805,22 @@ Object.extend(acorn.walk, {
 Object.extend(lively.ast.acorn, {
 
     parse: function(source, options) {
+        // proxy function to acorn.parse.
+        // Note that we will implement useful functionality on top of the pure
+        // acorn interface and make it available here (such as more convenient
+        // comment parsing). For using the pure acorn interface use the acorn
+        // global.
+        // See https://github.com/marijnh/acorn for full acorn doc and parse options.
+        // options: {
+        //   addSource: BOOL, -- add source property to each node
+        //   withComments: BOOL, -- adds comment objects to Program/BlockStatements:
+        //                          {isBlock: BOOL, text: STRING, node: NODE,
+        //                           start: INTEGER, end: INTEGER, line: INTEGER, column: INTEGER}
+        //   ecmaVersion: 3|5|6,
+        //   allowReturnOutsideFunction: BOOL, -- Default is false
+        //   locations: BOOL -- Default is false
+        // }
+
         if (options && options.withComments) {
             delete options.withComments;
             var comments = [];

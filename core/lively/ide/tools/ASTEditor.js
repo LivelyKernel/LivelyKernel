@@ -1,4 +1,6 @@
-module('lively.ide.tools.ASTEditor').requires("lively.ide.tools.CommandLine").toRun(function() {
+module('lively.ide.tools.ASTEditor').requires("lively.ide.tools.CommandLine", 'lively.ast.AstHelper')
+.requiresLib({url: 'http://lively-web.org/core/lib/grasp.js', loadTest: function() { return typeof grasp !== 'undefined' }})
+.toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.ASTEditor', {
     _Extent: lively.pt(727.0,457.0),
@@ -279,20 +281,19 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
                 JSLoader.loadJs('http://lively-web.org/core/lib/grasp.js'); Functions.waitFor(2000, function() { return typeof grasp !== 'undefined'; }, next); }
         )(function(err) { thenDo && thenDo.call(this, err); }.bind(this))
     },
-        extractCommand: function extractCommand() {
+        extractCommandSource: function extractCommandSource() {
     
         var query = this.get("searchInput").getInput();
         var replace = this.get("replaceInput").getInput();
         var queryMode  = this.get('querySelectionList').selection || 'equery';
         var target = this.state.target
+        var getCodeExpression;
     
         if (target) {
             if (target.name && $morph(target.name) === target) getCodeExpression = "$morph('" + target.name + "')";
             else getCodeExpression = "$world.getMorphById('" + target.id + "')";
             getCodeExpression += '.textString';
         } else getCodeExpression = '';
-    
-        var getCodeExpression
     
         if (replace) {
     
@@ -305,10 +306,14 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
                 queryMode, query, getCodeExpression);
     
         }
+        return graspCode;
+        },
+
+        extractCommand: function extractCommand() {
     
         $world.addCodeEditor({
             title: 'grasp expression',
-            content: graspCode
+            content: this.extractCommandSource()
         }).getWindow().comeForward();
     
     },

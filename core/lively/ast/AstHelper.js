@@ -1079,8 +1079,10 @@ Object.extend(lively.ast.query, {
 
 Object.extend(lively.ast.transform, {
 
-    replaceNode: function(ast, targetNode, transformedNode) {
-        var pathToNode, hasAstIndex = !!targetNode.astIndex;
+    replaceNode: function(ast, targetNode, transformedNode, options) {
+        var source = options ? options.source : null,
+            pathToNode, hasAstIndex = !!targetNode.astIndex;
+
         lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, state, depth, path) {
             if (pathToNode) return; // already found
             if (node === targetNode || (hasAstIndex && node.astIndex === targetNode.astIndex)) pathToNode = path;
@@ -1092,12 +1094,23 @@ Object.extend(lively.ast.transform, {
                 Strings.format("cannot find path to node %o\n%s", targetNode, lively.printStack()));
 
         var copy = acorn.walk.copy(ast);
+
         lively.PropertyPath(pathToNode).set(copy, transformedNode);
-        return copy;
+
+        if (source) {
+            var newSourceOfReplacement = transformedNode.source
+                                      || lively.ast.acorn.stringify(transformedNode),
+                newSource = source.slice(0, targetNode.start)
+                          + newSourceOfReplacement
+                          + source.slice(targetNode.end)
+        }
+
+        return {ast: copy, source: newSource};
     },
 
-    replaceNodeWithMany: function(ast, targetNode, replacementNodes) {
-        var targetStatement = acorn.walk.findStatementOfNode(ast, targetNode);
+    replaceNodeWithMany: function(ast, targetNode, replacementNodes, options) {
+        var source = options ? options.source : null,
+            targetStatement = acorn.walk.findStatementOfNode(ast, targetNode);
 
         var pathToNode;
         lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, state, depth, path) {
@@ -1106,13 +1119,28 @@ Object.extend(lively.ast.transform, {
             else next();
         });
 
-        if (!pathToNode) return ast;
+        if (!pathToNode) return {ast: ast, source: source};
 
-        var copy = acorn.walk.copy(ast);
-        var block = lively.PropertyPath(pathToNode.slice(0,-1)).get(copy);
+        var copy = acorn.walk.copy(ast),
+            block = lively.PropertyPath(pathToNode.slice(0,-1)).get(copy);
+
         block.splice.apply(block, [pathToNode.last(), 1].concat(replacementNodes));
 
-        return copy;
+        if (source) {
+            var bol = Strings.peekLeft(source, targetNode.start, /\s+$/),
+                indent = typeof bol === 'number' ? source.slice(bol, targetNode.start) : '';
+            if (indent[0] === '\n') indent = indent.slice(1);
+
+            var newSourceOfReplacements = replacementNodes.map(function(ea) {
+                return ea.source || lively.ast.acorn.stringify(ea);
+            }).join('\n' + indent);
+
+            var newSource = source.slice(0, targetNode.start)
+                          + newSourceOfReplacements
+                          + source.slice(targetNode.end)
+        }
+
+        return {ast: copy, source: newSource};
     },
 
     replaceTopLevelVarDeclsWithAssignment: function(ast, assignToObj) {
@@ -1123,7 +1151,7 @@ Object.extend(lively.ast.transform, {
         //    src = lively.ast.acorn.stringify(ast2); // => "A.x = 3; A.y = 2;"
 
         // transform "var x = 3, y = 2;" into "var x = 3; var y = 2;"
-        ast = lively.ast.transform.oneDeclaratorPerVarDecl(ast);
+        ast = lively.ast.transform.oneDeclaratorPerVarDecl(ast).ast;
 
         var decls = lively.ast.query.topLevelDecls(ast).groupByKey('type'),
             funcDecls = decls.FunctionDeclaration || [],
@@ -1135,7 +1163,7 @@ Object.extend(lively.ast.transform, {
             topLevelScope.body.unshift(assign(decl.id, decl.id));
         });
 
-        return astCopy;
+        return {ast: astCopy};
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1154,7 +1182,7 @@ Object.extend(lively.ast.transform, {
 
         function makeCopy(ast) {
             return acorn.walk.copy(ast, {
-            
+
                 VariableDeclaration: function(n, c) {
                     return varDecls.include(n) ?
                         assign(n.declarations[0].id, n.declarations[0].init) :
@@ -1164,16 +1192,20 @@ Object.extend(lively.ast.transform, {
                             source: n.source, astIndex: n.astIndex
                         };
                 }
-            
+
             })
         }
 
     },
 
-    oneDeclaratorPerVarDecl: function(ast) {
-        // ast=lively.ast.acorn.parse(that.textString)
-        
-        var decls = [];
+    replaceTopLevelVarDeclAndUsageForCapturing: function(ast, options) {
+        return this.replaceTopLevelVarDeclsWithAssignment(ast, options);
+    },
+
+    oneDeclaratorPerVarDecl: function(ast, options) {
+        var source = options ? options.source : null,
+            decls = [];
+
         lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, state, depth, path) {
             if (node.type === "VariableDeclaration") decls.push(node);
             next();
@@ -1188,10 +1220,10 @@ Object.extend(lively.ast.transform, {
             };
         })
 
-        return replacements.reduce(function(ast, r) {
-            return lively.ast.transform.replaceNodeWithMany(ast, r.decl, r.replacement)
-        }, acorn.walk.copy(acorn.walk.addAstIndex(ast)));
-        
+        return replacements.reduce(function(stepResult, r) {
+            return lively.ast.transform.replaceNodeWithMany(
+                stepResult.ast, r.decl, r.replacement, {source: stepResult.source});
+        }, {ast: acorn.walk.copy(acorn.walk.addAstIndex(ast)), source: source});
     },
 
     returnLastStatement: function(source) {

@@ -404,6 +404,20 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
             .select(function(ea) { return ea.textString.length; });
         this.assertEquals(0, itemMorphsWithText.length, 'no item morphs should have text');
         this.done();
+    },
+
+    testMoveItems: function() {
+        var list = new lively.morphic.List(new Rectangle (0, 0, 100, 100), [1, 2, 3]);
+        this.onTearDown(function() { list.remove(); });
+        lively.morphic.World.current().addMorph(list);
+        list.moveItemToIndex(1, 2);
+        this.assertEquals([3,2,1], list.getList(), 'move not working');
+        list.selectAt(1);
+        this.assertEquals(2, list.getSelection(), 'sel not working');
+        list.moveUpInList(2, true);
+        this.assertEquals([2,3, 1], list.getList(), 'move up not working');
+        this.assertEquals(2, list.getSelection(), 'sel 2 not working');
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

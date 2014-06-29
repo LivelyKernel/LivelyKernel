@@ -1464,6 +1464,8 @@ lively.morphic.World.addMethods(
         var part = this.loadPartItem(partName, optPartspaceName);
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
+        var win = part.getWindow();
+        if (win) win.comeForward();
         return part;
     },
     openPartsBin: function(evt) {

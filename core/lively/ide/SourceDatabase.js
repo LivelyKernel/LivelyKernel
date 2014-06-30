@@ -327,6 +327,21 @@ Object.subclass('AnotherSourceDatabase', {
         return this.addModule(fileName);
     },
 
+    reloadModule: function(fileName) {
+        return this.reparseModule(fileName, true);
+    },
+
+    reloadAllModules: function(showProgress) {
+        var mods = Object.keys(lively.ide.sourceDB().modules);
+        if (showProgress)
+            mods.forEachShowingProgress({
+                iterator: this.reloadModule.bind(this),
+                whenDoneFunc: function() {}
+            });
+        else
+            mods.forEach(this.reloadModule.bind(this));
+    },
+
     parseCompleteFile: function(fileName, newFileString) {
         var moduleWrapper = this.findModuleWrapperForFileName(fileName)
         if (!moduleWrapper) {

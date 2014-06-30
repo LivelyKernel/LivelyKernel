@@ -723,15 +723,14 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             oldS = target.getSourceCode(),
             success = $super(newSource, sourceControl)
 
-
         if (!success || pType !== this.target.type 
          || pType !== "propertyDef"
          || this.target.name === propertyName 
          || propertyName === lively.ide.AddMethodToFileFragmentCommand.prototype.newMethodName)
             return success;
 
-        function saveOld(answer) {
-            if (answer == 1) return;
+        function saveOld(rename) {
+            if (rename) return;
             var sibling = target.addSibling(oldS);
             try {
                 (new lively.ide.ClassElemFragmentNode(sibling, browser, self.parent))
@@ -746,7 +745,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         if (preserve === undefined) $world.confirm("You changed the name of the method / property.\n" 
                               + "Do you want to add the current code as a new method / property\n"
                               + "or rename the original method / property?", saveOld, ['Add as new', 'Rename']);
-        else saveOld.delay(0, preserve);
+        else saveOld.delay(0, !preserve);
     },
 
 

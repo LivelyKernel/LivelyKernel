@@ -1018,6 +1018,9 @@ lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
             this.container.owner.getLayouter().resume();
         }
     },
+    layoutOrder: function(morph) {
+        return this.container.submorphs.indexOf(morph);
+    },
     onSubmorphAdded: function($super, aMorph, aSubmorph, allSubmorphs) {
         if (!this.isDefered) $super(aMorph, aSubmorph, allSubmorphs);
     },

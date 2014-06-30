@@ -584,6 +584,14 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    'lively.ide.SystemCodeBrowser.reloadAllSources': {
+        description: 'reload all sources for SystemCodeBrowser',
+        exec: function() {
+            lively.ide.sourceDB().reloadAllModules(true);
+            return true;
+        }
+    },
+
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {
         description: 'browse module structure',
         exec: function() {

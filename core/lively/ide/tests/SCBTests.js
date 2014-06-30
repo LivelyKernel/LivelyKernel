@@ -598,10 +598,17 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
 
 lively.ide.tests.SCBTests.BrowserNodeTest.subclass('lively.ide.tests.SCBTests.ClassElemFragmentTest',
 'testing', {
+
     testSaveWithPreservation: function() {
         this.buildTestSource();
         var browser = this.browser, self = this;
         browser.buildView();
+
+        if (Global.Foo) Foo.remove();
+        this.browser.selectNodeNamed('dummySource.js');
+        this.browser.selectNodeNamed('Foo');
+        var n = this.browser.selectedNode();
+        n.evalSource(n.sourceString());
 
         // browsing it, to create the needed BrowserNodes
         this.m1.basicBrowseIt({browser: browser});
@@ -624,6 +631,7 @@ lively.ide.tests.SCBTests.BrowserNodeTest.subclass('lively.ide.tests.SCBTests.Cl
             this.done();
         }, 100);
     }
+
 });
 
 });

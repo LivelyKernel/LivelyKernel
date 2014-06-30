@@ -1066,7 +1066,8 @@ handleOnCapture);
     createClipboardCapture: function(handler) {
         var input = lively.$('<input id="clipboardAccess" type="text" style="width:1px;height:1px;outline:0;position:absolute;top:-1px;left:-1px"/>'),
             world = lively.morphic.World.current(),
-            morph = this;
+            morph = this,
+            focused = morph.isFocused();
         lively.$('body').append(input);
         input[0].addEventListener('copy', handler, false);
         input[0].addEventListener('paste', handler, false);
@@ -1074,7 +1075,6 @@ handleOnCapture);
         input.focus();
         world.setScroll(scroll.x, scroll.y);
         Global.setTimeout(function() {
-            var focused = morph.isFocused();
             lively.$('#clipboardAccess').remove();
             focused && morph.focus();
         }, 20);

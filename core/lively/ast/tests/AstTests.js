@@ -168,10 +168,10 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testOneVarDeclaratorPerDeclaration: function() {
-        var code = '/*test*/var x = 3, y = 2;',
+        var code = '/*test*/var x = 3, y = 2; var z = 1;',
             ast = lively.ast.acorn.parse(code),
             result = lively.ast.transform.oneDeclaratorPerVarDecl(ast, {source: code}),
-            expected = '/*test*/var x = 3;\nvar y = 2;'
+            expected = '/*test*/var x = 3;\nvar y = 2; var z = 1;'
 
         this.assertEquals(expected, result.source);
     },
@@ -193,7 +193,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
 
     testTransformTopLevelVarDeclsAndVarUsageForCapturing: function() {
         var ast               = lively.ast.acorn.parse("var z = 3, y = 4; function foo(y) { var x = 5 + z + y; }"),
-            expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4;\nfunction foo(y) {\n    var x = 5 +Global.z + y;\n}",
+            expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4;\nfunction foo(y) {\n    var x = 5 + Global.z + y;\n}",
             recorder          = {name: "Global", type: "Identifier"},
             result            = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(ast, recorder),
             transformedString = lively.ast.acorn.stringify(result.ast);
@@ -215,33 +215,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
 TestCase.subclass('lively.ast.tests.Querying',
 'testing', {
 
-    testFindVarDeclarationsInScopes: function() {
-
-        var code = "var decl1 = {prop: 23};\n"
-                 + "function foo(arg1, arg2) {\n"
-                 + "    var decl2;\n"
-                 + "    var decl3 = 23, decl4 = 42;\n"
-                 + "    return decl3 + decl4;\n"
-                 + "    function xxx() { return this.yyy }\n"
-                 + "}\n";
-
-        var ast = acorn.walk.addSource(code, null, null, true);
-
-        var result = lively.ast.query.declsAt(0, ast);
-        var expected = [{declarations: [{id: {name: "decl1"}}]}, {id: {name: "foo"}}];
-        this.assertMatches(expected, result, "1");
-        this.assertEquals(2, result.length, '1 length');
-
-        var result = lively.ast.query.declsAt(65, ast);
-        var expected = ["decl1", "foo", "decl2", "xxx"];
-        var expected = [{declarations: [{id: {name: "decl1"}}]}, {id: {name: "foo"}},
-                        {declarations: [{id: {name: "decl2"}}]},
-                        {declarations: [{id: {name: "decl3"}}, {id: {name: "decl4"}}]},
-                        {id: {name: "xxx"}}];
-        this.assertMatches(expected, result, "2");
-    },
-
-    testFindTopLevelDeclarations: function() {
+    testTopLevelDeclarations: function() {
         var code = "var x = 3;\n function baz() { var zork; return xxx; }\nvar y = 4, z;\nbar = 'foo';"
         var ast = lively.ast.acorn.parse(code);
         var decls = lively.ast.query.topLevelDecls(ast);
@@ -250,87 +224,71 @@ TestCase.subclass('lively.ast.tests.Querying',
                 ea.id.name :
                 ea.declarations.map(function(ea) { return ea.id.name; });
         }).flatten();
+        var expected = ["x", "y", "z", "baz"];
+        this.assertEquals(expected, ids, "1");
+    },
+
+    testDeclsAndRefsInTopLevelScope: function() {
+return;
+        var code = "var x = 3;\n function baz() { var zork; return xxx; }\nvar y = 4, z;\nbar = 'foo';"
+        var ast = lively.ast.acorn.parse(code);
+        var declsAndRefs = lively.ast.query.topLevelDeclsAndRefs(ast);
+
+        var varDecls = declsAndRefs.varDeclarations;
+        var varIds = varDecls.map(function(ea) { return ea.declarations.map(function(ea) { return ea.id.name; }); });
+        this.assertEquals(expected, ["x", "y", "z"], "var ids");
+
+        var funcDecls = declsAndRefs.functionDeclarations;
+        var funcIds = varDecls.map(function(ea) { return ea.id.name; });
+        this.assertEquals(expected, ["baz"], "func ids");
+
+        var refs = declsAndRefs.refs;
+        var refIds = varDecls.map(function(ea) { return ea.name; });
+        this.assertEquals(expected, ["baz"], "func ids");
+
         var expected = ["x", "baz", "y", "z"];
         this.assertEquals(expected, ids, "1");
+    },
+
+    testScopes: function() {
+        var code = "var x = 3; function foo(y) { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; }";
+        var ast = lively.ast.acorn.parse(code);
+        var scope = lively.ast.query.scopes(ast);
+        var expected = {
+            node: ast,
+            varDecls: [{declarations: [{id: {name: 'x'}}]}],
+            funcDecls: [{id: {name: 'foo'}}],
+            params: [],
+            refs: [],
+            subScopes: [{
+                node: ast.body[1],
+                varDecls: [{declarations: [{id: {name: 'foo'}}, {id: {name: 'baz'}}]}],
+                funcDecls: [],
+                params: [{name: "y"}],
+                refs: [{name: "x"}, {name: "bar"}, {name: "bar"}, {name: "Object"}],                
+            }]
+        }
+
+        this.assertMatches(expected, scope);
+
+        // top level scope
+        var varNames = scope.varDecls.pluck('declarations').flatten();
+        this.assertEquals(1, varNames.length, 'root scope vars');
+        var funcNames = scope.funcDecls.pluck('id').pluck('name');
+        this.assertEquals(1, scope.funcDecls.length, 'root scope funcs');
+        this.assertEquals(0, scope.params.length, 'root scope params');
+        this.assertEquals(0, scope.refs.length, 'root scope refs');
+
+        // sub scope
+        this.assertEquals(1, scope.subScopes.length, 'subscope length');
+        var subScope = scope.subScopes[0];
+        var varNames = subScope.varDecls.pluck('declarations').flatten();
+        this.assertEquals(2, varNames.length, 'subscope vars');
+        this.assertEquals(0, subScope.funcDecls, 'subscope funcs');
+        this.assertEquals(4, subScope.refs.length, 'subscope refs');
+        this.assertEquals(1, subScope.params.length, 'subscope params');
     }
 
 });
 
-TestCase.subclass('lively.ast.tests.AstTests.ClosureTest',
-'testing', {
-
-    test02RecreateClosure: function() {
-        var f = function() { var x = 3; return x + y },
-            closure = lively.Closure.fromFunction(f, {y: 2}),
-            f2 = closure.recreateFunc();
-        this.assertEquals(f.toString(), f2.toString());
-        this.assertEquals(5, f2());
-    },
-
-    test03ClosureCanBindThis: function() {
-        var obj = {},
-            closure = lively.Closure.fromFunction(function() { this.testCalled = true }, {'this': obj});
-        obj.foo = closure.recreateFunc();
-        obj.foo();
-        this.assert(obj.testCalled, 'this not bound');
-    },
-
-    test04LateBoundThis: function() {
-        var obj = {name: 'obj1'},
-            closure = lively.Closure.fromFunction(function() { return this.name }, {'this': obj});
-        obj.foo = closure.recreateFunc();
-        this.assertEquals('obj1', obj.foo());
-        var obj2 = Object.inherit(obj);
-        obj2.name = 'obj2';
-        this.assertEquals('obj2', obj2.foo());
-    },
-
-    test05ThisBoundInSuper: function() {
-        var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
-            obj2 = Object.inherit(obj1);
-        obj2.bar = function bar() { $super() }.asScriptOf(obj2);
-        obj2.bar();
-        this.assertEquals(1, obj2.foo);
-        this.assert(!obj1.foo, 'foo was set in obj1');
-        this.assert(obj2.hasOwnProperty('foo'), 'foo not set in obj2')
-    },
-
-    test06SuperBoundStatically: function() {
-        var obj1 = {bar: function bar() { this.foo = 1 }.asScript()},
-            obj2 = Object.inherit(obj1),
-            obj3 = Object.inherit(obj2);
-        obj2.bar = function bar() { $super() }.asScriptOf(obj2);
-        obj3.bar();
-        this.assertEquals(1, obj3.foo);
-        this.assert(!obj1.foo, 'foo was set in obj1');
-        this.assert(obj2.hasOwnProperty('foo'), 'foo was not set in obj2');
-        this.assert(!obj3.hasOwnProperty('foo'), 'foo was set in obj3');
-    },
-
-    test07StoreFunctionProperties: function() {
-        var func = function() { return 99 };
-        func.someProperty = 'foo';
-        var closure = lively.Closure.fromFunction(func),
-            recreated = closure.recreateFunc();
-        this.assertEquals('foo', recreated.someProperty);
-    },
-
-    test08SuperBoundAndAsArgument: function() {
-        var obj = {
-            m: function($super) {
-                this.mWasCalled = true;
-                $super();
-            }.binds({$super: function() { this.superWasCalled = true }})
-        }
-        obj.m();
-        this.assert(obj.mWasCalled, 'm not called');
-        if (Global.superWasCalled) {
-            delete Global.superWasCalled;
-            this.assert(false, 'this not bound in super');
-        }
-        this.assert(obj.superWasCalled, 'super was not called');
-    }
-
-});
-
-}) // end of module
+}); // end of module

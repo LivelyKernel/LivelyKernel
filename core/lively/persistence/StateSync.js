@@ -939,6 +939,49 @@ function formUpdate(me, error, value) {
     // me.setPosition(me.getPosition().addXY(newMe.getExtent().x, 0));
 });
 
+Object.addScript(lively.persistence.StateSync, function addMorphToDashboard(someMorph) {
+    var dashPath = "sharedArea", partItem = "ConsumingReferenceArea",
+        root = lively.persistence.StateSync.L2LHandle.root();
+
+    // find out where the dashboard is
+    root.child(dashPath).getOnce(function(err, dashboards) {
+        if (err) { return alert("There are no dashboards available: " + err); };
+        // improve ? find the sharedArea with title "Dashboard"?
+        for (var i = 0; i < dashboards.length && !dashboards[i]; ++i) {};
+        if (i === dashboards.length) return alert("There are no dashboards in the DB (looked at path" + dashPath + ")");
+        var dashHandle = root.child(dashPath + "." + i),
+            existingReferences = dashboards[i].ReferenceArea;
+
+        // fetch the referenceArea and add the morph directly to the model.
+        var refAreaPart = lively.PartsBin.getPart(partItem, "PartsBin/BYOIE/", function(err, referenceArea) {
+            // when the referenceArea saves, add the new reference and save the model
+            referenceArea.connectTo({synchronizationHandles: [dashHandle], save: function(model) {
+                if (someMorph.owner !== referenceArea) return
+                someMorph.setPosition(lively.pt(10, 10).scaleBy((existingReferences.length || 0) + 1))
+                // have to fetch the model again, because of the changed position
+                var newReference = referenceArea.getModelData();
+                if (existingReferences.any(function(ea) {return ea.path === newReference[0].path})) {
+                    return alertOK("The morph is already on the dashboard.")
+                }
+                try {
+                    dashHandle.child("ReferenceArea").set(
+                        function(db, own, merged) { merged(db.concat(newReference)) },
+                        function(err, curV) { alertOK("Adding was successfull.") },
+                        existingReferences.concat(newReference),
+                        existingReferences)
+                    existingReferences
+                } catch (e){
+                    alert("The Dashboard structure has changed. Please adapt addMorphToDashboard in lively.persistence.StateSync.")
+                }
+            },}, "save")
+            // fill up so that the new reference is added last;
+            existingReferences.forEach(function(ea) {
+                var m = new lively.morphic.Morph(); m.isEpiMorph = true; referenceArea.addMorph(m); })
+            referenceArea.addMorph(someMorph);
+        });
+    })
+})
+
 // Object.extend(lively.morphic.Text.prototype,
 Trait('lively.persistence.StateSync.SynchronizedTextMixin', 'modelCreation',
 {

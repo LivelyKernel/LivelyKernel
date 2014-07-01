@@ -4399,6 +4399,12 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     toggle: function() {
         this.childNodes ? this.collapse() : this.expand();
     },
+    fitToOwner: function () {
+        if(this.owner) {
+            this.setExtent(pt(this.owner.getExtent().x, this.getExtent().y));
+            this.setPosition(pt(0));
+        }
+    },
     select: function(tree) {
         var unselectedTrees = [];
         this.withAllTreesDo(function(t) {

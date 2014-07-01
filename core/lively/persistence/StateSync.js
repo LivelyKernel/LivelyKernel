@@ -442,8 +442,9 @@ Object.extend(lively.persistence.StateSync.L2LHandle, {
     informHandles: function(changedPath, valuePath, value) {
         // path = lively.PropertyPath(path);
         // alert("We got a new value for " + changedPath + ": " + Objects.inspect(value))
+        // debugger;
         this.rootHandles.forEach(function(ea) {
-            ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath), value);
+            ea.child(valuePath).propagateChange(lively.PropertyPath(changedPath.slice(valuePath.length + 1)), value);
         })
     },
     registerL2LAction: function() {

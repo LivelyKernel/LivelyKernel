@@ -471,7 +471,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
 'magic constants', {
     highlightColor: Color.tangerine,
     normalColor: Color.black,
-    initialExtent: lively.pt(20, 20),
+    initialExtent: lively.pt(12, 12),
     doNotSerialize: true,
     isLayoutable: false,
     isEpiMorph: true
@@ -513,7 +513,7 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
             borderRadius: [10, 10, 0, 0]
             });
         this.setBorderStylingMode(true);
-        this.setStyleSheet(".Morph {border-width: 0; border-radius: 10px 10px 0 0}")
+        this.setStyleSheet(".Morph {border-width: 0; border-radius: 10px 10px 10px 0}")
         this.enableMorphMenu();
     },
     disconnect: function() {
@@ -560,11 +560,11 @@ lively.morphic.Box.subclass('lively.persistence.StateSync.UpdateIndicator',
     },
     adjustPosition: function() {
         var newExtent = this.target.getExtent(),
-            pos = this.target.getPosition().subPt(this.getExtent()).addXY(newExtent.x, 0);
+            pos = this.target.getPosition().subPt(this.getExtent()).addXY(newExtent.x, 4);
         if (this.owner !== this.target.owner) {
             var boundsOwner = this.boundsRect.owner
-            this.target.owner.addMorph(this);
-            if (boundsOwner) this.target.owner.addMorph(this.boundsRect);
+            this.target.owner.addMorph(this, this.target);
+            if (boundsOwner) this.target.owner.addMorph(this.boundsRect, this.target);
         }
         this.setPosition(pos);
         this.boundsRect.setBounds(this.target.getBounds());

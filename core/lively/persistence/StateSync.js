@@ -1,4 +1,4 @@
-module('lively.persistence.StateSync').requires('lively.persistence.Sync').toRun(function() {
+module('lively.persistence.StateSync').requires('lively.persistence.Sync', 'lively.morphic.Widgets').toRun(function() {
 
 Object.subclass('lively.persistence.StateSync.Handle',
 /* class comment
@@ -980,7 +980,15 @@ Object.addScript(lively.persistence.StateSync, function addMorphToDashboard(some
             referenceArea.addMorph(someMorph);
         });
     })
-})
+});
+
+lively.morphic.Morph.addMethods({
+    morphMenuItems: (lively.morphic.Morph.prototype.morphMenuItems.originalFunction || lively.morphic.Morph.prototype.morphMenuItems).wrap(function(proceed) {
+        var self = this;
+        return proceed().concat([["Send to Dashboard", function() {
+            lively.persistence.StateSync.addMorphToDashboard(self); }]])
+    })
+});
 
 // Object.extend(lively.morphic.Text.prototype,
 Trait('lively.persistence.StateSync.SynchronizedTextMixin', 'modelCreation',

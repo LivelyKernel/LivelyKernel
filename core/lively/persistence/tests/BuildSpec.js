@@ -201,6 +201,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.BuildSpec.Spe
                      + "    className: \"lively.morphic.Box\",\n"
                      + "    droppingEnabled: true,\n"
                      + "    sourceModule: \"lively.morphic.Core\",\n"
+                     + "    submorphs: [],\n"
                      + "    foo: function foo() { return 123; }\n"
                      + "})"
         this.assertEquals(expected, spec);

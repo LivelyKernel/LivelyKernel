@@ -24,7 +24,6 @@ lively.morphic.Morph.addMethods(
         _Opacity: {defaultValue: 1, getter: function(morph) { return morph.getOpacity(); }},
         _Rotation: {defaultValue: 0},
         _Scale: {defaultValue: 1},
-        // excludes:
         submorphs: {
             filter: function(morph, submorphs) {
               // since we now handle all the submorphs explicitly, we exclude all
@@ -49,6 +48,7 @@ lively.morphic.Morph.addMethods(
                 remove: function(instance, elem) { instance.removeMorph(elem); }
             }
         },
+        // excludes:
         showsHalos: {exclude: true},
         scripts: {exclude: true},
         id: {exclude: true},

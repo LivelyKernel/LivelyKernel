@@ -870,7 +870,7 @@ function openMorphFor(modelPath, rootHandle, noMorphCb, thenDo) {
 });
 
 Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),
-function mixInto(aMorph, morphHandle, saveForm) {
+function mixInto(aMorph, morphHandle, saveForm, thenDo) {
     if (!aMorph.name)
         throw new Error("Any morph being synchronized has to have a name.");
     if (!morphHandle)
@@ -905,11 +905,14 @@ function mixInto(aMorph, morphHandle, saveForm) {
 
         // 4 save the form
         if (saveForm) aMorph.saveForm && aMorph.saveForm();
+
+        // 5 thenDo
+        thenDo && thenDo(null, aMorph, handle);
     };
     if (morphHandle.isRoot())
         morphHandle.child(aMorph.name).push(aMorph.getModelData(), withHandleDo);
     else
-        withHandleDo(null, morphHandle)
+        withHandleDo(null, morphHandle);
 });
 
 Object.addScript(Trait('lively.persistence.StateSync.SynchronizedMorphMixin'),

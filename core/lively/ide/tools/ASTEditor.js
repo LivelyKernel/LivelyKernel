@@ -278,7 +278,9 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
             function(next) { lively.require('lively.ast.AstHelper').toRun(function() { next(); }); },
             function(next) { JSLoader.loadJs(lively.module("lib.jsdiff.jsdiff").uri().toString()); Functions.waitFor(2000, function() { return typeof JsDiff !== 'undefined'; }, next); },
             function(next) {
-                JSLoader.loadJs('http://lively-web.org/core/lib/grasp.js'); Functions.waitFor(2000, function() { return typeof grasp !== 'undefined'; }, next); }
+                JSLoader.loadJs(URL.codeBase.withFilename('lib/grasp.js').toString()); Functions.waitFor(2000, function() { return typeof grasp !== 'undefined'; }, next); 
+                
+                }
         )(function(err) { thenDo && thenDo.call(this, err); }.bind(this))
     },
         extractCommandSource: function extractCommandSource() {

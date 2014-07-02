@@ -128,6 +128,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
             expected = 'var x = \'baz\' + foo();'
 
         this.assertEquals(expected, transformedString);
+        this.assertEqualState({removed: {from: 8, to: 9}, added: {from: 8, to: 13}}, result.diff);
     },
 
     testReplaceNodeKeepsSourceFormatting: function() {
@@ -165,13 +166,14 @@ TestCase.subclass('lively.ast.tests.Transforming',
             expected = '/*bla\nbla*/\n  Global.x = 3;\n  Global.y = 2;'
 
         this.assertEquals(expected, result.source);
+        this.assertEqualState({removed: {from: 14, to: 37}, added: {from: 14, to: 43}}, result.diff);
     },
 
     testOneVarDeclaratorPerDeclaration: function() {
-        var code = '/*test*/var x = 3, y = 2; var z = 1;',
+        var code = '/*test*/var x = 3, y = 2; function foo() { var z = 1, u = 0; }',
             ast = lively.ast.acorn.parse(code),
             result = lively.ast.transform.oneDeclaratorPerVarDecl(ast, {source: code}),
-            expected = '/*test*/var x = 3;\nvar y = 2; var z = 1;'
+            expected = '/*test*/var x = 3;\nvar y = 2; function foo() { var z = 1;\n var u = 0; }'
 
         this.assertEquals(expected, result.source);
     },

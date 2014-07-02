@@ -70,9 +70,12 @@ Object.subclass("lively.persistence.Entanglement.Morph",
     },
     "accessing", {
         get: function(key) {
+            debugger;
             if(!(key in this.entangledAttributes)) {
                 // if the morph does not reference the property directly, it may still be found by name
-                var m = this.subEntanglements.find(function(subEnt) { return subEnt.entangledAttributes.name } );
+                var m = this.subEntanglements.find(function(subEnt) { 
+                            return subEnt.entangledAttributes.name == key} 
+                        );
                 if(!m){
                     //if we still havent found a value mapped to the key, we continue with the get call in all
                     // the sub entanglements
@@ -88,8 +91,15 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 }
             }
             if (this.entangledAttributes[key] && this.entangledAttributes[key].isMorphRef){
-                // could still be a morph ref
-                return lively.PropertyPath(this.entangledAttributes[key].path).get({submorphs: this.subEntanglements});
+                if(this.entangledAttributes[key].path) {
+                    return lively.PropertyPath(this.entangledAttributes[key].path)
+                                 .get({submorphs: this.subEntanglements});
+                } else {
+                    // morph ref works by name lookup:
+                    var name = this.entangledAttributes[key].name
+                    return this.subEntanglements.find(function(subEnt) { 
+                            return subEnt.entangledAttributes.name == name});
+                }
             } else {
                 return this.entangledAttributes[key];
             }
@@ -360,9 +370,6 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         // removeAll entangled morphs without
         this.entangledMorphs.forEach(function(entangled) { entangled.remove() })
         
-        // delete them
-        // this.entangledMorphs.forEach(function(entangled) { delete entangled })
-        
         // disconnect from morphs
         this.entangledMorphs.forEach(function(entangled) { this.disconnectMorph(entangled); }, this);
     },
@@ -407,9 +414,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                                 var newElem = instance.submorphs.find(
                                     function(submorph) { return self.subEntanglements.any(
                                         function(subEnt) { return subEnt.entangles(submorph) }) == false });
-                                self.subEntanglements.push($proceed(self.entangledMorphs.without(instance),
-                                                                    'add', newElem, mutationMethods));
-                                self.entangledAttributes[propertyName].push(self.subEntanglements.first().baseSpec);
+                                newElem = $proceed(self.entangledMorphs.without(instance),
+                                                    'add', newElem, mutationMethods)
+                                self.subEntanglements.push(newElem);
+                                self.entangledAttributes[propertyName].push(newElem.baseSpec);
                             } else {
                                 // we removed an element, find out by determining which subEntanglement
                                 // can no longer find a corresponding element inside the submorphs
@@ -418,6 +426,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                                     function(subEnt) { return $(instance.submorphs).filter(subEnt.entangledMorphs).length == 0 });
                                 $proceed(self.entangledMorphs.without(instance),
                                          'remove', oldElem, mutationMethods);
+                                debugger;
                                 self.entangledAttributes[propertyName].remove(oldElem.baseSpec);
                             }
                         }

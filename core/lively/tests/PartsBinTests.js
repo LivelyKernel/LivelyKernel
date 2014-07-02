@@ -1,6 +1,6 @@
-module('lively.tests.ScriptingTests').requires('lively.TestFramework', 'lively.PartsBin').toRun(function() {
+module('lively.tests.PartsBinTests').requires('lively.TestFramework', 'lively.PartsBin').toRun(function() {
 
-TestCase.subclass('lively.tests.ScriptingTests.OnlinePartsBinTest',
+TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 'running', {
 	deleteURLAfterTest: function(url) {
 		if (!this.urlsForDeletion) this.urlsForDeletion = [];
@@ -152,7 +152,7 @@ TestCase.subclass('lively.tests.ScriptingTests.OnlinePartsBinTest',
 	}
 })
 
-tests.ScriptingTests.OnlinePartsBinTest.subclass('lively.tests.ScriptingTests.DroppableBehaviorTest',
+lively.tests.PartsBinTests.OnlinePartsBinTest.subclass('lively.tests.PartsBinTests.DroppableBehaviorTest',
 'helper', {
 	get: function(name) {
 		return lively.PartsBin.getPart(name, 'PartsBin/DroppableBehaviors');
@@ -173,7 +173,7 @@ tests.ScriptingTests.OnlinePartsBinTest.subclass('lively.tests.ScriptingTests.Dr
 	}
 });
 
-TestCase.subclass('lively.tests.ScriptingTests.MetaInfo',
+TestCase.subclass('lively.tests.PartsBinTests.MetaInfo',
 'running', {
     setUp: function($super) {
         $super();

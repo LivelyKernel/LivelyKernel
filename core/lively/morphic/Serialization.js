@@ -256,7 +256,7 @@ lively.morphic.World.addMethods(
               + 'Please enter the root URL of that Lively server', function(input) {
                   if (!input) alert("save aborted, no input");
                   else this.saveWorldAs(url, false, transformRootURLToBootstrapURL(input));
-              }, String(url.withPath('/')));
+              }.bind(this), String(url.withPath('/')));
             return;
         }
 

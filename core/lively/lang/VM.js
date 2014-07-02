@@ -6,7 +6,7 @@ Object.extend(lively.lang.VM, {
         var ast = lively.ast.acorn.parse(code);
         var subst = {name: varRecorderName, type: "Identifier"};
         var transformed = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, subst);
-        return lively.ast.acorn.stringify(transformed);
+        return lively.ast.acorn.stringify(transformed.ast);
     },
 
     getGlobal: function() {

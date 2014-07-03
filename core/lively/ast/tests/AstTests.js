@@ -126,7 +126,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
                    + "y + 2;\n";
         var ast = lively.ast.acorn.parse(source);
         var target = ast.body[0].declarations[0].init;
-        var hist = r.replaceNode(
+        var hist = lively.ast.transform.helper.replaceNode(
             target,
             function() { return {type: "Literal", value: "foo"}; },
             {changes: [], source: source});
@@ -147,7 +147,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
                   + "y + 2;\n";
         var ast = lively.ast.acorn.parse(source);
         var replaceSource1, replaceSource2;
-        var hist = r.replaceNodes([
+        var hist = lively.ast.transform.helper.replaceNodes([
             {target: ast.body[0].declarations[1].init.left, replacementFunc: function(node, source) { replaceSource1 = source; return {type: "Literal", value: "foo"}; }},
             {target: ast.body[0].declarations[1].init.right, replacementFunc: function(node, source) { replaceSource2 = source; return {type: "Literal", value: "bar"}; }}],
             {changes: [], source: source});
@@ -176,7 +176,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
             ast.body[0],
             ast.body[0].declarations[1].init.right,
             ast.body[0].declarations[1].init.left,
-            ast.body[1]].sort(r._compareNodesForReplacement);
+            ast.body[1]].sort(lively.ast.transform.helper._compareNodesForReplacement);
         var expected = [
             ast.body[0].declarations[1].init.left,
             ast.body[0].declarations[1].init.right,
@@ -191,7 +191,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
                    + "y + 2;\n";
         var ast = lively.ast.acorn.parse(source);
         var replaceSource1, replaceSource2;
-        var hist = r.replaceNodes([
+        var hist = lively.ast.transform.helper.replaceNodes([
             {target: ast.body[0], replacementFunc: function(n, source) { replaceSource1 = source; return {type: "Literal", value: "foo"}; }},
             {target: ast.body[0].declarations[1].init.right, replacementFunc: function(n, source) { replaceSource2 = source; return {type: "Literal", value: "bar"}; }}],
             {changes: [], source: source});
@@ -216,7 +216,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
                    + "    y = x + x;\n"
                    + "y + 2;\n";
         var ast = lively.ast.acorn.parse(source);
-        var hist = r.replaceNodes([
+        var hist = lively.ast.transform.helper.replaceNodes([
             {target: ast.body[0], replacementFunc: function(node, source) { return {type: "Literal", value: "foo"}; }},
             {target: ast.body[0].declarations[1].init.right, replacementFunc: function() { return {type: "Literal", value: "bar"}; }}],
             {changes: [], source: source});
@@ -290,10 +290,15 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testOneVarDeclaratorPerDeclaration: function() {
-        var code = '/*test*/var x = 3, y = 2; function foo() { var z = 1, u = 0; }',
-            ast = lively.ast.acorn.parse(code),
+        // var code = '/*test*/var x = 3, y = 2; function foo() { var z = 1, u = 0; }',
+        //     result = lively.ast.transform.oneDeclaratorPerVarDecl(code),
+        //     expected = '/*test*/var x = 3;\nvar y = 2; function foo() { var z = 1;\n var u = 0; }'
+
+        // this.assertEquals(expected, result.source);
+
+        var code = "var x = 3, y = (function() { var y = 3, z = 2; })(); ",
             result = lively.ast.transform.oneDeclaratorPerVarDecl(code),
-            expected = '/*test*/var x = 3;\nvar y = 2; function foo() { var z = 1;\n var u = 0; }'
+            expected = "var x = 3, y = (function() { var y = 3; var z = 2; })(); "
 
         this.assertEquals(expected, result.source);
     },

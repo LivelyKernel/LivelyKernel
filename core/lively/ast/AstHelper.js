@@ -1153,81 +1153,95 @@ Object.extend(lively.ast.query, {
     topLevelDecls: function(ast) {
         var scope = lively.ast.query.scopes(ast);
         return scope.varDecls.concat(scope.funcDecls);
+    },
+
+    topLevelDeclsAndRefs: function(ast) {
+        var scope = lively.ast.query.scopes(ast);
+        return {
+            varDecls: scope.varDecls,
+            funcDecls: scope.funcDecls,
+            refs: scope.refs.concat(findTopLevelRefsOfScopes(
+                declaredVarNames(scope), [], scope.subScopes))
+        }
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function declaredVarNames(scope) {
+            return scope.funcDecls.pluck('id').pluck('name').compact()
+                .concat(scope.params.pluck('name'))
+                .concat(scope.varDecls.pluck('declarations').flatten()
+                    .pluck('id').pluck('name'));
+        }
+
+        function findTopLevelRefsOfScopes(topLevelRefs, innerDeclaredVars, scopes) {
+            return scopes.map(findTopLevelRefs.curry(topLevelRefs, innerDeclaredVars)).flatten();
+        }
+
+        function findTopLevelRefs(topLevelRefs, innerDeclaredVars, scope) {
+            var decls = innerDeclaredVars.concat(declaredVarNames(scope)),
+                outerRefs = scope.refs.filter(function(ref) { 
+                    return !decls.include(ref.name) });
+            return outerRefs
+                .filter(function(ref) { return topLevelRefs.include(ref.name); })
+                .concat(findTopLevelRefsOfScopes(topLevelRefs, decls, scope.subScopes));
+        }
+
     }
 
 });
 
 Object.extend(lively.ast.transform, {
 
-    replaceNode: function(ast, targetNode, transformedNode, options) {
-        var source = options && options.source ? options.source : lively.ast.acorn.stringify(ast),
-            newSourceOfReplacement = transformedNode.source
-                                  || lively.ast.acorn.stringify(transformedNode),
-            newSource = source.slice(0, targetNode.start)
-                      + newSourceOfReplacement
-                      + source.slice(targetNode.end);
-        return {
-            ast: lively.ast.acorn.parse(newSource),
-            source: newSource,
-            diff: {
-                removed: {from: targetNode.start, to: targetNode.end},
-                added: {
-                    from: targetNode.start,
-                    to: targetNode.start + newSourceOfReplacement.length
-                }
-            }
-        };
+    replace: function(astOrSource, targetNode, replacementFunc, options) {
+        var ast = typeof astOrSource === 'object' ? astOrSource : null,
+            source = typeof astOrSource === 'string' ?
+                astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
+            result = r.replaceNode(targetNode, replacementFunc, source);
+
+        if (!result.ast) result.ast = lively.ast.acorn.parse(result.source);
+
+        return result;
     },
 
-    replaceNodeWithMany: function(ast, targetNode, replacementNodes, options) {
-        var source = options && options.source ? options.source : lively.ast.acorn.stringify(ast);
-        var bol = Strings.peekLeft(source, targetNode.start, /\s+$/),
-            indent = typeof bol === 'number' ? source.slice(bol, targetNode.start) : '';
-        if (indent[0] === '\n') indent = indent.slice(1);
-
-        var newSourceOfReplacements = replacementNodes.map(function(ea) {
-            return ea.source || lively.ast.acorn.stringify(ea);
-        }).join('\n' + indent);
-
-        var newSource = source.slice(0, targetNode.start)
-                      + newSourceOfReplacements
-                      + source.slice(targetNode.end)
-
-        return {
-            ast: lively.ast.acorn.parse(newSource),
-            source: newSource,
-            diff: {
-                removed: {from: targetNode.start, to: targetNode.end},
-                added: {
-                    from: targetNode.start,
-                    to: targetNode.start + newSourceOfReplacements.length
-                }
-            }
-        };
-    },
-
-    replaceTopLevelVarDeclsWithAssignment: function(ast, assignToObj) {
+    replaceTopLevelVarDeclsWithAssignment: function(astOrSource, assignToObj) {
         /* replaces var and function declarations with assignment statements.
          * Example:
-              ast = lively.ast.acorn.parse("var x = 3, y = 2");
-              ast2 = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "A", type: "Identifier"});
-              src = lively.ast.acorn.stringify(ast2); // => "A.x = 3; A.y = 2;"
+              lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(
+                  "var x = 3, y = 2",
+                  {name: "A", type: "Identifier"}).source;
+              // => "A.x = 3; A.y = 2;"
          */
 
-        // transform "var x = 3, y = 2;" into "var x = 3; var y = 2;"
-        ast = lively.ast.transform.oneDeclaratorPerVarDecl(ast).ast;
+        var ast = typeof astOrSource === 'object' ?
+                astOrSource : lively.ast.acorn.parse(astOrSource),
+            source = typeof astOrSource === 'string' ?
+                astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
+            scope = lively.ast.query.scopes(ast);
 
-        var decls = lively.ast.query.topLevelDecls(ast).groupByKey('type'),
-            funcDecls = decls.FunctionDeclaration || [],
-            varDecls = decls.VariableDeclaration || [],
-            astCopy = makeCopy(ast),
-            topLevelScope = lively.ast.query.scopes(astCopy).node;
-
-        funcDecls.forEach(function(decl) {
-            topLevelScope.body.unshift(assign(decl.id, decl.id));
-        });
-
-        return {ast: astCopy};
+        if (!scope.node.body.length) return null;
+        
+        var result1 = r.replaceNodes(
+            scope.varDecls.map(function(decl) {
+                return {
+                    target: decl,
+                    replacementFunc: function(declNode, s) {
+                        return declNode.declarations.map(function(ea) {
+                            return assign(ea.id, ea.init);
+                        });
+                    }
+                }
+            }), source);
+    
+        if (!scope.funcDecls.length || !scope.node.body[0]) return result1;
+    
+        var scope = lively.ast.query.scopes(lively.ast.acorn.parse(result1.source));
+        return r.replaceNode(
+            scope.node.body[0],
+            function(node) {
+                return scope.funcDecls.map(function(decl) {
+                    return assign(decl.id, decl.id);
+                }).concat([node]);
+            }, result1.source);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1244,76 +1258,61 @@ Object.extend(lively.ast.transform, {
             }
         }
 
-        function makeCopy(ast) {
-            return acorn.walk.copy(ast, {
-
-                VariableDeclaration: function(n, c) {
-                    return varDecls.include(n) ?
-                        assign(n.declarations[0].id, n.declarations[0].init) :
-                        {
-                            start: n.start, end: n.end, type: 'VariableDeclaration',
-                            declarations: n.declarations.map(c), kind: n.kind,
-                            source: n.source, astIndex: n.astIndex
-                        };
-                }
-
-            })
-        }
-
     },
 
-    replaceTopLevelVarDeclAndUsageForCapturing: function(ast, assignToObj, options) {
-        // replaces var and function declarations with assignment statements.
-        // Example:
-        //    ast = lively.ast.acorn.parse("var x = 3, y = 2");
-        //    ast2 = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "A", type: "Identifier"});
-        //    src = lively.ast.acorn.stringify(ast2); // => "A.x = 3; A.y = 2;"
+    replaceTopLevelVarDeclAndUsageForCapturing: function(astOrSource, assignToObj) {
+        /* replaces var and function declarations with assignment statements.
+         * Example:
+              lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(
+                  "var x = 3, y = 2",
+                  {name: "A", type: "Identifier"}).source;
+              // => "A.x = 3; A.y = 2;"
+         */
 
-        var source = options && options.source ? options.source : lively.ast.acorn.stringify(ast);
-        var scope = lively.ast.query.scopes(ast);
-        var shiftAndSource = {shift: 0, source: source};
+        var ast = typeof astOrSource === 'object' ?
+                astOrSource : lively.ast.acorn.parse(astOrSource),
+            source = typeof astOrSource === 'string' ?
+                astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
+            topLevel = lively.ast.query.topLevelDeclsAndRefs(ast);
 
-        var nodePosAndTransform = scope.funcDecls.map(function(decl) {
-            return {
-                pos: decl.start,
-                transform: function(shiftAndSource) {
-                    return insertNodeBeforeOtherNode(
-                        shiftAndSource,
-                        assign(decl.id, decl.id),
-                        scope.node.body[0]);
+        var result1 = r.replaceNodes(
+            topLevel.refs.map(function(ref) {
+                return {
+                    target: ref,
+                    replacementFunc: function(ref) {
+                        return {
+                            type: "MemberExpression", computed: false,
+                            object: assignToObj, property: ref
+                        }
+                    }
                 }
-            };
-        }).concat(scope.varDecls.map(function(decl) {
-            return {
-                pos: decl.start,
-                transform: function(shiftAndSource) {
-                    return replaceNodeWithMany(
-                        shiftAndSource,
-                        decl.declarations.map(function(d) { return assign(d.id, d.init); }),
-                        decl);
+            }), source);
+
+        // topLevel = lively.ast.query.topLevelDeclsAndRefs(lively.ast.acorn.parse(result1.source));
+
+        var result2 = r.replaceNodes(
+            topLevel.varDecls.map(function(decl) {
+                return {
+                    target: decl,
+                    replacementFunc: function(declNode, s) {
+                        return declNode.declarations.map(function(ea) {
+                            return assign(ea.id, ea.init);
+                        });
+                    }
                 }
-            }
-        })).sortByKey('pos');
+            }), result1);
+    
+        if (!topLevel.funcDecls.length) return result2;
+    
+        var scope = lively.ast.query.scopes(lively.ast.acorn.parse(result2.source));
 
-        shiftAndSource = nodePosAndTransform.reduce(function(shiftAndSource, ea) {
-            return ea.transform(shiftAndSource);
-        }, shiftAndSource);
-
-        // shiftAndSource = scope.funcDecls.reduce(function(shiftAndSource, decl) {
-        //     return insertNodeBeforeOtherNode(
-        //         shiftAndSource,
-        //         assign(decl.id, decl.id),
-        //         scope.node.body[0]);
-        // }, shiftAndSource);
-
-        // shiftAndSource = scope.varDecls.reduce(function(shiftAndSource, decl) {
-        //     return replaceNodeWithMany(
-        //         shiftAndSource,
-        //         decl.declarations.map(function(d) { return assign(d.id, d.id); }),
-        //         decl);
-        // }, shiftAndSource);
-
-        return {ast: lively.ast.acorn.parse(shiftAndSource.source)};
+        return r.replaceNode(
+            scope.node.body[0],
+            function(node) {
+                return topLevel.funcDecls.map(function(decl) {
+                    return assign(decl.id, decl.id);
+                }).concat([node]);
+            }, result2.source);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1330,86 +1329,34 @@ Object.extend(lively.ast.transform, {
             }
         }
 
-        function replaceNodeWith(shiftAndSource, newNode, oldNode) {
-            var shift      = shiftAndSource.shift,
-                source     = shiftAndSource.source,
-                start      = oldNode.start + shift,
-                end        = oldNode.end + shift,
-                repl       = lively.ast.acorn.stringify(newNode),
-                prevLength = end - start,
-                replLength = repl.length;
-            source = source.slice(0, start) + repl + source.slice(end);
-            return {source: source, shift: shift};
-        }
-
-        function replaceNodeWithMany(shiftAndSource, newNodes, oldNode) {
-            var shift      = shiftAndSource.shift,
-                source     = shiftAndSource.source,
-                start      = oldNode.start + shift,
-                end        = oldNode.end + shift,
-                repl       = newNodes.map(lively.ast.acorn.stringify).join('\n'),
-                prevLength = end - start,
-                replLength = repl.length;
-            source = source.slice(0, start) + repl + source.slice(end);
-            return {source: source, shift: shift};
-        }
-
-        function insertNodeBeforeOtherNode(shiftAndSource, node, otherNode) {
-            var source = shiftAndSource.source, shift = shiftAndSource.shift;
-            var newNodeString = lively.ast.acorn.stringify(node);
-            var insertionNode = otherNode;
-            var pos = insertionNode.start + shift;
-            return {
-                source: source.slice(0, pos) + newNodeString + source.slice(pos),
-                shift: shift + newNodeString.length
-            }
-        }
-
     },
 
-    oneDeclaratorPerVarDecl: function(ast, options) {
-        var source = options && options.source ? options.source : lively.ast.acorn.stringify(ast),
+    oneDeclaratorPerVarDecl: function(astOrSource) {
+        var ast = typeof astOrSource === 'object' ?
+                astOrSource : lively.ast.acorn.parse(astOrSource),
+            source = typeof astOrSource === 'string' ?
+                astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
             decls = [];
 
         lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, state, depth, path) {
-            if (node.type === "VariableDeclaration" /*&& node.declarations.length > 1*/) decls.push(node);
+            if (node.type === "VariableDeclaration" && node.declarations.length > 1) decls.push(node);
             next();
         });
 
-        var replacements = decls.map(function(decl) {
-            return {
-                decl: decl,
-                replacement: decl.declarations.map(function(ea) {
-                    return {type: "VariableDeclaration", kind: "var", declarations: [ea]}
-                })
-            };
-        });
-
-        return replacements.reduce(function(stepResult, r, i) {
-            var result = lively.ast.transform.replaceNodeWithMany(
-                stepResult.ast, r.decl, r.replacement, {source: stepResult.source});
-            // move indices of yet to replace nodes so they fit to the new source
-            patchReplacements(result, replacements.slice(i));
-            return result;
-        }, {ast: acorn.walk.copy(acorn.walk.addAstIndex(ast)), source: source});
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        function patchReplacements(formerReplacementResult, replacementsToMake) {
-            var d = formerReplacementResult.diff,
-                byN = d.added.to - d.removed.to,
-                pos = d.added.from;
-
-            replacementsToMake.forEach(function(ea) {
-                lively.ast.acorn.withMozillaAstDo(ea.decl, {}, function(next, node, state, depth, path) {
-                    if (node.start >= pos) node.start += byN;
-                    if (node.end >= pos) node.end += byN;
-                    next();
-                });
-                
-            });
-
-        }
+        return r.replaceNodes(
+            decls.map(function(decl) {
+                return {
+                    target: decl,
+                    replacementFunc: function(declNode, s) {
+                        return declNode.declarations.map(function(ea) {
+                            return {
+                                type: "VariableDeclaration",
+                                kind: "var", declarations: [ea]
+                            }
+                        });
+                    }
+                }
+            }), source);
     },
 
     returnLastStatement: function(source) {

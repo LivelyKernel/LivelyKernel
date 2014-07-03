@@ -1242,25 +1242,32 @@ Object.extend(lively.ast.transform, {
 
             var sourceChanges = typeof sourceOrChanges === 'object' ?
                 sourceOrChanges : {changes: [], source: sourceOrChanges},
+                insideChangedBefore = false,
                 pos = sourceChanges.changes.reduce(function(pos, change) {
                     // fixup the start and end indices of target using the del/add
                     // changes already applied
-                    if (pos.end <= change.pos) return pos;
+                    if (pos.end < change.pos) return pos;
+
                     var isInFront = change.pos <= pos.start;
+                    insideChangedBefore = insideChangedBefore
+                                       || change.pos >= pos.start && change.pos <= pos.end;
+
                     if (change.type === 'add') return {
                         start: isInFront ? pos.start + change.string.length : pos.start,
                         end: pos.end + change.string.length
                     };
+
                     if (change.type === 'del') return {
                         start: isInFront ? pos.start - change.length : pos.start,
                         end: pos.end - change.length
                     };
+
                     throw new Error('Cannot deal with change ' + Objects.inspect(change));
                 }, {start: target.start, end: target.end});
 
             var helper = lively.ast.transform.helper,
                 source = sourceChanges.source,
-                replacement = replacementFunc(target, source.slice(pos.start, pos.end)),
+                replacement = replacementFunc(target, source.slice(pos.start, pos.end), insideChangedBefore),
                 replacementSource = Object.isArray(replacement) ?
                     replacement.map(helper._node2string).join('\n' + helper._findIndentAt(source, pos.start)):
                     replacementSource = helper._node2string(replacement);
@@ -1457,22 +1464,27 @@ Object.extend(lively.ast.transform, {
                     .flatten();
             })(scope);
 
-        return lively.ast.transform.helper.replaceNodes(
-            varDecls.map(function(decl) {
-                return {
-                    target: decl,
-                    replacementFunc: function(declNode, s) {
-                        show("%s\nvs\n%s", s, source.slice(declNode.start, declNode.end))
-                        
-                        return declNode.declarations.map(function(ea) {
-                            return {
-                                type: "VariableDeclaration",
-                                kind: "var", declarations: [ea]
-                            }
-                        });
+        var targetsAndReplacements = varDecls.map(function(decl) {
+            return {
+                target: decl,
+                replacementFunc: function(declNode, s, wasChanged) {
+                    if (wasChanged) {
+                        // reparse node if necessary, e.g. if init was changed before like in
+                        // var x = (function() { var y = ... })();
+                        declNode = lively.ast.acorn.parse(s).body[0];
                     }
+
+                    return declNode.declarations.map(function(ea) {
+                        return {
+                            type: "VariableDeclaration",
+                            kind: "var", declarations: [ea]
+                        }
+                    });
                 }
-            }), source);
+            }
+        });
+
+        return lively.ast.transform.helper.replaceNodes(targetsAndReplacements, source);
     },
 
     returnLastStatement: function(source) {

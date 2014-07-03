@@ -141,30 +141,23 @@ TestCase.subclass('lively.ast.tests.Transforming',
 
     },
 
-    testHelperReplaceNodes: function() {
-        var source = "var x = 3,\n"
-                  + "    y = x + x;\n"
-                  + "y + 2;\n";
+    testHelperReplaceNodesInformsAboutChangedNodes: function() {
+        var source = "var x = 3;\n"
         var ast = lively.ast.acorn.parse(source);
-        var replaceSource1, replaceSource2;
+
+        var replacement1 = {type: "Literal", value: 23},
+            replacement2 = {type: "VariableDeclarator", id: {type: "Identifier", name: "zzz"}, init: {type: "Literal", value: 24}},
+            wasChanged1, wasChanged2;
+
         var hist = lively.ast.transform.helper.replaceNodes([
-            {target: ast.body[0].declarations[1].init.left, replacementFunc: function(node, source) { replaceSource1 = source; return {type: "Literal", value: "foo"}; }},
-            {target: ast.body[0].declarations[1].init.right, replacementFunc: function(node, source) { replaceSource2 = source; return {type: "Literal", value: "bar"}; }}],
+            {target: ast.body[0].declarations[0].init, replacementFunc: function(node, source, wasChanged) { wasChanged1 = wasChanged; return replacement1; }},
+            {target: ast.body[0].declarations[0], replacementFunc: function(node, source, wasChanged) { wasChanged2 = wasChanged; return replacement2; }}],
             {changes: [], source: source});
 
-        var expected = {
-            changes: [{type: 'del', pos: 19, length: 1},
-                      {type: 'add', pos: 19, string: "'foo'"},
-                      {type: 'del', pos: 22+5, length: 1},
-                      {type: 'add', pos: 22+5, string: "'bar'"}],
-            source: source.replace('x +', "'foo' +").replace('x;', "'bar';")
-        }
+        this.assert(!wasChanged1, "wasChanged1");
+        this.assert(wasChanged2, "wasChanged2");
 
-        this.assertEqualState(expected, hist);
-
-        this.assertEquals("x", replaceSource1);
-        this.assertEquals("x", replaceSource2)
-
+        this.assertEqualState("var zzz = 24;\n", hist.source);
     },
 
     testHelperSortNodesForReplace: function() {
@@ -290,16 +283,14 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testOneVarDeclaratorPerDeclaration: function() {
-        // var code = '/*test*/var x = 3, y = 2; function foo() { var z = 1, u = 0; }',
-        //     result = lively.ast.transform.oneDeclaratorPerVarDecl(code),
-        //     expected = '/*test*/var x = 3;\nvar y = 2; function foo() { var z = 1;\n var u = 0; }'
-
-        // this.assertEquals(expected, result.source);
+        var code = '/*test*/var x = 3, y = 2; function foo() { var z = 1, u = 0; }',
+            result = lively.ast.transform.oneDeclaratorPerVarDecl(code),
+            expected = '/*test*/var x = 3;\nvar y = 2; function foo() { var z = 1;\n var u = 0; }'
+        this.assertEquals(expected, result.source);
 
         var code = "var x = 3, y = (function() { var y = 3, z = 2; })(); ",
             result = lively.ast.transform.oneDeclaratorPerVarDecl(code),
-            expected = "var x = 3, y = (function() { var y = 3; var z = 2; })(); "
-
+            expected = "var x = 3;\nvar y = function () {\n        var y = 3;\n        var z = 2;\n    }(); "
         this.assertEquals(expected, result.source);
     },
 

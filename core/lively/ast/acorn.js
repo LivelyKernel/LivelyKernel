@@ -834,7 +834,9 @@ Object.extend(lively.ast.acorn, {
             };
         }
 
-        var ast = acorn.parse(source, options);
+        var ast = options && options.addSource ?
+            acorn.walk.addSource(source, options) : // FIXME
+            acorn.parse(source, options);
 
         if (ast && comments) { // adding nodes to comments
             ast.allComments = comments;

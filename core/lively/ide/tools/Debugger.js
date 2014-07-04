@@ -270,23 +270,30 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 },
                 sourceModule: "lively.ide.CodeEditor",
                 textMode: "javascript",
-                boundEval: function boundEval(str) {
-              var frame = this.get("Debugger").currentFrame;
-              if (!frame) return;
-              var str = "function(){\n" + str + "\n}";
-              var fun = Function.fromString(str).forInterpretation();
-              fun.lexicalScope = frame;
-              fun.basicApply = function(f) {
-                f.mapping = frame.mapping;
-                return lively.ast.Function.prototype.basicApply.call(this, f);
-              };
-              try {
-                return fun.call(frame.getThis());
-              } finally {
-                this.get("FrameScope").updateList(
-                    frame.listItemsForIntrospection()
-                );
-              }
+                boundEval: function boundEval(__evalStatement) {
+                var frame = this.get("Debugger").currentFrame;
+                if (!frame) return;
+
+                var interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+                    str, ast,
+                    pc = frame.getPC();
+                frame.setPC(null);
+                try {
+                    ast = lively.ast.acorn.parse(str = '(' + __evalStatement + ')');
+                    acorn.walk.addAstIndex(ast);
+                    acorn.walk.addSource(ast, str);
+                    return interpreter.runWithFrame(ast, frame);
+                } catch (e) {
+                    ast = lively.ast.acorn.parse(str = __evalStatement);
+                    acorn.walk.addAstIndex(ast);
+                    acorn.walk.addSource(ast, str);
+                    // In case str starts with a comment, set str to program node
+                    ast.source = str;
+                    return interpreter.runWithFrame(ast, frame);
+                } finally {
+                    frame.setPC(pc);
+                    this.get("FrameScope").updateList(frame);
+                }
             },
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "textString", this, "onTextChange", {});

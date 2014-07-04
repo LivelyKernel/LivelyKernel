@@ -2,13 +2,8 @@ module('lively.morphic.Widgets').requires('lively.morphic.Core', 'lively.morphic
 
 lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {
-    isButton: true,
 
-    normalColor: Color.rgbHex('#DDDDDD'),
-    toggleColor: Color.rgb(171,215,248),
-    disabledColor: Color.rgbHex('#DDDDDD'),
-    normalTextColor: Color.black,
-    disabledTextColor: Color.rgbHex('#999999'),
+    isButton: true,
 
     style: {
         enableGrabbing: false,
@@ -32,8 +27,10 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             allowInput: false
         }
     }
+
 },
 'initializing', {
+
     initialize: function($super, bounds, labelString) {
         $super(this.defaultShape());
         if (bounds) this.setBounds(bounds);
@@ -50,6 +47,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },
+
     ensureLabel: function(labelString) {
         if (!this.label) {
             this.label = new lively.morphic.Text(this.getExtent().extentAsRectangle(), labelString);
@@ -64,42 +62,51 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label.setTextStylingMode(true);
         this.label.disableEvents();
         return this.label;
-    },
-
+    }
 
 },
 'accessing', {
+
     setLabel: function(label) {
         this.label.setTextString(label);
         this.label.setExtent(this.getExtent());
         this.label.applyStyle(this.style.label);
         return this;
     },
+
     getLabel: function(label) { return this.label.textString },
+
     setActive: function(bool) {
         this.isActive = bool;
         this.updateAppearance();
     },
+
     setValue: function(bool) {
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool || this.toggle) lively.bindings.signal(this, 'fire', bool);
     },
+
     setExtent: function($super, extent) {
         // FIXME use layout! spaceFill!
         $super(extent);
         this.label && this.label.setExtent(extent)
     },
+
     setPadding: function(padding) { this.label && this.label.setPadding(padding); },
+
     setToggle: function(optBool) {
         this.toggle = (optBool === undefined)? true : optBool;
         return this.toggle
     }
+
 },
 'styling', {
+
     updateAppearance: function(){
         this.changeAppearanceFor(this.isPressed, this.value);
     },
+
     changeAppearanceFor: function(pressed, toggled) {
         if (this.isActive) {
             this.removeStyleClassName('disabled');
@@ -145,6 +152,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
 },
 'events', {
+
     isValidEvent: function(evt) {
         if (!this.isActive) return false;
         if (evt.isLeftMouseButtonDown() && !evt.isCommandKey()) return true;
@@ -177,18 +185,21 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         }
         return false;
     },
+
     onKeyDown: function($super, evt) {
         if (this.isValidEvent(evt) && this.isActive) {
             this.activate(); evt.stop(); return true;
         }
         return $super(evt);
     },
+
     onKeyUp: function($super, evt) {
         if (this.isValidEvent(evt) && this.isPressed) {
             this.deactivate(); evt.stop(); return true;
         }
         return $super(evt);
     },
+
     simulateButtonClick: function() {
         var world = this.world() || lively.morphic.World.current(),
             hand = world.firstHand();
@@ -206,10 +217,12 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.onMouseDown(createEvent());
         this.onMouseUp(createEvent());
     },
+
     activate: function() {
         this.isPressed = true;
         this.changeAppearanceFor(true);
     },
+
     deactivate: function() {
         var newValue = this.toggle ? !this.value : false;
         this.setValue(newValue);
@@ -219,6 +232,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
 },
 'menu', {
+
     morphMenuItems: function($super) {
         var self = this, items = $super();
         items.push([
@@ -230,6 +244,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         }])
         return items;
     }
+
 });
 
 

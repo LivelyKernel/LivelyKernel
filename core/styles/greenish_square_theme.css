@@ -49,6 +49,10 @@
 	color: gray;
 }
 
+.Button.disabled .Text span{
+	opacity: .3;
+}
+
 .Window {
 	background: rgba(240,240,216, 0.6);
 	box-shadow: 2px 2px 10px black, inset 1px 1px 1px white;

@@ -28,6 +28,10 @@
 	color: gray;
 }
 
+.Button.disabled .Text span{
+	opacity: .3;
+}
+
 .Window {
 	background-color: rgba(174,232,251, 0.7);
 	border-radius: 5px;

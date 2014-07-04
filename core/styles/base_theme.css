@@ -45,6 +45,10 @@
 	color: gray;
 }
 
+.Button.disabled .Text span{
+	opacity: .3;
+}
+
 /* for centered button labels let the textNode use table layouting */
 
 .Text.vertically-centered > div {

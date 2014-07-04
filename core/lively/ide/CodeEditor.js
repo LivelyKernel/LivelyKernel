@@ -325,9 +325,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     indexToPosition: function(absPos) { return this.getDocument().indexToPosition(absPos); },
     positionToIndex: function(pos) { return this.getDocument().positionToIndex(pos); },
 
-    getSession: function(absPos) { return this.withAceDo(function(ed) { return ed.session; }); },
+    getSession: function() { return this.withAceDo(function(ed) { return ed.session; }); },
 
-    getDocument: function(absPos) { return this.getSession().getDocument(); }
+    getDocument: function() { return this.getSession().getDocument(); }
 
 },
 'ace interface', {
@@ -361,6 +361,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     createRange: function(start, end) {
+        // start/end = { row: ..., column: ... }
         return lively.ide.ace.require("ace/range").Range.fromPoints(start, end);
     },
 
@@ -457,6 +458,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return name.replace('ace/mode/', '');
         }) || 'text';
     },
+
     getTextModeNoExtension: function() {
         // FIXME this returns the name of the current text mode without Lively
         // additions that are appended via :xyz
@@ -466,6 +468,28 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     showsCompleter: function() {
         return this.withAceDo(function(ed) {
             return ed.completer && ed.completer.activated; });
+    },
+
+    addMarkerAce: function(range, clazz, type, inFront, cb) {
+        var self = this;
+        this.withAceDo(function(ed) {
+            var marker = ed.session.addMarker(range, clazz, type, inFront);
+            if (cb) cb.call(self, marker);
+        });
+    },
+
+    addMarker: function(start, end, clazz, type, inFront, cb) {
+        var self = this;
+        this.withAceDo(function(ed) {
+            var range = this.createRange(this.indexToPosition(start), this.indexToPosition());
+            self.addMarkerAce(range, clazz, type, inFront, cb);
+        });
+    },
+
+    removeMarker: function(marker) {
+        this.withAceDo(function(ed) {
+            ed.session.removeMarker(marker);
+        });
     }
 
 },

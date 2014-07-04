@@ -51,7 +51,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 borderSize: 1.59,
                 extentWithoutPlaceholder: lively.pt(684.1,29.0),
                 resizeWidth: true,
-                spacing: 4.670000000000001,
+                spacing: 4.67,
                 type: "lively.morphic.Layout.HorizontalLayout"
             },
             name: "ControlPanel",
@@ -235,25 +235,29 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _BorderColor: Color.rgb(230,230,230),
                 _BorderRadius: 0,
                 _BorderWidth: 1,
-                _Extent: lively.pt(489.5,311.6),
+                _Extent: lively.pt(479.0,302.0),
                 _FontSize: 12,
                 _LineWrapping: true,
-                _InputAllowed: false,
                 _Position: lively.pt(1.0,1.1),
-                _ShowActiveLine: true,
-                _ShowErrors: false,
+                _ShowActiveLine: false,
+                _ShowErrors: true,
                 _ShowGutter: true,
                 _ShowIndents: true,
                 _ShowInvisibles: false,
                 _ShowPrintMargin: false,
                 _ShowWarnings: false,
                 _SoftTabs: true,
-                _TextMode: "javascript",
+                _StyleSheet: ".ace_debugging {\n\
+                	position: absolute;\n\
+                	background: #ff9999;\n\
+                	border: 1px rgb(200, 200, 250);\n\
+                }",
                 _Theme: lively.Config.get("aceWorkspaceTheme"),
                 _aceInitialized: true,
                 accessibleInInactiveWindow: true,
-                allowInput: false,
+                allowInput: true,
                 className: "lively.morphic.CodeEditor",
+                doNotSerialize: ["debugMarker"],
                 evalEnabled: false,
                 fixedHeight: true,
                 name: "FrameSource",
@@ -263,22 +267,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     resizeHeight: true
                 },
                 sourceModule: "lively.ide.CodeEditor",
-                submorphs: [{
-                    _BorderStyle: "none",
-                    _BorderWidth: 1,
-                    _Extent: lively.pt(684.0,504.0),
-                    _Fill: Color.rgba(0,0,204,0),
-                    className: "lively.morphic.Box",
-                    droppingEnabled: false,
-                    grabbingEnabled: false,
-                    halosEnabled: false,
-                    layout: {
-                        resizeHeight: true,
-                        resizeWidth: true
-                    },
-                    name: "DoNotRemoveSelection",
-                    sourceModule: "lively.morphic.Core"
-                }],
+                textMode: "javascript",
                 boundEval: function boundEval(str) {
               var frame = this.get("Debugger").currentFrame;
               if (!frame) return;
@@ -298,6 +287,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
               }
             },
                 connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "textChange", this, "removeDebugMarker", {});
             },
                 debugSelection: function debugSelection() {
               var frame = this.get("Debugger").currentFrame;
@@ -322,8 +312,6 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 highlightPC: function highlightPC() {
                 var frame = this.get("Debugger").currentFrame;
                 if (frame && frame.pc !== null) {
-                    // var style = { backgroundColor: Color.rgb(255,255,127) };
-                    // target.emphasize(style, frame.pc.pos[0], frame.pc.pos[1]);
                     var context = frame.func.getAst(),
                         start = frame.pc.start,
                         end = frame.pc.end;
@@ -331,13 +319,28 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                         start -= context.start;
                         end -= context.start;
                     }
-                    this.setSelectionRange(start, end);
+                    this.addMarker(start, end, 'ace_debugging', 'text', false, function callback(marker) {
+                        this.removeDebugMarker();
+                        this.debugMarker = marker;
+                    });
                 }
             },
                 showSource: function showSource(frame) {
-                // FIXME: make additional morph obsolete by restricting user selection
-                this.addMorph(this.get('DoNotRemoveSelection'));
                 this.textString = (frame && frame.func) ? frame.func.getSource() : '';
+            },
+                removeDebugMarker: function removeDebugMarker(connSrc) {
+                if (connSrc) {
+                    // FIXME: initial text triggers marker removal - avoid!
+                    if (connSrc.data && connSrc.data.action == 'insertText' && connSrc.data.text == this.textString)
+                        return;
+                }
+                if (this.debugMarker !== undefined) {
+                    this.removeMarker(this.debugMarker);
+                    delete this.debugMarker;
+                }
+            },
+                reset: function reset() {
+                this.doNotSerialize = ["debugMarker"];
             }
             },{
                 _BorderColor: Color.rgb(230,230,230),
@@ -347,9 +350,9 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     x: "hidden",
                     y: "auto"
                 },
-                _Extent: lively.pt(184.3,311.6),
+                _Extent: lively.pt(184.3,301.9),
                 _Fill: Color.rgb(255,255,255),
-                _Position: lively.pt(496.3,0.0),
+                _Position: lively.pt(500.0,0.0),
                 className: "lively.morphic.Box",
                 droppingEnabled: true,
                 layout: {

@@ -481,7 +481,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     addMarker: function(start, end, clazz, type, inFront, cb) {
         var self = this;
         this.withAceDo(function(ed) {
-            var range = this.createRange(this.indexToPosition(start), this.indexToPosition());
+            var range = this.createRange(this.indexToPosition(start), this.indexToPosition(end));
             self.addMarkerAce(range, clazz, type, inFront, cb);
         });
     },

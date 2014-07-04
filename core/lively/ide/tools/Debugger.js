@@ -57,20 +57,20 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
             name: "ControlPanel",
             sourceModule: "lively.morphic.Core",
             submorphs: [{
-                _BorderColor: Color.rgb(214,214,214),
+                _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 3,
                 _BorderWidth: 1,
                 _Extent: lively.pt(131.7,19.8),
                 _Position: lively.pt(1.6,1.6),
                 className: "lively.morphic.Button",
-                isCopyMorphRef: true,
+                droppingEnabled: false,
+                grabbingEnabled: false,
                 isPressed: false,
                 label: "continue",
                 layout: {
                     resizeHeight: true,
                     resizeWidth: true
                 },
-                morphRefId: 1,
                 name: "ContinueButton",
                 sourceModule: "lively.morphic.Widgets",
                 toggle: false,
@@ -79,12 +79,14 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 lively.bindings.connect(this, "fire", this.get("Debugger"), "resume", {});
             }
             },{
-                _BorderColor: Color.rgb(214,214,214),
+                _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 3,
                 _BorderWidth: 1,
                 _Extent: lively.pt(131.7,19.8),
                 _Position: lively.pt(138.0,1.6),
                 className: "lively.morphic.Button",
+                droppingEnabled: false,
+                grabbingEnabled: false,
                 isPressed: false,
                 label: "step into",
                 layout: {
@@ -99,20 +101,20 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 lively.bindings.connect(this, "fire", this.get("Debugger"), "stepInto", {});
             }
             },{
-                _BorderColor: Color.rgb(214,214,214),
+                _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 3,
                 _BorderWidth: 1,
                 _Extent: lively.pt(131.7,19.8),
                 _Position: lively.pt(274.4,1.6),
                 className: "lively.morphic.Button",
-                isCopyMorphRef: true,
+                droppingEnabled: false,
+                grabbingEnabled: false,
                 isPressed: false,
                 label: "step over",
                 layout: {
                     resizeHeight: true,
                     resizeWidth: true
                 },
-                morphRefId: 1,
                 name: "StepOverButton",
                 sourceModule: "lively.morphic.Widgets",
                 toggle: false,
@@ -121,20 +123,20 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 lively.bindings.connect(this, "fire", this.get("Debugger"), "stepOver", {});
             }
             },{
-                _BorderColor: Color.rgb(214,214,214),
+                _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 3,
                 _BorderWidth: 1,
                 _Extent: lively.pt(131.7,19.8),
                 _Position: lively.pt(410.8,1.6),
                 className: "lively.morphic.Button",
-                isCopyMorphRef: true,
+                droppingEnabled: false,
+                grabbingEnabled: false,
                 isPressed: false,
                 label: "restart",
                 layout: {
                     resizeHeight: true,
                     resizeWidth: true
                 },
-                morphRefId: 1,
                 name: "RestartButton",
                 sourceModule: "lively.morphic.Widgets",
                 toggle: false,
@@ -143,20 +145,20 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 lively.bindings.connect(this, "fire", this.get("Debugger"), "restart", {});
             }
             },{
-                _BorderColor: Color.rgb(214,214,214),
+                _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 3,
                 _BorderWidth: 1,
                 _Extent: lively.pt(131.7,19.8),
                 _Position: lively.pt(547.3,1.6),
                 className: "lively.morphic.Button",
-                isCopyMorphRef: true,
+                droppingEnabled: false,
+                grabbingEnabled: false,
                 isPressed: false,
                 label: "browse",
                 layout: {
                     resizeHeight: true,
                     resizeWidth: true
                 },
-                morphRefId: 1,
                 name: "BrowseButton",
                 sourceModule: "lively.morphic.Widgets",
                 toggle: false,
@@ -240,12 +242,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                 _LineWrapping: true,
                 _Position: lively.pt(1.0,1.1),
                 _ShowActiveLine: false,
-                _ShowErrors: true,
+                _ShowErrors: false,
                 _ShowGutter: true,
                 _ShowIndents: true,
                 _ShowInvisibles: false,
                 _ShowPrintMargin: false,
-                _ShowWarnings: false,
+                _ShowWarnings: true,
                 _SoftTabs: true,
                 _StyleSheet: ".ace_debugging {\n\
                 	position: absolute;\n\
@@ -287,7 +289,7 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
               }
             },
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "textChange", this, "removeDebugMarker", {});
+                lively.bindings.connect(this, "textString", this, "onTextChange", {});
             },
                 debugSelection: function debugSelection() {
               var frame = this.get("Debugger").currentFrame;
@@ -323,17 +325,29 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                         this.removeDebugMarker();
                         this.debugMarker = marker;
                     });
+                    this.withAceDo(function(ed) {
+                        var lineStart = ed.session.getDocument().indexToPosition(start).row,
+                            lineEnd = ed.session.getDocument().indexToPosition(end).row;
+                        ed.scrollToLine(Math.floor((lineStart + lineEnd) / 2), true, false);
+                    });
                 }
             },
                 showSource: function showSource(frame) {
-                this.textString = (frame && frame.func) ? frame.func.getSource() : '';
+                var source = (frame && frame.func) ? frame.func.getSource() : '';
+                this.lastSaveSource = source;
+                this.textString = source;
             },
-                removeDebugMarker: function removeDebugMarker(connSrc) {
-                if (connSrc) {
-                    // FIXME: initial text triggers marker removal - avoid!
-                    if (connSrc.data && connSrc.data.action == 'insertText' && connSrc.data.text == this.textString)
-                        return;
-                }
+                onTextChange: function onTextChange(newText) {
+                if (newText == this.lastSaveSource) return;
+
+                this.removeDebugMarker();
+
+                // disable PC-related actions
+                this.get("ContinueButton").setActive(false);
+                this.get("StepIntoButton").setActive(false);
+                this.get("StepOverButton").setActive(false);
+            },
+                removeDebugMarker: function removeDebugMarker() {
                 if (this.debugMarker !== undefined) {
                     this.removeMarker(this.debugMarker);
                     delete this.debugMarker;
@@ -520,15 +534,15 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
         this.get("FrameSource").highlightPC();
         this.get("FrameScope").updateList(frame);
         if (frame && frame.isResuming()) {
-            this.get("ContinueButton").isActive = true;
-            this.get("StepIntoButton").isActive = true;
-            this.get("StepOverButton").isActive = true;
-            this.get("RestartButton").isActive = true;
+            this.get("ContinueButton").setActive(true);
+            this.get("StepIntoButton").setActive(true);
+            this.get("StepOverButton").setActive(true);
+            this.get("RestartButton").setActive(true);
         } else {
-            this.get("ContinueButton").isActive = false;
-            this.get("StepIntoButton").isActive = false;
-            this.get("StepOverButton").isActive = false;
-            this.get("RestartButton").isActive = false;
+            this.get("ContinueButton").setActive(false);
+            this.get("StepIntoButton").setActive(false);
+            this.get("StepOverButton").setActive(false);
+            this.get("RestartButton").setActive(false);
         }
     },
         setTopFrame: function setTopFrame(topFrame) {

@@ -311,11 +311,22 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testTransformTopLevelVarDeclsAndVarUsageForCapturing: function() {
-        var code              = "var z = 3, y = 4; function foo(y) { var x = 5 + z + y; }",
+        var code              = "var z = 3, y = 42, obj = {a: '123', b: function b(n) { return 23 + n; }};\n"
+                              + "function foo(y) { var x = 5 + y.b(z); }\n",
             ast               = lively.ast.acorn.parse(code, {addSource: true}),
-            expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4; function foo(y) { var x = 5 + Global.z + y; }",
+            expected          = "Global.foo = foo;\n"
+                              + "Global.z = 3;\n"
+                              + "Global.y = 42;\n"
+                              + "Global.obj = {\n"
+                              + "    a: '123',\n"
+                              + "    b: function b(n) {\n"
+                              + "        return 23 + n;\n"
+                              + "    }\n"
+                              + "};\n"
+                              + "function foo(y) { var x = 5 + y.b(Global.z); }\n",
             recorder          = {name: "Global", type: "Identifier"},
             result            = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
+
 
         this.assertEquals(expected, result.source);
     },
@@ -363,7 +374,7 @@ TestCase.subclass('lively.ast.tests.Querying',
     },
 
     testScopes: function() {
-        var code = "var x = 3; function foo(y) { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; }";
+        var code = "var x = {y: 3}; function foo(y) { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; }";
         var ast = lively.ast.acorn.parse(code);
         var scope = lively.ast.query.scopes(ast);
         var expected = {

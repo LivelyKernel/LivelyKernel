@@ -473,7 +473,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: "gotoline",
-                bindKey: {mac: "Command-L", win: "Ctrl-L"},
+                bindKey: "Alt-G",
                 exec: function (editor) {
                     $world.prompt("Enter line number: ", function(input) {
                         var line = parseInt(input);

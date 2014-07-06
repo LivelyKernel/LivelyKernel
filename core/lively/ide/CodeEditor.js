@@ -755,7 +755,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 __evalStatement = transformed.source;
                 $morph('log') && ($morph('log').textString = transformed.source);
             } catch(e) {
-                console.log("Preprocess error: %s", e.stack || e);
+                if (Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
+                else console.error("Eval preprocess error: %s", e.stack || e);
             }
         }
 

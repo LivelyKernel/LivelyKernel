@@ -1429,10 +1429,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
         saveSourceFromEditor: function saveSourceFromEditor(editor) {
     var source = editor.getTextString(),
-        saved = editor.boundEval(source);
+        saved = editor.tryBoundEval(source);
 
-    if (!saved) {
-        editor.setStatusMessage("not saved", Color.red);
+    if (!saved || saved instanceof Error) {
+        var msg = saved.message || "not saved";
+        editor.setStatusMessage(msg, Color.red);
         return;
     }
 

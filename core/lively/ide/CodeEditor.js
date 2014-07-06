@@ -749,11 +749,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             };
 
         if (lively.Config.get('improvedJavaScriptEval') && __evalStatement.length < 150000) {
-            var ast = lively.ast.acorn.parse(__evalStatement);
-            var subst = {name: "Global", type: "Identifier"};
-            var transformed = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, subst);
-            __evalStatement = lively.ast.acorn.stringify(transformed.ast);
-            $morph('log') && ($morph('log').textString = __evalStatement);
+            try {
+                var transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
+                    __evalStatement, {name: "Global", type: "Identifier"});
+                __evalStatement = transformed.source;
+                $morph('log') && ($morph('log').textString = transformed.source);
+            } catch(e) {
+                console.log("Preprocess error: %s", e.stack || e);
+            }
         }
 
         try {

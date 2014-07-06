@@ -1248,7 +1248,7 @@ Object.extend(lively.ast.transform, {
                     // changes already applied
                     if (pos.end < change.pos) return pos;
 
-                    var isInFront = change.pos <= pos.start;
+                    var isInFront = change.pos < pos.start;
                     insideChangedBefore = insideChangedBefore
                                        || change.pos >= pos.start && change.pos <= pos.end;
 
@@ -1321,67 +1321,10 @@ Object.extend(lively.ast.transform, {
         return result;
     },
 
-    replaceTopLevelVarDeclsWithAssignment: function(astOrSource, assignToObj) {
-        /* replaces var and function declarations with assignment statements.
-         * Example:
-              lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(
-                  "var x = 3, y = 2",
-                  {name: "A", type: "Identifier"}).source;
-              // => "A.x = 3; A.y = 2;"
-         */
-
-        var ast = typeof astOrSource === 'object' ?
-                astOrSource : lively.ast.acorn.parse(astOrSource),
-            source = typeof astOrSource === 'string' ?
-                astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
-            scope = lively.ast.query.scopes(ast);
-
-        if (!scope.node.body.length) return null;
-
-        var result1 = lively.ast.transform.helper.replaceNodes(
-            scope.varDecls.map(function(decl) {
-                return {
-                    target: decl,
-                    replacementFunc: function(declNode, s) {
-                        return declNode.declarations.map(function(ea) {
-                            return assign(ea.id, ea.init);
-                        });
-                    }
-                }
-            }), source);
-
-        if (!scope.funcDecls.length || !scope.node.body[0]) return result1;
-
-        var scope = lively.ast.query.scopes(lively.ast.acorn.parse(result1.source));
-        return lively.ast.transform.helper.replaceNode(
-            scope.node.body[0],
-            function(node) {
-                return scope.funcDecls.map(function(decl) {
-                    return assign(decl.id, decl.id);
-                }).concat([node]);
-            }, result1.source);
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        function assign(id, value) {
-            return {
-              type: "ExpressionStatement", expression: {
-                type: "AssignmentExpression", operator: "=",
-                right: value || {type: "Identifier", name: 'undefined'},
-                left: {
-                    type: "MemberExpression", computed: false,
-                    object: assignToObj, property: id
-                }
-              }
-            }
-        }
-
-    },
-
     replaceTopLevelVarDeclAndUsageForCapturing: function(astOrSource, assignToObj) {
         /* replaces var and function declarations with assignment statements.
          * Example:
-              lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(
+              lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
                   "var x = 3, y = 2",
                   {name: "A", type: "Identifier"}).source;
               // => "A.x = 3; A.y = 2;"
@@ -1393,7 +1336,10 @@ Object.extend(lively.ast.transform, {
                 astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
             topLevel = lively.ast.query.topLevelDeclsAndRefs(ast);
 
-        var result1 = lively.ast.transform.helper.replaceNodes(
+        // 1. make all references declared in the toplevel scope into property
+        // reads of assignToObj
+        // Example "var foo = 3; 99 + foo;" -> "var foo = 3; 99 + Global.foo;"
+        var result = lively.ast.transform.helper.replaceNodes(
             topLevel.refs.map(function(ref) {
                 return {
                     target: ref,
@@ -1406,31 +1352,42 @@ Object.extend(lively.ast.transform, {
                 }
             }), source);
 
-        // topLevel = lively.ast.query.topLevelDeclsAndRefs(lively.ast.acorn.parse(result1.source));
-
-        var result2 = lively.ast.transform.helper.replaceNodes(
+        // 2. turn var declarations into assignments to assignToObj
+        // Example: "var foo = 3; 99 + foo;" -> "Global.foo = 3; 99 + foo;"
+        result = lively.ast.transform.helper.replaceNodes(
             topLevel.varDecls.map(function(decl) {
                 return {
                     target: decl,
-                    replacementFunc: function(declNode, s) {
+                    replacementFunc: function(declNode, s, wasChanged) {
+                        if (wasChanged) {
+                            var scopes = lively.ast.query.scopes(lively.ast.acorn.parse(s, {addSource: true}));
+                            declNode = scopes.varDecls[0]
+                        }
                         return declNode.declarations.map(function(ea) {
                             return assign(ea.id, ea.init);
                         });
                     }
                 }
-            }), result1);
+            }), result);
 
-        if (!topLevel.funcDecls.length) return result2;
+        // 3. assignments for function declarations in the top level scope are
+        // put in front of everything else:
+        // "return bar(); function bar() { return 23 }" -> "Global.bar = bar; return bar(); function bar() { return 23 }"
+        if (topLevel.funcDecls.length) {
+            var globalFuncs = topLevel.funcDecls.map(function(decl) {
+                var funcId = {type: "Identifier", name: decl.id.name};
+                return lively.ast.acorn.stringify(assign(funcId, funcId));
+            }).join('\n');
 
-        var scope = lively.ast.query.scopes(lively.ast.acorn.parse(result2.source));
 
-        return lively.ast.transform.helper.replaceNode(
-            scope.node.body[0],
-            function(node) {
-                return topLevel.funcDecls.map(function(decl) {
-                    return assign(decl.id, decl.id);
-                }).concat([node]);
-            }, result2.source);
+            var change = {type: 'add', pos: 0, string: globalFuncs};
+            result = {
+                source: globalFuncs + '\n' + result.source,
+                changes: result.changes.concat([change])
+            }
+        }
+
+        return result;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

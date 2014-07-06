@@ -121,7 +121,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
 
         if (codeEditor.getShowWarnings()) {
             marker.markerRanges.pushAll(
-                lively.ast.query.findGlobalVarRefs(ast).map(function(ea) {
+                lively.ast.query.findGlobalVarRefs(ast, {jslintGlobalComment: true}).map(function(ea) {
                     ea.cssClassName = "ace-global-var"; return ea; }));
         }
 

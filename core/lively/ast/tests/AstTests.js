@@ -418,8 +418,7 @@ TestCase.subclass('lively.ast.tests.Querying',
                  + "    height = 500 - margin.top - margin.bottom;\n"
                  + "function blup() {}\n"
                  + "foo + baz + foo + height;\n"
-        var ast = lively.ast.acorn.parse(code);
-        var result = lively.ast.query.findGlobalVarRefs(ast);
+        var result = lively.ast.query.findGlobalVarRefs(code);
         var expected = [{start:169,end:172, name:"foo", type:"Identifier"},
                         {start:175,end:178, name:"baz", type:"Identifier"},
                         {start:181,end:184, name:"foo", type:"Identifier"}];

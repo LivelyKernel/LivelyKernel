@@ -173,10 +173,12 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
             retVal = this.accept(node.handler, depth, state, path.concat(["handler"]));
         }
 
-        node.guardedHandlers.forEach(function(ea, i) {
-            // ea is of type CatchClause
-            retVal = this.accept(ea, depth, state, path.concat(["guardedHandlers", i]));
-        }, this);
+        if (node.guardedHandlers) {
+            node.guardedHandlers.forEach(function(ea, i) {
+                // ea is of type CatchClause
+                retVal = this.accept(ea, depth, state, path.concat(["guardedHandlers", i]));
+            }, this);
+        }
 
         if (node.finalizer) {
             // finalizer is a node of type BlockStatement
@@ -880,7 +882,7 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ScopeVisitor",
         path = path || [];
         try {
         return this['visit' + node.type](node, depth, scope, path);
-            
+
         } catch (e) {
             show(e.stack)
         }
@@ -966,8 +968,35 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ScopeVisitor",
             retVal = this.accept(ea.value, depth, state, path.concat(["properties", i, "value"]));
         }, this);
         return retVal;
-    }
+    },
 
+    visitTryStatement: function (node, depth, scope, path) {
+        var retVal;
+        // block is a node of type Blockscopement
+        retVal = this.accept(node.block, depth, scope, path.concat(["block"]));
+
+        if (node.handler) {
+            // handler is a node of type CatchClause
+            retVal = this.accept(node.handler, depth, scope, path.concat(["handler"]));
+            scope.params.push(node.handler.param);
+        }
+
+        node.guardedHandlers && node.guardedHandlers.forEach(function(ea, i) {
+            retVal = this.accept(ea, depth, scope, path.concat(["guardedHandlers", i]));
+        }, this);
+
+        if (node.finalizer) {
+            retVal = this.accept(node.finalizer, depth, scope, path.concat(["finalizer"]));
+        }
+        return retVal;
+    },
+
+    visitLabeledStatement: function (node, depth, state, path) {
+        var retVal;
+        // ignore label
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
+        return retVal;
+    }
 });
 
 Object.extend(lively.ast.acorn, {
@@ -1193,7 +1222,7 @@ Object.extend(lively.ast.query, {
 
         function findTopLevelRefs(topLevelRefs, innerDeclaredVars, scope) {
             var decls = innerDeclaredVars.concat(declaredVarNames(scope)),
-                outerRefs = scope.refs.filter(function(ref) { 
+                outerRefs = scope.refs.filter(function(ref) {
                     return !decls.include(ref.name) });
             return outerRefs
                 .filter(function(ref) { return topLevelRefs.include(ref.name); })
@@ -1202,23 +1231,59 @@ Object.extend(lively.ast.query, {
 
     },
 
-    findGlobalVarRefs: function(ast, ignoredNames) {
-        ignoredNames = ignoredNames || [];
-        if (typeof ast === "string") ast = lively.ast.acorn.parse(ast);
-        var scope = lively.ast.query.topLevelDeclsAndRefs(ast);
-        var refs = scope.refs;
-        scope.varDecls.forEach(function(ea) {
-            ea.declarations.forEach(function(decl) { ignoredNames.pushIfNotIncluded(decl.id.name); });
-        });
-        scope.funcDecls.forEach(function(decl) { ignoredNames.pushIfNotIncluded(decl.id.name); });
+    findGlobalVarRefs: function(ast, options) {
+        var useComments = options && !!options.jslintGlobalComment;
 
-        refs = refs.filter(function(ref) { return ignoredNames.indexOf(ref.name) === -1; })
-        return refs;
-    },
+        var knownGlobals = [
+           "true", "false", "null", "undefined", "arguments",
+           "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp",
+           "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
+           "Math", "NaN", "Infinity", "Intl", "JSON",
+           "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
+           "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+           "window", "document", "console",
+           "Node", "HTMLCanvasElement", "Image", "Class",
+           "Global", "Functions", "Objects", "Strings",
+           "module", "lively", "pt", "rect", "rgb"];
 
-    findGlobalVarRefsForEditing: function(ast) {
-        var refs = lively.ast.query.findGlobalVarRefs(ast);
-        return refs;
+        if (typeof ast === "string") ast = lively.ast.acorn.parse(ast, {withComments: true});
+        var scope = lively.ast.query.scopes(ast);
+
+        return findUndeclaredReferences(scope)
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function getDeclaredNames(scope) {
+            var names = [];
+            scope.varDecls.forEach(function(ea) {
+                ea.declarations.forEach(function(decl) { names.push(decl.id.name); });
+            });
+            scope.funcDecls.forEach(function(decl) { names.push(decl.id.name); });
+            scope.params.forEach(function(decl) { names.push(decl.name); });
+            if (useComments) {
+                names.pushAll(findJsLintGlobalDeclarations(scope.node.type === 'Program' ? scope.node : scope.node.body));
+            }
+            return names;
+        }
+
+        function findUndeclaredReferences(scope) {
+            var names = getDeclaredNames(scope).concat(knownGlobals);
+            return scope.subScopes
+                .map(findUndeclaredReferences)
+                .reduce(function(refs, ea) { return refs.concat(ea); }, scope.refs)
+                .filter(function(ref) { return names.indexOf(ref.name) === -1; });
+        }
+
+        function findJsLintGlobalDeclarations(node) {
+            // node.body
+            if (!node || !node.comments) return [];
+            return node.comments
+                .filter(function(ea) { return ea.text.trim().startsWith('global') })
+                .map(function(ea) {
+                    return ea.text.replace(/^\s*global\s*/, '').split(',').invoke('trim');
+                }).flatten();
+        }
+
     }
 
 });

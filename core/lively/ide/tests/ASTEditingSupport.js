@@ -136,7 +136,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 
     testJSLintStyleGlobalDeclaration: function() {
         var src = "/*global bar, zork*/\nx = 3; (function() { /*global x, foo*/\nfoo = 3; var baz = 5; x = 98; y = 99; bar = 2; Object.bar = 3; })",
-            result = lively.ast.query.findGlobalVarRefs(src);
+            result = lively.ast.query.findGlobalVarRefs(src, {jslintGlobalComment: true});
 
         var expected = [{end: 22, name: "x", start: 21, type: "Identifier"},
                         {end: 91, name: "y", start: 90, type: "Identifier"}];

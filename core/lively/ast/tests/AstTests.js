@@ -410,6 +410,21 @@ TestCase.subclass('lively.ast.tests.Querying',
         this.assertEquals(0, subScope.funcDecls, 'subscope funcs');
         this.assertEquals(4, subScope.refs.length, 'subscope refs');
         this.assertEquals(1, subScope.params.length, 'subscope params');
+    },
+
+    testFindGlobalVars: function() {
+        var code = "var margin = {top: 20, right: 20, bottom: 30, left: 40},\n"
+                 + "    width = 960 - margin.left - margin.right,\n"
+                 + "    height = 500 - margin.top - margin.bottom;\n"
+                 + "function blup() {}\n"
+                 + "foo + baz + foo + height;\n"
+        var ast = lively.ast.acorn.parse(code);
+        var result = lively.ast.query.findGlobalVarRefs(ast);
+        var expected = [{start:169,end:172, name:"foo", type:"Identifier"},
+                        {start:175,end:178, name:"baz", type:"Identifier"},
+                        {start:181,end:184, name:"foo", type:"Identifier"}];
+
+        this.assertEqualState(expected, result);
     }
 
 });

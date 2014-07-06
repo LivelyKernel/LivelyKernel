@@ -295,18 +295,18 @@ TestCase.subclass('lively.ast.tests.Transforming',
     },
 
     testTransformTopLevelVarDeclsForCapturing: function() {
-        var ast               = lively.ast.acorn.parse("var y, z = foo + bar; baz.foo(z, 3)"),
-            expected          = "Global.y = undefined;\nGlobal.z = foo + bar;\nbaz.foo(z, 3);",
-            result            = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, {name: "Global", type: "Identifier"});
-
+        var code     = "var y, z = foo + bar; baz.foo(z, 3)",
+            expected = "Global.y = undefined;\nGlobal.z = Global.foo + Global.bar; Global.baz.foo(Global.z, 3)",
+            recorder = {name: "Global", type: "Identifier"},
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
         this.assertEquals(expected, result.source);
     },
 
     testTransformTopLevelVarAndFuncDeclsForCapturing: function() {
-        var ast               = lively.ast.acorn.parse("var z = 3, y = 4; function foo() { var x = 5; }"),
-            expected          = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4;\nfunction foo() {\n    var x = 5;\n}",
-            recorder          = {name: "Global", type: "Identifier"},
-            result            = lively.ast.transform.replaceTopLevelVarDeclsWithAssignment(ast, recorder);
+        var code     = "var z = 3, y = 4; function foo() { var x = 5; }",
+            expected = "Global.foo = foo;\nGlobal.z = 3;\nGlobal.y = 4; function foo() { var x = 5; }",
+            recorder = {name: "Global", type: "Identifier"},
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
         this.assertEquals(expected, result.source);
     },
 

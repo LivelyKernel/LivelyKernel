@@ -387,7 +387,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                             idx = before.indexOf(string);
                         return idx > -1 && idx;
                     }
-    
+
                     var pos = ed.selection.getCursor();
                     // are we right from a "}" and on the same line?
                     var endBracket = ed.find(/\}/, {start: pos, backwards: true, preventScroll: true});
@@ -470,6 +470,16 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 bindKey: "End|Ctrl-E",
                 exec: function(ed) { ed.navigateLineEnd(); },
                 multiSelectAction: "forEach",
+                readOnly: true
+            }, {
+                name: "gotoline",
+                bindKey: {mac: "Command-L", win: "Ctrl-L"},
+                exec: function (editor) {
+                    $world.prompt("Enter line number: ", function(input) {
+                        var line = parseInt(input);
+                        if (!isNaN(line)) editor.gotoLine(line);
+                    }, String(editor.getCursorPositionScreen().row + 1));
+                },
                 readOnly: true
             }, {
                 name: 'moveCursorToScreenTop',
@@ -763,7 +773,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: 'expandSnippetOrDoTab',
             exec: function (ed) {
                 var success = ed.$morph.getSnippets().getSnippetManager().expandWithTab(ed);
-            
+
                 // the five lines below are for not accidentally re-expanding snippets,
                 // e.g. mutliple expands of forEach when first "tabStop" is directly at the
                 // key that triggers expansion
@@ -772,7 +782,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         "Tab": function(ed) { ed.tabstopManager.tabNext(1); }
                     })
                 }
-            
+
                 if (!success) ed.execCommand("indent");
             },
             multiSelectAction: "forEach"

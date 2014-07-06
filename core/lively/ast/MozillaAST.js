@@ -107,7 +107,7 @@ lively.ast.MozillaAST.Cache = {
       + "    type: \"TryStatement\";\n"
       + "    block: BlockStatement;\n"
       + "    handler: CatchClause | null;\n"
-      + "    guardedHandlers: [ CatchClause ];\n"
+      + "    guardedHandlers: [ CatchClause ] | null;\n"
       + "    finalizer: BlockStatement | null;\n"
       + "}",
         "interface WhileStatement <: Statement {\n"

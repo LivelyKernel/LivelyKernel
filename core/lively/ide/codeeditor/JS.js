@@ -85,118 +85,11 @@ Object.subclass('lively.ide.codeeditor.JS.RangeExpander',
     }
 });
 
-Object.subclass('lively.ide.codeeditor.JS.ScopeAnalyzer',
-'AST analyzing', {
-
-    knownGlobals: ["true", "false", "null", "undefined", "arguments",
-                   "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp", 
-                   "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
-                   "Math", "NaN", "Infinity", "Intl", "JSON",
-                   "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
-                   "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", 
-                   "window", "document", "console",
-                   "Node", "HTMLCanvasElement", "Image", "Class",
-                   "Global", "Functions", "Objects", "Strings",
-                   "module", "lively", "pt", "rect", "rgb"],
-
-    scopeVisitor: (function() {
-
-        function findJsLintGlobalDeclarations(node) {
-            // node.body
-            if (!node || !node.comments) return [];
-            return node.comments
-                .filter(function(ea) { return ea.text.trim().startsWith('global') })
-                .map(function(ea) {
-                    return ea.text.replace(/^\s*global\s*/, '')
-                        .split(',').invoke('trim')
-                        .map(function(name) { return {type: 'jsLintGlobal', node: ea, name: name}; });
-                }).flatten();
-        }
-
-        return acorn.walk.make({
-            Identifier: function(node, scope, c) {
-                scope.identifiers.push(node);
-            },
-            Program: function(node, scope, c) {
-                findJsLintGlobalDeclarations(node).forEach(function(g) {
-                    scope.vars[g.name] = g; });
-                for (var i = 0; i < node.body.length; ++i)
-                  c(node.body[i], scope, "Statement");
-            },
-            Function: function(node, scope, c) {
-                var inner = {vars: {}, identifiers: [], containingScopes: []};
-                scope && (scope.containingScopes.push(inner));
-                for (var i = 0; i < node.params.length; ++i)
-                    inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
-                if (node.id) {
-                    var decl = node.type == "FunctionDeclaration";
-                    (decl ? scope : inner).vars[node.id.name] =
-                        {type: decl ? "function" : "function name", node: node.id};
-                }
-                findJsLintGlobalDeclarations(node.body).forEach(function(g) {
-                    inner.vars[g.name] = g; });
-                c(node.body, inner, "ScopeBody");
-            },
-            TryStatement: function(node, scope, c) {
-                c(node.block, scope, "Statement");
-                if (node.handler) {
-                    var inner = {vars: {}, identifiers: [], containingScopes: []};
-                    scope && (scope.containingScopes.push(inner));
-                    inner.vars[node.handler.param.name] = {type: "catch clause", node: node.handler.param};
-                    c(node.handler.body, inner, "ScopeBody");
-                }
-                if (node.finalizer) c(node.finalizer, scope, "Statement");
-            },
-            VariableDeclaration: function(node, scope, c) {
-                for (var i = 0; i < node.declarations.length; ++i) {
-                    var decl = node.declarations[i];
-                    scope.vars[decl.id.name] = {type: "var", node: decl.id};
-                    if (decl.init) c(decl.init, scope, "Expression");
-                }
-            }
-        })
-    })(),
-
-    findGlobalVarReferences: function(src) {
-        var ast = Object.isString(src) ? null : src,
-            rootScope = {vars: {}, identifiers: [], containingScopes: []};
-        if (!ast) {
-            try { ast = lively.ast.acorn.parse(src, {withComments: true});
-            } catch(e) { ast = e; }
-        }
-        if (ast instanceof Error) return [];
-        try {
-            acorn.walk.recursive(ast, rootScope, this.scopeVisitor);
-        } catch (e) {
-            show('ast scope analyzation error: ' + e + '\n' + e.stack);
-            return [];
-        }
-        return this.findGlobalVarReferencesIn(rootScope);
-    },
-
-    findGlobalVarReferencesIn: function(scope, declaredVarNames) {
-        declaredVarNames = (declaredVarNames || []).concat(Object.keys(scope.vars));
-        var globals = scope.identifiers.reject(function(identifier) {
-            return this.knownGlobals.include(identifier.name) || declaredVarNames.include(identifier.name);
-        }, this);
-        var result = scope.containingScopes.inject(globals, function(globals, scope) {
-            return globals.concat(this.findGlobalVarReferencesIn(scope, declaredVarNames));
-        }, this).uniq();
-        return result;
-    }
-
-});
-
 // Used as a plugin for the lively.ide.CodeEditor.DocumentChangeHandler, will
 // trigger attach/detach actions for modes that require those
 lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.ChangeHandler',
 "settings", {
     targetMode: "ace/mode/javascript"
-},
-"initializing", {
-    initialize: function() {
-        this.scopeAnalyzer = new lively.ide.codeeditor.JS.ScopeAnalyzer();
-    }
 },
 "parsing", {
     parse: function(src, session) {
@@ -226,9 +119,9 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.JS.Chang
         marker.modeId = this.targetMode;
         marker.markerRanges.length = 0;
 
-        if (this.scopeAnalyzer && codeEditor.getShowWarnings()) {
+        if (codeEditor.getShowWarnings()) {
             marker.markerRanges.pushAll(
-                this.scopeAnalyzer.findGlobalVarReferences(ast).map(function(ea) {
+                lively.ast.query.findGlobalVarRefs(ast).map(function(ea) {
                     ea.cssClassName = "ace-global-var"; return ea; }));
         }
 

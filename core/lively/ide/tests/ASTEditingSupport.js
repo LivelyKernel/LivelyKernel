@@ -127,8 +127,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 
     testFindGlobalVar: function() {
         var src = "var x = 3; (function() { var foo = 3, baz = 5; x = 99; bar = 2; bar; Object.bar = 3; })",
-            sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
-            result = sut.findGlobalVarReferences(src);
+            result = lively.ast.query.findGlobalVarRefs(src);
         this.assertEquals(2, result.length, 'global ref not found');
         this.assertMatches(
             {end: 58, start: 55, name: 'bar', type: "Identifier"},
@@ -137,20 +136,10 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
 
     testJSLintStyleGlobalDeclaration: function() {
         var src = "/*global bar, zork*/\nx = 3; (function() { /*global x, foo*/\nfoo = 3; var baz = 5; x = 98; y = 99; bar = 2; Object.bar = 3; })",
-            sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
-            result = sut.findGlobalVarReferences(src);
+            result = lively.ast.query.findGlobalVarRefs(src);
 
-        var expected = [{
-          end: 22,
-          name: "x",
-          start: 21,
-          type: "Identifier"
-        },{
-          end: 91,
-          name: "y",
-          start: 90,
-          type: "Identifier"
-        }];
+        var expected = [{end: 22, name: "x", start: 21, type: "Identifier"},
+                        {end: 91, name: "y", start: 90, type: "Identifier"}];
 
         this.assertEquals(2, result.length, 'global ref not found');
         this.assertMatches(expected,
@@ -167,14 +156,13 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
             "baz + bar", ["baz", "bar"],
             "if (foo) bar", ["foo", "bar"],
             "while (foo) bar", ["foo", "bar"],
-            "do {bar} while (foo)", ["foo", "bar"],
+            "do {bar} while (foo)", ["bar", "foo"],
             "for (var i =0; foo < 1; i++) 1;", ["foo"],
             "function foo(baz) { baz; bar }; foo", ["bar"]
         ];
-        var sut = new lively.ide.codeeditor.JS.ScopeAnalyzer(),
-            result = sut.findGlobalVarReferences(src);
+            
         for (var i = 0; i < tests.length; i+=2) {
-            var src = tests[i], expected = tests[i+1], result = sut.findGlobalVarReferences(src);
+            var src = tests[i], expected = tests[i+1], result = lively.ast.query.findGlobalVarRefs(src);
             this.assertEquals(
                 result.pluck('name'), expected,
                 'global ref not found for ' + src + '\n' + Strings.print(result.pluck('name')));

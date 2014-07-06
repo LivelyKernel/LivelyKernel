@@ -878,7 +878,12 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ScopeVisitor",
 
     accept: function (node, depth, scope, path) {
         path = path || [];
+        try {
         return this['visit' + node.type](node, depth, scope, path);
+            
+        } catch (e) {
+            show(e.stack)
+        }
     },
 
     visitVariableDeclaration: function ($super, node, depth, scope, path) {
@@ -1195,6 +1200,25 @@ Object.extend(lively.ast.query, {
                 .concat(findTopLevelRefsOfScopes(topLevelRefs, decls, scope.subScopes));
         }
 
+    },
+
+    findGlobalVarRefs: function(ast, ignoredNames) {
+        ignoredNames = ignoredNames || [];
+        if (typeof ast === "string") ast = lively.ast.acorn.parse(ast);
+        var scope = lively.ast.query.topLevelDeclsAndRefs(ast);
+        var refs = scope.refs;
+        scope.varDecls.forEach(function(ea) {
+            ea.declarations.forEach(function(decl) { ignoredNames.pushIfNotIncluded(decl.id.name); });
+        });
+        scope.funcDecls.forEach(function(decl) { ignoredNames.pushIfNotIncluded(decl.id.name); });
+
+        refs = refs.filter(function(ref) { return ignoredNames.indexOf(ref.name) === -1; })
+        return refs;
+    },
+
+    findGlobalVarRefsForEditing: function(ast) {
+        var refs = lively.ast.query.findGlobalVarRefs(ast);
+        return refs;
     }
 
 });

@@ -952,6 +952,15 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ScopeVisitor",
             retVal = this.accept(node.property, depth, state, path.concat(["property"]));
         }
         return retVal;
+    },
+
+    visitObjectExpression: function (node, depth, state, path) {
+        var retVal;
+        node.properties.forEach(function(ea, i) {
+            // ignore keys: ["properties", i, "key"]
+            retVal = this.accept(ea.value, depth, state, path.concat(["properties", i, "value"]));
+        }, this);
+        return retVal;
     }
 
 });

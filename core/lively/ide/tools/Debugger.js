@@ -295,6 +295,32 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                     this.get("FrameScope").updateList(frame);
                 }
             },
+                doSave: function doSave() {
+                // part's script
+                var frame = this.get("Debugger").currentFrame,
+                    thisObject = frame.getThis(),
+                    source = this.getTextString(),
+                    saved;
+                if (thisObject && thisObject.isMorph && frame.getOriginalAst().type != 'Program') {
+                    saved = this.tryBoundEval('this.addScript(' + this.textString + ');');
+
+                    if (!saved || saved instanceof Error) {
+                        var msg = saved.message || "not saved";
+                        this.setStatusMessage(msg, Color.red);
+                        return;
+                    }
+                    this.lastSaveSource = source;
+
+                    // FIXME: method name might have changed! + do not use internals
+                    var func = frame.func,
+                        scriptName = func.methodName || func.name();
+                    func.node = thisObject[scriptName]._cachedAst;
+                    func.source = source;
+
+                    alertOK('Saved ' + scriptName + '!');
+                } else
+                    alert('Not saved: Saving not yet supported!');
+            },
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "textString", this, "onTextChange", {});
             },

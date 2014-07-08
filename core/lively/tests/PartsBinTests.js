@@ -156,17 +156,19 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject');
 		item.loadPart();
-		this.assert(item.part.partsBinMetaInfo.revisionOnLoad, 'no revision on load')
+		this.assert(item.part.partsBinMetaInfo.revisionOnLoad || item.part.partsBinMetaInfo.lastModifiedDate, 'no revision on load')
 	},
 	testUpdateRevisionOnLoadAfterPublishing: function() {
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject');
 		item.loadPart();
-		var oldRevisionOnLoad = item.part.partsBinMetaInfo.revisionOnLoad;
+		var oldRevision = item.part.partsBinMetaInfo.revisionOnLoad
+		    || item.part.partsBinMetaInfo.lastModifiedDate;
 
         item.uploadPart();
-        this.assert(oldRevisionOnLoad !== item.part.partsBinMetaInfo.revisionOnLoad,
-                    'rev did not change')
+        var newRevision = item.part.partsBinMetaInfo.revisionOnLoad
+            || item.part.partsBinMetaInfo.lastModifiedDate;
+        this.assert(oldRevision !== newRevision, 'rev did not change')
 	}
 })
 

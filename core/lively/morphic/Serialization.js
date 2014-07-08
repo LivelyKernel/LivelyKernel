@@ -169,6 +169,7 @@ Object.extend(lively.morphic.Morph, {
             metaInfo = metainfo || morph.getPartsBinMetaInfo(),
             requiredModules = metaInfo.getRequiredModules().withoutAll(modulesForDeserialization);
         loadModules(requiredModules);
+        morph.setPartsBinMetaInfo(metaInfo);
         return morph;
     }
 });

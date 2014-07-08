@@ -87,6 +87,7 @@ var browserTests = [
 
     // lang support
     "lively.lang.tests.ExtensionTests",
+    "lively.lang.tests.VM",
     "lively.lang.tests.WorkerTests",
 
     // persistence

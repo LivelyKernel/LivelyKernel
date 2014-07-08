@@ -1325,6 +1325,25 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         generatedAst.type = capturedAst.type;
         this.assertAstNodesEqual(generatedAst, capturedAst);
         this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');
+    },
+
+    test20bCorrectPCInThrowTest: function() {
+        function code() {
+            var e = new Error();
+            throw e;
+        }
+
+        var continuation, frame;
+        try {
+            lively.ast.StackReification.run(code, this.astRegistry);
+            this.assert(false, 'Error was not detected and triggered!');
+        } catch (e) {
+            continuation = lively.ast.Continuation.fromUnwindException(e.unwindException);
+            frame = continuation.frames().first();
+        }
+
+        var capturedAst = frame.getOriginalAst();
+        this.assertEquals(frame.getPC().astIndex, capturedAst.body.body[1].astIndex, 'pc');
     }
 
 });

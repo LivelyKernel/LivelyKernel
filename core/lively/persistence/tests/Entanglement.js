@@ -130,10 +130,8 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
             
         e2.foo.setFill(Color.blue);
         e1.foo.setPosition(pt(42));
-        e1.foo.setFill(Color.red);
-        
+        e1.foo.setFill(Color.red);        
         entanglement.update();
-        
         this.assertEquals(e2.foo.getPosition(), pt(42));
         this.assertEquals(e2.foo.getFill(), Color.blue);
         this.assertEquals(e2.foo.getFill() != entanglement.get('foo').get('_Fill'), true);
@@ -206,7 +204,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var c1 = entanglement.createEntangledMorph();
         var c2 = entanglement.createEntangledMorph();
-
+		
         this.assertEquals(c1.submorphs.length, 2);
         c1.removeMorph(c1.submorphs.find(function(each) { return each.getName() == 'Gretel' }));
         entanglement.update();
@@ -234,17 +232,20 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         this.assertEquals(c1.submorphs.length, 2)
         this.assertEquals(c2.submorphs.length, 2)
         c2.removeMorph(c2.get('Gretel'));
+
         entanglement.update();
+
         this.assertEquals(entanglement.subEntanglements.length, 1);
         this.assertEquals(c1.submorphs.length, 1)
         this.assertEquals(c2.submorphs.length, 1)
         c1.removeMorph(c1.get('Hänsel'));
+
         entanglement.update();
+
         this.assertEquals(entanglement.subEntanglements.length, 0);
         this.assertEquals(c1.submorphs.length, 0)
         this.assertEquals(c2.submorphs.length, 0)
     },
-
 
     test18tracksAddingOfMethods: function() {
         var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
@@ -325,7 +326,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
     }
 }
 );
-Object.subclass('Regression',
+lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.Regression',
 'regression', {
     test02getWithSubProperties: function() {
         // set can be called with both an array of arguments and a tuple
@@ -372,14 +373,16 @@ Object.subclass('Regression',
         
         
     },
+    test01getOfSubEntangelement: function() {
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        var b = new lively.morphic.Box(lively.rect(0,0,42,42));
+        m.addMorph(b);
+        m.foo = b;
+        var e = m.buildSpec().createEntanglement();
+        this.assertEquals(e.get('foo').isEntanglement, true);
+        this.assertEquals(e.get('lol'), undefined);
+    },
 
-    test01setWithArrayOrPair: function() {
-        // set can be called with both an array of arguments and a tuple
-        var e = new lively.persistence.Entanglement.Morph();
-        e.set('foo', 0);
-        this.assertEquals(e.get('foo'), 0);
-        e.set(['foo', 42]);
-        this.assertEquals(e.get('foo'), 42);
-    }
+
 }
 );}) // end of module

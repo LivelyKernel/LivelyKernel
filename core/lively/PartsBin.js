@@ -322,6 +322,9 @@ Object.subclass('lively.PartsBin.PartItem',
     moveToPartsSpace: function(partsSpace) {
         var newItem = this.copyToPartsSpace(partsSpace);
         this.del();
+        if (this.part) {
+            this.part.getPartsBinMetaInfo().setPartsSpace(partsSpace);
+        }
         return newItem;
     },
 

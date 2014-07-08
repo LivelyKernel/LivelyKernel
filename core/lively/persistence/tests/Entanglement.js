@@ -117,12 +117,12 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         
         var entanglement = lively.persistence.Entanglement.Morph.fromMorph(m);
         var e1 = entanglement.createEntangledMorph({excludes: ['setPosition']});
-        debugger;
         var e2 = entanglement.createEntangledMorph({excludes: [{foo: ['setFill']}, 'setPosition']});
             
         e2.foo.setFill(Color.blue);
         e1.foo.setPosition(pt(42));
         e1.foo.setFill(Color.red);
+        debugger;
         this.assertEquals(e2.foo.getPosition(), pt(42));
         this.assertEquals(e2.foo.getFill(), Color.blue);
         this.assertEquals(e2.foo.getFill() != entanglement.get('foo').get('_Fill'), true);
@@ -171,8 +171,85 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         this.assertEquals(e1.get('sub1').getFill(), entanglement.get('sub1').get('_Fill'));
         this.assertEquals(e2.get('sub1').getFill(), Color.red);
     },
-    test13NoticesAdditionOfSubmorphs: function() {
-        // enter comment here
+    test13TracksRemovalOfSubmorphs: function() {
+        
+        // we can use this test to show off an advanced handling of the submorph array
+        // by providing getter and setter to the buildspec. Here the getter and setter
+        // objects will refer to observer objects that monitor changes inside the
+        // submorph array and propagate changes as nessecary.
+        
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var m1 = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var m2 = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        
+        m1.setName('Hänsel');
+        m2.setName('Gretel')
+        
+        m.addMorph(m1);
+        m.addMorph(m2);
+        
+        var entanglement = m.buildSpec().createEntanglement();
+        var c1 = entanglement.createEntangledMorph();
+        var c2 = entanglement.createEntangledMorph();
+        debugger;
+        this.assertEquals(c1.submorphs.length, 2);
+        c1.removeMorph(c1.submorphs.find(function(each) { return each.getName() == 'Gretel' }));
+        //submorphs is removed in all other entangled morphs
+        this.assertEquals(c2.submorphs.find(function(each) { return each.getName() == 'Gretel' }), undefined);
+    },
+    test16ChangesSubEntanglementsAccordingly: function() {
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var h = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var g = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        
+        h.setName('Hänsel');
+        g.setName('Gretel')
+        
+        m.addMorph(h);
+        
+        var entanglement = m.buildSpec().createEntanglement();
+        var c1 = entanglement.createEntangledMorph();
+        var c2 = entanglement.createEntangledMorph();
+        
+        this.assertEquals(entanglement.subEntanglements.length, 1);
+        c1.addMorph(g);
+        this.assertEquals(entanglement.subEntanglements.length, 2);
+        this.assertEquals(c1.submorphs.length, 2)
+        this.assertEquals(c2.submorphs.length, 2)
+        c2.removeMorph(c2.get('Gretel'));
+        this.assertEquals(entanglement.subEntanglements.length, 1);
+        this.assertEquals(c1.submorphs.length, 1)
+        this.assertEquals(c2.submorphs.length, 1)
+        c1.removeMorph(c1.get('Hänsel'));
+        this.assertEquals(entanglement.subEntanglements.length, 0);
+        this.assertEquals(c1.submorphs.length, 0)
+        this.assertEquals(c2.submorphs.length, 0)
+    },
+
+    test15TracksAdditionOfSubmorphs: function() {
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var m1 = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var m2 = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        
+        m1.setName('Hänsel');
+        m2.setName('Gretel')
+        
+        m.addMorph(m1);
+        
+        var entanglement = m.buildSpec().createEntanglement();
+        var c1 = entanglement.createEntangledMorph();
+        var c2 = entanglement.createEntangledMorph();
+        this.assertEquals(c1.submorphs.length, 1);
+        c1.addMorph(m2);
+        //submorph is add in all other entangled morphs
+        this.assertEquals(c2.submorphs.find(function(each) { return each.getName() == 'Gretel' }) != undefined, true);
+    },
+
+
+
+    test14TracksChangesThroughPublicMethods: function() {
+        // in addition to exclusions, we can define how array changes
+        // should be tracked
     },
 
 
@@ -191,7 +268,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
     }
 }
 );
-Object.subclass('Regression',
+lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.Regression',
 'regression', {
     test02getWithSubProperties: function() {
         // set can be called with both an array of arguments and a tuple
@@ -238,14 +315,16 @@ Object.subclass('Regression',
         
         
     },
+    test01getOfSubEntangelement: function() {
+        var m = new lively.morphic.Box(lively.rect(0,0,100,100));
+        var b = new lively.morphic.Box(lively.rect(0,0,42,42));
+        m.addMorph(b);
+        m.foo = b;
+        var e = m.buildSpec().createEntanglement();
+        this.assertEquals(e.get('foo').isEntanglement, true);
+        this.assertEquals(e.get('lol'), undefined);
+    },
 
-    test01setWithArrayOrPair: function() {
-        // set can be called with both an array of arguments and a tuple
-        var e = new lively.persistence.Entanglement.Morph();
-        e.set('foo', 0);
-        this.assertEquals(e.get('foo'), 0);
-        e.set(['foo', 42]);
-        this.assertEquals(e.get('foo'), 42);
-    }
+
 }
 );}) // end of module

@@ -496,6 +496,7 @@ Config.addOptions(
     ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],
     ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
     ['improvedJavaScriptEval', false, "Eval that changes semantics of how object literals and if statements are evaluated."]
+    ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"]
 ],
 
 'lively.ide.Search', [

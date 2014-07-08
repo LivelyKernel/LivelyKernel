@@ -3148,13 +3148,14 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.EditDialog',
     },
 
     buildView: function($super, extent) {
-        var panel = $super(extent);
-        panel.setExtent(pt(400,200))
+        var panel = $super(pt(400,200));
         this.buildTextInput();
         lively.bindings.connect(this.cancelButton, 'fire', this, 'result', {
-            converter: function() { return null }});
+            converter: function() { return null; }});
         lively.bindings.connect(this.okButton, 'fire', this.inputText, 'doSave');
-        ['inputText', 'okButton', 'cancelButton'].forEach(function(prop) { this.panel[prop] = this[prop]; }, this);
+        ['inputText', 'okButton', 'cancelButton'].forEach(function(prop) {
+            this.panel[prop] = this[prop];
+        }, this);
         this.panel.addScript(function onKeyDown(evt) {
             var keys = evt.getKeyString();
             if (keys === 'Command-Enter' || keys === 'Control-Enter') {

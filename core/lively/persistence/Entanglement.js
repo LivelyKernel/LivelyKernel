@@ -32,7 +32,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 
             // entangle all the 'primitive' attributes
             morph.getBuildSpecProperties(props).forEach(function(attr) {
-                this.entangledAttributes[attr] = this.baseSpec.attributeStore[attr] || props[attr].defaultValue;
+                this.entangledAttributes[attr] = this.baseSpec.attributeStore[attr];
+                if(!this.entangledAttributes[attr]) {
+                    this.entangledAttributes[attr] = props[attr] && props[attr].defaultValue;
+                }
             }, this);
             
             // submorph refs give rise to subentanglements
@@ -70,7 +73,6 @@ Object.subclass("lively.persistence.Entanglement.Morph",
     },
     "accessing", {
         get: function(key) {
-            debugger;
             if(!(key in this.entangledAttributes)) {
                 // if the morph does not reference the property directly, it may still be found by name
                 var m = this.subEntanglements.find(function(subEnt) { 
@@ -195,7 +197,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
     },
     entangleProperty: function(morph, key, getter, setter, defaultValue) {
         if(!this.entangledAttributes[key]) {
-            this.entangledAttributes[key] = defaultValue || getter(morph);
+            this.entangledAttributes[key] = defaultValue || getter(morph, morph[key]);
         } else {
             if(!this.entangledAttributes[key].isMorphRef) {
                 setter(morph, this.entangledAttributes);
@@ -426,7 +428,6 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                                     function(subEnt) { return $(instance.submorphs).filter(subEnt.entangledMorphs).length == 0 });
                                 $proceed(self.entangledMorphs.without(instance),
                                          'remove', oldElem, mutationMethods);
-                                debugger;
                                 self.entangledAttributes[propertyName].remove(oldElem.baseSpec);
                             }
                         }

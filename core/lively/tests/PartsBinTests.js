@@ -49,12 +49,12 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		(function askToOverwrite(url) {
             asked = true;
 		}).addToObject(newItem, 'askToOverwrite')
-		newItem.uploadPart(true);
+		newItem.uploadPart(true, true);
 		this.assert(asked === false, 'asked when it shouldnt have');
 		this.assertEquals(newItem.part, morph);
 		// setTime modifies the object, also updating all the other places where it is referenced
 		morph.getPartsBinMetaInfo().lastModifiedDate.setTime(Date.now() - 10^3);
-		newItem.uploadPart(true);
+		newItem.uploadPart(true, true);
 		this.assert(asked === true, 'didnt ask when it should have');
     },
 	testPartGetsUpdatedMetaInfo: function() {
@@ -165,7 +165,7 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		var oldRevision = item.part.partsBinMetaInfo.revisionOnLoad
 		    || item.part.partsBinMetaInfo.lastModifiedDate;
 
-        item.uploadPart();
+        item.uploadPart(false, true);
         var newRevision = item.part.partsBinMetaInfo.revisionOnLoad
             || item.part.partsBinMetaInfo.lastModifiedDate;
         this.assert(oldRevision !== newRevision, 'rev did not change')

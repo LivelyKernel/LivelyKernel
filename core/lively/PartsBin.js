@@ -333,7 +333,7 @@ Object.subclass('lively.PartsBin.PartItem',
         new WebResource(this.getMetaInfoURL()).beAsync().del();
     },
 
-    uploadPart: function(checkForOverwrite) {
+    uploadPart: function(checkForOverwrite, isSync) {
         if (!this.part) {
             alert('Cannot upload part item ' + this.name + ' because there is no part!')
             return;
@@ -349,7 +349,7 @@ Object.subclass('lively.PartsBin.PartItem',
 
         // 2. start the upload...
         var webR = new WebResource(this.getFileURL())
-            .beAsync()
+            [isSync ? 'beSync' : 'beAsync']()
             .createProgressBar('Uploading ' + name);
 
         // 3. setup overwrite check

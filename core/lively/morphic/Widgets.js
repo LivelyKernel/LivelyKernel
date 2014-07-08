@@ -4137,7 +4137,6 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         // FIXME: It does not really work right now.
         //          maybe add filter attributes to serializer (only traverse the children refs)
         try {
-            debugger;
             JSON.stringify(this.target);
         } catch(Error) {
             return true;
@@ -4239,9 +4238,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     searchFor: function(term) {
         var results = this.searchTargetForTerm(this.target, term);
+        results = this.pruneSearchResults(results);
         results.name = 'Searching...'
         this.setItem(results);
-        this.expandAll();
+        Functions.debounce(100, this.expandAll, false).bind(this)();
     },
     getSelection: function() {
         var sel = this.getSelectedTree();
@@ -4310,7 +4310,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             this.label.setFill(null);
         if (!isSelected && this.item.isSelected)
             this.label.setFill(Color.rgb(218, 218, 218));
-        if (changed) this.label.fit();
+        if (changed){ 
+            this.label.fit();
+            this.node.applyLayout();
+        }
     },
     updateChildren: function() {
         if (!this.childNodes) return;
@@ -4414,6 +4417,26 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         // the search feature can not be implemented currently
     },
 
+    createMoreEntry: function(hiddenChildren) {
+        var item = {name: hiddenChildren.length + ' more'}
+        var moreButton = this.moreButtonSpec().createMorph();
+
+        connect(moreButton, 'fire', this, 'showHidden', {updater: function() {
+            var parent = tree.withAllTreesDetect(function(t) { return t.item == item }).parent;
+            hidden.forEach(function(child) {
+                parent.item.children.splice(parent.item.children.indexOf(item), 0, child)
+            });
+            parent.item.children.remove(item);
+            parent.update();
+            button.remove();
+            parent.collapse();
+            parent.expand();
+        }, varMapping: {item: item, tree: this, hidden: hiddenChildren, button: moreButton}});
+        
+        item.submorphs = [moreButton]
+        return item;
+    },
+
     createInspectButton: function() {
         // create a button, that triggers a custom inspection for the respective item
         var button = new lively.morphic.Button();
@@ -4500,6 +4523,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     toggle: function() {
         this.childNodes ? this.collapse() : this.expand();
     },
+
     fitToOwner: function () {
         if(this.owner) {
             this.setExtent(pt(this.owner.getExtent().x, this.getExtent().y));
@@ -4631,15 +4655,21 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var i = target.name.indexOf(term);
         if(i != -1) {
             hit = true;
-            res.emphasizeName = [i, i + term.length];
             res.name = target.name;
+            res.emphasizeName = [i, i + term.length];
             res.description = target.description;
             res.style = target.style;
+            res.submorphs = target.submorphs;
+            // this is too specific. introduce a generalization for custom attrs
+            res.checkBox = target.checkBox;
+            res.isEditable = target.isEditable;
+            res.onEdit = target.onEdit;
         }
-        res.mapsTo = function(obj) { debugger; return target == obj };
+        res.mapsTo = function(obj) { return target == obj };
 
         if(target.children){
             hit = true;
+            res.name = target.name;
             var subRes = []; // perform a search in all the children
             target.children.forEach(function(child) { 
                 var s = this.searchTargetForTerm(child, term);
@@ -4651,6 +4681,57 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 
         return hit ? res : undefined;
     }   ,
+    moreButtonSpec: function() {
+        return lively.BuildSpec({
+                _BorderColor: Color.rgb(189,190,192),
+                _BorderRadius: 50,
+                _BorderWidth: 3.0719999999999996,
+                _Extent: lively.pt(23.0,20.0),
+                _Fill: Color.rgba(204,0,0,0),
+                _Position: lively.pt(204.0,161.0),
+                _StyleClassNames: ["Morph","Button"],
+                className: "lively.morphic.Button",
+                doNotCopyProperties: [],
+                doNotSerialize: [],
+                droppingEnabled: false,
+                grabbingEnabled: false,
+                isPressed: false,
+                label: "+",
+                name: "Button",
+                pinSpecs: [{
+                    accessor: "fire",
+                    location: 1.5,
+                    modality: "output",
+                    pinName: "fire",
+                    type: "Boolean"
+                }],
+                sourceModule: "lively.morphic.Widgets",
+                toggle: false,
+                value: false,
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this, "doAction", {});
+            },
+                doAction: function doAction() {
+                
+            }
+        })
+    },
+    pruneSearchResults: function(resultTree) {
+        if(!resultTree.children)
+            return resultTree;
+        var branches = resultTree.children.filter(function (item) { return item.children && !item.isMoreNode });
+        var leaves = resultTree.children.withoutAll(branches);
+        if(leaves.length > 5) {
+            var moreEntry = this.createMoreEntry(leaves.slice(5));
+            leaves = leaves.slice(0, 5);
+            leaves.push(moreEntry);
+        } 
+        branches = branches.map(function(branch) {
+                return this.pruneSearchResults(branch);
+            }, this);
+        resultTree.children = leaves.concat(branches);
+        return resultTree;
+    },
     exitSearch: function() {
         this.searchBar.remove();
         this.setItem(this.target);

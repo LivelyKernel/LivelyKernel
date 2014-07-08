@@ -40,6 +40,23 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		this.assert(item.part, 'part not loaded!')
 		this.assert(item.part.name.startsWith('TestObject'));
 	},
+    testOverwriteTest: function() {
+		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
+			item = partsSpace.getPartItemNamed('TestObject');
+		item.loadPart();
+		var asked = false;
+		var morph = item.part, newItem = morph.getPartItem();
+		(function askToOverwrite(url) {
+            asked = true;
+		}).addToObject(newItem, 'askToOverwrite')
+		newItem.uploadPart(true);
+		this.assert(asked === false, 'asked when it shouldnt have');
+		this.assertEquals(newItem.part, morph);
+		// setTime modifies the object, also updating all the other places where it is referenced
+		morph.getPartsBinMetaInfo().lastModifiedDate.setTime(Date.now() - 10^3);
+		newItem.uploadPart(true);
+		this.assert(asked === true, 'didnt ask when it should have');
+    },
 	testPartGetsUpdatedMetaInfo: function() {
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject'),

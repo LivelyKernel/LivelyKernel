@@ -404,7 +404,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         if(!instance[propertyName]){
             throw Error('Can not directly access array named: ' + propertyName);
         }
-        
+
         self.updateDict[instance][propertyName] = {};
         self.updateDict[instance][propertyName].updater = lively.Closure.fromFunction(function(instance) {
             var oldArray = self.entangledAttributes[propertyName];

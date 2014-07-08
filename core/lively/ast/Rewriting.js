@@ -507,6 +507,15 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
+    inlineAdvancePC: function(node, astIndex) {
+        return this.newNode('SequenceExpression', {
+            expressions: [
+                this.lastNodeExpression(astIndex),
+                node
+            ]
+        });
+    },
+
     lastNodeExpression: function(astIndex) {
         return this.newNode('AssignmentExpression', {
             operator: '=',
@@ -1511,6 +1520,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             start: n.start, end: n.end, type: 'CatchClause',
             param: param, guard: guard, body: body, astIndex: n.astIndex
         };
+    },
+
+    visitThrowStatement: function(n, rewriter) {
+        n.argument = rewriter.inlineAdvancePC(this.accept(n.argument, rewriter), n.astIndex);
+        return n;
     },
 
     visitIdentifier: function(n, rewriter) {

@@ -62,6 +62,7 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 			item = partsSpace.getPartItemNamed('TestObject'),
 			id = Date.now();
 		item.loadPartMetaInfo().loadedMetaInfo.id = id;
+		this.assertEquals(item.getMetaInfo().id, id, 'setting the value to be tested failed.');
 		item.uploadMetaInfoOnly();
 		item.loadPart();
 		this.assertEquals(id, item.part.getPartsBinMetaInfo().id, 'meta info not updated!')
@@ -83,7 +84,7 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 
 	testCreatePartsSpace: function() {
 		var name = 'PartsBin/testCreatePartsSpace/',
-			url = URL.codeBase.withFilename(name),
+			url = URL.common.domain.withFilename(name),
 			partsSpace = lively.PartsBin.addPartsSpaceNamed(name);
 		this.deleteURLAfterTest(url)
 		partsSpace.ensureExistance();
@@ -94,7 +95,7 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 	testCopyPartItem: function() {
 		// create a parts space
 		var name = 'PartsBin/testCopyPartItemTarget/',
-			url = URL.codeBase.withFilename(name),
+			url = URL.common.domain.withFilename(name),
 			partsSpaceTo = lively.PartsBin.addPartsSpaceNamed(name);
 		this.deleteURLAfterTest(url)
 		partsSpaceTo.ensureExistance();
@@ -117,14 +118,14 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 	testMovePartItem: function() {
 		// create a parts space to copy the part to
 		var name = 'PartsBin/TestSpace1/',
-			url = URL.codeBase.withFilename(name),
+			url = URL.common.domain.withFilename(name),
 			partsSpace1 = lively.PartsBin.addPartsSpaceNamed(name);
 		this.deleteURLAfterTest(url)
 		partsSpace1.ensureExistance();
 
 		// create a parts space to move the part to
 		var name = 'PartsBin/TestSpace2/',
-			url = URL.codeBase.withFilename(name),
+			url = URL.common.domain.withFilename(name),
 			partsSpace2 = lively.PartsBin.addPartsSpaceNamed(name);
 		this.deleteURLAfterTest(url)
 		partsSpace2.ensureExistance();
@@ -132,9 +133,9 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		var item = lively.PartsBin.getPartItem('TestObject');
 		item.copyToPartsSpace(partsSpace1);
 
-		var item2 = partsSpace1.getPartItemNamed(item.name).loadPart()
+		var item2 = partsSpace1.getPartItemNamed(item.name).loadPart();
 
-		item2.moveToPartsSpace(partsSpace2)
+		item2.moveToPartsSpace(partsSpace2);
 
 		partsSpace1.load();
 		partsSpace2.load();

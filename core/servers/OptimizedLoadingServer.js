@@ -107,7 +107,9 @@ function determineCoreFiles() {
         files: coreFiles,
         combinedFile: combinedFile,
         sourceRoot: '../..'
-    }, function(err, _fuser) { global.fuser = fuser = _fuser; });
+    }, function(err, _fuser) {
+        if (err) console.error("Error starting OptimizedLoadingServer: %s", err);
+        global.fuser = fuser = _fuser; });
 })();
 
 module.exports = function(route, app) {

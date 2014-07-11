@@ -4664,6 +4664,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             res.checkBox = target.checkBox;
             res.isEditable = target.isEditable;
             res.onEdit = target.onEdit;
+            res.children = target.children;
         }
         res.mapsTo = function(obj) { return target == obj };
 

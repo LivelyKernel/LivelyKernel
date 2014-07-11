@@ -4652,8 +4652,9 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         var res = {}
         var hit = false;
         // inspect name and description
-        var i = target.name.indexOf(term);
-        if(i != -1) {
+        var i = target.name.match(new RegExp(term, 'i'));
+        if(i) {
+            i = i.index;
             hit = true;
             res.name = target.name;
             res.emphasizeName = [i, i + term.length];

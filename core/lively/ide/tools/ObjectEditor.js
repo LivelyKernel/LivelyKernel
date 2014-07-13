@@ -1322,7 +1322,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         mode: 'javascript',
         scriptName: scriptName,
         code: Strings.format(
-            '// changed at %s by %s\nthis.addScript(%s).tag(%s);',
+            '// changed at %s by %s\nthis.addScript(%s)%s;',
             script.timestamp, script.user,
             script.getOriginal().originalSource || script.getOriginal(),
             this.printTags(script)),
@@ -1392,16 +1392,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 this.owner.bounds().topLeft().addPt(pt(30,30)))
         },
         printTags: function printTags(script) {
-            if (!script.tags) return "[]";
-        
-            var printString = '[';
-            for (var i=0; i < script.tags.length; i++) {
-                if (i !== 0) printString += ', ';
-                printString += '"' + script.tags[i] + '"';
-            }
-            printString += ']';
-            return printString;
-        },
+        return !script.tags || !script.tags.length ?
+            "" : ".tag(" + Strings.print(script.tags) + ')';
+    },
         reset: function reset() {
             this.scriptPane = this.get('ObjectEditorScriptPane');
             this.scriptList = this.get('ObjectEditorScriptList');

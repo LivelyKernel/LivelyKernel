@@ -1209,7 +1209,11 @@ lively.BuildSpec('lively.ide.tools.StyleEditor', {
             	}})
             }, this);
 
-    }
+    },
+    onWindowGetsFocus: function onWindowGetsFocus() {
+    var ed = this.get('TabContainer').activePane().submorphs.detect(function(ea) { return ea.isCodeEditor; });
+    ed && ed.focus();
+}
     }],
     titleBar: "StyleEditorPane",
     setTarget: function setTarget(target) {

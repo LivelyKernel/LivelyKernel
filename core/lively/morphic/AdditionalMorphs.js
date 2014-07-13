@@ -985,7 +985,13 @@ lively.morphic.Morph.subclass('lively.morphic.HtmlWrapperMorph',
         var items = $super();
         var target = this;
         items.push(['edit HTML', function() {
-            var ed = target.world().addCodeEditor({content: target.getHTML(), gutter: false, textMode: 'html'});
+            var ed = target.world().addCodeEditor({
+                title: 'edit HTML of ' + String(target),
+                content: target.getHTML(),
+                gutter: false,
+                textMode: 'html',
+                evalEnabled: false
+            });
             ed.owner.align(ed.owner.bounds().center(), target.globalBounds().center());
             lively.bindings.connect(ed, 'savedTextString', target, 'setHTML');
             lively.bindings.connect(ed, 'savedTextString', Global, 'alertOK', {

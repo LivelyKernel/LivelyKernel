@@ -1324,9 +1324,23 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         code: Strings.format(
             '// changed at %s by %s\nthis.addScript(%s)%s;',
             script.timestamp, script.user,
-            script.getOriginal().originalSource || script.getOriginal(),
+            normalizeIndentOfFunctionSouce(script),
             this.printTags(script)),
     };
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function normalizeIndentOfFunctionSouce(func) {
+        var source = String(func.getOriginal().originalSource || func.getOriginal());
+        var lines = Strings.lines(source);
+        var normalizedIndent = "    "
+        var firstLineIndent = lines[1].match(/^\s*/)[0] || "";
+        firstLineIndent = firstLineIndent.slice(normalizedIndent.length);
+        var indentFixRe = new RegExp("^" + firstLineIndent);
+        return Strings.lines(String(source)).map(function(line) {
+            return line.replace(indentFixRe, ""); }).join('\n');
+    }
+
 },
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
             var name = targetObject.name;

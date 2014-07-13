@@ -1798,6 +1798,7 @@ lively.morphic.World.addMethods(
         if (Object.isString(options.position)) delete options.position;
         editor.applyStyle({resizeWidth: true, resizeHeight: true, gutter: false});
         editor.accessibleInInactiveWindow = true;
+        if (options.hasOwnProperty("evalEnabled")) editor.evalEnabled = options.evalEnabled;
         editor.applyStyle(options);
         editor.focus();
         return pane;

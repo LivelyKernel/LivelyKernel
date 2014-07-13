@@ -195,7 +195,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         treeMorph = new lively.morphic.Tree(),
                         rect = lively.morphic.Morph.makeRectangle(bounds),
                         currentTarget = null;
-                        
+
                     treeMorph.childrenPerPage = 10000;
                     treeMorph.setName("MorphSelectorTree");
                     treeMorph.getLayouter().defer();
@@ -203,9 +203,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     treeMorph.childNodes.each(function (n) {
                         n.expand();
                     })
-                        
+
                     currentTarget = this.highlightCurrentTarget(treeMorph);
-                    
+
                     rect.setFill(Color.white);
                     rect.beClip(true);
                     rect.disableGrabbing();
@@ -215,7 +215,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     rect.addMorph(treeMorph);
                     rect.treeMorph = treeMorph;
                     rect.currentTarget = currentTarget;
-                
+
                     return rect;
                 },
             currentMorphicScene: function currentMorphicScene() {
@@ -226,8 +226,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                             editorPane: this.owner,
                             selector: this
                         }
-                    
-                    return {children: [{ 
+
+                    return {children: [{
                         name: 'World',
                         value: this.world(),
                         selector: this,
@@ -242,7 +242,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     var target = this.owner.target,
                         nodes = tree.childNodes,
                         highlightNode;
-                
+
                     if (!target) {
                         return
                     } else if (target.isMorph) {
@@ -279,7 +279,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                             return n.item.value.name === target.name;
                         })
                     }
-                
+
                     if (highlightNode) {
                         this.highlightTarget(highlightNode);
                     }
@@ -290,7 +290,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 },
             onBlur: function onBlur(evt) {
                     $super(evt);
-                    
+
                     // remove the scene presentation when clicked elsewhere
                     var target = evt.world.clickedOnMorph;
                     if (!this.listMorph || !this.listMorph.isAncestorOf(target)) {
@@ -303,7 +303,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     if (evt.isCommandKey() || evt.isRightMouseButtonDown()) {
                         return $super(evt);
                     }
-                    
+
                     if (this.listMorph) {
                         // clicked on morph, not the list, not the list's scrollbar
                         if (evt.target === this.renderContext().shapeNode)
@@ -316,23 +316,23 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     var list = this.createScenePresentation(),
                         tree = list.treeMorph,
                         target = list.currentTarget
-                    
+
                     list.setVisible(false)
                     this.addMorph(list)
                     this.listMorph = list
                     list.focus()
-                
+
                     // need temp here, doesn't work otherwise, strange errors... Javascript WAT
                     var layouting = function() {
                         list.setVisible(true)
-                        
+
                         if (target) {
                             var globalTransform = new lively.morphic.Similitude()
-                            for (var morph = target; (morph != list) && 
+                            for (var morph = target; (morph != list) &&
                                     (morph != undefined); morph = morph.owner) {
                                 globalTransform.preConcatenate(morph.getTransform());
-                            }              
-                                
+                            }
+
                             list.scrollRectIntoView(target.getBounds().
                                                         translatedBy(globalTransform.getTranslation()));
                             tree.getLayouter().resume();
@@ -346,7 +346,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             removeTargetChooser: function removeTargetChooser() {
                     if (this.listMorph) {
                         this.listMorph.remove();
-                        delete this.listMorph;   
+                        delete this.listMorph;
                     }
                 },
             reset: function reset() {
@@ -361,7 +361,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             updateTargetFromOwner: function updateTargetFromOwner() {
                     this.setLabel(this.owner.target);
                 },
-            updateTargetFromSelection: function updateTargetFromSelection(selection) { 
+            updateTargetFromSelection: function updateTargetFromSelection(selection) {
                     function update(confirmed) {
                         if (!confirmed) return;
                         this.owner.setTarget(selection);
@@ -599,8 +599,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         },
                         morphUnderCursor: function morphUnderCursor() {
                             var that = this,
-                                world = lively.morphic.World.current();    
-                            
+                                world = lively.morphic.World.current();
+
                             return world.morphsContainingPoint(world.firstHand().getPosition()).detect(
                                 function(ea) {
                                     return  !ea.isPlaceholder &&
@@ -616,7 +616,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                             } else {
                                 morphToHighlight = morphUnderCursor;
                             }
-                        
+
                             if (morphToHighlight && morphToHighlight.world()) {
                                 this.setPosition(morphToHighlight.getPositionInWorld());
                                 this.setExtent(morphToHighlight.getExtent());
@@ -644,7 +644,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     var hand = lively.morphic.World.current().firstHand(),
                         highlight = this.getHighlightRectangle(),
                         that = this;
-                
+
                     if (this.isTracking()) {
                         this.removeHighlighting();
                     } else {
@@ -675,11 +675,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 },
             removeHighlighting: function removeHighlighting() {
                     var hand = this.world().firstHand();
-                    
+
                     if (this.getHighlightRectangle()) {
                         this.getHighlightRectangle().remove();
                     }
-                    
+
                     hand.highlightConnection && hand.highlightConnection.disconnect();
                     hand.highlightConnection = null;
                 },
@@ -743,7 +743,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 selection: null,
                 sourceModule: "lively.morphic.Lists",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater: 
+                lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater:
             function ($upd, value) {
                                 this.sourceObj.isFocused() && this.sourceObj.focus.bind(this.sourceObj).delay(0.1);
                                 $upd(value === '-- ALL --'? null : value);
@@ -767,14 +767,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     },
                 selectAddedScript: function selectAddedScript(scriptName) {
                         var index = this.getList().indexOf(scriptName);
-                        if (index !== -1) 
+                        if (index !== -1)
                             return this.selectAt(index);
-                        
+
                         // added script not in current tag, therefore list all scripts
                         this.owner.tagChooser.setTag(null);
-                        
+
                         var index = this.getList().indexOf(scriptName);
-                        if (index !== -1) 
+                        if (index !== -1)
                             return this.selectAt(index);
                     }
             },{
@@ -992,7 +992,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                                         c.sourceObj, c.sourceAttrName, c.targetObj, c.targetMethodName);
                                     editor.updateLists();
                                     editor.displayInitialScript();
-                                } 
+                                }
                             });
                     }
             },{
@@ -1085,7 +1085,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 selection: null,
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForConnection", {converter: 
+                lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForConnection", {converter:
             function (value) {
                             if (!value) return;
                             return (value === '-- ALL --') ? null : value[1];
@@ -1148,39 +1148,39 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             value: true,
             createListMorph: function createListMorph() {
                     var items = this.getList();
-                
+
                     var height = Math.min(this.owner.getExtent().y, items.length * 17);
                     var extent = new Rectangle(0, this.getExtent().y, this.getExtent().x, height);
-                
+
                     var listMorph = new lively.morphic.List(extent);
                     listMorph.setList(items);
-                
+
                     listMorph.disableGrabbing();
                     listMorph.disableDragging();
-                    
+
                     connect(listMorph, 'selection', this, 'setTag');
-                    
+
                     return listMorph;
                 },
             getList: function getList() {
                     if (!this.owner.target) return [''];
-                
+
                     var target = this.owner.target;
-                
+
                     var tags = Functions.own(target).collect(function (each) {
                         return target[each].tags || [];
                     }).flatten().uniq();
-                
-                    var sortedTags = tags.sortBy(function(name) { 
-                        return name.toLowerCase() 
+
+                    var sortedTags = tags.sortBy(function(name) {
+                        return name.toLowerCase()
                     });
-                    
-                    sortedTags.unshift('all'); 
+
+                    sortedTags.unshift('all');
                     return sortedTags;
                 },
             onBlur: function onBlur(evt) {
                     $super(evt);
-                    
+
                     // workaround - otherwise other morphs get this event
                     var clickedMorph = evt && evt.world && evt.world.clickedOnMorph;
                     if (clickedMorph && (clickedMorph !== this && clickedMorph !== this.listMorph)) {
@@ -1192,7 +1192,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     if (this.listMorph) {
                         this.removeList.bind(this).delay(0);
                         return true;
-                    } 
+                    }
                     if (this.getList().size() < 2) return;
                     var list = this.createListMorph();
                     this.addMorph(list);
@@ -1238,8 +1238,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             var editor = this,
                 selection = editor.scriptList.selection,
                 idx = editor.scriptList.selectedLineNo;
-            if (!editor.target || editor.scriptList.getList().size() < 2) return;    
-            
+            if (!editor.target || editor.scriptList.getList().size() < 2) return;
+
             return editor.world().confirm('Delete "' + selection + '" script?', function (confirmed) {
                 if (!confirmed || !selection || !editor.target
                  || !editor.target.hasOwnProperty(selection)) return;
@@ -1298,21 +1298,21 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 },
         generateSourceForConnection: function generateSourceForConnection(connection) {
             var c = connection, targetObject = this.target;
-            if (!c.getTargetObj() || !c.getTargetObj().name || 
+            if (!c.getTargetObj() || !c.getTargetObj().name ||
                 !c.getSourceObj() || !c.getSourceObj().name) return String(c);
-        
+
             var optConfig = [];
             if (c.converterString)
                 optConfig.push("converter: \n\t" + c.converterString);
             if (c.updaterString)
                 optConfig.push("updater: \n\t" + c.updaterString);
-            return Strings.format('connect(%s, "%s", %s, "%s", {%s});', 
+            return Strings.format('connect(%s, "%s", %s, "%s", {%s});',
                 this.generateTargetCode(targetObject, c.getSourceObj()),
                 c.getSourceAttrName(),
                 this.generateTargetCode(targetObject, c.getTargetObj()),
                 c.getTargetMethodName(),
                 optConfig.join(','));
-        
+
         },
         generateSourceForScript: function generateSourceForScript(scriptName) {
     var script = this.target[scriptName];
@@ -1344,17 +1344,17 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 },
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
             var name = targetObject.name;
-            if (baseObject === targetObject) 
+            if (baseObject === targetObject)
                 return "this";
-            else if (baseObject[name] ===  targetObject) 
+            else if (baseObject[name] ===  targetObject)
                 return "this." + name;
-            else if (baseObject.testObject ===  targetObject) 
+            else if (baseObject.testObject ===  targetObject)
                 return "this.testObject";
-            else if (baseObject.get(name) === targetObject) 
+            else if (baseObject.get(name) === targetObject)
                 return 'this.get("' + name + '")';
-            else if (targetObject instanceof lively.morphic.Morph) 
+            else if (targetObject instanceof lively.morphic.Morph)
                 return '$morph("' + name + '")';
-            else 
+            else
                 return "????";
         },
         hasUnsavedChanges: function hasUnsavedChanges() {
@@ -1414,10 +1414,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.scriptList = this.get('ObjectEditorScriptList');
             this.connectionList = this.get('ObjectEditorConnectionList');
             this.morphSelector = this.get('ObjectEditorMorphSelector');
-            
+
             this.target = null;
             this.currentTag = null;
-            
+
             this.scriptPane.reset();
             this.scriptList.setList();
             this.scriptList.selection = null;
@@ -1425,7 +1425,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.connectionList.selection = null;
             this.morphSelector.reset();
             this.tagChooser.reset();
-            
+
             this.stopStepping();
         },
         runScript: function runScript() {
@@ -1451,7 +1451,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 
 },
         selectChangedContent: function selectChangedContent(source) {
-        
+
             var addScriptRegex = /this\.addScript\s*\(\s*function\s*([^\(]*)/g;
             var addScriptMatches = [];
             var addScriptMatch = addScriptRegex.exec(source);
@@ -1459,16 +1459,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 addScriptMatches.push(addScriptMatch[1]);
                 addScriptMatch = addScriptRegex.exec(source);
             }
-                
+
             // if scripts were added, select either a specific one or all
-            if (addScriptMatches.length > 0) { 
+            if (addScriptMatches.length > 0) {
                 if (addScriptMatches.length === 1) {
                     return this.scriptList.selectAddedScript(addScriptMatches[0]);
                 }
                 return this.scriptList.selectAt(0);
             }
-        
-            var connectionRegex = 
+
+            var connectionRegex =
                 /connect\(\s*([^,]*)\s*,\s*"([^,]*)"\s*,\s*([^,]*)\s*,\s*"([^,]*)"/g;
             var connectionMatches = [];
             var connectionMatch = connectionRegex.exec(source);
@@ -1476,7 +1476,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 connectionMatches.push(connectionMatch);
                 connectionMatch = connectionRegex.exec(source);
             }
-        
+
             // if connections were made, select either a specific one or all
             if (connectionMatches.length > 0) {
                 if (connectionMatches.length === 1) {
@@ -1490,10 +1490,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         }
                     }
                     this.connectionList.getList().indexOf(addScriptMatches[0]);
-                } 
+                }
                 return this.connectionList.selectAt(0);
             }
-        
+
         },
         setTag: function setTag(tag) {
             if (tag === 'all') {
@@ -1510,9 +1510,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.morphSelector.updateTargetFromOwner();
             this.updateLists();
             this.displayInitialScript();
-        
+
             this.stopStepping();
-            this.startStepping(500/*ms*/, 'update'); 
+            this.startStepping(500/*ms*/, 'update');
             this.updateTitleBar();
         },
         sortedConnectionNamesOfObj: function sortedConnectionNamesOfObj(obj) {
@@ -1521,22 +1521,22 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             .map(function(con) { return [con.getSourceAttrName(), con]; }): [];
 },
         sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
-        
+
             if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
-        
+
             var selectedScripts = Functions.own(obj)
                 .select(function(name) { return obj[name].getOriginal().hasLivelyClosure; })
                 .reject(function(name) { return name.startsWith('$$'); })
                 .sortBy(function(name) { return name.toLowerCase() });
-        
+
             if (!this.currentTag) return selectedScripts;
-        
+
             var that = this;
             selectedScripts = selectedScripts.select(function(scriptName) {
-                return obj[scriptName].tags && 
+                return obj[scriptName].tags &&
                     obj[scriptName].tags.indexOf(that.currentTag) !== -1;
             });
-        
+
             return selectedScripts;
         },
         update: function update() {
@@ -1544,20 +1544,20 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.updateLists();
         },
         updateLists: function updateLists() {
-        
+
             var scriptListItems = this.sortedScriptNamesOfObj(this.target);
             scriptListItems.unshift("-- ALL --");
             if (!Arrays.equal(scriptListItems, this.scriptList.getList())) {
                 this.scriptList.setList(scriptListItems);
             }
-            
+
             var connectionListItems = this.sortedConnectionNamesOfObj(this.target);
             connectionListItems.unshift("-- ALL --");
             if (!Arrays.equal(connectionListItems, this.connectionList.getList())) {
                 this.connectionList.setList(connectionListItems);
             }
         },
-        
+
         updateTitleBar: function updateTitleBar() {
         var targetName = this.target ? this.target.name || String(this.target) : '',
             methodName = this.get('ObjectEditorScriptList').selection,
@@ -1584,7 +1584,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     switch(sig) {
         case 'F1': scriptList.focus(); evt.stop(); return true;
         case 'F2': sourcePane.focus(); evt.stop(); return true;
-        default: $super(evt);        
+        default: $super(evt);
     }
 },
     reset: function reset() {

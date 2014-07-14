@@ -275,8 +275,10 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 });
 
 Object.extend(lively.ide.CommandLineInterface, {
+
     rootDirectory: null,
     commandQueue: {},
+
     reset: function() {
         this.rootDirectory = null,
         this.commandQueue && Properties.forEachOwn(this.commandQueue, function(group, cmds) {
@@ -477,6 +479,16 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
         return cmd;
+    },
+
+    downloadFile: function(path, options, thenDo) {
+        this.commandLineServerURL
+            .withFilename("download-file")
+            .withQuery({path: path})
+            .asWebResource().beAsync()
+            .get().whenDone(function(_, status) {
+                thenDo && thenDo(status.isSuccess() ? null : status);
+            });
     },
 
     diffIgnoringWhiteSpace: function(string1, string2, thenDo) {

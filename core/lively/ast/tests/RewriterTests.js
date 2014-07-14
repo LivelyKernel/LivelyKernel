@@ -114,26 +114,25 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 
     postfixResult: function(expression, optionalAstIndex) {
         // like _[7] = 42, lastNode = 7, _[7]; <-- the value stored in lastNode and the _ object is the AST index
-        optionalAstIndex = optionalAstIndex || '__/[0-9]+/__';
+        optionalAstIndex = optionalAstIndex !== undefined ? optionalAstIndex : '__/[0-9]+/__';
         return '_[' + optionalAstIndex + '] = ' + expression + ', ' + this.pcAdvance(optionalAstIndex) + ', _[' + optionalAstIndex + ']';
     },
 
     storeResult: function(expression, optionalAstIndex) {
         // like _[7] = 42; <-- the value stored in lastNode and the _ object is the AST index
-        return '_[' + this.pcAdvance(optionalAstIndex) + '] = ' + expression;
-        // optionalAstIndex = optionalAstIndex || '__/[0-9]+/__';
-        // return '_[' + optionalAstIndex + '] = ' + expression;
+        optionalAstIndex = optionalAstIndex || '__/[0-9]+/__';
+        return '_[' + optionalAstIndex + '] = ' + expression;
     },
 
     intermediateReference: function(optionalAstIndex) {
         // like _[7] <-- the value stored in the _ object is the AST index
-        var astIndexMatcher = optionalAstIndex || "__/[0-9]+/__";
+        var astIndexMatcher = optionalAstIndex !== undefined ? optionalAstIndex : "__/[0-9]+/__";
         return "_[" + astIndexMatcher + "]";
     },
 
     pcAdvance: function(optionalAstIndex) {
         // like lastNode = 7 <-- the value stored in lastNode is the AST index
-        var astIndexMatcher = optionalAstIndex || "__/[0-9]+/__";
+        var astIndexMatcher = optionalAstIndex !== undefined ? optionalAstIndex : '__/[0-9]+/__';
         return "lastNode = " + astIndexMatcher;
     },
 
@@ -291,12 +290,12 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     test11FunctionAssignmentTest: function() {
-        var src = 'var foo = function bar() {}',
+        var src = 'var foo = function bar() {};',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'foo': 'undefined'},
                 this.postfixResult(this.setVar(0, 'foo',
-                    this.prefixResult(this.closureWrapper(0, 'bar', [], {}, ''))
+                    this.storeResult(this.closureWrapper(0, 'bar', [], {}, ''))
                 )) + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
@@ -308,7 +307,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             expected = this.tryCatch(0, {},
                 this.storeResult(
                     'fn(' +
-                        this.prefixResult(this.closureWrapper(0, '', [], {}, '')) +
+                        '(' + this.postfixResult(this.closureWrapper(0, '', [], {}, '')) + ')' +
                     ')') + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
@@ -364,7 +363,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
-                this.storeResult(
+                this.prefixResult(
                     '(' + this.storeResult(this.closureWrapper(0, '', [], {}, '')) +
                     ')()') + ';\n');
         this.assertASTMatchesCode(result, expected);
@@ -389,7 +388,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
-              this.storeResult(
+              this.prefixResult(
                     '('
                   + this.storeResult(this.closureWrapper(0, '', [], {}, ''))
                   + ').toString()') + ';\n');
@@ -420,7 +419,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
         acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
-        var expected = 'return ' + this.storeResult(
+        var expected = 'return ' + this.prefixResult(
                 this.getVar(0, 'g') + '.call(Global)') + ';';
         this.assertASTMatchesCode(returnStmt, expected);
     },
@@ -429,7 +428,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         var func = function() { return g(); }, returnStmt;
         func.stackCaptureMode();
         acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
-        var expected = 'return ' + this.storeResult('g()') + ';';
+        var expected = 'return ' + this.prefixResult('g()') + ';';
         this.assertASTMatchesCode(returnStmt, expected);
     },
 
@@ -438,7 +437,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {}, '') },
-                this.storeResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
+                this.prefixResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
@@ -449,7 +448,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {}, '2;\n') },
                 this.pcAdvance() + ';\n' +
-                this.storeResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
+                this.prefixResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
@@ -472,7 +471,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'bar': 'undefined' },
                 this.postfixResult(this.setVar(0, 'bar',
-                    this.storeResult('function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n}')
+                    this.prefixResult('function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n}')
                 )) + ';\n');
         this.assertASTMatchesCode(result, expected);
     },
@@ -679,6 +678,39 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 'else {\n' +
                 this.debuggerThrow() +
                 '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test32aFunctionCallWithoutParameter: function() {
+        var src = 'fn();',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                this.prefixResult('fn()', 1) + ';\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test32bFunctionCallWithSimpleParameter: function() {
+        var src = 'fn(1, a, b);',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { },
+                this.storeResult('fn(1, a, ' +
+                    '(' + this.storeResult('b', 3) + ', ' + this.pcAdvance(4) + ', ' + this.intermediateReference(3) + ')' +
+                ')', 4) + ';\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+    },
+
+    test32dLocalFunctionCallWithoutParameter: function() {
+        var src = 'var fn; fn();',
+            ast = this.parser.parse(src),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { fn: 'undefined' },
+                this.pcAdvance() + ';\n' +
+                this.prefixResult(this.getVar(0, 'fn') + '.call(Global)') + ';\n'
             );
         this.assertASTMatchesCode(result, expected);
     }

@@ -268,6 +268,26 @@ util._extend(services, shellServices);
 
 module.exports = d.bind(function(route, app) {
 
+    app.get(route + 'download-file', function(req,res) {
+        // GET http://lively-web.org/nodejs/DownloadExampleServer/callmeanything.txt/this%20is%20the%20file%20content
+        // donwloads a file named callmeanything.txt with "this is the file content"
+        var p = req.query.path, resolvedPath = path.resolve(p);
+
+        var err = !p ? "no path query" :
+            (!fs.existsSync(resolvedPath) ? "no such file: " + resolvedPath : null);
+        if (err) { res.status(400).end(err); return; }
+
+        var name = path.basename(resolvedPath);
+
+        res.set("Content-Disposition", "attachment; filename='" + name + "';");
+        res.set("Content-Type", "application/octet-stream");
+
+        var stream = fs.createReadStream(resolvedPath).pipe(res);
+        stream.on('error', function() {
+            res.status(500).end("Error reading / sending " + resolvedPath);
+        });
+    });
+
     app.get(route, function(req, res) {
         res.json({cwd: dir});
     });

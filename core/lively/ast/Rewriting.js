@@ -492,15 +492,33 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
-    storeComputationResult: function(node, start, end, astIndex) {
+    storeComputationResult: function(node, start, end, astIndex, postfix) {
+        postfix = !!postfix;
         if (this.scopes.length == 0) return node;
         var pos = (node.start || start || 0) + '-' + (node.end || end || 0);
         this.scopes.last().computationProgress.push(pos);
-        return this.newNode('AssignmentExpression', {
-            operator: '=',
-            left: this.computationReference(this.lastNodeExpression(astIndex)),
-            right: node
-        });
+
+        if (postfix) {
+            // _[astIndex] = XX, lastNode = astIndex, _[astIndex]
+            return this.newNode('SequenceExpression', {
+                expressions: [
+                    this.newNode('AssignmentExpression', {
+                        operator: '=',
+                        left: this.computationReference(astIndex),
+                        right: node
+                    }),
+                    this.lastNodeExpression(astIndex),
+                    this.computationReference(astIndex)
+                ]
+            });
+        } else {
+            // _[lastNode = astIndex] = XX
+            return this.newNode('AssignmentExpression', {
+                operator: '=',
+                left: this.computationReference(this.lastNodeExpression(astIndex)),
+                right: node
+            });
+        }
     },
 
     inlineAdvancePC: function(node, astIndex) {
@@ -1217,7 +1235,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     value,
                 astIndex: decl.astIndex
             });
-            return rewriter.storeComputationResult(value, start, end, decl.astIndex);
+            return rewriter.storeComputationResult(value, start, end, decl.astIndex, true);
         }, this);
 
         return rewriter.newNode('ExpressionStatement', {

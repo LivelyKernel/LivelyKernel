@@ -492,6 +492,15 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         });
     },
 
+    simpleStoreComputationResult: function(node, astIndex) {
+        return this.newNode('AssignmentExpression', {
+            operator: '=',
+            left: this.computationReference(astIndex),
+            right: node,
+            _prefixResult: true
+        });
+    },
+
     storeComputationResult: function(node, start, end, astIndex, postfix) {
         postfix = !!postfix;
         if (this.scopes.length == 0) return node;
@@ -502,23 +511,33 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             // _[astIndex] = XX, lastNode = astIndex, _[astIndex]
             return this.newNode('SequenceExpression', {
                 expressions: [
-                    this.newNode('AssignmentExpression', {
-                        operator: '=',
-                        left: this.computationReference(astIndex),
-                        right: node
-                    }),
+                    this.simpleStoreComputationResult(node, astIndex),
                     this.lastNodeExpression(astIndex),
                     this.computationReference(astIndex)
-                ]
+                ],
+                _prefixResult: !postfix
             });
         } else {
             // _[lastNode = astIndex] = XX
             return this.newNode('AssignmentExpression', {
                 operator: '=',
                 left: this.computationReference(this.lastNodeExpression(astIndex)),
-                right: node
+                right: node,
+                _prefixResult: !postfix
             });
         }
+    },
+
+    isStoredComputationResult: function(node) {
+        return this.isPrefixStored(node) || this.isPostfixStored(node);
+    },
+
+    isPrefixStored: function(node) {
+        return node._prefixResult === true;
+    },
+
+    isPostfixStored: function(node) {
+        return node._prefixResult === false;
     },
 
     inlineAdvancePC: function(node, astIndex) {
@@ -578,7 +597,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(astRegistryIndex),
             rewritten = rewriteVisitor.accept(astToRewrite, this);
         // FIXME!
-        rewritten = rewritten.expression.arguments[2];
+        rewritten = rewritten.expression.right.arguments[2];
         // this.astRegistry[astRegistryIndex].rewritten = rewritten; // FIXME just for debugging
         return rewritten;
     },
@@ -1206,8 +1225,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 body: [rewriter.wrapSequence(rewritten, args, decls, astRegistryIndex)]}),
             id: n.id || null, params: args, astIndex: n.astIndex
         }, astRegistryIndex);
+        wrapped.astIndex = n.astIndex;
         wrapped = rewriter.newNode('ExpressionStatement', {
-            expression: rewriter.storeComputationResult(wrapped, start, end, astIndex),
+            expression: rewriter.simpleStoreComputationResult(wrapped, astIndex),
             id: n.id
         });
         // rewriter.astRegistry[astRegistryIndex].rewritten = wrapped; // FIXME just for debugging
@@ -1369,14 +1389,32 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     visitCallExpression: function(n, rewriter) {
         // callee is a node of type Expression
         // each of n.arguments is of type Expression
-        var start = n.start, end = n.end, astIndex = n.astIndex;
-        var thisIsBound = n.callee.type == 'MemberExpression'; // like foo.bar();
-        var callee = this.accept(n.callee, rewriter);
+        var start = n.start, end = n.end, astIndex = n.astIndex,
+            thisIsBound = n.callee.type == 'MemberExpression', // like foo.bar();
+            callee = this.accept(n.callee, rewriter);
         if (callee.type == 'ExpressionStatement') callee = callee.expression; // unwrap
+
         var args = n.arguments.map(function(n) {
-            var n = this.accept(n, rewriter);
-            return n.type == 'ExpressionStatement' ? n.expression : /*unwrap*/ n;
-        }, this);
+                var n = this.accept(n, rewriter);
+                return n.type == 'ExpressionStatement' ? n.expression : /*unwrap*/ n;
+            }, this),
+            lastArg = args.last();
+
+        if (lastArg !== undefined) {
+            if (rewriter.isPrefixStored(lastArg)) {
+                lastArg = lastArg.right; // unwrap
+                lastArg = args[args.length - 1] = rewriter.storeComputationResult(lastArg, lastArg.start, lastArg.end, lastArg.astIndex, true);
+                // patch astIndex to calls astIndex
+                lastArg.expressions[1] = rewriter.lastNodeExpression(astIndex);
+            } else if (rewriter.isPostfixStored(lastArg)) {
+                // TODO
+            } else {
+                lastArg = args[args.length - 1] = rewriter.storeComputationResult(lastArg, lastArg.start, lastArg.end, lastArg.astIndex, true);
+                // patch astIndex to calls astIndex
+                lastArg.expressions[1] = rewriter.lastNodeExpression(astIndex);
+            }
+        }
+
         if (!thisIsBound && rewriter.isWrappedVar(callee)) {
             // something like "foo();" when foo is in rewrite scope.
             // we can't just rewrite it as _123['foo']()
@@ -1390,10 +1428,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             }
             args.unshift({type: 'Identifier', name: 'Global'});
         }
-        return rewriter.storeComputationResult({
+
+        var callNode = {
             type: 'CallExpression', callee: callee,
             arguments: args, astIndex: astIndex
-        }, start, end, astIndex);
+        };
+        if (lastArg === undefined)
+            return rewriter.storeComputationResult(callNode, start, end, astIndex);
+        else
+            return rewriter.simpleStoreComputationResult(callNode, astIndex);
     },
 
     visitMemberExpression: function(n, rewriter) {

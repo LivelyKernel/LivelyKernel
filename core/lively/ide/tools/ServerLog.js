@@ -115,6 +115,7 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
         var string = log.stdout.replace(lively.ide.CommandLineInterface.ansiAttributesRegexp, '');
         this.prevLog = {stdoutIndex: log.stdoutIndex};
         if (string === '') return;
+        if (!string.endsWith('\n')) string += '\n';
         var logText = this.get('stdout')
         logText.withAceDo(function(ed) {
             var maxLength = 500000,

@@ -166,6 +166,17 @@ function killOldServer(infoAboutOldServer, callback) {
     callback();
 }
 
+function downloadPartsBin(thenDo) {
+    if (options.defined("noPartsbinCheck")) thenDo();
+    else require("./helper/download-partsbin.js")(function(err) {
+    	if (err) {
+    	    console.error("Error downloading PartsBin: %s", err);
+    	    console.log("Proceeding without PartsBin...");
+    	}
+    	thenDo();
+    });
+}
+
 function startServer(callback) {
     require("life_star")({
         host:                host,
@@ -213,7 +224,7 @@ if (options.defined('info')) {
     checkNPMPackages(function(err) {
         if (err) { console.error('error on server start: %s', err); return; }
         require("async").waterfall([
-            options.defined("noPartsbinCheck") ? function(n) { n(); } : require("./helper/download-partsbin.js"),
+    	    downloadPartsBin,
             getServerInfo,
             killOldServer, // Ensure that only one server for the given port is running
             startServer,

@@ -19,6 +19,10 @@ function partsBinExists() {
 function downloadPartsBin(next) {
     http.get(partsBinCopyURL, function(res) {
         var writeS = fs.createWriteStream(zipFile);
+	if (res.statusCode >= 400) {
+	    next(new Error("Cannot download PartsBin from " + partsBinCopyURL));
+	    return;
+	}
         res.pipe(writeS);
         writeS.on('close', function() { next(null); });
         writeS.on('error', function(e) { console.error(e); next(e); });
@@ -65,10 +69,7 @@ function downloadPartsBinIfNecessary(thenDo) {
         msg('Cleaning up PartsBin download files...'),
         cleanup,
         msg('PartsBin installed into %s', partsBinFolder)
-    ], function(err) {
-        err && console.error(err);
-        thenDo && thenDo(err);
-    });
+    ], thenDo);
 }
 
 module.exports = downloadPartsBinIfNecessary;

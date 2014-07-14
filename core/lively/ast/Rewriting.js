@@ -498,11 +498,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         this.scopes.last().computationProgress.push(pos);
         return this.newNode('AssignmentExpression', {
             operator: '=',
-            left: this.newNode('MemberExpression', {
-                object: this.newNode('Identifier', {name: '_'}),
-                property: this.lastNodeExpression(astIndex),
-                computed: true
-            }),
+            left: this.computationReference(this.lastNodeExpression(astIndex)),
             right: node
         });
     },
@@ -522,6 +518,15 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             left: this.newNode('Identifier', {name: 'lastNode'}),
             right: this.newNode('Literal', {value: astIndex}),
             astIndex: astIndex
+        });
+    },
+
+    computationReference: function(astIndexOrNode) {
+        return this.newNode('MemberExpression', {
+            object: this.newNode('Identifier', { name: '_' }),
+            property: isNaN(astIndexOrNode) ?
+                astIndexOrNode : this.newNode('Literal', { value: astIndexOrNode }),
+            computed: true
         });
     },
 

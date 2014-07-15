@@ -483,7 +483,7 @@ lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
             var pos = pt(bounds.x, bounds.y);
             var menuPos = pos.addPt(pt(0, bounds.height));
             menu.open(lively.morphic.World.current(), menuPos, false);
-            menu.setColor(this.color);
+            (function(color) { menu.setColor(color); }).curry(this.color).delay(.001);
             connect(menu, 'color', this, 'setColor');
         }
     }

@@ -13,41 +13,17 @@ process.stdout.write = function() {};
 
 if (!process.env.WORKSPACE_LK) process.env.WORKSPACE_LK = __dirname;
 
-var path = require("path");
-var util = require('util');
-
-// lively-2-lively session id to be used to ask for password:
-var clientSessionId = process.env.ASKPASS_SESSIONID;
-
-if (!clientSessionId) {
-    stderrWrite.call(process.stderr, "No lively-2-lively session id given to askpass program! Askpass failure.");
-    process.exit(1);
-}
-
-var sessionTrackerURL = process.env.L2L_SESSIONTRACKER_URL || 'http://lively-web.org:8080/nodejs/SessionTracker/connect',
-    ws = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets')),
-    wsClient = new ws.WebSocketClient(sessionTrackerURL, {protocol: 'lively-json', sender: 'askpass', debugLevel: 10});
-
-function sendQuery(query, thenDo) {
-    wsClient.send({
-        action: 'askFor',
-        data: {query: query},
-        target: clientSessionId
-    }, processAnswer);
-}
-
-function processAnswer(answerMsg) {
-    wsClient && wsClient.close();
-    stdoutWrite.call(process.stdout, answerMsg.data.answer ?
-        answerMsg.data.answer + '\n' : '');
-}
-
-wsClient.on('connect', function() {
-    sendQuery(process.argv[2] || 'No query from ASKPASS invocation');
+require("./commandline2lively")({
+    action: 'askFor',
+    data: {query: process.argv[2] || 'No query from ASKPASS invocation'},
+}, function(err, answer) {
+    if (err) {
+        stderrWrite.call(process.stderr, String(err));
+        process.exit(1);
+    } else {
+        stdoutWrite.call(
+            process.stdout, 
+            answer && answer.data.answer ? answer.data.answer + '\n' : '');
+        process.exit(0)
+    }
 });
-
-wsClient.on('error', function(err) {
-    stderrWrite.call(process.stderr, "Error in askpass websocket client:\n" + util.inspect(err));
-});
-
-wsClient.connect();

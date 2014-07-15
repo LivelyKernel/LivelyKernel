@@ -534,6 +534,12 @@ Config.addOptions(
     ["lively2livelyLogHeartbeatRoundtripTime", false, 'Logging heartbeat.']
 ],
 
+"askpass", [
+    ["askpassSSLcaFile", "", ""],
+    ["askpassSSLkeyFile", "", ""],
+    ["askpassSSLcertFile", "", ""]
+],
+
 "Wiki", [
     ['showWikiToolFlap', false, 'Show tool flap that gives access to wiki tools.']
 ],

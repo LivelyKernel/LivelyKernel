@@ -4135,19 +4135,6 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     outsideOf: function(bounds) {
         return !bounds.intersects(this.globalBounds());
     },
-
-    targetContainsCycle: function() {
-        // let the JSON serializer find out for us:
-        // FIXME: It does not really work right now.
-        //          maybe add filter attributes to serializer (only traverse the children refs)
-        try {
-            JSON.stringify(this.target);
-        } catch(Error) {
-            return true;
-        }
-        return false;
-    }
->>>>>>> implement pruning of search result trees
 },
 'documentation', {
     example: function() {

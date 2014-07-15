@@ -334,13 +334,61 @@ Config.addOptions(
     ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
     ['ignoredepricatedProceed', true]
 ],
+'cookie', [
+    {
+        name: 'cookie',
+        type: 'Object',
+        doc: 'Get the parsed cookie data',
+        get: function() {
+            return document.cookie.split(';')
+                .invoke('split', '=')
+                .reduce(function(cookie, kv) {
+                    cookie[kv[0].trim()] = decodeURIComponent(kv[1]);
+                    return cookie;
+                }, {});
+        },
+        set: function() {}
+    }
+],
+
+'ssl', [
+    {
+        name: 'ssl-subject',
+        type: 'Object|null',
+        doc: 'parsed subject from SSL certificate',
+        get: function() {
+            var subj = Config.get('cookie')["ssl-certificate-subject"];
+            return subj ? Config.get('cookie')["ssl-certificate-subject"]
+                .split('/').compact()
+                .invoke('split', '=').reduce(function(subj, kv) {
+                    subj[kv[0]] = kv[1]; return subj;
+                }, {}) : null;
+        },
+        set: function() {}
+    },
+    {
+        name: 'ssl-auth',
+        type: 'String|null',
+        doc: 'User defined by SSL client certificate',
+        get: function() {
+            var subj = Config.get('ssl-subject');
+            return subj ? {user: subj.CN, email: subj.emailAddress} : null;
+        },
+        set: function() {}
+    }
+],
 
 'user', [
     {
         name: 'UserName',
         type: 'String',
         doc: 'UserName identifies the current Lively user',
-        get: function() { return lively.LocalStorage.get('UserName'); },
+        get: function() {
+            var user = lively.LocalStorage.get('UserName');
+            if (user && user !== 'undefined') return user;
+            var sslAuth = Config.get('ssl-auth');
+            return (sslAuth && sslAuth.user) || user;
+        },
         set: function(val) { return lively.LocalStorage.set('UserName', val ? val.replace(/ /g, '_') : val); }
     }
 ],

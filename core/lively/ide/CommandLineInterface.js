@@ -164,7 +164,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     isRunning: function() { return !this.isDone() && !!this.getPid(); }
 },
 "connection", {
-    
+
     isOnline: function() {
         var s = this.getSession();
         return s && s.isConnected();
@@ -362,6 +362,9 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (lively2LivelyShellAvailable) {
             var env = options
             options.env = Object.extend(options.env || {}, {
+                "L2L_ASKPASS_SSL_CA_FILE": lively.Config.askpassSSLcaFile || "",
+                "L2L_ASKPASS_SSL_KEY_FILE": lively.Config.askpassSSLkeyFile || "",
+                "L2L_ASKPASS_SSL_CERT_FILE": lively.Config.askpassSSLcertFile || "",
                 "ASKPASS_SESSIONID": session.sessionId,
                 "L2L_EDITOR_SESSIONID": session.sessionId,
                 "EDITOR": "lively-as-editor.sh",

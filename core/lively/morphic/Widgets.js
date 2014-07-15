@@ -4132,17 +4132,10 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 lively.morphic.Box.subclass('lively.morphic.Tree',
 'properties', {
     isTree: true,
-    targetContainsCycle: function() {
-        // let the JSON serializer find out for us:
-        // FIXME: It does not really work right now.
-        //          maybe add filter attributes to serializer (only traverse the children refs)
-        try {
-            JSON.stringify(this.target);
-        } catch(Error) {
-            return true;
-        }
-        return false;
-    }
+    outsideOf: function(bounds) {
+        return !bounds.intersects(this.globalBounds());
+    },
+
 },
 'documentation', {
     example: function() {
@@ -4210,8 +4203,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.item.isInspectable)
             this.inspectButton = node.addMorph(this.createInspectButton());
         if (this.item.submorphs)
-            this.item.submorphs.forEach(function(submorph) { 
-                submorph.setExtent(pt(22,22)); 
+            this.item.submorphs.forEach(function(submorph) {
                 node.addMorph(submorph);
             });
         this.node = this.addMorph(node);
@@ -4238,10 +4230,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     searchFor: function(term) {
         var results = this.searchTargetForTerm(this.target, term);
+        var containerMorph = this.getRootTree().owner;
         results = this.pruneSearchResults(results);
         results.name = 'Searching...'
         this.setItem(results);
-        Functions.debounce(100, this.expandAll, false).bind(this)();
+        Functions.debounce(100, this.expandAll.curry(containerMorph), false).bind(this)();
     },
     getSelection: function() {
         var sel = this.getSelectedTree();
@@ -4278,6 +4271,16 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         if (this.node) {
             this.updateIcon();
             this.updateLabel();
+        }
+    },
+    updateView: function(scrollingBounds) {
+        if(this.childNodes) { 
+            this.childNodes.filter(function(tree) { return !tree.outsideOf(scrollingBounds) && tree.expandFully })
+                           .map(function(tree) { 
+                               tree.expand();
+                               tree.childNodes && tree.childNodes.forEach(function(n) { n.expandFully = true }); 
+                               tree.updateView(scrollingBounds);
+                            });
         }
     },
     updateIcon: function() {
@@ -4409,7 +4412,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             this.target = target; // make sure that the target is marshalled correctly
             this.searchBar = this.getSearchBarSpec().createMorph();
             this.addMorph(this.searchBar, this.node);
-            this.searchBar.cycleIndicator.setVisible(this.targetContainsCycle());
+            this.fitToOwner();
             connect(this.searchBar.get('SearchField'), 'textString', this, 'searchFor');
         }
         // if the user can not provide a pre-marshalled structure,
@@ -4492,8 +4495,12 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             }
         });
     },
-    expand: function() {
+    expand: function(treeOwnerBounds) {
         if (!this.item.children || this.childNodes) return;
+        if(treeOwnerBounds && this.outsideOf(treeOwnerBounds)) {
+            return;
+        }
+
         this.layoutAfter(function () {
             if (this.item.onExpand) this.item.onExpand(this);
             if (this.icon) this.icon.setTextString("▼");
@@ -4504,9 +4511,14 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             tree.node.applyLayout();
         });
     },
-    expandAll: function() {
+    expandAll: function(scrollingMorph) {
+        var boundingBox = scrollingMorph.globalBounds();
+        connect(scrollingMorph, 'onScroll', this, 'updateView', 
+                    {converter: function() { return boundingBox }, 
+                     varMapping: { boundingBox: boundingBox }}); 
         this.withAllTreesDo(function(tree) {
-            tree.expand();
+            tree.expandFully = true;
+            tree.expand(boundingBox);
         });
     },
     collapse: function() {
@@ -4640,6 +4652,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         evt.stop(); return true;
     },
 
+
 },
 'morph menu', {
     getMenu: function() { /*FIXME actually menu items*/ return []; } 
@@ -4741,72 +4754,68 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     getSearchBarSpec: function() {
         return lively.BuildSpec({
-                _BorderStyle: "hidden",
-                _BorderWidth: 1,
-                _Extent: lively.pt(247.0,31.0),
-                _Fill: Color.rgb(171,171,171),
-                _Position: lively.pt(229.0,163.0),
-                _StyleClassNames: ["Morph","Box"],
-                _StyleSheet: ".Morph {\n\
-            }",
-                __layered_droppingEnabled__: true,
-                className: "lively.morphic.Box",
-                cycleIndicator: {
-                    isMorphRef: true,
-                    name: "CycleIndicator"
-                },
-                droppingEnabled: true,
-                layout: {
-                    borderSize: 4.505,
-                    resizeHeight: false,
-                    resizeWidth: true,
-                    spacing: 4.77,
-                    type: "lively.morphic.Layout.HorizontalLayout"
-                },
-                name: "SearchBar",
-                sourceModule: "lively.morphic.Core",
-                submorphs: [{
-                    _BorderRadius: 22.2,
-                    _Extent: lively.pt(211.2,20.0),
-                    _Fill: Color.rgb(255,255,255),
-                    _FontFamily: "Arial, sans-serif",
-                    _MaxTextWidth: 120.695652,
-                    _MinTextWidth: 120.695652,
-                    _Padding: lively.rect(4,2,0,0),
-                    _Position: lively.pt(4.5,4.5),
-                    _StyleClassNames: ["Morph","Text"],
-                    _StyleSheet: ".Morph {\n\
-                }",
-                    className: "lively.morphic.Text",
-                    droppingEnabled: false,
-                    emphasis: [[0,13,{}]],
-                    fixedWidth: true,
-                    grabbingEnabled: false,
-                    layout: {
-                        resizeWidth: true,
-                        scaleHorizontal: true
-                    },
-                    name: "SearchField",
-                    sourceModule: "lively.morphic.TextCore",
-                    submorphs: [],
-                    textString: "Search for..."
-                },{
-                    _BorderColor: null,
-                    _Extent: lively.pt(22.0,22.0),
-                    _Position: lively.pt(220.5,4.5),
-                    _Visible: true,
-                    className: "lively.morphic.Image",
-                    droppingEnabled: true,
-                    name: "CycleIndicator",
-                    sourceModule: "lively.morphic.Widgets",
-                    submorphs: [],
-                    url: "http://emoji.fileformat.info/gemoji/warning.png"
-                }],
-                toggleIndicator: function toggleIndicator() {
+    _Extent: lively.pt(450.0,31.0),
+    _Fill: Color.rgba(171,171,171,0),
+    _StyleClassNames: ["Morph","Box"],
+    _StyleSheet: ".Morph {\n\
+}",
+    className: "lively.morphic.Box",
+    doNotCopyProperties: [],
+    doNotSerialize: [],
+    droppingEnabled: true,
+    layout: {
+        borderSize: 4.505,
+        resizeHeight: false,
+        resizeWidth: true,
+        spacing: 4.77,
+        type: "lively.morphic.Layout.HorizontalLayout"
+    },
+    name: "SearchBar",
+    sourceModule: "lively.morphic.Core",
+    submorphs: [{
+        _BorderColor: Color.rgb(182,182,182),
+        _BorderRadius: 22.2,
+        _BorderWidth: 2.516,
+        _Extent: lively.pt(441.0,29.0),
+        _Fill: Color.rgb(255,255,255),
+        _FontFamily: "Arial, sans-serif",
+        _HandStyle: null,
+        _InputAllowed: true,
+        _MaxTextWidth: 120.695652,
+        _MinTextWidth: 120.695652,
+        _Padding: lively.rect(6,4,0,0),
+        _Position: lively.pt(4.5,1.5),
+        _StyleClassNames: ["Morph","Text"],
+        _StyleSheet: ".Morph {\n\
+    }",
+        _TextColor: Color.rgb(165,165,165),
+        allowInput: true,
+        className: "lively.morphic.Text",
+        doNotCopyProperties: [],
+        doNotSerialize: [],
+        droppingEnabled: false,
+        emphasis: [[0,13,{}]],
+        fixedWidth: true,
+        grabbingEnabled: false,
+        layout: {
+            resizeWidth: true,
+            scaleHorizontal: true
+        },
+        name: "SearchField",
+        sourceModule: "lively.morphic.TextCore",
+        submorphs: [],
+        textString: "Search for...",
+        connectionRebuilder: function connectionRebuilder() {
+        // failed to generate rebuild code for AttributeConnection(<lively.morphic.Text#F2418... - SearchField>.textString --> null.searchFor)
+        lively.bindings.connect(this, "textString", this.get("tree-view"), "searchFor", {});
+    }
+    }],
+    toggleIndicator: function toggleIndicator() {
                 
             }
-            })
-    }
+})
+
+}
 });
 
 }) // end of module

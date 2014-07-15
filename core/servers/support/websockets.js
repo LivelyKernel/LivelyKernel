@@ -113,7 +113,7 @@ function WebSocketClient(url, options) {
     this.url = url;
     this.protocol = options.protocol;
     this.sender = options.sender || null;
-    this.setupClient();
+    this.setupClient(options);
     this.debugLevel = options.debugLevel !== undefined ?  options.debugLevel : 1;
 }
 
@@ -121,9 +121,9 @@ util.inherits(WebSocketClient, EventEmitter);
 
 (function() {
 
-    this.setupClient = function() {
+    this.setupClient = function(options) {
         var self = this;
-        var c = this._client = new WebSocketClientImpl();
+        var c = this._client = new WebSocketClientImpl(options);
 
         c.on('connectFailed', function(e) { self.onConnectionFailed(e); });
 

@@ -606,6 +606,15 @@
             return null;
         },
 
+        forcedReload: function(someURL, onLoadCb) {
+            var url = this.makeAbsolute(someURL);
+            if (this.loadedURLs.indexOf(url) !== -1) {
+                this.loadedURLs.splice(this.loadedURLs.indexOf(url), 1)
+            }
+            JSLoader.removeAllScriptsThatLinkTo(url);
+            this.loadJs(url, onLoadCb);
+        },
+
         loadViaScript: function(url, onLoadCb) {
             // load JS code by inserting a <script src="..." /> tag into the
             // DOM. This allows cross domain script loading and JSONP

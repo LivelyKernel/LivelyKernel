@@ -148,4 +148,7 @@ Object.extend(lively.ast, {
     });
 })();
 
+if (lively.Config.get('loadRewrittenCode'))
+    lively.Config.set('improvedJavaScriptEval', false); // me no like improved eval yet
+
 }) // end of module

@@ -497,6 +497,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             operator: '=',
             left: this.computationReference(astIndex),
             right: node,
+            astIndex: astIndex,
             _prefixResult: true
         });
     },
@@ -1401,15 +1402,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             lastArg = args.last();
 
         if (lastArg !== undefined) {
-            if (rewriter.isPrefixStored(lastArg)) {
+            if (rewriter.isPrefixStored(lastArg))
                 lastArg = lastArg.right; // unwrap
-                lastArg = args[args.length - 1] = rewriter.storeComputationResult(lastArg, lastArg.start, lastArg.end, lastArg.astIndex, true);
-                // patch astIndex to calls astIndex
-                lastArg.expressions[1] = rewriter.lastNodeExpression(astIndex);
-            } else if (rewriter.isPostfixStored(lastArg)) {
-                // TODO
-            } else {
-                lastArg = args[args.length - 1] = rewriter.storeComputationResult(lastArg, lastArg.start, lastArg.end, lastArg.astIndex, true);
+            if (!rewriter.isPostfixStored(lastArg)) {
+                lastArg = args[args.length - 1] = rewriter.storeComputationResult(lastArg, lastArg.start, lastArg.end, n.arguments.last().astIndex, true);
                 // patch astIndex to calls astIndex
                 lastArg.expressions[1] = rewriter.lastNodeExpression(astIndex);
             }

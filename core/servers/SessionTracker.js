@@ -859,7 +859,7 @@ lively.userData = (function setupUserDataExpt() {
             if (!data) { res.status(400).end('no data'); return; }
             if (!stored) { res.status(400).end('cannot access stored data'); return; }
             console.log('user %s logged in %s at %s ip %s',
-                data.username, req.path, data.currentWorld || req.get('referer'), req._remoteAddress);
+                data.username, req.path, data.currentWorld || req.get('referer'), req.ip);
             stored.username = data.username || 'unknown user';
             stored.email = data.email || null;
             stored.lastLogin = new Date().toISOString();

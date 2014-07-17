@@ -266,28 +266,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
     fetchInterpretedFunction: function(func) {
         if (!func.livelyDebuggingEnabled) return null;
         if (func.isInterpretableFunction !== undefined) return func;
-
-        // recreate scopes
-        // FIXME: duplicate from lively.ast.Rewriting > UnwindException.prototype.createAndShiftFrame
-        var scope, topScope, newScope,
-            fState = func._cachedScopeObject;
-        do {
-            newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
-            if (scope)
-                scope.setParentScope(newScope);
-            else
-                topScope = newScope;
-            scope = newScope
-            fState = fState[2]; // parentFrameState
-        } while (fState && fState != Global);
-        // lastly, add Global scope
-        newScope = new lively.ast.AcornInterpreter.Scope(Global);
-        if (scope)
-            scope.setParentScope(newScope);
-        else
-            topScope = newScope;
-
-        // recreate lively.ast.AcornInterpreter.Function object
+        var topScope = lively.ast.AcornInterpreter.Scope.recreateFromFrameState(func._cachedScopeObject);
         func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope, func);
         return func.asFunction();
     }
@@ -1232,6 +1211,25 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
         if (!parentScope)
             throw new ReferenceError(name + ' is not defined');
         return parentScope.findScope(name, isSet);
+    }
+
+});
+
+Object.extend(lively.ast.AcornInterpreter.Scope, {
+
+    recreateFromFrameState: function(frameState) {
+        var scope, topScope, newScope;
+        // frameState: [0], alreadyComputed, [1] = varMapping, [2] = parentFrameState
+        do {
+            newScope = new lively.ast.AcornInterpreter.Scope(frameState == Global ? Global : frameState[1]);
+            if (scope)
+                scope.setParentScope(newScope);
+            else
+                topScope = newScope;
+            scope = newScope
+            frameState = frameState == Global ? null : frameState[2];
+        } while (frameState);
+        return topScope;
     }
 
 });

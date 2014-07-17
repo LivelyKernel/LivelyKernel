@@ -1772,19 +1772,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         },
 
         createAndShiftFrame: function(thiz, args, frameState, lastNodeAstIndex, pointerToOriginalAst) {
-            var scope, topScope, newScope,
-                fState = frameState; // [1] = varMapping, [2] = parentFrameState
-            do {
-                newScope = new lively.ast.AcornInterpreter.Scope(fState == Global ? Global : fState[1]);
-                if (scope)
-                    scope.setParentScope(newScope);
-                else
-                    topScope = newScope;
-                scope = newScope
-                fState = fState == Global ? null : fState[2];
-            } while (fState);
-
-            var alreadyComputed = frameState[0],
+            var topScope = lively.ast.AcornInterpreter.Scope.recreateFromFrameState(frameState),
+                alreadyComputed = frameState[0],
                 func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst), topScope),
                 frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
                 pc;

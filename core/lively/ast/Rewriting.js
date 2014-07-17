@@ -303,7 +303,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         acorn.walk.matchNodes(ast, {
             'VariableDeclaration': function(node, state, depth, type) {
                 if (node.type != type) return; // skip Expression, Statement, etc.
-                node.declarations.each(function(n) {
+                node.declarations.forEach(function(n) {
                     // only if it has not been defined before (as variable or argument!)
                     if ((scope.localVars.indexOf(n.id.name) == -1) && (n.id.name != 'arguments')) {
                         state[n.id.name] = {
@@ -391,7 +391,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                         }),
                     this.newNode('ExpressionStatement', {
                         expression: this.newNode('CallExpression', {
-                            callee: this.newMemberExp('ex.createAndShiftFrame'),
+                            callee: this.newMemberExp('ex.storeFrameInfo'),
                             arguments: [
                                 this.newNode('Identifier', {name: 'this'}),
                                 this.newNode('Identifier', {name: 'arguments'}),
@@ -1751,10 +1751,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "}\n";
 
     lively.ast.Rewriting.UnwindExceptionBaseDef =
-        "window.UnwindException = function UnwindException(error) { this.error = error; error.unwindException = this; }\n"
+        "window.UnwindException = function UnwindException(error) { this.error = error; error.unwindException = this; this.frameInfo = []; }\n"
       + "UnwindException.prototype.isUnwindException = true;\n"
       + "UnwindException.prototype.toString = function() { return '[UNWIND] ' + this.error.toString(); }\n"
-      + "UnwindException.prototype.createAndShiftFrame = function(/*...*/) { }\n";
+      + "UnwindException.prototype.storeFrameInfo = function(/*...*/) { this.frameInfo.push(arguments); }\n";
 
     // base definition for UnwindException
     if (typeof UnwindException === 'undefined') {
@@ -1762,68 +1762,81 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     }
 
     // when debugging is enabled UnwindException can do more...
-    UnwindException.prototype.createAndShiftFrame = function(thiz, args, frameState, lastNodeAstIndex, pointerToOriginalAst) {
-        var scope, topScope, newScope,
-            fState = frameState; // [1] = varMapping, [2] = parentFrameState
-        do {
-            newScope = new lively.ast.AcornInterpreter.Scope(fState == Global ? Global : fState[1]);
-            if (scope)
-                scope.setParentScope(newScope);
-            else
-                topScope = newScope;
-            scope = newScope
-            fState = fState == Global ? null : fState[2];
-        } while (fState);
+    UnwindException.addMethods({
+        recreateFrames: function() {
+            this.frameInfo.forEach(function(frameInfo) {
+                this.createAndShiftFrame.apply(this, Array.from(frameInfo));
+            }, this);
+            this.frameInfo = [];
+            return this;
+        },
 
-        var alreadyComputed = frameState[0],
-            func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst), topScope),
-            frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
-            pc;
-        frame.setThis(thiz);
-        if (frame.func.node && frame.func.node.type != 'Program')
-            frame.setArguments(args);
-        frame.setAlreadyComputed(alreadyComputed);
-        if (!this.top) {
-            pc = this.error && acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
-                this.error.astIndex ? this.error.astIndex : lastNodeAstIndex);
-        } else {
-            if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
-            pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+        createAndShiftFrame: function(thiz, args, frameState, lastNodeAstIndex, pointerToOriginalAst) {
+            var scope, topScope, newScope,
+                fState = frameState; // [1] = varMapping, [2] = parentFrameState
+            do {
+                newScope = new lively.ast.AcornInterpreter.Scope(fState == Global ? Global : fState[1]);
+                if (scope)
+                    scope.setParentScope(newScope);
+                else
+                    topScope = newScope;
+                scope = newScope
+                fState = fState == Global ? null : fState[2];
+            } while (fState);
+
+            var alreadyComputed = frameState[0],
+                func = new lively.ast.AcornInterpreter.Function(__getClosure(pointerToOriginalAst), topScope),
+                frame = lively.ast.AcornInterpreter.Frame.create(func /*, varMapping */),
+                pc;
+            frame.setThis(thiz);
+            if (frame.func.node && frame.func.node.type != 'Program')
+                frame.setArguments(args);
+            frame.setAlreadyComputed(alreadyComputed);
+            if (!this.top) {
+                pc = this.error && acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
+                    this.error.astIndex ? this.error.astIndex : lastNodeAstIndex);
+            } else {
+                if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
+                pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+            }
+            frame.setPC(pc);
+            frame.setScope(topScope);
+
+            return this.shiftFrame(frame, true);
+        },
+
+        shiftFrame: function(frame, isRecreating) {
+            if (!isRecreating)
+                this.recreateFrames();
+            if (!frame.isResuming()) console.log('Frame without PC found!', frame);
+            if (!this.top) {
+                this.top = this.last = frame;
+            } else {
+                this.last.setParentFrame(frame);
+                this.last = frame;
+            }
+            return frame;
+        },
+
+        unshiftFrame: function() {
+            if (!this.top) return;
+
+            var frame = this.top,
+                prevFrame;
+            while (frame.getParentFrame()) {
+                prevFrame = frame;
+                frame = frame.getParentFrame();
+            }
+            if (prevFrame) { // more then one frame
+                prevFrame.setParentFrame(undefined);
+                this.last = prevFrame;
+            } else {
+                this.top = this.last = undefined;
+            }
+            return frame;
         }
-        frame.setPC(pc);
-        frame.setScope(topScope);
 
-        return this.shiftFrame(frame);
-    }
-
-    UnwindException.prototype.shiftFrame = function(frame) {
-        if (!frame.isResuming()) console.log('Frame without PC found!', frame);
-        if (!this.top) {
-            this.top = this.last = frame;
-        } else {
-            this.last.setParentFrame(frame);
-            this.last = frame;
-        }
-        return frame;
-    }
-
-    UnwindException.prototype.unshiftFrame = function() {
-        if (!this.top) return;
-
-        var frame = this.top,
-            prevFrame;
-        while (frame.getParentFrame()) {
-            prevFrame = frame;
-            frame = frame.getParentFrame();
-        }
-        if (prevFrame) { // more then one frame
-            prevFrame.setParentFrame(undefined);
-            this.last = prevFrame;
-        } else {
-            this.top = this.last = undefined;
-        }
-        return frame;
-    }
+    });
 
 })();
 

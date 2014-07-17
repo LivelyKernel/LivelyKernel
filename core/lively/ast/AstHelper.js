@@ -1166,6 +1166,18 @@ Object.extend(lively.ast.acorn, {
 
 Object.extend(lively.ast.query, {
 
+    knownGlobals: [
+       "true", "false", "null", "undefined", "arguments",
+       "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp",
+       "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
+       "Math", "NaN", "Infinity", "Intl", "JSON",
+       "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
+       "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+       "window", "document", "console",
+       "Node", "HTMLCanvasElement", "Image", "Class",
+       "Global", "Functions", "Objects", "Strings",
+       "module", "lively", "pt", "rect", "rgb", "$super"],
+
     scopes: function(ast) {
         var vis = new lively.ast.ScopeVisitor();
         var scope = vis.newScope(ast, null);
@@ -1193,18 +1205,20 @@ Object.extend(lively.ast.query, {
         }).result;
     },
 
-    topLevelDecls: function(ast) {
-        var scope = lively.ast.query.scopes(ast);
-        return scope.varDecls.concat(scope.funcDecls);
-    },
+    topLevelDeclsAndRefs: function(ast, options) {
+        if (typeof ast === "string") ast = lively.ast.acorn.parse(ast, {withComments: true});
+        var scope = lively.ast.query.scopes(ast),
+            useComments = options && !!options.jslintGlobalComment,
+            declared = declaredVarNames(scope),
+            refs = scope.refs.concat(scope.subScopes.map(findUndeclaredReferences).flatten()),
+            undeclared = refs.pluck('name').withoutAll(declared);
 
-    topLevelDeclsAndRefs: function(ast) {
-        var scope = lively.ast.query.scopes(ast);
         return {
             varDecls: scope.varDecls,
             funcDecls: scope.funcDecls,
-            refs: scope.refs.concat(findTopLevelRefsOfScopes(
-                declaredVarNames(scope), [], scope.subScopes))
+            declaredNames: declared,
+            undeclaredNames: undeclared,
+            refs: refs
         }
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -1213,61 +1227,15 @@ Object.extend(lively.ast.query, {
             return scope.funcDecls.pluck('id').pluck('name').compact()
                 .concat(scope.params.pluck('name'))
                 .concat(scope.varDecls.pluck('declarations').flatten()
-                    .pluck('id').pluck('name'));
-        }
-
-        function findTopLevelRefsOfScopes(topLevelRefs, innerDeclaredVars, scopes) {
-            return scopes.map(findTopLevelRefs.curry(topLevelRefs, innerDeclaredVars)).flatten();
-        }
-
-        function findTopLevelRefs(topLevelRefs, innerDeclaredVars, scope) {
-            var decls = innerDeclaredVars.concat(declaredVarNames(scope)),
-                outerRefs = scope.refs.filter(function(ref) {
-                    return !decls.include(ref.name) });
-            return outerRefs
-                .filter(function(ref) { return topLevelRefs.include(ref.name); })
-                .concat(findTopLevelRefsOfScopes(topLevelRefs, decls, scope.subScopes));
-        }
-
-    },
-
-    findGlobalVarRefs: function(ast, options) {
-        var useComments = options && !!options.jslintGlobalComment;
-
-        var knownGlobals = [
-           "true", "false", "null", "undefined", "arguments",
-           "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp",
-           "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
-           "Math", "NaN", "Infinity", "Intl", "JSON",
-           "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
-           "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
-           "window", "document", "console",
-           "Node", "HTMLCanvasElement", "Image", "Class",
-           "Global", "Functions", "Objects", "Strings",
-           "module", "lively", "pt", "rect", "rgb"];
-
-        if (typeof ast === "string") ast = lively.ast.acorn.parse(ast, {withComments: true});
-        var scope = lively.ast.query.scopes(ast);
-
-        return findUndeclaredReferences(scope)
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        function getDeclaredNames(scope) {
-            var names = [];
-            scope.varDecls.forEach(function(ea) {
-                ea.declarations.forEach(function(decl) { names.push(decl.id.name); });
-            });
-            scope.funcDecls.forEach(function(decl) { names.push(decl.id.name); });
-            scope.params.forEach(function(decl) { names.push(decl.name); });
-            if (useComments) {
-                names.pushAll(findJsLintGlobalDeclarations(scope.node.type === 'Program' ? scope.node : scope.node.body));
-            }
-            return names;
+                    .pluck('id').pluck('name'))
+                .concat(!useComments ? [] :
+                    findJsLintGlobalDeclarations(
+                        scope.node.type === 'Program' ?
+                            scope.node : scope.node.body));
         }
 
         function findUndeclaredReferences(scope) {
-            var names = getDeclaredNames(scope).concat(knownGlobals);
+            var names = declaredVarNames(scope);
             return scope.subScopes
                 .map(findUndeclaredReferences)
                 .reduce(function(refs, ea) { return refs.concat(ea); }, scope.refs)
@@ -1275,7 +1243,6 @@ Object.extend(lively.ast.query, {
         }
 
         function findJsLintGlobalDeclarations(node) {
-            // node.body
             if (!node || !node.comments) return [];
             return node.comments
                 .filter(function(ea) { return ea.text.trim().startsWith('global') })
@@ -1284,6 +1251,14 @@ Object.extend(lively.ast.query, {
                 }).flatten();
         }
 
+    },
+
+    findGlobalVarRefs: function(ast, options) {
+        var q = lively.ast.query,
+            topLevel = q.topLevelDeclsAndRefs(ast, options),
+            noGlobals = topLevel.declaredNames.concat(q.knownGlobals);
+        return topLevel.refs.filter(function(ea) {
+            return noGlobals.indexOf(ea.name) === -1; })
     }
 
 });
@@ -1419,14 +1394,18 @@ Object.extend(lively.ast.transform, {
         return result;
     },
 
-    replaceTopLevelVarDeclAndUsageForCapturing: function(astOrSource, assignToObj) {
+    replaceTopLevelVarDeclAndUsageForCapturing: function(astOrSource, assignToObj, options) {
         /* replaces var and function declarations with assignment statements.
          * Example:
               lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
-                  "var x = 3, y = 2",
-                  {name: "A", type: "Identifier"}).source;
-              // => "A.x = 3; A.y = 2;"
+                  "var x = 3, y = 2, z = 4",
+                  {name: "A", type: "Identifier"}, ['z']).source;
+              // => "A.x = 3; A.y = 2; z = 4"
          */
+
+        var ignoreUndeclaredExcept = (options && options.ignoreUndeclaredExcept) || null
+        var whitelist = (options && options.include) || null;
+        var blacklist = (options && options.exclude) || [];
 
         var ast = typeof astOrSource === 'object' ?
                 astOrSource : lively.ast.acorn.parse(astOrSource),
@@ -1434,48 +1413,47 @@ Object.extend(lively.ast.transform, {
                 astOrSource : (ast.source || lively.ast.acorn.stringify(ast)),
             topLevel = lively.ast.query.topLevelDeclsAndRefs(ast);
 
+        if (ignoreUndeclaredExcept) {
+            blacklist = topLevel.undeclaredNames.withoutAll(ignoreUndeclaredExcept);
+        }
+
         // 1. make all references declared in the toplevel scope into property
         // reads of assignToObj
         // Example "var foo = 3; 99 + foo;" -> "var foo = 3; 99 + Global.foo;"
         var result = lively.ast.transform.helper.replaceNodes(
-            topLevel.refs.map(function(ref) {
-                return {
-                    target: ref,
-                    replacementFunc: function(ref) {
-                        return {
-                            type: "MemberExpression", computed: false,
-                            object: assignToObj, property: ref
-                        }
-                    }
-                }
-            }), source);
+            topLevel.refs
+                .filter(shouldBeCapturedRef)
+                .map(function(ref) { return {target: ref, replacementFunc: function(ref) { return member(ref, assignToObj) }}; }), source);
 
         // 2. turn var declarations into assignments to assignToObj
         // Example: "var foo = 3; 99 + foo;" -> "Global.foo = 3; 99 + foo;"
         result = lively.ast.transform.helper.replaceNodes(
-            topLevel.varDecls.map(function(decl) {
-                return {
-                    target: decl,
-                    replacementFunc: function(declNode, s, wasChanged) {
-                        if (wasChanged) {
-                            var scopes = lively.ast.query.scopes(lively.ast.acorn.parse(s, {addSource: true}));
-                            declNode = scopes.varDecls[0]
+            topLevel.varDecls
+                .map(function(decl) {
+                    return {
+                        target: decl,
+                        replacementFunc: function(declNode, s, wasChanged) {
+                            if (wasChanged) {
+                                var scopes = lively.ast.query.scopes(lively.ast.acorn.parse(s, {addSource: true}));
+                                declNode = scopes.varDecls[0]
+                            }
+                            return declNode.declarations.map(function(ea) {
+                                return shouldBeCapturedDecl(ea) ?
+                                    assign(ea.id, ea.init) : varDecl(ea); });
                         }
-                        return declNode.declarations.map(function(ea) {
-                            return assign(ea.id, ea.init);
-                        });
                     }
-                }
-            }), result);
+                }), result);
 
         // 3. assignments for function declarations in the top level scope are
         // put in front of everything else:
         // "return bar(); function bar() { return 23 }" -> "Global.bar = bar; return bar(); function bar() { return 23 }"
         if (topLevel.funcDecls.length) {
-            var globalFuncs = topLevel.funcDecls.map(function(decl) {
-                var funcId = {type: "Identifier", name: decl.id.name};
-                return lively.ast.acorn.stringify(assign(funcId, funcId));
-            }).join('\n');
+            var globalFuncs = topLevel.funcDecls
+                .filter(shouldBeCapturedDecl)
+                .map(function(decl) {
+                    var funcId = {type: "Identifier", name: decl.id.name};
+                    return lively.ast.acorn.stringify(assign(funcId, funcId));
+                }).join('\n');
 
 
             var change = {type: 'add', pos: 0, string: globalFuncs};
@@ -1488,6 +1466,13 @@ Object.extend(lively.ast.transform, {
         return result;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function shouldBeCapturedRef(ref) {
+            return blacklist.indexOf(ref.name) === -1
+                && (!whitelist || whitelist.indexOf(ref.name) > -1);
+        }
+
+        function shouldBeCapturedDecl(decl) { return shouldBeCapturedRef(decl.id); }
 
         function assign(id, value) {
             return {
@@ -1502,6 +1487,19 @@ Object.extend(lively.ast.transform, {
             }
         }
 
+        function varDecl(declarator) {
+            return {
+              declarations: [declarator],
+              kind: "var", type: "VariableDeclaration"
+            }
+        }
+
+        function member(prop, obj) {
+            return {
+                type: "MemberExpression", computed: false,
+                object: obj, property: prop
+            }
+        }
     },
 
     oneDeclaratorPerVarDecl: function(astOrSource) {

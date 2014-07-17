@@ -121,49 +121,60 @@ lively.Tracing.StackNode.subclass('lively.Tracing.TreeNode', {
     },
 
     fullString: function(options) {
-        var totalTicks = 0;
-        Properties.forEachOwn(this.callees, function(meth, node) { totalTicks += node.ticks; })
-        var major = (options.sortBy == "tally") ? "tally" : "ticks";
-        var minor = (major == "tally") ? "ticks" : "tally";
-        var threshold = options.threshold;
+        var totalTicks = Object.values(this.callees).reduce(function(totalTicks, node) { return totalTicks + node.ticks; }, 0),
+            major = (options.sortBy == "tally") ? "tally" : "ticks",
+            minor = (major == "tally") ? "ticks" : "tally",
+            threshold = options.threshold;
+
         if (!threshold && threshold !== 0)  threshold = major == "ticks" ? (totalTicks/100).roundTo(1) : 0;
 
-        var sortFunction = function(a, b) {
+        // 1. build tall / tick tree
+        var tallyTickTreeString = Strings.printTree(this,
+            function(node, depth) { return node.toString(major, minor); },
+            function(node, depth) {
+                return Object.values(node.callees)
+                    .filter(function(node) { return node.ticks >= threshold; })
+                    .sort(sortFunction);
+            });
+
+        // Build the dictionary of leaf counts...
+        var leafCounts = {};
+        this.each(function(node) {
+            var leafCount = leafCounts[node.method]
+             || (leafCounts[node.method] = {
+                 methodName: node.method.qualifiedMethodName(),
+                 tallies: 0, ticks: 0});
+            leafCount.tallies += node.tally;
+            leafCount.ticks += node.ticksInMethod();
+        }, 0, sortFunction);
+
+        var sortedLeaves = Object.values(leafCounts)
+            .sortByKey('ticks').reverse()
+            .filter(function(count) { return count.ticks >= threshold*0.4; })
+            .map(function (count) {
+                return "(" + count.ticks + " / " + count.tallies + ") " + count.methodName;
+            }).join('\n');
+
+        return Strings.format(
+            "Execution profile (%s / %s):\n"
+          + "options specified = { repeat: %s, sortBy: \"%s\", threshold: %s }\n\n"
+          + "%s\n\n"
+          + "Leaf nodes sorted by ticks within that method (ticks / tallies):\n\n%s\n",
+          major, minor, (options.repeat || 1), major, threshold,
+          tallyTickTreeString,
+          sortedLeaves);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function sortFunction(a, b) {
             if(a[major] == b[major]) return (a[minor] > b[minor]) ? -1 : (a[minor] < b[minor]) ? 1 : 0;
             return (a[major] > b[major]) ? -1 : 1;
         }
-        var str = "Execution profile (" + major + " / " + minor + "):\n";
-        str += "    options specified = {" ;
-        str += " repeat: "  + (options.repeat || 1);
-        str += ", sortBy: " + '"' + major + '"' ;
-        str += ", threshold: " + threshold + " }\n" ;
-        var leafCounts = {};
 
-        // Print the call tree, and build the dictionary of leaf counts...
-        this.each(function(node, level, sortFunc) {
-            if (node.ticks >= threshold) str += (this.dashes(level) + node.toString(major, minor) + "\n");
-            if (leafCounts[node.method] == null) leafCounts[node.method] =
-            {methodName: node.method.qualifiedMethodName(), tallies: 0, ticks: 0};
-            var leafCount = leafCounts[node.method];
-            leafCount.tallies += node.tally;
-            leafCount.ticks += node.ticksInMethod();
-        }.bind(this), 0, sortFunction);
-
-        str += "\nLeaf nodes sorted by ticks within that method (ticks / tallies):\n" ;
-        var sortedLeaves = [];
-        Properties.forEachOwn(leafCounts, function(meth, count) { sortedLeaves.push(count); })
-        if (sortedLeaves.length == 0) return null;
-        sortedLeaves.sort(function (a, b) { return (a.ticks > b.ticks) ? -1 : (a.ticks < b.ticks) ? 1 : 0 } );
-        sortedLeaves.forEach( function (count) {
-            if (count.ticks >= threshold*0.4)  str += "(" + count.ticks + " / " + count.tallies + ") " + count.methodName + "\n";
-        });
-
-        return str;
     },
 
     printTraceStartMethod: function() {
-        var lines = String(this.method).split('\n');
-        return lines.join(' ').replace(/\s+/g, ' ');
+        return String(this.method).split('\n').join(' ').replace(/\s+/g, ' ');
     },
 
     toString: function(major, minor) {
@@ -272,9 +283,8 @@ Object.extend(lively.Tracing, {
             lively.morphic.World.current().addCodeEditor({
                 title: "Trace for " + context.printTraceStartMethod().truncate(60),
                 content: context.fullString(options),
-                textMode: 'text',
-                gutter: false
-            });
+                textMode: 'text', gutter: false
+            }).getWindow().comeForward();
         }
     },
 

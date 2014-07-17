@@ -340,12 +340,12 @@ Config.addOptions(
         type: 'Object',
         doc: 'Get the parsed cookie data',
         get: function() {
-            return document.cookie.split(';')
+            return document.cookie ? document.cookie.split(';')
                 .invoke('split', '=')
                 .reduce(function(cookie, kv) {
                     cookie[kv[0].trim()] = decodeURIComponent(kv[1]);
                     return cookie;
-                }, {});
+                }, {}) : {};
         },
         set: function() {}
     }

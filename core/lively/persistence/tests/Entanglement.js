@@ -26,6 +26,8 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         m1.foo = 0;
         m2.bar = false;
         
+        entanglement.update();
+        
         this.assertEquals(m1.foo, m2.foo);
         this.assertEquals(m1.bar, m2.bar);
         this.assertEquals(entanglement.get('foo'), 0);
@@ -42,6 +44,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         entanglement.set('_Fill', Color.red);
         this.assertEquals(m.getFill(), Color.red);
         m.setFill(Color.green);
+        entanglement.update();
         this.assertEquals(m.getFill(), Color.green);
         this.assertEquals(entanglement.get('_Fill'), Color.green);
     },
@@ -59,6 +62,8 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         m0.foo = 0;
         m0.bar= 'Salmon Mousse'
         
+        entanglement.update();
+        
         this.assertEquals(m1.foo, 42); //should have ignored foo = 0
         this.assertEquals(m1.bar, 'Salmon Mousse');
         
@@ -67,6 +72,9 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         
         // also properties changed via getter may be ignored
         m0.setPosition(pt(42))
+        
+        entanglement.update();
+        
         this.assertEquals(m1.getPosition() != m0.getPosition(), true);
         this.assertEquals(m2.getPosition(), m0.getPosition());
         
@@ -81,6 +89,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = lively.persistence.Entanglement.Morph.fromSpec(spec);
         entanglement.entangleWith(m);
         m.setExtent(pt(42, 42));
+        entanglement.update();
         this.assertEquals(entanglement.get('_Extent'), m.getExtent());
         
         entanglement.set('droppingEnabled', false);
@@ -122,7 +131,9 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         e2.foo.setFill(Color.blue);
         e1.foo.setPosition(pt(42));
         e1.foo.setFill(Color.red);
-        debugger;
+        
+        entanglement.update();
+        
         this.assertEquals(e2.foo.getPosition(), pt(42));
         this.assertEquals(e2.foo.getFill(), Color.blue);
         this.assertEquals(e2.foo.getFill() != entanglement.get('foo').get('_Fill'), true);
@@ -153,6 +164,9 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
             e2 = entanglement.createEntangledMorph();
             
         e1.foo.setFill(Color.red);
+        
+        entanglement.update();
+        
         this.assertEquals(e1.foo.getFill(), entanglement.get('foo').get('_Fill'));
         this.assertEquals(e2.foo.getFill(), Color.red);
     },
@@ -191,9 +205,10 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var c1 = entanglement.createEntangledMorph();
         var c2 = entanglement.createEntangledMorph();
-        debugger;
+
         this.assertEquals(c1.submorphs.length, 2);
         c1.removeMorph(c1.submorphs.find(function(each) { return each.getName() == 'Gretel' }));
+        entanglement.update();
         //submorphs is removed in all other entangled morphs
         this.assertEquals(c2.submorphs.find(function(each) { return each.getName() == 'Gretel' }), undefined);
     },
@@ -213,17 +228,55 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         
         this.assertEquals(entanglement.subEntanglements.length, 1);
         c1.addMorph(g);
+        entanglement.update();
         this.assertEquals(entanglement.subEntanglements.length, 2);
         this.assertEquals(c1.submorphs.length, 2)
         this.assertEquals(c2.submorphs.length, 2)
         c2.removeMorph(c2.get('Gretel'));
+        entanglement.update();
         this.assertEquals(entanglement.subEntanglements.length, 1);
         this.assertEquals(c1.submorphs.length, 1)
         this.assertEquals(c2.submorphs.length, 1)
         c1.removeMorph(c1.get('Hänsel'));
+        entanglement.update();
         this.assertEquals(entanglement.subEntanglements.length, 0);
         this.assertEquals(c1.submorphs.length, 0)
         this.assertEquals(c2.submorphs.length, 0)
+    },
+
+
+    test18tracksAddingOfMethods: function() {
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var entanglement = m.buildSpec().createEntanglement();
+        var m1 = entanglement.createEntangledMorph();
+        var m2 = entanglement.createEntangledMorph();
+        
+        this.assertEquals(m2.hello == undefined, true);
+        
+        function hello() { return 'Hello World!'}
+        entanglement.addMethod('hello', hello);
+        
+        this.assertEquals(m2.hello != undefined, true);
+        this.assertEquals(entanglement.get('hello') != undefined, true);
+        
+    },
+
+
+
+    test17tracksRemovingOfMethods: function() {
+        // this is very difficult to implement. Probably not possible.
+        // We instead refrain to method changes only through the entanglement interfact
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        function hello() { return 'Hello World!'}
+        m.addScript(hello);
+        var entanglement = m.buildSpec().createEntanglement();
+        var m1 = entanglement.createEntangledMorph();
+        var m2 = entanglement.createEntangledMorph();
+        
+        entanglement.deleteMethod('hello');
+        
+        this.assertEquals(m2.hello == undefined, true);
+        
     },
 
     test15TracksAdditionOfSubmorphs: function() {
@@ -241,6 +294,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var c2 = entanglement.createEntangledMorph();
         this.assertEquals(c1.submorphs.length, 1);
         c1.addMorph(m2);
+        entanglement.update();
         //submorph is add in all other entangled morphs
         this.assertEquals(c2.submorphs.find(function(each) { return each.getName() == 'Gretel' }) != undefined, true);
     },
@@ -262,8 +316,10 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
             entangled = entanglement.createEntangledMorph();
             
         entangled.foo = 42;
+        entanglement.update();
         this.assertEquals(entangled.foo, entanglement.get('foo'));
         entangled.setExtent(pt(42, 42));
+        entanglement.update();
         this.assertEquals(entangled.getExtent(), entanglement.get('_Extent'));
     }
 }
@@ -284,7 +340,6 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var b = new lively.morphic.Box(lively.rect(0,0,42,42));
         var e = b.buildSpec().createEntanglement();
         var m = e.createEntangledMorph();
-            m = e.createEntangledMorph();
         var conns = m.attributeConnections;
         var connsNames = conns.map(function(conn) { return conn.sourceAttrName });
         this.assertEquals(connsNames.every(function(conn) {return connsNames.lastIndexOf(conn) == connsNames.indexOf(conn)}), true);
@@ -303,7 +358,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var m1 = entanglement.createEntangledMorph({excludes: [{b: ['setFill']}]});
         var m2 = entanglement.createEntangledMorph();
-        debugger;
+
         this.assertEquals(m1.get('b') != undefined, true);
         m2.get('b').setFill(Color.red);
         this.assertEquals(m2.get('b').getFill() == entanglement.get('b').get('_Fill'), true);

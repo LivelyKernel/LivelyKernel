@@ -296,7 +296,7 @@ lively.Class = {
         // this hack ensures that class instances have a name
         var src = lively.Class.initializerTemplate.replace(/CLASS/g, name);
         if (lively.Config.loadRewrittenCode) {
-            var idx = src.match('.*createAndShift\([^\)]*, ([0-9]+)\)')[2];
+            var idx = src.match('.*storeFrameInfo\([^\)]*, ([0-9]+)\)')[2];
             src = '__createClosure(' + idx + ', Global, ' + src + ');';
         } else
             src += ' ' + name;

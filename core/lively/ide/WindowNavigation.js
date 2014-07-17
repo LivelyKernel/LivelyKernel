@@ -10,10 +10,11 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
     getWindows: function() {
         return this.root.submorphs.select(function(ea) { return ea.isWindow; });
     },
+
     findWindow: function(func) { return this.getWindows().detect(func); },
-    makeWindowActive: function(win) {
-        win && win.comeForward();
-    },
+
+    makeWindowActive: function(win) { win && win.comeForward(); },
+
     showWindow: function(win) {
         if (!win) return;
         if (this.showWindowCaller && this.showWindowTarget === win) return;
@@ -30,19 +31,20 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
         if (this.showWindowCaller) { Global.clearInterval(this.showWindowCaller); delete this.showWindowCaller; }
         windowLister.deactivate();
     },
+
     resetListAndRevertActiveWindow: function(windowLister) {
         if (this.currentWindow) this.currentWindow.comeForward();
         this.resetList(windowLister);
     }
+
 },
 'morphic switcher', {
+
     startWindowSelection: function() {
         var winMgr = this, windows = this.getWindows().reverse(), topMostWin = windows[0],
-            firstIsActive = lively.morphic.Morph.focusedMorph().ownerChain().include(topMostWin);
-        function windowList() {
-            return winMgr.getWindows().reverse().map(function(ea, i) {
-                return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; })
-        }
+            focusedMorph = lively.morphic.Morph.focusedMorph(),
+            firstIsActive = (focusedMorph && focusedMorph.ownerChain().include(topMostWin)) || topMostWin.isActive();
+
         var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
             name: 'lively.ide.WindowNavigation.NarrowingList',
             setup: function(narrower) {
@@ -60,6 +62,14 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
             }
         });
         return this;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function windowList() {
+            return winMgr.getWindows().reverse().map(function(ea, i) {
+                return {isListItem: true, string: (i+1) + ' - ' + ea.getTitle(), value: ea}; })
+        }
+
     }
 
 });

@@ -16,7 +16,7 @@ Object.extend(lively.morphic.Clipboard, {
 
     handleKeyPaste: function(evt, data, withExtractedMorphsDo) {
         try {
-            if (data.types.any(function(type) { return type.toLowerCase() === 'files'})) {
+            if (Array.from(data.types).any(function(type) { return type.toLowerCase() === 'files'})) {
                 evt.getPosition = function() { return $world.firstHand().getPosition(); };
                 var items = Array.from(data.items);
                 lively.data.FileUpload.handleDroppedFiles(items.invoke('getAsFile'), evt);

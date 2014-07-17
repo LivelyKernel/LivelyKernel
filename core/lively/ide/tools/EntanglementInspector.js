@@ -1,11 +1,11 @@
-module('lively.ide.tools.EntanglementInspector').requires('lively.morphic.ColorChooserDraft').toRun(function() {
+module('lively.ide.tools.EntanglementInspector').requires('lively.morphic.ColorChooserDraft').toRun(function(){
 
 lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
     _BorderColor: Color.rgb(204,0,0),
     _BorderRadius: 6.29,
     _Extent: lively.pt(764.0,560.0),
     _Fill: Color.rgb(255,255,255),
-    _Position: lively.pt(572.5,64.5),
+    _Position: lively.pt(150.0,173.0),
     _StyleClassNames: ["Morph","Window"],
     cameForward: false,
     className: "lively.morphic.Window",
@@ -42,7 +42,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
     layout: {
         adjustForNewBounds: true
     },
-    listListener: "AttributeConnection([object Object].createEntangledMorph --> <lively.morphic.List#50E92... - EntangledMorphsList>.addItem)",
+    listListener: "AttributeConnection([object Object].createEntangledMorph --> <lively.morphic.List#0531B... - EntangledMorphsList>.addItem)",
     marshalledEntanglement: "[object Object]",
     marshalledMethods: "[object Object]",
     methodTree: {
@@ -112,10 +112,14 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 _Fill: Color.rgb(255,255,255),
                 _FontFamily: "Arial, sans-serif",
                 _FontSize: 12,
+                _HandStyle: null,
+                _InputAllowed: true,
                 _MaxTextWidth: 120.695652,
                 _MinTextWidth: 120.695652,
                 _Padding: lively.rect(4,2,0,0),
                 _Position: lively.pt(10.0,10.0),
+                _TextColor: Color.rgb(64,64,64),
+                allowInput: true,
                 className: "lively.morphic.Text",
                 doNotCopyProperties: [],
                 doNotSerialize: [],
@@ -160,8 +164,8 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 lively.bindings.connect(this, "fire", this.get("Entanglement Inspector"), "openBuildSpecFile", {});
             },
                 doAction: function doAction() {
-                
-            }
+                            
+                        }
             }]
         },{
             _BorderStyle: "hidden",
@@ -202,7 +206,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 name: "EntanglementAttributeVisualizer",
                 sourceModule: "lively.morphic.Core",
                 submorphs: [{
-                    _Extent: lively.pt(547.0,0.0),
+                    _Extent: lively.pt(547.0,20.0),
                     _Fill: Color.rgb(255,255,255),
                     _Visible: true,
                     className: "lively.morphic.Tree",
@@ -218,7 +222,78 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                     searchBar: null,
                     showMoreNode: null,
                     sourceModule: "lively.morphic.Widgets",
-                    submorphs: [],
+                    submorphs: [{
+                        _BorderColor: null,
+                        _Extent: lively.pt(547.0,20.0),
+                        className: "lively.morphic.Box",
+                        doNotCopyProperties: [],
+                        doNotSerialize: [],
+                        droppingEnabled: true,
+                        eventsAreIgnored: true,
+                        layout: {
+                            borderSize: 0,
+                            resizeWidth: true,
+                            spacing: 5,
+                            type: "lively.morphic.Layout.HorizontalLayout"
+                        },
+                        sourceModule: "lively.morphic.Core",
+                        submorphs: [{
+                            _Align: "right",
+                            _Extent: lively.pt(10.0,20.0),
+                            _FontFamily: "Helvetica",
+                            _HandStyle: "default",
+                            _InputAllowed: false,
+                            _Padding: lively.rect(4,2,0,0),
+                            _TextColor: Color.rgb(64,64,64),
+                            allowInput: false,
+                            className: "lively.morphic.Text",
+                            doNotCopyProperties: [],
+                            doNotSerialize: [],
+                            draggingEnabled: false,
+                            droppingEnabled: false,
+                            emphasis: [[0,1,{}]],
+                            evalEnabled: false,
+                            fixedHeight: true,
+                            fixedWidth: true,
+                            grabbingEnabled: false,
+                            sourceModule: "lively.morphic.TextCore",
+                            submorphs: [],
+                            textString: "►",
+                            onMouseDown: function onMouseDown(evt) {
+                                    if (this.owner.owner.item.children && evt.isLeftMouseButtonDown()) {
+                                        this.owner.owner.toggle();
+                                    }
+                                }
+                        },{
+                            _Extent: lively.pt(219.0,20.0),
+                            _FontFamily: "Helvetica",
+                            _HandStyle: "default",
+                            _InputAllowed: false,
+                            _Padding: lively.rect(4,2,0,0),
+                            _Position: lively.pt(15.0,0.0),
+                            _TextColor: Color.rgb(64,64,64),
+                            _WhiteSpaceHandling: "pre",
+                            allowInput: false,
+                            className: "lively.morphic.Text",
+                            doNotCopyProperties: [],
+                            doNotSerialize: [],
+                            draggingEnabled: false,
+                            droppingEnabled: false,
+                            emphasis: [[0,36,{}]],
+                            evalEnabled: false,
+                            fixedHeight: true,
+                            grabbingEnabled: false,
+                            oldStyle: {},
+                            sourceModule: "lively.morphic.TextCore",
+                            submorphs: [],
+                            textString: "Entanglement Inspector's Attributes:",
+                            onMouseDown: function onMouseDown(evt) {
+                                    if (evt.isLeftMouseButtonDown() && this.owner.owner.item.onSelect) {
+                                        this.owner.owner.getRootTree().select(this.owner.owner);
+                                    }
+                                }
+                        }]
+                    }],
                     target: "[object Object]"
                 }],
                 tree: {
@@ -294,6 +369,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
             doNotSerialize: [],
             droppingEnabled: true,
             layout: {
+                adjustForNewBounds: true,
                 resizeHeight: true,
                 resizeWidth: true
             },
@@ -303,7 +379,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 _BorderColor: Color.rgb(153,153,153),
                 _BorderStyle: "double",
                 _ClipMode: "scroll",
-                _Extent: lively.pt(623.0,202.0),
+                _Extent: lively.pt(710.0,199.0),
                 _Fill: Color.rgb(255,255,255),
                 _Position: lively.pt(11.0,7.5),
                 className: "lively.morphic.Box",
@@ -318,7 +394,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 name: "EntanglementMethodVisualizer",
                 sourceModule: "lively.morphic.Core",
                 submorphs: [{
-                    _Extent: lively.pt(623.0,0.0),
+                    _Extent: lively.pt(710.0,20.0),
                     _Fill: Color.rgb(255,255,255),
                     _Visible: true,
                     className: "lively.morphic.Tree",
@@ -334,7 +410,78 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                     searchBar: null,
                     showMoreNode: null,
                     sourceModule: "lively.morphic.Widgets",
-                    submorphs: [],
+                    submorphs: [{
+                        _BorderColor: null,
+                        _Extent: lively.pt(710.0,20.0),
+                        className: "lively.morphic.Box",
+                        doNotCopyProperties: [],
+                        doNotSerialize: [],
+                        droppingEnabled: true,
+                        eventsAreIgnored: true,
+                        layout: {
+                            borderSize: 0,
+                            resizeWidth: true,
+                            spacing: 5,
+                            type: "lively.morphic.Layout.HorizontalLayout"
+                        },
+                        sourceModule: "lively.morphic.Core",
+                        submorphs: [{
+                            _Align: "right",
+                            _Extent: lively.pt(10.0,20.0),
+                            _FontFamily: "Helvetica",
+                            _HandStyle: "default",
+                            _InputAllowed: false,
+                            _Padding: lively.rect(4,2,0,0),
+                            _TextColor: Color.rgb(64,64,64),
+                            allowInput: false,
+                            className: "lively.morphic.Text",
+                            doNotCopyProperties: [],
+                            doNotSerialize: [],
+                            draggingEnabled: false,
+                            droppingEnabled: false,
+                            emphasis: [[0,1,{}]],
+                            evalEnabled: false,
+                            fixedHeight: true,
+                            fixedWidth: true,
+                            grabbingEnabled: false,
+                            sourceModule: "lively.morphic.TextCore",
+                            submorphs: [],
+                            textString: "►",
+                            onMouseDown: function onMouseDown(evt) {
+                                    if (this.owner.owner.item.children && evt.isLeftMouseButtonDown()) {
+                                        this.owner.owner.toggle();
+                                    }
+                                }
+                        },{
+                            _Extent: lively.pt(213.0,20.0),
+                            _FontFamily: "Helvetica",
+                            _HandStyle: "default",
+                            _InputAllowed: false,
+                            _Padding: lively.rect(4,2,0,0),
+                            _Position: lively.pt(15.0,0.0),
+                            _TextColor: Color.rgb(64,64,64),
+                            _WhiteSpaceHandling: "pre",
+                            allowInput: false,
+                            className: "lively.morphic.Text",
+                            doNotCopyProperties: [],
+                            doNotSerialize: [],
+                            draggingEnabled: false,
+                            droppingEnabled: false,
+                            emphasis: [[0,33,{}]],
+                            evalEnabled: false,
+                            fixedHeight: true,
+                            grabbingEnabled: false,
+                            oldStyle: {},
+                            sourceModule: "lively.morphic.TextCore",
+                            submorphs: [],
+                            textString: "Entanglement Inspector's Methods:",
+                            onMouseDown: function onMouseDown(evt) {
+                                    if (evt.isLeftMouseButtonDown() && this.owner.owner.item.onSelect) {
+                                        this.owner.owner.getRootTree().select(this.owner.owner);
+                                    }
+                                }
+                        }]
+                    }],
                     target: "[object Object]"
                 }],
                 tree: {
@@ -394,8 +541,8 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 lively.bindings.connect(this, "fire", this.get("Entanglement Inspector"), "createEntangledObj", {});
             },
                 doAction: function doAction() {
-                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                        }
             },{
                 _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 5,
@@ -428,8 +575,8 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 lively.bindings.connect(this, "fire", this, "doAction", {});
             },
                 doAction: function doAction() {
-                                                                                                                                                                                            this.get('Entanglement Inspector').toggleSearch('attribute-tree-view');
-                                                                                                                                                                                        }
+                                                                                                                                                                                                        this.get('Entanglement Inspector').toggleSearch('attribute-tree-view');
+                                                                                                                                                                                                    }
             },{
                 _BorderColor: Color.rgb(189,190,192),
                 _BorderRadius: 5,
@@ -462,205 +609,205 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
                 lively.bindings.connect(this, "fire", this, "doAction", {});
             },
                 doAction: function doAction() {
-                                                                                                                                                                                            this.get('Entanglement Inspector').toggleSearch('method-tree-view');
-                                                                                                                                                                                        }
+                                                                                                                                                                                                        this.get('Entanglement Inspector').toggleSearch('method-tree-view');
+                                                                                                                                                                                                    }
             }]
         }],
         aboutMe: function aboutMe() {
-                                                                                                                    //  This is an experiment in drag-and-drop construction of
-                                                                                                                    //  paned window apps. 
-                                                                                                                    // 
-                                                                                                                    //  The idea is that each widget will have a "plug" reminiscent
-                                                                                                                    //  of Squeak's pluggable views.  From the plug, this panel
-                                                                                                                    //  will strive to create all the necessary connections and 
-                                                                                                                    //  stubbed methods appropriate to operation of that widget.
-                                                                                                                    //  Gridding assistance and other style defauts will facilitate
-                                                                                                                    //  rapid construction of pleasing practical apps.
-                                                                                                                    //
-                                                                                                                    //  Renaming of the widgets will be supported, but this clearly
-                                                                                                                    //  becomes more difficult as construction progresses, since the 
-                                                                                                                    //  stubbed methods, etc will be synchronized with the widget names.
-                                                                                                                    // 
-                                                                                                                    //  A further aspiration of this experiment is to automatically
-                                                                                                                    //  generate a buildView method correponding to the concretely
-                                                                                                                    //  constructed app.
-                                                                                                                },
+                                                                                                                        //  This is an experiment in drag-and-drop construction of
+                                                                                                                        //  paned window apps. 
+                                                                                                                        // 
+                                                                                                                        //  The idea is that each widget will have a "plug" reminiscent
+                                                                                                                        //  of Squeak's pluggable views.  From the plug, this panel
+                                                                                                                        //  will strive to create all the necessary connections and 
+                                                                                                                        //  stubbed methods appropriate to operation of that widget.
+                                                                                                                        //  Gridding assistance and other style defauts will facilitate
+                                                                                                                        //  rapid construction of pleasing practical apps.
+                                                                                                                        //
+                                                                                                                        //  Renaming of the widgets will be supported, but this clearly
+                                                                                                                        //  becomes more difficult as construction progresses, since the 
+                                                                                                                        //  stubbed methods, etc will be synchronized with the widget names.
+                                                                                                                        // 
+                                                                                                                        //  A further aspiration of this experiment is to automatically
+                                                                                                                        //  generate a buildView method correponding to the concretely
+                                                                                                                        //  constructed app.
+                                                                                                                    },
         addMorph: function addMorph(widget) {
-                                                                                                                    // Override addMorph to provide gridding and docking of plugs
-                                                                                                                    $super(widget);  // momentarily install to get local bounds
-                                                                                                                    var bnds = widget.getBounds();
-                                                                                                                    var name = widget.getName();
-                                                                                                                    if (!name) return widget;
-                                                                                                                    
-                                                                                                                    if (widget.isList) {
-                                                                                                                        widget.remove();  // replace by our special version
-                                                                                                                        var m = this.newListPane(bnds); }
-                                                                                                                    else if (widget.isText) {
-                                                                                                                        widget.remove();  // replace by our special version
-                                                                                                                        var m = this.newCodePane(bnds); }
-                                                                                                                    else return widget;
-                                                                                                                    
-                                                                                                                    m.setName(name);
-                                                                                                                    $super(m);
-                                                                                                                    this.plugIn(m);
-                                                                                                                    return m;
-                                                                                                                },
+                                                                                                                        // Override addMorph to provide gridding and docking of plugs
+                                                                                                                        $super(widget);  // momentarily install to get local bounds
+                                                                                                                        var bnds = widget.getBounds();
+                                                                                                                        var name = widget.getName();
+                                                                                                                        if (!name) return widget;
+                                                                                                                        
+                                                                                                                        if (widget.isList) {
+                                                                                                                            widget.remove();  // replace by our special version
+                                                                                                                            var m = this.newListPane(bnds); }
+                                                                                                                        else if (widget.isText) {
+                                                                                                                            widget.remove();  // replace by our special version
+                                                                                                                            var m = this.newCodePane(bnds); }
+                                                                                                                        else return widget;
+                                                                                                                        
+                                                                                                                        m.setName(name);
+                                                                                                                        $super(m);
+                                                                                                                        this.plugIn(m);
+                                                                                                                        return m;
+                                                                                                                    },
         buildView: function buildView(extent) {  // this.buildView()
-                                                                                                                    // Disassemble prior view if present and set extent if not null
-                                                                                                                    this.restart(extent);
-                                                                                                                
-                                                                                                                    // Lay out new widgets
-                                                                                                                    lively.morphic.Panel.makePanedPanel(extent, [
-                                                                                                                		['classPane', this.newListPane, new Rectangle(0, 0, 0.5, 0.6)],
-                                                                                                                		['methodPane', this.newListPane, new Rectangle(0.5, 0, 0.5, 0.6)],
-                                                                                                                		['codePane', this.newCodePane, new Rectangle(0, 0.6, 1, 0.4)],
-                                                                                                                	], this);
-                                                                                                                
-                                                                                                                    // Connect widgets to this panel as model
-                                                                                                                    connect(this.classPane, "selection", this, "setSelectedClass", {});
-                                                                                                                    connect(this.methodPane, "selection", this, "setMethodName", {});
-                                                                                                                
-                                                                                                                    // Initialize this panel as model
-                                                                                                                    this.onLoad();
-                                                                                                                },
+                                                                                                                        // Disassemble prior view if present and set extent if not null
+                                                                                                                        this.restart(extent);
+                                                                                                                    
+                                                                                                                        // Lay out new widgets
+                                                                                                                        lively.morphic.Panel.makePanedPanel(extent, [
+                                                                                                                    		['classPane', this.newListPane, new Rectangle(0, 0, 0.5, 0.6)],
+                                                                                                                    		['methodPane', this.newListPane, new Rectangle(0.5, 0, 0.5, 0.6)],
+                                                                                                                    		['codePane', this.newCodePane, new Rectangle(0, 0.6, 1, 0.4)],
+                                                                                                                    	], this);
+                                                                                                                    
+                                                                                                                        // Connect widgets to this panel as model
+                                                                                                                        connect(this.classPane, "selection", this, "setSelectedClass", {});
+                                                                                                                        connect(this.methodPane, "selection", this, "setMethodName", {});
+                                                                                                                    
+                                                                                                                        // Initialize this panel as model
+                                                                                                                        this.onLoad();
+                                                                                                                    },
         methodStubFor: function methodStubFor(widget, propName) {
-                                                                                                                    // returns {methodName: 'nnn', methodString: 'sss'}
-                                                                                                                    var mode = widget.plug[propName];
-                                                                                                                    var widgetName = this.uncapitalize(widget.getName());
-                                                                                                                    var methodName = widgetName + propName.capitalize();
-                                                                                                                    var methodString = 'function ' + methodName + '(' + propName + ') {\n'
-                                                                                                                    if (mode == 'input') methodString +=
-                                                                                                                        '\tthis.' + widgetName + '.' + propName + '(' + propName + ');\n';
-                                                                                                                    methodString += '}';
-                                                                                                                    return {widgetName: widgetName, methodName: methodName, methodString: methodString};
-                                                                                                                },
+                                                                                                                        // returns {methodName: 'nnn', methodString: 'sss'}
+                                                                                                                        var mode = widget.plug[propName];
+                                                                                                                        var widgetName = this.uncapitalize(widget.getName());
+                                                                                                                        var methodName = widgetName + propName.capitalize();
+                                                                                                                        var methodString = 'function ' + methodName + '(' + propName + ') {\n'
+                                                                                                                        if (mode == 'input') methodString +=
+                                                                                                                            '\tthis.' + widgetName + '.' + propName + '(' + propName + ');\n';
+                                                                                                                        methodString += '}';
+                                                                                                                        return {widgetName: widgetName, methodName: methodName, methodString: methodString};
+                                                                                                                    },
         newCodePane: function newCodePane(bnds, morphorNull) {
-                                                                                                                    // This method should be inherited for all apps
-                                                                                                                    var codePane = morphorNull || newTextPane(bnds);
-                                                                                                                    codePane.enableSyntaxHighlighting();
-                                                                                                                    codePane.evalEnabled = true;
-                                                                                                                    codePane.doSave = function() {
-                                                                                                                        this.cachedTextString = null;
-                                                                                                                        this.savedTextString = this.textString;
-                                                                                                                        if (this.methodPane.selection) {
-                                                                                                                            alertOK('eval'); 
-                                                                                                                            this.tryBoundEval('this.' + panel.methodPane.selection + ' = ' + this.savedTextString)
+                                                                                                                        // This method should be inherited for all apps
+                                                                                                                        var codePane = morphorNull || newTextPane(bnds);
+                                                                                                                        codePane.enableSyntaxHighlighting();
+                                                                                                                        codePane.evalEnabled = true;
+                                                                                                                        codePane.doSave = function() {
+                                                                                                                            this.cachedTextString = null;
+                                                                                                                            this.savedTextString = this.textString;
+                                                                                                                            if (this.methodPane.selection) {
+                                                                                                                                alertOK('eval'); 
+                                                                                                                                this.tryBoundEval('this.' + panel.methodPane.selection + ' = ' + this.savedTextString)
+                                                                                                                            }
                                                                                                                         }
-                                                                                                                    }
-                                                                                                                    codePane.applyStyle({scaleProportional: true});
-                                                                                                                    codePane.plug = {setTextString: 'input', getTextString: 'output', menuItems: 'output'}
-                                                                                                                    this.wrapWidget(codePane);  // Override remove to clean up stubs
-                                                                                                                    return codePane
-                                                                                                                },
+                                                                                                                        codePane.applyStyle({scaleProportional: true});
+                                                                                                                        codePane.plug = {setTextString: 'input', getTextString: 'output', menuItems: 'output'}
+                                                                                                                        this.wrapWidget(codePane);  // Override remove to clean up stubs
+                                                                                                                        return codePane
+                                                                                                                    },
         newListPane: function newListPane(bnds, morphorNull) {
-                                                                                                                    // This method should be inherited for all apps
-                                                                                                                    var list = morphorNull || new lively.morphic.List(bnds);
-                                                                                                                    list.applyStyle({scaleProportional: true});
-                                                                                                                    list.plug = {setList: 'input', selection: 'output', menuItems: 'output'}
-                                                                                                                    this.wrapWidget(list);  // Override remove to clean up stubs
-                                                                                                                    return list;
-                                                                                                                },
+                                                                                                                        // This method should be inherited for all apps
+                                                                                                                        var list = morphorNull || new lively.morphic.List(bnds);
+                                                                                                                        list.applyStyle({scaleProportional: true});
+                                                                                                                        list.plug = {setList: 'input', selection: 'output', menuItems: 'output'}
+                                                                                                                        this.wrapWidget(list);  // Override remove to clean up stubs
+                                                                                                                        return list;
+                                                                                                                    },
         onLoad: function onLoad() {  // this.onLoad()
-                                                                                                                    // Call a method here to initialize state upon loading
-                                                                                                                },
+                                                                                                                        // Call a method here to initialize state upon loading
+                                                                                                                    },
         plugIn: function plugIn(widget) {
-                                                                                                                    // set up connect and stub methods based on widget.plug
-                                                                                                                    if (!widget.plug) return;
-                                                                                                                    var plug = widget.plug;
-                                                                                                                    ownPropertyNames(plug).forEach(function (prop) {
-                                                                                                                        var stub = this.methodStubFor(widget, prop);
-                                                                                                                        //  Add method stub
-                                                                                                                        var script = this.addScript(eval('(' + stub.methodString + ')'));
-                                                                                                                        script.setProperty("tags", ["app methods"]);
-                                                                                                                        //  Add connection for outputs
-                                                                                                                        if (plug[prop] == 'output')
-                                                                                                                            connect(widget, prop, this, stub.methodName)
-                                                                                                                        //  Add own variable for each widget
-                                                                                                                        this[stub.widgetName] = widget;
-                                                                                                                        }, this)
-                                                                                                                },
+                                                                                                                        // set up connect and stub methods based on widget.plug
+                                                                                                                        if (!widget.plug) return;
+                                                                                                                        var plug = widget.plug;
+                                                                                                                        ownPropertyNames(plug).forEach(function (prop) {
+                                                                                                                            var stub = this.methodStubFor(widget, prop);
+                                                                                                                            //  Add method stub
+                                                                                                                            var script = this.addScript(eval('(' + stub.methodString + ')'));
+                                                                                                                            script.setProperty("tags", ["app methods"]);
+                                                                                                                            //  Add connection for outputs
+                                                                                                                            if (plug[prop] == 'output')
+                                                                                                                                connect(widget, prop, this, stub.methodName)
+                                                                                                                            //  Add own variable for each widget
+                                                                                                                            this[stub.widgetName] = widget;
+                                                                                                                            }, this)
+                                                                                                                    },
         renamePart: function renamePart(part, oldName, newName) {
-                                                                                                                    // setName must be wrapped to call this
-                                                                                                                    console.log('Renaming ' + oldName + ' to ' + newName)
-                                                                                                                    // We will simply remove all old stubs (safely) and then install again
-                                                                                                                },
+                                                                                                                        // setName must be wrapped to call this
+                                                                                                                        console.log('Renaming ' + oldName + ' to ' + newName)
+                                                                                                                        // We will simply remove all old stubs (safely) and then install again
+                                                                                                                    },
         reset: function reset() {  // this.reset()
-                                                                                                                    //  Call a method to clear state for saving in parts bin
-                                                                                                                },
+                                                                                                                        //  Call a method to clear state for saving in parts bin
+                                                                                                                    },
         restart: function restart(extent) {  // this.restart()
-                                                                                                                    // Use new frame if supplied
-                                                                                                                    extent = extent || this.getExtent();
-                                                                                                                    this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
-                                                                                                                    this.layout.grid = this.innerBounds().extent().scaleBy(1/20);
-                                                                                                                
-                                                                                                                    // Disassemble prior view and connections
-                                                                                                                    this.removeAllMorphs();  // this should handle disconnect and unplug
-                                                                                                                },
+                                                                                                                        // Use new frame if supplied
+                                                                                                                        extent = extent || this.getExtent();
+                                                                                                                        this.applyStyle({adjustForNewBounds: true, fill: Color.gray});
+                                                                                                                        this.layout.grid = this.innerBounds().extent().scaleBy(1/20);
+                                                                                                                    
+                                                                                                                        // Disassemble prior view and connections
+                                                                                                                        this.removeAllMorphs();  // this should handle disconnect and unplug
+                                                                                                                    },
         setExtent: function setExtent(newExt) {
-                                                                                                                    var result = $super(newExt);
-                                                                                                                    this.layout.grid = this.innerBounds().extent().scaleBy(1/20);
-                                                                                                                    return result;
-                                                                                                                },
+                                                                                                                        var result = $super(newExt);
+                                                                                                                        this.layout.grid = this.innerBounds().extent().scaleBy(1/20);
+                                                                                                                        return result;
+                                                                                                                    },
         unPlug: function unPlug(widget) {
-                                                                                                                    // remove stub methods based on widget.plug
-                                                                                                                    if (!widget.plug) return;
-                                                                                                                    var plug = widget.plug;
-                                                                                                                    ownPropertyNames(plug).forEach(function (prop) {
-                                                                                                                        var stub = this.methodStubFor(widget, prop);
-                                                                                                                        // remove method stubs that have not been edited
-                                                                                                                        if (this[stub.methodName]
-                                                                                                                            && this[stub.methodName].toString() == stub.methodString)
-                                                                                                                            delete this[stub.methodName];
-                                                                                                                        // remove connection for outputs
-                                                                                                                        if (plug[prop] == 'output')
-                                                                                                                            disconnect(widget, prop, this, stub.methodName)
-                                                                                                                        // remove own variable for widget
-                                                                                                                        if (this[stub.widgetName]) console.log('deleting ' + stub.widgetName);
-                                                                                                                        if (this[stub.widgetName]) delete this[stub.widgetName];
-                                                                                                                        }, this)
-                                                                                                                },
+                                                                                                                        // remove stub methods based on widget.plug
+                                                                                                                        if (!widget.plug) return;
+                                                                                                                        var plug = widget.plug;
+                                                                                                                        ownPropertyNames(plug).forEach(function (prop) {
+                                                                                                                            var stub = this.methodStubFor(widget, prop);
+                                                                                                                            // remove method stubs that have not been edited
+                                                                                                                            if (this[stub.methodName]
+                                                                                                                                && this[stub.methodName].toString() == stub.methodString)
+                                                                                                                                delete this[stub.methodName];
+                                                                                                                            // remove connection for outputs
+                                                                                                                            if (plug[prop] == 'output')
+                                                                                                                                disconnect(widget, prop, this, stub.methodName)
+                                                                                                                            // remove own variable for widget
+                                                                                                                            if (this[stub.widgetName]) console.log('deleting ' + stub.widgetName);
+                                                                                                                            if (this[stub.widgetName]) delete this[stub.widgetName];
+                                                                                                                            }, this)
+                                                                                                                    },
         uncapitalize: function uncapitalize(name) {
-                                                                                                                    // By symmetry with <string>.capitalize()
-                                                                                                                    return name.charAt(0).toLowerCase() + name.slice(1);
-                                                                                                                },
+                                                                                                                        // By symmetry with <string>.capitalize()
+                                                                                                                        return name.charAt(0).toLowerCase() + name.slice(1);
+                                                                                                                    },
         wrapWidget: function wrapWidget(widget) {
-                                                                                                                    // Clean up stubs when a widget is removed or renamed
-                                                                                                                    var self = this;
-                                                                                                                    widget.remove = widget.remove.wrap(
-                                                                                                                        function(wrapped) {
-                                                                                                                            var args = $A(arguments); args.shift();
-                                                                                                                            if (this.owner !== self)
+                                                                                                                        // Clean up stubs when a widget is removed or renamed
+                                                                                                                        var self = this;
+                                                                                                                        widget.remove = widget.remove.wrap(
+                                                                                                                            function(wrapped) {
+                                                                                                                                var args = $A(arguments); args.shift();
+                                                                                                                                if (this.owner !== self)
+                                                                                                                                    return wrapped.apply(this, args);
+                                                                                                                                self.unPlug(this);
+                                                                                                                                this.remove = wrapped;  // restore remove
                                                                                                                                 return wrapped.apply(this, args);
-                                                                                                                            self.unPlug(this);
-                                                                                                                            this.remove = wrapped;  // restore remove
-                                                                                                                            return wrapped.apply(this, args);
-                                                                                                                        });
-                                                                                                                    widget.setName = widget.setName.wrap(
-                                                                                                                        function(wrapped) {
-                                                                                                                            var args = $A(arguments); args.shift();
-                                                                                                                            if (this.owner !== self || !this.getName())
-                                                                                                                                return wrapped.apply(this, args);
-                                                                                                                            self.unPlug(this);
-                                                                                                                            var result = wrapped.apply(this, args);
-                                                                                                                            self.plugIn(this);
-                                                                                                                            return result;
-                                                                                                                        });
-                                                                                                                },
+                                                                                                                            });
+                                                                                                                        widget.setName = widget.setName.wrap(
+                                                                                                                            function(wrapped) {
+                                                                                                                                var args = $A(arguments); args.shift();
+                                                                                                                                if (this.owner !== self || !this.getName())
+                                                                                                                                    return wrapped.apply(this, args);
+                                                                                                                                self.unPlug(this);
+                                                                                                                                var result = wrapped.apply(this, args);
+                                                                                                                                self.plugIn(this);
+                                                                                                                                return result;
+                                                                                                                            });
+                                                                                                                    },
         yetToDo: function yetToDo() {
-                                                                                                                //  [X] Write code to intercept addMorph()
-                                                                                                                //  [X]     gridding
-                                                                                                                //  [X]     other defaults such as layout, borders, etc
-                                                                                                                //  [X]     define plugs for, eg, list and text
-                                                                                                                //  [X]     add stub methods for plugs
-                                                                                                                //  [X]     add connections for outputs
-                                                                                                                //  [X] Remove stubs when remove parts
-                                                                                                                //  [X] Make safeRemove that checks for unchanged stubs
-                                                                                                                //  [X] Remove connections when remove parts
-                                                                                                                //  [X] Support renaming of parts by safeRemove, followed by add
-                                                                                                                //  [X] Add and remove own variable refs
-                                                                                                                //  [X] Test by building a browser
-                                                                                                                //  [ ] Write code that will generate buildView method
-                                                                                                                }
+                                                                                                                    //  [X] Write code to intercept addMorph()
+                                                                                                                    //  [X]     gridding
+                                                                                                                    //  [X]     other defaults such as layout, borders, etc
+                                                                                                                    //  [X]     define plugs for, eg, list and text
+                                                                                                                    //  [X]     add stub methods for plugs
+                                                                                                                    //  [X]     add connections for outputs
+                                                                                                                    //  [X] Remove stubs when remove parts
+                                                                                                                    //  [X] Make safeRemove that checks for unchanged stubs
+                                                                                                                    //  [X] Remove connections when remove parts
+                                                                                                                    //  [X] Support renaming of parts by safeRemove, followed by add
+                                                                                                                    //  [X] Add and remove own variable refs
+                                                                                                                    //  [X] Test by building a browser
+                                                                                                                    //  [ ] Write code that will generate buildView method
+                                                                                                                    }
     }],
     titleBar: "Entanglement Inspector",
     tree: {
@@ -672,8 +819,9 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
         var self = this;
         var source = method.toString();
         var loc = source.split(/\r\n|\r|\n/).length;
-        var editor = new lively.ide.newCodeEditor(pt(0).extent(pt(400,loc * 22)), source );
+        var editor = new lively.ide.newCodeEditor(pt(0).extent(pt(400,loc * 19)), source );
         editor.savedTextString = source;
+        editor.isScrollable = function() {  return false }
         editor.setBorderWidth(3);
         editor.initializeAce();
         editor.setTheme("tomorrow");
@@ -692,7 +840,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
         removeButton.setExtent(pt(22,22));
         
         editor.enableGutter();
-        editor.aceEditor.getSession().foldAll();
+        editor.aceEditor.getSession().toggleFoldWidget();
         editor.aceEditor.getSession().on('changeFold', onFold);
         editor.addScript(doSave, 'doSave', {editor: editor, 
                                             self: self,
@@ -704,7 +852,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
         
         function onFold(fold) {
             var expanding = fold.action == 'remove';
-            var height = expanding ? (fold.data.end.row - fold.data.start.row) * 22 + 10: 22;
+            var height = expanding ? (fold.data.end.row - fold.data.start.row) * 19 + 10: 22;
             var width = fold.data.start.column * 15;
             editor.setExtent(pt(width, height));
             editor.owner.setExtent(pt(width, height));
@@ -754,7 +902,6 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
         }
     
         if(itemAfter) {
-            debugger;
             var i = treeItem.children.indexOf(itemAfter);
             treeItem.children.splice(i, 0, item); 
         } else {
@@ -986,4 +1133,5 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector', {
     connect(this.entanglement.entangledMorphs, 'remove', this.morphList, 'removeItem');
 }
 })
+
 })

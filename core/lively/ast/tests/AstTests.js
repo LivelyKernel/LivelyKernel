@@ -331,6 +331,14 @@ TestCase.subclass('lively.ast.tests.Transforming',
         this.assertEquals(expected, result.source);
     },
 
+    testTransformTopLevelVarDeclsForCapturingWithoutGlobals: function() {
+        var code     = "var x = 2; y = 3; z = 4; baz(x, y, z)",
+            expected = "foo.x = 2; foo.y = 3; z = 4; baz(foo.x, foo.y, z)",
+            recorder = {name: "foo", type: "Identifier"},
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder, {exclude: ['baz', 'z']});
+        this.assertEquals(expected, result.source);
+    },
+
     testTransformToReturnLastStatement: function() {
         var code = "var z = foo + bar; baz.foo(z, 3)",
             expected = "var z = foo + bar; return baz.foo(z, 3)",
@@ -342,19 +350,6 @@ TestCase.subclass('lively.ast.tests.Transforming',
 
 TestCase.subclass('lively.ast.tests.Querying',
 'testing', {
-
-    testTopLevelDeclarations: function() {
-        var code = "var x = 3;\n function baz() { var zork; return xxx; }\nvar y = 4, z;\nbar = 'foo';"
-        var ast = lively.ast.acorn.parse(code);
-        var decls = lively.ast.query.topLevelDecls(ast);
-        var ids = decls.map(function(ea) {
-            return ea.type === 'FunctionDeclaration' ?
-                ea.id.name :
-                ea.declarations.map(function(ea) { return ea.id.name; });
-        }).flatten();
-        var expected = ["x", "y", "z", "baz"];
-        this.assertEquals(expected, ids, "1");
-    },
 
     testDeclsAndRefsInTopLevelScope: function() {
         var code = "var x = 3;\n function baz(y) { var zork; return xxx + zork + x + y; }\nvar y = 4, z;\nbar = 'foo';"
@@ -370,7 +365,7 @@ TestCase.subclass('lively.ast.tests.Querying',
 
         var refs = declsAndRefs.refs;
         var refIds = refs.pluck('name')
-        this.assertEquals(["bar", "x"], refIds, "ref ids");
+        this.assertEquals(["bar", "xxx", "x"], refIds, "ref ids");
     },
 
     testScopes: function() {
@@ -417,11 +412,12 @@ TestCase.subclass('lively.ast.tests.Querying',
                  + "    width = 960 - margin.left - margin.right,\n"
                  + "    height = 500 - margin.top - margin.bottom;\n"
                  + "function blup() {}\n"
-                 + "foo + baz + foo + height;\n"
+                 + "foo + String(baz) + foo + height;\n"
         var result = lively.ast.query.findGlobalVarRefs(code);
+
         var expected = [{start:169,end:172, name:"foo", type:"Identifier"},
-                        {start:175,end:178, name:"baz", type:"Identifier"},
-                        {start:181,end:184, name:"foo", type:"Identifier"}];
+                        {start:182,end:185, name:"baz", type:"Identifier"},
+                        {start:189,end:192, name:"foo", type:"Identifier"}];
 
         this.assertEqualState(expected, result);
     }

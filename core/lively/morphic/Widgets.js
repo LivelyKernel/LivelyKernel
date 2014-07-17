@@ -1972,7 +1972,7 @@ lively.morphic.World.addMethods(
             ['Wiki', [
                 // ['About this wiki', this.openAboutBox.bind(this)],
                 // ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
-                ['View versions of this world', this.openVersionViewer.bind(this)],
+                ['View versions of this world', this.openVersionViewer.bind(this, URL.source)],
                 ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {
                         lively.persistence.StandAlonePackaging.packageCurrentWorld();

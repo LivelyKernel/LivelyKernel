@@ -77,6 +77,7 @@ Object.extend(lively.ide.commands.byName, {
             $world.askForUserName(); return true;
         }
     },
+
     'lively.morphic.World.setExtent': {
         description: 'set world extent',
         exec: function() { $world.askForNewWorldExtent(); }
@@ -1324,6 +1325,31 @@ Object.extend(lively.ide.commands.byName, {
                 }
             });
             return true;
+        }
+    },
+
+    // debugging
+    'lively.ide.debugging.globalTrace': {
+        description: "start / stop global tracing",
+        exec: function() {
+            lively.require("lively.Tracing").toRun(function() {
+                var tracersInstalled = lively.Tracing && lively.Tracing.stackTracingEnabled,
+                    globalTracingEnabled = tracersInstalled && lively.Tracing.globalTracingEnabled;
+                if (!tracersInstalled) lively.Tracing.installStackTracers();
+                if (!globalTracingEnabled) lively.Tracing.startGlobalTracing();
+                else show("Tracing already in progress");
+            });
+        }
+    },
+
+    'lively.ide.debugging.globalTrace': {
+        description: "start / stop global tracing",
+        exec: function() {
+            lively.require("lively.Tracing").toRun(function() {
+                var tracersInstalled = lively.Tracing && lively.Tracing.stackTracingEnabled,
+                    globalTracingEnabled = tracersInstalled && lively.Tracing.globalTracingEnabled;
+                lively.Tracing.startGlobalTracing();
+            });
         }
     },
 

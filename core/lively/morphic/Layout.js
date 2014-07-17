@@ -1018,6 +1018,9 @@ lively.morphic.Layout.JournalLayout.subclass("lively.morphic.Layout.TreeLayout",
             this.container.owner.getLayouter().resume();
         }
     },
+    getMinWidth: function(container, submorphs) {
+        return this.container.getRootTree().depth * 10;
+    },
     layoutOrder: function(morph) {
         return this.container.submorphs.indexOf(morph);
     },

@@ -81,6 +81,12 @@ Object.extend(lively.ide.commands.byName, {
         description: 'set world extent',
         exec: function() { $world.askForNewWorldExtent(); }
     },
+
+    'lively.morphic.World.setExtentToWindowBounds': {
+        description: 'set world extent to fit into window bounds',
+        exec: function() { $world.setExtent($world.windowBounds().extent()); }
+    },
+
     'lively.morphic.World.resetScale': {
         description: 'reset world scale',
         exec: function() { $world.setScale(1); }

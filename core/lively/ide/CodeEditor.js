@@ -751,7 +751,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (lively.Config.get('improvedJavaScriptEval') && __evalStatement.length < 150000) {
             try {
                 var transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
-                    __evalStatement, {name: "Global", type: "Identifier"});
+                    __evalStatement,
+                    {name: "Global", type: "Identifier"},
+                    {exclude: lively.ast.query.knownGlobals});
                 __evalStatement = transformed.source;
                 $morph('log') && ($morph('log').textString = transformed.source);
             } catch(e) {

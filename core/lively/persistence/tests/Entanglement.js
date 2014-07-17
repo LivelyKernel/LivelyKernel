@@ -132,6 +132,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         e1.foo.setPosition(pt(42));
         e1.foo.setFill(Color.red);        
         entanglement.update();
+
         this.assertEquals(e2.foo.getPosition(), pt(42));
         this.assertEquals(e2.foo.getFill(), Color.blue);
         this.assertEquals(e2.foo.getFill() != entanglement.get('foo').get('_Fill'), true);
@@ -204,7 +205,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var c1 = entanglement.createEntangledMorph();
         var c2 = entanglement.createEntangledMorph();
-		
+
         this.assertEquals(c1.submorphs.length, 2);
         c1.removeMorph(c1.submorphs.find(function(each) { return each.getName() == 'Gretel' }));
         entanglement.update();
@@ -246,7 +247,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         this.assertEquals(c1.submorphs.length, 0)
         this.assertEquals(c2.submorphs.length, 0)
     },
-
+	
     test18tracksAddingOfMethods: function() {
         var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
         var entanglement = m.buildSpec().createEntanglement();
@@ -342,7 +343,6 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var b = new lively.morphic.Box(lively.rect(0,0,42,42));
         var e = b.buildSpec().createEntanglement();
         var m = e.createEntangledMorph();
-            m = e.createEntangledMorph();
         var conns = m.attributeConnections;
         var connsNames = conns.map(function(conn) { return conn.sourceAttrName });
         this.assertEquals(connsNames.every(function(conn) {return connsNames.lastIndexOf(conn) == connsNames.indexOf(conn)}), true);
@@ -361,7 +361,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var m1 = entanglement.createEntangledMorph({excludes: [{b: ['setFill']}]});
         var m2 = entanglement.createEntangledMorph();
-        debugger;
+
         this.assertEquals(m1.get('b') != undefined, true);
         m2.get('b').setFill(Color.red);
         this.assertEquals(m2.get('b').getFill() == entanglement.get('b').get('_Fill'), true);

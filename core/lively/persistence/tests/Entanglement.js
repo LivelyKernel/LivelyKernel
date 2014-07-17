@@ -206,6 +206,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         var entanglement = m.buildSpec().createEntanglement();
         var c1 = entanglement.createEntangledMorph();
         var c2 = entanglement.createEntangledMorph();
+		
         this.assertEquals(c1.submorphs.length, 2);
         c1.removeMorph(c1.submorphs.find(function(each) { return each.getName() == 'Gretel' }));
         entanglement.update();

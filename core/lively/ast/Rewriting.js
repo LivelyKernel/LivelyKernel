@@ -1808,6 +1808,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         },
 
         unshiftFrame: function() {
+            this.recreateFrames();
             if (!this.top) return;
 
             var frame = this.top,

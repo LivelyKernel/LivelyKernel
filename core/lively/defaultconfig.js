@@ -453,7 +453,7 @@ Config.addOptions(
     // Modules
     ["moduleLoadTestTimeout", 10*1000, "Timeout in ms after which to run a module load check. Make it falsy to disable the check."],
     ["modulesBeforeWorldLoad", ["lively.morphic.HTML"], "evaluated before all changes"],
-    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki", "lively.ChangeSets"], "evaluated before world is setup"],
+    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
     ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
     ["showModuleDefStack", true, "so modules know where they were required from"],
     ["loadUserConfig", true, "for sth like jens/config.js, used in lively.bootstrap"],

@@ -229,9 +229,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         // Or just 2 -> completely do the creation of morphs by ourselves...
         options = options || []
         options = options.excludes || options; // is this really necessary..? clarity maybe
-        //this.augmentBuildSpec(options);
+        this.augmentBuildSpec(options);
         var morph = this.baseSpec.createMorph();
-        this.entangleWith(morph);
         return morph;
     },
     entangleProperty: function(morph, key, getter, setter, defaultValue) {
@@ -419,8 +418,9 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 self.handleSubentanglementArray(oldArray, newArray, propertyName, modifiers, instance);
             else
                 self.handleObjectArray(oldArray, newArray, propertyName, modifiers);
-
+				
             self.updatingMorph = undefined;
+
         }, {self: self, instance: instance, getter: getter, setter: setter, 
             modifiers: modifiers, propertyName: propertyName}).asFunction();
     },
@@ -505,11 +505,13 @@ Object.subclass("lively.persistence.Entanglement.Morph",
 
     handleObjectArray: function(oldArray, newArray, propertyName, modifiers) {
         //now determine the elements that got remove and the ones that got added
+
         var self = this;
+
         var newObjects = $(newArray).not(oldArray).get();
         if(newObjects)
         {
-            newObjects.forEach(function(newObject) {
+            newObjects.forEach(function(newObject) {D
                 self.entangledAttributes[propertyName].push(newObject);
                 self.propagateArrayChange('add', newObject, modifiers); 
             });

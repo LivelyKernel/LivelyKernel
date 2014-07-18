@@ -1151,8 +1151,18 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
-    insertAtCursor: function(string, selectIt, overwriteSelection) {
-        this.withAceDo(function(ed) { ed.onPaste(string) });
+    insertAtCursor: function(string, selectIt, overwriteSelection, growSelection) {
+        var rangeBefore = overwriteSelection || selectIt || growSelection ? this.getSelectionRangeAce() : null;
+        if (!overwriteSelection) this.collapseSelection('end');
+        if (overwriteSelection) this.replace(rangeBefore, "");
+        this.withAceDo(function(ed) {
+            ed.onPaste(string);
+            var rangeAfter = this.getSelectionRangeAce();
+            if (selectIt)
+                this.setSelectionRangeAce({start: rangeBefore.end, end: rangeAfter.end});
+            if (growSelection)
+                this.setSelectionRangeAce({start: rangeBefore.start, end: rangeAfter.end});
+        });
     },
 
     append: function(string) {

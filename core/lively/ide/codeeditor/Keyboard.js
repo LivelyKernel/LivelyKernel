@@ -160,7 +160,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         lively.shell.run(cmdString, {stdin: input}, function(cmd) {
                             ed.session.replace(ed.selection.getRange(), cmd.resultString(true));
                         });
-                    })
+                    }, {historyId: 'lively.ide.execShellCommand'});
                 },
                 multiSelectAction: 'forEach',
                 handlesCount: true

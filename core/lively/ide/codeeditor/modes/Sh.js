@@ -6,6 +6,7 @@ lively.ide.ace.require('ace/mode/sh').Mode.addMethods({
     doEval: function(codeEditor, insertResult) {
         lively.ide.commands.exec('lively.ide.execShellCommand', codeEditor, {
             insert: insertResult,
+            insertProgress: true,
             count: 4,
             addToHistory: true,
             group: "shell-doit-" - codeEditor.id,

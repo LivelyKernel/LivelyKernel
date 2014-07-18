@@ -815,32 +815,57 @@ Object.extend(lively.ide.commands.byName, {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
             Global.event.stop();
-            var insertResult = !args || typeof args.insert === 'undefined' || !!args.insert,
-                openInWindow = !codeEditor || (args && args.count !== 4)/*universal argument*/,
-                addToHistory = args && args.addToHistory,
-                group = (args && args.group) || 'interactive-shell-command';
+
+            var insertResult   = !args || typeof args.insert === 'undefined' || !!args.insert,
+                insertProgress = args  && !!args.insertProgress,
+                openInWindow   = !codeEditor || (args && args.count !== 4)/*universal argument*/,
+                addToHistory   = args && args.addToHistory,
+                group          = (args && args.group) || 'interactive-shell-command',
+                editor;
+
+            var cmdString = args && args.shellCommand;
+            if (cmdString) runCommand(cmdString);
+            else {
+                $world.prompt('Enter shell command to run.', function(cmdString) {
+                    if (!cmdString) show('No command entered, aborting...!');
+                    else runCommand(cmdString);
+                }, {historyId: 'lively.ide.execShellCommand'}).panel.focus();
+            };
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
             function ensureCodeEditor(title) {
+                if (editor) return editor;
                 if (!openInWindow && codeEditor && codeEditor.isCodeEditor) return codeEditor;
                 var ed = $world.addCodeEditor({
                     title: 'shell command: ' + title,
                     gutter: false, textMode: 'text',
                     extent: pt(400, 500), position: 'center'});
                 ed.owner.comeForward();
-                return ed;
+                return editor = ed;
             }
+
             function runCommand(command) {
-                lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
-                    insertResult && ensureCodeEditor(command).printObject(null, cmd.resultString(true));
+                var ed = ensureCodeEditor(command);
+                if (ed.getWindow()) ed.getWindow().setTitle("[running] " + ed.getWindow().getTitle());
+                var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
+                    !insertProgress && insertResult && ed.printObject(null, cmd.resultString(true));
+                    if (ed.getWindow()) ed.getWindow().setTitle(ed.getWindow().getTitle().replace('[running] ', ''));
                 });
+
+                if (insertProgress) {
+                    ed.collapseSelection('end');
+                    ed.addScript(function insertAndGrowSelection(string) {
+                        var rangeBefore = this.getSelectionRangeAce();
+                        this.printObject(null,string);
+                        var rangeAfter = this.getSelectionRangeAce();
+                        this.setSelectionRangeAce({start: rangeBefore.start, end: rangeAfter.end});
+                    });
+                    lively.bindings.connect(cmd, 'stdout', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
+                    lively.bindings.connect(cmd, 'stderr', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
+                }
             }
-            var cmdString = args && args.shellCommand;
-            if (cmdString) runCommand(cmdString);
-            else {
-                $world.prompt('Enter shell command to run.', function(cmdString) {
-                    if (!cmdString) { show('No command entered, aborting...!'); return; }
-                    runCommand(cmdString);
-                }, {historyId: 'lively.ide.execShellCommand'}).panel.focus();
-            };
+
         }
     },
     'lively.ide.execShellCommandInWindow': {

@@ -2886,6 +2886,10 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
             btn = new lively.morphic.Button(bounds, title),
             btnWidth = btn.bounds().width + this.inset;
         btn.align(btn.bounds().bottomRight().addXY(this.inset, this.inset), this.panel.innerBounds().bottomRight().subXY(btnWidth * mult, 0));
+        btn.applyStyle({
+            moveHorizontal: true,
+            moveVertical: true
+        });
         lively.bindings.connect(btn, 'fire', this, 'removeTopLevel');
         return this.panel.addMorph(btn);
     },

@@ -326,6 +326,7 @@ lively.morphic.MorphList.addMethods(
     buildSpec: function() {
         var spec = $super();
         spec.storedItems = this.itemList.map(function(item) { return item.morph.buildSpec() });
+        return spec;
     }
 });
 

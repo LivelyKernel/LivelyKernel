@@ -123,7 +123,6 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     self.updateDict[entangledMorph][key].setter(entangledMorph, self.entangledAttributes)
             });
             self.baseSpec.set(key, value);
-
         },
     visualize: function() {
         var inspector = lively.BuildSpec('lively.ide.tools.EntanglementInspector').createMorph().openInWorldCenter();
@@ -158,6 +157,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 throw TypeError("Can not entangle to a different kind of Morph!");
             
             // prepare a dictionary that defines the appropriate update call on that entangled morph
+
             var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
             
             var excludes = function(key) {
@@ -229,8 +229,9 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         // Or just 2 -> completely do the creation of morphs by ourselves...
         options = options || []
         options = options.excludes || options; // is this really necessary..? clarity maybe
-        this.augmentBuildSpec(options);
+        //this.augmentBuildSpec(options);
         var morph = this.baseSpec.createMorph();
+        this.entangleWith(morph);
         return morph;
     },
     entangleProperty: function(morph, key, getter, setter, defaultValue) {
@@ -262,8 +263,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 If these are not provided we create some default behavior. */
               
         var self = this;
-        self.updateDict[morph][key] = {};
-        
+		
+        self.updateDict[morph][key] = {};        
         self.updateDict[morph][key].updater = function(entangledMorph) {
             // determine what morphs have been added to the entangledMorph, namely the
             // ones that are entangled by neither of the existing subEntanglements

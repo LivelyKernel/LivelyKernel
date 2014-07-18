@@ -1009,7 +1009,6 @@
             }
 
             var requiredModulesForWorldStart = [
-                'lively.ChangeSets',
                 'lively.lang.Closure',
                 'lively.bindings',
                 'lively.Main'];

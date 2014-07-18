@@ -182,6 +182,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
             e2 = entanglement.createEntangledMorph();
             
         e1.get('sub1').setFill(Color.red);
+        entanglement.update();
         this.assertEquals(e1.get('sub1').getFill(), entanglement.get('sub1').get('_Fill'));
         this.assertEquals(e2.get('sub1').getFill(), Color.red);
     },

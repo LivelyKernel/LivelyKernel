@@ -1694,13 +1694,22 @@ lively.morphic.World.addMethods(
         });
     },
 
-    openWorkspace: function(evt) {
+    openWorkspace: function (evt) {
+        lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() {
+            lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace")
+                .createMorph().openInWorldCenter().getWindow().comeForward();
+        });
+    },
+
+    openTextWindow: function(evt) {
         var editor;
         if (lively.Config.get('useAceEditor')) {
             editor = this.addCodeEditor({
-                title: "Workspace",
+                title: "Text Window",
                 content: "3 + 4",
                 syntaxHighlighting: true,
+                textMode: 'text',
+                extent: lively.Point.fromTuple(lively.Config.get("defaultWorkspaceExtent")),
                 theme: lively.Config.get("aceWorkspaceTheme"),
                 lineWrapping: lively.Config.get("aceDefaultLineWrapping")
             });

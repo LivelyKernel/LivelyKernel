@@ -892,6 +892,37 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return doFunc.call(this, reset);
     },
 
+    mergeUndosOf: function(doFunc) {
+        var ed, undoStackOld, wasMerged = false;
+
+        this.withAceDo(function(aceEd) {
+            ed = aceEd;
+            ed.session.markUndoGroup();
+            undoStackOld = ed.session.getUndoManager().$undoStack.clone();
+            try { doFunc.call(this, mergeUndos); } catch (e) {
+                if (!wasMerged) mergeUndos();
+                throw e;
+            }
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function mergeUndos() {
+            wasMerged = true;
+            var undoStackNew = ed.session.getUndoManager().$undoStack.clone();
+            var deltas = undoStackNew.withoutAll(undoStackOld);
+            var undoStackMerged = deltas.reduce(function(delta, ea) {
+                delta[0].deltas = delta[0].deltas.concat(ea[0].deltas);
+                return delta;
+            });
+            ed.session.getUndoManager().$undoStack = undoStackOld.concat([undoStackMerged]);
+        }
+    },
+
+    undo: function() { return this.withAceDo(function(ed) { return ed.undo(); }); },
+
+    redo: function() { return this.withAceDo(function(ed) { return ed.redo(); }); },
+
     getSelection: function() {
         return this.withAceDo(function(ed) { return ed.selection });
     },
@@ -1566,7 +1597,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var win = this.getWindow();
         if (!win) return null;
 
-        // text editor 
+        // text editor
         if (win.getLocation) return win.getLocation(true);
 
         // SCB

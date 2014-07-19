@@ -137,6 +137,31 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         var result = e.find({inbetween: true, backwards: true, asString: true, needle: /.m/});
         this.assertEquals('ome\ncontent', result);
         this.done();
+    },
+
+    testMergeUndos: function() {
+        var e = this.editor, insertDone = false;
+        e.textString = "some\ncontent";
+        e.setCursorPosition({y: 2, x: 6});
+
+        e.mergeUndosOf(function(triggerMerge) {
+            insertStuff(3, function() { insertDone = true; triggerMerge(); });
+        })
+
+        this.waitFor(function() { return !!insertDone; }, 10, function() {
+            this.assertEquals('some\ncontent\nfoo\nfoo\nfoo\nfoo', e.textString);
+            e.undo();
+            this.assertEquals('some\ncontent', e.textString);
+            this.done();
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function insertStuff(n, thenDo) {
+            if (n < 0) { thenDo && thenDo(); return;}
+            e.insertAtCursor("\nfoo");
+            insertStuff.curry(n-1, thenDo).delay(0.1);
+        }
     }
 
 });
@@ -287,7 +312,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
                 fillColumn: 11
             // }],
             }, { // recognize paragraphs and join lines
-                input: "abc def\n" 
+                input: "abc def\n"
                      + "ghi jkl\n"
                      + "mnn\n"
                      + "pqr stuv\n"

@@ -672,6 +672,10 @@ Object.extend(lively.Point, {
 
     fromLiteral: function(literal) {
         return lively.pt(literal.x, literal.y);
+    },
+
+    fromTuple: function(tuple) {
+        return lively.pt(tuple[0], tuple[1]);
     }
 });
 

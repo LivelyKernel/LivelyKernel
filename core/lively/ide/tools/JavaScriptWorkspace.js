@@ -93,7 +93,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         var keys = Object.keys(vars);
     
         var obs = this.get('workspaceVarObserver');
-        var list = obs.getList();
+        var list = obs.getList() || [];
     
         var preexistingItems = list.filter(function(item) {
                 return keys.include(item.value.key); })

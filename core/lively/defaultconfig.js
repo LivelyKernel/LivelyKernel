@@ -567,6 +567,7 @@ Config.addOptions(
 "lively.ide.tools", [
     ["defaultSCBExtent", [830,515], "Size of SCB"],
     ["defaultTextEditorExtent", [670,600], "Size of TextEditor"],
+    ["defaultWorkspaceExtent", [600,250], "Size of Workspace"],
     ["defaultSCBSourcePaneToListPaneRatio", 0.525, "Ratio how much vertical space the sourcePane vs. the list panes get by default in SCB."],
     ['useHistoryTracking', true, 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future browsers, or not.'],
     ['propertyPreservation', undefined, 'When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked.']

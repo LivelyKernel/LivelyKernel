@@ -846,24 +846,35 @@ Object.extend(lively.ide.commands.byName, {
             }
 
             function runCommand(command) {
-                var ed = ensureCodeEditor(command);
-                if (ed.getWindow()) ed.getWindow().setTitle("[running] " + ed.getWindow().getTitle());
-                var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
-                    !insertProgress && insertResult && ed.printObject(null, cmd.resultString(true));
-                    if (ed.getWindow()) ed.getWindow().setTitle(ed.getWindow().getTitle().replace('[running] ', ''));
-                });
+                var ed = ensureCodeEditor(command), mergeUndos;
 
-                if (insertProgress) {
-                    ed.collapseSelection('end');
-                    ed.addScript(function insertAndGrowSelection(string) {
-                        var rangeBefore = this.getSelectionRangeAce();
-                        this.printObject(null,string);
-                        var rangeAfter = this.getSelectionRangeAce();
-                        this.setSelectionRangeAce({start: rangeBefore.start, end: rangeAfter.end});
+                var title = ed.getWindow().getTitle();
+                if (ed.getWindow()) ed.getWindow().setTitle("[running] " + title);
+
+                ed.mergeUndosOf(function(triggerMerge) {
+                    mergeUndos = triggerMerge;
+
+                    var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
+                        if (!insertProgress && insertResult)
+                            ed.printObject(null, cmd.resultString(true));
+
+                        if (ed.getWindow()) ed.getWindow().setTitle(title);
+
+                        mergeUndos && mergeUndos();
                     });
-                    lively.bindings.connect(cmd, 'stdout', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
-                    lively.bindings.connect(cmd, 'stderr', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
-                }
+
+                    if (insertProgress) {
+                        ed.collapseSelection('end');
+                        ed.addScript(function insertAndGrowSelection(string) {
+                            var rangeBefore = this.getSelectionRangeAce();
+                            this.printObject(null,string);
+                            var rangeAfter = this.getSelectionRangeAce();
+                            this.setSelectionRangeAce({start: rangeBefore.start, end: rangeAfter.end});
+                        });
+                        lively.bindings.connect(cmd, 'stdout', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
+                        lively.bindings.connect(cmd, 'stderr', ed, 'insertAtCursor', {updater: function($upd, string) { $upd(string, false, false, true); }});
+                    }
+                });
             }
 
         }
@@ -963,6 +974,7 @@ Object.extend(lively.ide.commands.byName, {
 
     // tools
     'lively.ide.openWorkspace': {description: 'open Workspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorkspace(); return true; }},
+    'lively.ide.openTextWindow': {description: 'open Text window', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openTextWindow(); return true; }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},
     'lively.ide.openObjectEditor': {description: 'open ObjectEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openObjectEditor().comeForward(); return true; }},
     'lively.ide.openBuildSpecEditor': {description: 'open BuildSpecEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openBuildSpecEditor(); return true; }},

@@ -911,10 +911,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             wasMerged = true;
             var undoStackNew = ed.session.getUndoManager().$undoStack.clone();
             var deltas = undoStackNew.withoutAll(undoStackOld);
-            var undoStackMerged = deltas.reduce(function(delta, ea) {
+            var undoStackMerged = deltas.length ? deltas.reduce(function(delta, ea) {
                 delta[0].deltas = delta[0].deltas.concat(ea[0].deltas);
                 return delta;
-            });
+            }) : [];
             ed.session.getUndoManager().$undoStack = undoStackOld.concat([undoStackMerged]);
         }
     },

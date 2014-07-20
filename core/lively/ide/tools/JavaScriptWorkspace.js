@@ -60,6 +60,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         this.showVars();
     },
         reset: function reset() {
+        this.getPartsBinMetaInfo().addRequiredModule('lively.lang.VM');
         this.setStyleSheet('.list-item { font-size: 9pt; }')
         this.state = {
             doNotSerialize: ['workspaceVars'],
@@ -195,6 +196,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         $super();
+        this.getPartsBinMetaInfo().addRequiredModule('lively.lang.VM');
         this.resetState();
         this.startStepping(1000, 'showVars');
     }

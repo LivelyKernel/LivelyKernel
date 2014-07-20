@@ -1,7 +1,7 @@
 var util  = require("util");
 var async = require("async");
-var fs    = require("fs");
 var path  = require("path");
+var exec = require("child_process").exec;
 
 function uploadFiles(location, formFiles, thenDo) {
 
@@ -16,9 +16,9 @@ function uploadFiles(location, formFiles, thenDo) {
     // them to the specified location
     var report = {uploadedFiles: []};
     async.forEach(files, function(file, next) {
-        var to = path.join(location, file.originalFilename || file.name);
+        var to = path.join(location, file.originalFilename || file.name).replace(/\s/g, '_');
         report.uploadedFiles.push(to);
-        fs.rename(file.path, to, next);
+        exec(['mv', file.path, to].join(' '), next);
     }, function(err) { thenDo(err, report); });
 }
 

@@ -1322,9 +1322,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         mode: 'javascript',
         scriptName: scriptName,
         code: Strings.format(
-            '// changed at %s by %s\nthis.addScript(%s)%s;',
+            '// changed at %s by %s\nthis.addScript(%s%s)%s;',
             script.timestamp, script.user,
             normalizeIndentOfFunctionSouce(script),
+            printVarMapping(script),
             this.printTags(script)),
     };
 
@@ -1333,6 +1334,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
     function normalizeIndentOfFunctionSouce(func) {
         var source = String(func.getOriginal().originalSource || func.getOriginal());
         var lines = Strings.lines(source);
+        if (!lines[1]) return source;
         var normalizedIndent = "    "
         var firstLineIndent = lines[1].match(/^\s*/)[0] || "";
         firstLineIndent = firstLineIndent.slice(normalizedIndent.length);
@@ -1341,6 +1343,17 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             return line.replace(indentFixRe, ""); }).join('\n');
     }
 
+    function printVarMapping(func) {
+        if (!func.hasLivelyClosure) return '';
+        var varM = func.livelyClosure.varMapping;
+        var keys = Object.keys(varM || {}).withoutAll(['this', '$super']);
+        if (!keys.length) return '';
+        var shallowCopy = keys.reduce(function(shallowCopy, key) {
+            shallowCopy[key] = varM[key];
+            return shallowCopy;
+        }, {});
+        return ', null, ' + Objects.inspect(shallowCopy, {maxDepth: 3});
+    }
 },
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
             var name = targetObject.name;

@@ -354,14 +354,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         e.get('foo').set('_Fill', Color.blue);
         this.assertEquals(e.get('foo').get('_Fill'), Color.blue);
     },
-    test03DoesNotConnectPropertiesMoreThanOnce: function() {
-        var b = new lively.morphic.Box(lively.rect(0,0,42,42));
-        var e = b.buildSpec().createEntanglement();
-        var m = e.createEntangledMorph();
-        var conns = m.attributeConnections;
-        var connsNames = conns.map(function(conn) { return conn.sourceAttrName });
-        this.assertEquals(connsNames.every(function(conn) {return connsNames.lastIndexOf(conn) == connsNames.indexOf(conn)}), true);
-    },
+
     test04DealsWithNonReferencedWrapperMorphs: function() {
         // Often submorphs are packed into unnamed and unreferenced Box
         // containers, to allow things like layouting etc. 

@@ -304,9 +304,24 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
 
 
 
-    test14TracksChangesThroughPublicMethods: function() {
+    test14PropagatesChangesAmongEllipses: function() {
         // in addition to exclusions, we can define how array changes
         // should be tracked
+        var e = new lively.morphic.Morph.makeEllipse(pt(0).extent(pt(42,42)));
+        var entanglement = e.buildSpec().createEntanglement();
+        
+        var e1 = entanglement.createEntangledMorph(),
+            e2 = entanglement.createEntangledMorph(),
+            e3 = entanglement.createEntangledMorph();
+            
+        e1.setExtent(pt(100,100));
+        entanglement.update()
+        this.assertEquals(e1.getExtent(), pt(100,100));
+        this.assertEquals(e1.getExtent(), e2.getExtent());
+        debugger;
+        e2.setExtent(pt(50,50));
+        entanglement.update()
+        this.assertEquals(e2.getExtent(), pt(50,50));
     },
 
 

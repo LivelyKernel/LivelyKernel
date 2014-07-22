@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.JS', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes').toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.JS', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes', 'lively.lang.VM').toRun(function() {
 
 lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 'settings', {
@@ -750,12 +750,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
         if (lively.Config.get('improvedJavaScriptEval') && __evalStatement.length < 150000) {
             try {
-                var transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
-                    __evalStatement,
-                    {name: "Global", type: "Identifier"},
-                    {exclude: lively.ast.query.knownGlobals});
-                __evalStatement = transformed.source;
-                $morph('log') && ($morph('log').textString = transformed.source);
+                var result;
+                lively.lang.VM.runEval(__evalStatement, {
+                    context: ctx,
+                    topLevelVarRecorder: Global,
+                    varRecorderName: 'Global',
+                    blacklist: ['Global']
+                }, function(err, _result) { result = err || _result; });
+                return result;
             } catch(e) {
                 if (Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
                 else console.error("Eval preprocess error: %s", e.stack || e);

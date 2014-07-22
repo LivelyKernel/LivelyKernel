@@ -11,7 +11,7 @@ Object.extend(lively.lang.VM, {
         try {
             var transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
                 code, {name: varRecorderName, type: "Identifier"},
-                {ignoreUndeclaredExcept: Object.keys(varRecorder)});
+                {ignoreUndeclaredExcept: Object.keys(varRecorder).without(varRecorderName)});
             code = transformed.source;
         } catch(e) {
             if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
@@ -55,9 +55,10 @@ Object.extend(lively.lang.VM, {
         
         var vm = lively.lang.VM, result, err,
             context = options.context || vm.getGlobal(),
-            recorder = options.topLevelVarRecorder;
+            recorder = options.topLevelVarRecorder,
+            varRecorderName = options.varRecorderName || '__lvVarRecorder';
 
-        if (recorder) code = vm.transformForVarRecord(code, recorder, '__lvVarRecorder');
+        if (recorder) code = vm.transformForVarRecord(code, recorder, varRecorderName);
         code = vm.transformSingleExpression(code);
 
         $morph('log') && ($morph('log').textString = code);

@@ -63,6 +63,27 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
         this.done();
     }
 
-})
+});
+
+AsyncTestCase.subclass('lively.lang.tests.VM.LivelyCompatTests',
+'tests', {
+
+    testAddScriptWithVarMapping: function() {
+        var src = "var obj = {c: 3};\n"
+                + "(function(a) { return a + b + this.c; }).asScriptOf(obj, 'm', {b: 2});\n"
+                + "obj.m(1);\n";
+
+        var result1 = lively.lang.VM.syncEval(src);
+        this.assertEquals(6, result1, 'simple eval not working');
+
+        var result2 = lively.lang.VM.syncEval(src, {topLevelVarRecorder: varMapper});
+        var varMapper = {};
+        this.assertEquals(6, result2, 'capturing eval not working');
+
+        this.assertEquals(0, Object.keys(varMapper), 'varMApper captured stuff');
+        this.done();
+    }
+
+});
 
 }) // end of module

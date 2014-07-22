@@ -4436,6 +4436,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }, varMapping: {item: item, tree: this, hidden: hiddenChildren, button: moreButton}});
         
         item.submorphs = [moreButton]
+        item.mapsTo = function() { return false }
         return item;
     },
 

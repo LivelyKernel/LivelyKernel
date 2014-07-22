@@ -4,6 +4,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
     "initializing", {
         initialize: function() {
             this.isEntanglement = true;
+            this.unsafeSubObjects = []; // list of all attributes, that are not safely entangled
             this.updateDict = {}; // stores the specific update behavior for each entangled morph
             this.entangledAttributes = {}; // seperate store for the synchronized attribute values
             this.subEntanglements = []; // collection of subentanglements, usually corresponds to all submorphs
@@ -30,12 +31,14 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 self.identifier = spec.attributeStore.name;
                 
             var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
-                
             // entangle all the 'primitive' attributes
             morph.getBuildSpecProperties(props).forEach(function(attr) {
                 self.entangledAttributes[attr] = self.baseSpec.attributeStore[attr];
                 if(!self.entangledAttributes[attr]) {
                     self.entangledAttributes[attr] = props[attr] && props[attr].defaultValue;
+                }
+                if(!self.coversData(attr)) {
+                    self.unsafeSubObjects.push(attr);
                 }
             });
             
@@ -70,7 +73,11 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     self.subEntanglements.push(MorphEntanglement.fromSpec(subSpec, alreadyEntangled))
                 })
             return self;
-        }
+        },
+    coversData: function(attributeName) {
+        return !this.entangledAttributes[attributeName] ||
+                this.nonSpecableValues().include(this.entangledAttributes[attributeName].constructor.name)
+    }
     },
     "accessing", {
         get: function(key) {
@@ -229,8 +236,11 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         // Or just 2 -> completely do the creation of morphs by ourselves...
         options = options || []
         options = options.excludes || options; // is this really necessary..? clarity maybe
+        //by default we exclude all the unsafe subObjects from entanglement
+        options = options.concat(this.unsafeSubObjects);
         this.augmentBuildSpec(options);
         var morph = this.baseSpec.createMorph();
+        this.restoreBuildSpec();
         return morph;
     },
     entangleProperty: function(morph, key, getter, setter, defaultValue) {
@@ -247,7 +257,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         
         self.updateDict[morph][key] = {setter: setter};
         self.updateDict[morph][key].updater = lively.Closure.fromFunction(function(morph) {
-            var val = getter(morph);
+            var val = getter(morph, morph[key]);
             if(self.get(key) != val) {
                 self.updatingMorph = morph;
                 self.set(key, val); // synchronously triggers update in all other morphs
@@ -371,6 +381,17 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                                   sourceAttribute: reverseConn.sourceAttrName },
                                   action);
     },
+    restoreBuildSpec: function() {
+        this.baseSpec.createMorph = this.originalCreationFn.bind(this.baseSpec);
+    },
+    nonSpecableValues: function() {
+        // this list may change in the future, but these are all
+        // the values, that can be entered 'directly' through an interface.
+        // if we provide more means to directly create and inspect more
+        // kinds of objects, this list may be extended in the future
+        
+        return ['Boolean', 'String', 'Number', 'Point', 'Color', 'Array'];
+    },
     entangles: function(morph) {
         return this.entangledMorphs.include(morph);
     },
@@ -414,7 +435,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             
             self.updatingMorph = instance;
             
-            if(oldArray.any(function(obj) { return obj.isSpecObject }))
+            if(oldArray.any(function(obj) { return obj.isSpecObject }) || 
+               newArray.any(function(obj) { return obj.isSpecObject }) )
                 self.handleSubentanglementArray(oldArray, newArray, propertyName, modifiers, instance);
             else
                 self.handleObjectArray(oldArray, newArray, propertyName, modifiers);
@@ -462,7 +484,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         
         throw Error("Unknown mode " + mode);
     },
-    handleSubentanglementArray: function(newArray, oldArray, propertyName, modifiers, instance) {
+    handleSubentanglementArray: function(oldArray, newArray, propertyName, modifiers, instance) {
         //in case the array contain sub-entanglements, we can no longer
         // determine changes through the identy of the elements we can
         // retreive thruogh the getter/setter of the array, as new spec

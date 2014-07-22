@@ -267,9 +267,14 @@
             }
         }
 
+        platformConsole.removeWrappers = removeWrappers;
+        platformConsole.addWrappers = addWrappers;
+
         platformConsole.addConsumer = function(c) {
-            addWrappers();
-            consumers.push(c);
+            if (consumers.indexOf(c === -1)) {
+                addWrappers();
+                consumers.push(c);
+            }
         };
 
         platformConsole.removeConsumer = function(c) {

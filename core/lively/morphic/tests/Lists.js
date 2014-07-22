@@ -229,6 +229,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.MorphicList', lively.morphic.
 
 AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
 'testing', {
+
     test01SetAndRetrieveStringItems: function() {
         var list = new lively.morphic.List(new Rectangle(0, 0, 100, 100), ['1', '2', '3']);
         this.assertEquals(['1', '2', '3'], list.itemList);
@@ -417,6 +418,38 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
         list.moveUpInList(2, true);
         this.assertEquals([2,3, 1], list.getList(), 'move up not working');
         this.assertEquals(2, list.getSelection(), 'sel 2 not working');
+        this.done();
+    },
+
+    testSelectAll: function() {
+        var list = new lively.morphic.List(lively.rect(0, 0, 100, 100), [1,2,3,4]);
+        list.selectAll();
+        this.assertEquals([], list.selectedIndexes, "selectedIndexes, no multi select");
+        list.enableMultipleSelections();
+        list.selectAll();
+        this.assertEquals([0,1,2,3], list.selectedIndexes, "selectedIndexes, no multi select");
+        this.done();
+    },
+
+    testAddCSSClassesToItems: function() {
+        var items = [
+                {isListItem: true, string: 'a', value: 1, cssClassNames: ['foo', 'bar']},
+                {isListItem: true, string: 'b', value: 2, cssClassNames: ['foo', 'baz']}],
+            list = new lively.morphic.List(lively.rect(0, 0, 100, 100), items);
+
+        var cssClasses1 = list.getItemMorphs()
+            .invoke('getStyleClassNames')
+            .invoke('withoutAll', ['Morph', 'Text']),
+            expected1 = [['foo', 'bar', 'list-item'], ['foo', 'baz', 'list-item']];
+        this.assertEquals(expected1, cssClasses1, 'cssClasses 1');
+
+        list.saveSelectAt(1)
+        var cssClasses2 = list.getItemMorphs()
+            .invoke('getStyleClassNames')
+            .invoke('withoutAll', ['Morph', 'Text']),
+            expected2 = [['foo', 'bar', 'list-item'], ['foo', 'baz', 'selected', 'list-item']];
+        this.assertEquals(expected2, cssClasses2, 'cssClasses 2');
+
         this.done();
     }
 

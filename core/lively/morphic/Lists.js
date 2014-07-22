@@ -1208,14 +1208,26 @@ lively.morphic.Box.subclass('lively.morphic.List',
     renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
         this.ensureItemMorphs(to-from, layout).forEach(function(itemMorph, i) {
             var listIndex = from+i,
-                selected = selectedIndexes.include(listIndex);
+                selected = selectedIndexes.include(listIndex),
+                item = items[listIndex];
             itemMorph.setPointerEvents('auto');
             itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
-            itemMorph.textString = this.renderFunction(items[listIndex]);
+            itemMorph.textString = this.renderFunction(item);
+
+            var oldCssClasses = itemMorph.getStyleClassNames().withoutAll(["Morph","Text","list-item"]);
+            var newCssClasses = item.cssClassNames ? item.cssClassNames.clone() : [];
+            selected && newCssClasses.push('selected');
+
+            if (!oldCssClasses.equals(newCssClasses)) {
+                newCssClasses.push('list-item');
+                itemMorph.setStyleClassNames(newCssClasses);
+            }
+
             if (selected !== itemMorph.selected) {
-                itemMorph.setIsSelected(selected, true/*suppress update*/);
+                // itemMorph.setIsSelected(selected, true/*suppress update*/);
+                lively.bindings.noUpdate(function() { itemMorph.selected = selected; });
             }
         }, this);
     },

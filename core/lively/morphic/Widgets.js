@@ -4222,9 +4222,9 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 if (item.children) this.expand();
             } else {
                 this.initializeNode();
+                this.label.fit();
+                this.node.applyLayout();
             }
-            this.label.fit();
-            this.node.applyLayout();
         });
     },
     searchFor: function(term) {

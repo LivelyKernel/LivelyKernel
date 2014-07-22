@@ -1176,7 +1176,7 @@ Object.extend(lively.ast.query, {
        "window", "document", "console",
        "Node", "HTMLCanvasElement", "Image", "Class",
        "Global", "Functions", "Objects", "Strings",
-       "module", "lively", "pt", "rect", "rgb", "$super", "$morph", "$world"],
+       "module", "lively", "pt", "rect", "rgb", "$super", "$morph", "$world", "show"],
 
     scopes: function(ast) {
         var vis = new lively.ast.ScopeVisitor();

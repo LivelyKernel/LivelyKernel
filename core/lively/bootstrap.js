@@ -571,20 +571,9 @@
                 var loadDebugCode = JSLoader.getOption('loadRewrittenCode')
                                  && !suppressDebug
                                  && !this.isCrossDomain(url);
-                if (loadDebugCode) {
-                    var idx = url.lastIndexOf('/') + 1,
-                        dbgURL = url.slice(0,idx) + 'DBG_' + url.slice(idx),
-                        wasLoaded = false;
-                    JSLoader.getViaXHR(loadSync, dbgURL, function(err, content) {
-                        if (err) {
-                            JSLoader.loadedURLs = JSLoader.loadedURLs.filter(function(ea) { return ea !== url; });
-                            JSLoader.loadJs(url, onLoadCb, loadSync, okToUseCache, cacheQuery, true)
-                            // JSLoader.getViaXHR(loadSync, url, function(err, content) {})
-                        } else {
-                            JSLoader.evalJavaScriptFromURL(dbgURL, content, onLoadCb);
-                        }
-                    });
-                    return;
+                if (loadDebugCode && !url.match(/\/BootstrapDebugger\.js$/)) {
+                    var idx = url.lastIndexOf('/') + 1;
+                    url = url.slice(0,idx) + 'DBG_' + url.slice(idx);
                 }
 
                 if (okToUseCache === undefined) okToUseCache = true;

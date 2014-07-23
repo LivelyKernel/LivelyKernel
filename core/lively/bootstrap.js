@@ -909,7 +909,7 @@
                 'core/lively/Base.js',
                 'core/lively/ModuleSystem.js']
             return JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles,"core/lively/store/Interface.js","core/lively/ast/Debugging.js") :
+                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
                 normalBootstrapFiles;
         })(),
         codeBase = (function findCodeBase() {
@@ -1006,6 +1006,8 @@
                 'lively.lang.Closure',
                 'lively.bindings',
                 'lively.Main'];
+            if (JSLoader.getOption('loadRewrittenCode'))
+                requiredModulesForWorldStart.unshift('lively.store.Interface', 'lively.ast.Debugging');
 
             lively.require(requiredModulesForWorldStart).toRun(function() {
                 lively.Config.loadUserConfigModule();

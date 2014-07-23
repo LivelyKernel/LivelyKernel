@@ -428,7 +428,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
 
         self.updateDict[instance][propertyName] = {};
         self.updateDict[instance][propertyName].updater = lively.Closure.fromFunction(function(instance) {
-            var oldArray = self.entangledAttributes[propertyName];
+            var oldArray = self.entangledAttributes[propertyName] || [];
             var newArray = getter(instance, instance[propertyName]);
             
             if(oldArray.toString() == newArray.toString()) return; // nothing to update

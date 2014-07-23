@@ -4230,7 +4230,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     searchFor: function(term) {
         var results = this.searchTargetForTerm(this.target, term);
         var containerMorph = this.getRootTree().owner;
-        results = this.pruneSearchResults(results);
+        results = this.pruneSearchResults(results) || {};
         results.name = 'Searching...'
         this.setItem(results);
         Functions.debounce(100, this.expandAll.curry(containerMorph), false).bind(this)();
@@ -4688,17 +4688,22 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
         res.mapsTo = function(obj) { return target == obj };
 
-        if(target.children){
-            hit = true;
+        if(target.children && target.children.length > 0){
             res.name = target.name;
             var subRes = []; // perform a search in all the children
             target.children.forEach(function(child) { 
                 var s = this.searchTargetForTerm(child, term);
-                s && subRes.push(s);
+                if(s) {
+                    subRes.push(s);
+                    hit = true;
+                }
             }, this);
             if(subRes.length)
                 res.children = subRes;
         }
+        
+        if(res.children && res.children.length > 0)
+            hit = true
 
         return hit ? res : undefined;
     }   ,
@@ -4738,7 +4743,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         })
     },
     pruneSearchResults: function(resultTree) {
-        if(!resultTree.children)
+        if(!resultTree || !resultTree.children)
             return resultTree;
         var branches = resultTree.children.filter(function (item) { return item.children && !item.isMoreNode });
         var leaves = resultTree.children.withoutAll(branches);

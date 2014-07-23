@@ -584,7 +584,7 @@
                     exactUrl = this.makeUncached(exactUrl, cacheQuery);
                 }
 
-                return loadSync ?
+                return loadSync || JSLoader.getOption('onLoadRewrite') ?
                     this.loadViaXHR(loadSync, exactUrl, onLoadCb) :
                     this.loadViaScript(exactUrl, onLoadCb);
             },

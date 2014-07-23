@@ -4664,8 +4664,14 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 
         var res = {}
         var hit = false;
-        // inspect name and description
-        var i = target.name.match(new RegExp(term, 'i'));
+        var i;
+        if(target.searchFunction){
+            // if a custom search function is supplied, use that
+            i = target.searchFunction(term)
+        } else {
+            // inspect name and description
+            i = target.name.match(new RegExp(term, 'i'));
+        }
         if(i) {
             i = i.index;
             hit = true;

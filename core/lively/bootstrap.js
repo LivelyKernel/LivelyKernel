@@ -1007,7 +1007,7 @@
                 'lively.bindings',
                 'lively.Main'];
             if (JSLoader.getOption('loadRewrittenCode'))
-                requiredModulesForWorldStart.unshift('lively.store.Interface', 'lively.ast.Debugging');
+                requiredModulesForWorldStart.unshift('lively.ast.Debugging');
 
             lively.require(requiredModulesForWorldStart).toRun(function() {
                 lively.Config.loadUserConfigModule();

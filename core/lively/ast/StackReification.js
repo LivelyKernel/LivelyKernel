@@ -153,16 +153,7 @@ Object.extend(Global, {
 
     __createClosure: Global.__createClosure || function(idx, parentFrameState, f) {
         // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
-        var ast = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
-        // FIXME: duplicate from lively.ast.Rewriting > setupUnwindException AND __getClosure
-        if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {
-            // reference instead of complete ast
-            ast = acorn.walk.findNodeByAstIndex(
-                lively.ast.Rewriting.getCurrentASTRegistry()[ast.registryRef],
-                ast.indexRef
-            );
-        }
-        f._cachedAst = ast;
+        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
         // parentFrameState = [computedValues, varMapping, parentParentFrameState]
         f._cachedScopeObject = parentFrameState;
         f.livelyDebuggingEnabled = true;
@@ -171,15 +162,7 @@ Object.extend(Global, {
 
     // FIXME naming -- actually we return the ast node not a closure
     __getClosure: Global.__getClosure || function(idx) {
-        var entry = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
-        if (entry && entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef')) {
-            // reference instead of complete ast
-            entry = findNodeByAstIndex(
-                lively.ast.Rewriting.getCurrentASTRegistry()[entry.registryRef],
-                entry.indexRef
-            );
-        }
-        return entry; // ast
+        return lively.ast.Rewriting.getCurrentASTRegistry()[idx]; // ast
     }
 
 });

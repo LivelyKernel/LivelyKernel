@@ -611,7 +611,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         }
 
         this.enterScope();
-        this.astRegistry.push({ registryRef: originalRegistryIndex, indexRef: node.astIndex });
+        this.astRegistry.push(node);
         var astRegistryIndex = this.astRegistry.length - 1,
             args = this.registerVars(node.params), // arguments
             rewriteVisitor = new lively.ast.Rewriting.RewriteVisitor(originalRegistryIndex),
@@ -1214,11 +1214,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }
 
         rewriter.enterScope();
-        rewriter.astRegistry.push({ registryRef: this.registryIndex, indexRef: n.astIndex });
+        rewriter.astRegistry.push(n);
         var astRegistryIndex = rewriter.astRegistry.length - 1,
             args = rewriter.registerVars(n.params), // arguments
             decls = rewriter.registerDeclarations(n.body, this), // locals
-            rewritten = this.accept(n.body, rewriter);
+            rewritten = this.accept(astToRewrite.body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',
@@ -1683,28 +1683,9 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
     lively.ast.Rewriting.createClosureBaseDef =
         "window.__createClosure = function __createClosure(idx, parentFrameState, f) {\n"
       + "    var ast = LivelyDebuggingASTRegistry[idx];\n"
-      + "    if (ast && ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef'))\n"
-      + "        // lazily solve reference to complete ast\n"
-      + "        Object.defineProperty(f, '_cachedAst', {\n"
-      + "            configurable: true, // important for delete\n"
-      + "            get: function() {\n"
-      + "                var cachedAst = findNodeByAstIndex(LivelyDebuggingASTRegistry[ast.registryRef], ast.indexRef);\n"
-      + "                delete this._cachedAst;\n"
-      + "                this._cachedAst = cachedAst;\n"
-      + "                return cachedAst;\n"
-      + "            }\n"
-      + "        });\n"
-      + "    else if (ast == null)\n"
-      + "        // lazily solve reference to complete ast\n"
-      + "        Object.defineProperty(f, '_cachedAst', {\n"
-      + "            configurable: true, // important for delete\n"
-      + "            get: function() {\n"
-      + "                var cachedAst = __getClosure(idx);\n"
-      + "                delete this._cachedAst;\n"
-      + "                this._cachedAst = cachedAst;\n"
-      + "                return cachedAst;\n"
-      + "            }\n"
-      + "        });\n"
+      + "    if (ast == null)\n"
+      + "        // THIS SHOULD NEVER HAPPEN! NEVER.\n"
+      + "        throw new Error('Could not find AST index in registry.');\n"
       + "    else\n"
       + "        f._cachedAst = ast;\n"
       + "    // parentFrameState = [computedValues, varMapping, parentParentFrameState]\n"
@@ -1720,34 +1701,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
       + "    return f;\n"
       + "}\n\n"
       + "window.__getClosure = function __getClosure(idx) {\n"
-      + "    // FIXME: should be done in AST registry object instead\n"
-      + "    function fetchMissingASTRegistry(idx) {\n"
-      + "        var store = new lively.store.ObjectRepository(),\n"
-      + "            result = store.getASTRegistryIndex(idx);\n"
-      + "        console.log('Extending LivelyDebuggingASTRegistry for ' + idx + ' with (' + result.registry_id + ' to ' + (result.registry_id + result.additions_count) + ')');"
-      + "        if (result.ast && result.registry_additions) {\n"
-      + "            try {\n"
-      + "                LivelyDebuggingASTRegistry[result.registry_id] = eval('(' + result.ast + ')');\n"
-      + "                var additions = JSON.parse(result.registry_additions);\n"
-      + "                additions.forEach(function(ref, idx) {\n"
-      + "                    LivelyDebuggingASTRegistry[result.registry_id+idx+1] = ref;\n"
-      + "                });\n"
-      + "            } catch (e) {\n"
-      + "                console.error(e && e.stack || e);// fail silent if anything happens\n"
-      + "            }\n"
-      + "        }\n"
-      + "        return LivelyDebuggingASTRegistry[idx];\n"
-      + "    }\n"
-      + "    var ast = LivelyDebuggingASTRegistry[idx];\n"
-      + "    if (ast == null && lively.store && lively.store.ObjectRepository)\n"
-      + "        ast = fetchMissingASTRegistry(idx);\n"
-      + "    if (ast.hasOwnProperty('registryRef') && ast.hasOwnProperty('indexRef')) {\n"
-      + "        // reference instead of complete ast\n"
-      + "        ast = findNodeByAstIndex(\n"
-      + "            LivelyDebuggingASTRegistry[ast.registryRef],\n"
-      + "            ast.indexRef);\n"
-      + "    }\n"
-      + "    return ast;\n"
+      + "    return LivelyDebuggingASTRegistry[idx];\n"
       + "}\n";
 
     lively.ast.Rewriting.UnwindExceptionBaseDef =

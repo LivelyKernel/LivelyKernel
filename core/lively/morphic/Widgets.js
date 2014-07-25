@@ -4732,6 +4732,54 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 
         return hit ? res : undefined;
     }   ,
+    onKeyDown: function($super, evt) {
+        // enter comment here
+        alertOK(evt.getKeyString());
+        if(evt.getKeyString() === 'Command-F') {
+            if(!this.searchBar) this.createSearchBar();
+            else this.exitSearch();
+            return true;
+        } else {
+            return $super(evt);
+        }
+    },
+    searchFor: function(term) {
+        //var results = this.searchTargetForTerm(this.target, term);
+        //var containerMorph = this.getRootTree().owner;
+        //results = this.pruneSearchResults(results) || {};
+        //results.name = 'Searching...'
+        //this.setItem(results);
+        Functions.debounce(100, this.renderSearchView.curry(term), false).bind(this)();
+    },
+    renderSearchView: function(term, expandAll) {
+        var found = false;
+        var i;
+        this.collapse();
+        if(this.item.searchFunction){
+            // if a custom search function is supplied, use that
+            i = this.item.searchFunction(term)
+        } else {
+            // inspect name and description
+            i = this.item.name.match(new RegExp(term, 'i'));
+        }
+        if(i){
+            found = true;
+            i = i.index;
+            // render the node accordingly to highlight the searchterm
+            this.label.emphasizeRanges([[i,i + term.length, {fontWeight: 'bold', color: Color.tangerine}]])
+        }
+        if((this.item.children && this.item.children.length > 0) || expandAll) {
+            this.expand();
+            if(this.childNodes.map(function(child) { return child.renderSearchView(term) })
+                              .any(function(found) { return found } )) 
+                found = true;
+            else
+                this.collapse();
+        }
+        if(!found && this.parent)
+            this.remove();
+        return found
+    },
     moreButtonSpec: function() {
         return lively.BuildSpec({
                 _BorderColor: Color.rgb(189,190,192),

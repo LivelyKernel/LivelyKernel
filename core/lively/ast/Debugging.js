@@ -169,16 +169,18 @@ Object.extend(JSLoader, {
         }
 
         // rewrite code
-        var ast = lively.ast.acorn.parse(source, { locations: true });
-        var rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry);
-        var rewrittenSource = Strings.format(
+        var url = url.indexOf(LivelyLoader.rootPath) == 0 ? url.substr(LivelyLoader.rootPath.length) : url,
+            ast = lively.ast.acorn.parse(source, { locations: true, directSourceFile: url }),
+            rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry),
+            rewrittenSource = Strings.format(
                 '(function() {\n%s\n%s\n})();',
                 escodegen.generate(rewrittenAst),
                 declarationForGlobals(rewrittenAst)
             );
+        ast.source = source;
 
         try {
-            // adding sourceURL improves debugging as it will be used
+            // adding sourceURL improves conventional debugging as it will be used
             // in stack traces by some debuggers
             eval.call(Global, rewrittenSource + "\n//# sourceURL=" + url);
         } catch (e) {

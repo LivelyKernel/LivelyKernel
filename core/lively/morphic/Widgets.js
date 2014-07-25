@@ -3757,6 +3757,7 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
 
     style: {fill: Color.gray, enableDragging: true},
 
+
 },
 'initializing', {
 
@@ -4170,6 +4171,38 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         {
             this.setItem(item);
         }
+        if(!this.parent) 
+            this.initializeWrapping();
+    },
+
+    initializeWrapping: function() {
+            // do some futher wrapping, to make the optional search bar work
+            var wrapper = new lively.morphic.Box(this.getBounds());
+            wrapper.setPosition(this.getPosition())
+            wrapper.setClipMode('scroll');
+            wrapper.setLayouter({type: 'vertical'});
+            wrapper.layout.resizeHeight = true;
+            wrapper.layout.resizeWidth = true;
+            var snapper = new lively.morphic.Box(this.getBounds())
+            snapper.setLayouter({type: 'vertical'});
+            snapper.getLayouter().setSpacing(0);
+            snapper.getLayouter().setBorderSize(0);
+            snapper.layout.resizeHeight = true;
+            snapper.layout.resizeWidth = true;
+            snapper.layout.informSubmorphs = true;
+            var container = this.owner;
+            wrapper.addMorph(this);
+            snapper.addMorph(wrapper);
+            if(container) { 
+                container.addMorph(snapper);
+                snapper.setPosition(pt(0))
+                snapper.setExtent(container.getExtent());
+                container.setClipMode('hidden');
+            }
+            wrapper.setPosition(pt(0))
+            this.setPosition(pt(0))
+            this.snapper = snapper;
+            this.wrapper = wrapper;
     },
 
     initializeLayout: function() {
@@ -4227,14 +4260,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             }
         });
     },
-    searchFor: function(term) {
-        var results = this.searchTargetForTerm(this.target, term);
-        var containerMorph = this.getRootTree().owner;
-        results = this.pruneSearchResults(results) || {};
-        results.name = 'Searching...'
-        this.setItem(results);
-        Functions.debounce(100, this.expandAll.curry(containerMorph), false).bind(this)();
-    },
+
     getSelection: function() {
         var sel = this.getSelectedTree();
         return sel && sel.item;
@@ -4273,13 +4299,17 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         }
     },
     updateView: function(scrollingBounds) {
-        if(this.childNodes) { 
-            this.childNodes.filter(function(tree) { return !tree.outsideOf(scrollingBounds) && tree.expandFully })
-                           .map(function(tree) { 
-                               tree.expand();
-                               tree.childNodes && tree.childNodes.forEach(function(n) { n.expandFully = true }); 
-                               tree.updateView(scrollingBounds);
-                            });
+        Functions.debounce(1000, update, false).bind(this)();
+        function update() {
+            if(this.childNodes) { 
+                this.childNodes.filter(function(tree) { 
+                    return !tree.outsideOf(scrollingBounds) && tree.expandFully 
+                                }).map(function(tree) { 
+                                   tree.expand();
+                                   tree.childNodes && tree.childNodes.forEach(function(n) { n.expandFully = true }); 
+                                   tree.updateView(scrollingBounds);
+                                });
+            }
         }
     },
     updateIcon: function() {
@@ -4407,16 +4437,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
 
     createSearchBar: function(target) {
-        if(target) {
-            this.target = target; // make sure that the target is marshalled correctly
-            this.searchBar = this.getSearchBarSpec().createMorph();
-            this.addMorph(this.searchBar, this.node);
-            this.fitToOwner();
-            connect(this.searchBar.get('SearchField'), 'textString', this, 'searchFor');
-        }
-        // if the user can not provide a pre-marshalled structure,
-        // that corresponds with the object to be searched,
-        // the search feature can not be implemented currently
+        if(!this.snapper)
+            this.initializeWrapping();
+        this.searchBar = this.getSearchBarSpec().createMorph();            
+        this.snapper.addMorph(this.searchBar, this.wrapper);
+        connect(this.searchBar.get('SearchField'), 'textString', this, 'searchFor');
     },
 
     createMoreEntry: function(hiddenChildren) {

@@ -4751,10 +4751,11 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         //this.setItem(results);
         Functions.debounce(100, this.renderSearchView.curry(term), false).bind(this)();
     },
-    renderSearchView: function(term, expandAll) {
+    renderSearchView: function(term) {
         var found = false;
         var i;
         this.collapse();
+        this.label.unEmphasizeAll();
         if(this.item.searchFunction){
             // if a custom search function is supplied, use that
             i = this.item.searchFunction(term)
@@ -4768,7 +4769,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
             // render the node accordingly to highlight the searchterm
             this.label.emphasizeRanges([[i,i + term.length, {fontWeight: 'bold', color: Color.tangerine}]])
         }
-        if((this.item.children && this.item.children.length > 0) || expandAll) {
+        if(this.item.children && this.item.children.length > 0) {
             this.expand();
             if(this.childNodes.map(function(child) { return child.renderSearchView(term) })
                               .any(function(found) { return found } )) 
@@ -4833,7 +4834,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     },
     exitSearch: function() {
         this.searchBar.remove();
-        this.setItem(this.target);
+        // this.setItem(this.target);
         // TODO: preserve expansion from before the search
     },
     getSearchBarSpec: function() {

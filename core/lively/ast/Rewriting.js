@@ -58,7 +58,6 @@ Object.extend(lively.ast.Rewriting, {
         // helper
         function createDebuggingBootstrap() {
             var code = [
-                    lively.ast.Rewriting.findNodeByAstIndexBaseDef,
                     lively.ast.Rewriting.createClosureBaseDef,
                     lively.ast.Rewriting.UnwindExceptionBaseDef
                 ],
@@ -1649,43 +1648,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
 (function setupUnwindException() {
 
-    lively.ast.Rewriting.findNodeByAstIndexBaseDef =
-        "window.findNodeByAstIndex = function findNodeByAstIndex(ast, astIndexToFind) {\n"
-      + "    if (ast.astIndex === astIndexToFind) return ast;\n"
-      + "    var i, j, node, nodes, found = null,\n"
-      + "        props = Object.getOwnPropertyNames(ast);\n"
-      + "    for (i = 0; i < props.length; i++) {\n"
-      + "        node = ast[props[i]];\n"
-      + "        if (node instanceof Array) {\n"
-      + "            nodes = node;\n"
-      + "            for (j = 0; j < nodes.length; j++) {\n"
-      + "                node = nodes[j];\n"
-      + "                if (node.key && node.value) {\n"
-      + "                    if (node.key.astIndex >= astIndexToFind)\n"
-      + "                        found = findNodeByAstIndex(node.key, astIndexToFind);\n"
-      + "                    else if (node.value.astIndex >= astIndexToFind)\n"
-      + "                        found = findNodeByAstIndex(node.value, astIndexToFind);\n"
-      + "                    if (found !== null) break;\n"
-      + "                    continue;\n"
-      + "                } else if (!node || (node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
-      + "                found = findNodeByAstIndex(node, astIndexToFind);\n"
-      + "                if (found !== null) break;\n"
-      + "            }\n"
-      + "            if (found !== null) break;\n"
-      + "            continue;\n"
-      + "        } else if (!node || (node.type == null) || (node.astIndex < astIndexToFind)) continue;\n"
-      + "        found = findNodeByAstIndex(node, astIndexToFind);\n"
-      + "        if (found !== null) break;\n"
-      + "    }\n"
-      + "    return found;\n"
-      + "};\n";
-
     lively.ast.Rewriting.createClosureBaseDef =
         "window.__createClosure = function __createClosure(idx, parentFrameState, f) {\n"
       + "    var ast = LivelyDebuggingASTRegistry[idx];\n"
       + "    if (ast == null)\n"
       + "        // THIS SHOULD NEVER HAPPEN! NEVER.\n"
-      + "        throw new Error('Could not find AST index in registry.');\n"
+      + "        throw new Error('Could not find AST index ' + idx + ' in registry.');\n"
       + "    else\n"
       + "        f._cachedAst = ast;\n"
       + "    // parentFrameState = [computedValues, varMapping, parentParentFrameState]\n"
@@ -1717,6 +1685,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     // when debugging is enabled UnwindException can do more...
     UnwindException.addMethods({
+
         recreateFrames: function() {
             this.frameInfo.forEach(function(frameInfo) {
                 this.createAndShiftFrame.apply(this, Array.from(frameInfo));

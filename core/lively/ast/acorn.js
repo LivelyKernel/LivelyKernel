@@ -53,12 +53,7 @@ Object.extend(acorn.walk, {
         // func args: node, state, depth, type
         options = options || {};
         var traversal = options.traversal || 'preorder'; // also: postorder
-        var visitors = options.visitors ? Object.extend({}, options.visitors) : acorn.walk.make({
-            MemberExpression: function(node, st, c) {
-                c(node.object, st, "Expression");
-                c(node.property, st, "Expression");
-            }
-        });
+        var visitors = Object.extend({}, options.visitors ? options.visitors : acorn.walk.visitors.withMemberExpression);
         var iterator = traversal === 'preorder' ?
             function(orig, type, node, depth, cont) { func(node, state, depth, type); return orig(node, depth+1, cont); } :
             function(orig, type, node, depth, cont) { var result = orig(node, depth+1, cont); func(node, state, depth, type); return result; };
@@ -79,12 +74,7 @@ Object.extend(acorn.walk, {
 
     findNodesIncluding: function(ast, pos, test, base) {
         var nodes = [];
-        base = base || acorn.walk.make({
-            MemberExpression: function(node, st, c) {
-                c(node.object, st, "Expression");
-                c(node.property, st, "Expression");
-            }
-        });
+        base = base || Object.extend({}, acorn.walk.visitors.withMemberExpression);
         Object.keys(base).forEach(function(name) {
             var orig = base[name];
             base[name] = function(node, state, cont) {
@@ -798,7 +788,25 @@ Object.extend(acorn.walk, {
         return beforeOrAfter === 'before' ?
             siblingsWithNode.slice(0, nodeIdxInSiblings) :
             siblingsWithNode.slice(nodeIdxInSiblings + 1);
-    }
+    },
+
+    visitors: []
+
+});
+
+// cached visitors that are used often
+Object.extend(acorn.walk.visitors, {
+
+    stopAtFunctions: acorn.walk.make({
+        'Function': function() { /* stop descent */ }
+    }),
+
+    withMemberExpression: acorn.walk.make({
+        MemberExpression: function(node, st, c) {
+            c(node.object, st, "Expression");
+            c(node.property, st, "Expression");
+        }
+    })
 
 });
 

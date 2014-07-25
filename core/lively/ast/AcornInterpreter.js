@@ -131,9 +131,7 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
                 if (type != 'FunctionDeclaration') return;
                 self.visitFunctionDeclaration(node, { currentFrame: frame });
             }
-        }, null, { visitors: acorn.walk.make({
-            'Function': function() { /* stop descent */ }
-        })});
+        }, null, { visitors: acorn.walk.visitors.stopAtFunctions });
     },
 
     invoke: function(recv, func, argValues, frame, isNew) {

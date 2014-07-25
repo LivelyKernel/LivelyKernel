@@ -321,9 +321,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 if (scope.localVars.indexOf(node.id.name) == -1)
                     scope.localVars.push(node.id.name);
             }
-        }, decls, {
-            visitors: acorn.walk.make({'Function': function() { /* stop descent */ }})
-        });
+        }, decls, { visitors: acorn.walk.visitors.stopAtFunctions });
 
         return Object.getOwnPropertyNames(decls).map(function(decl) {
             var node = decls[decl];

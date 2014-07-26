@@ -61,7 +61,15 @@ Object.extend(Object, {
     },
 
     clone: function(object) {
-        return Array.isArray(object) ? object.clone() : Object.extend({}, object);
+        var newObj;
+        if (Array.isArray(object))
+            newObj = object.clone();
+        else {
+            newObj = {};
+            for (var attr in object)
+                newObj[attr] = object[attr];
+        }
+        return newObj;
     },
 
     isElement: function(object) {

@@ -476,7 +476,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         this.assertASTMatchesCode(result, expected);
     },
 
-    test26CompressedAstRegistryRewrite: function() {
+    xtest26CompressedAstRegistryRewrite: function() {
         var registry = lively.ast.Rewriting.getCurrentASTRegistry();
         this.assertEquals(0, registry.length, 'registry not empty at the beginning');
 

@@ -851,15 +851,17 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             printInspect: function printInspect(options) {
             var self = this,
                 s = this.getSelectionMaybeInComment(),
-                code = Strings.format(
-                  "var inspector, result;\n"
-                + "if (typeof Objects !== 'undefined') inspector = Objects;\n"
-                + "else if (typeof lv !== 'undefined') inspector = lv;\n"
+                code = Global.Strings.format(
+                  "var inspector, options, depth = %s, result;\n"
+                + "if (typeof Objects !== 'undefined') { inspector = Objects; options = {maxDepth: depth}; }\n"
+                + "else if (typeof lv !== 'undefined') { inspector = lv; }\n"
+                + "else if (typeof process !== 'undefined' && typeof require !== 'undefined') { inspector = require('util'); options = {depth: depth-1}; }\n"
                 + "else throw new Error('no inspect available');\n"
                 + "try { result = (function() { return %s })(); } catch(e) { result = e; }\n"
-                + "inspector.inspect(result, {maxDepth: %s});\n", s, options.depth || 1);
+                + "inspector.inspect(result, options);\n", options.depth || 1, s);
+            this.collapseSelection('end');
             this.remoteEval(code, function(err, result) {
-                self.printObject(null, String(err || result));
+                self.insertAtCursor(String(err || result), true, false, true);
             });
         },
             remoteEval: function remoteEval(code, doFunc) {

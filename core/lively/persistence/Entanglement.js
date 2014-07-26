@@ -409,7 +409,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         //FIXME: Do not alter the morph, that has triggered the whole removal
         // removeAll entangled morphs without
         var self = this;
-        self.entangledMorphs.forEach(function(entangled) { entangled.remove() })
+        self.entangledMorphs.forEach(function(entangled) { 
+                var hand = entangled.hand();
+                if(hand && !hand.submorphs.include(entangled))
+                    entangled.remove(); })
         
         // disconnect from morphs
         self.entangledMorphs.forEach(function(entangled) { self.disconnectMorph(entangled); });
@@ -528,6 +531,13 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             self.subEntanglements.remove(entanglement);
             self.propagateArrayChange('remove', entanglement);
         });
+        
+        if(newSubMorphs.length > 0 || removedSubEntanglements.length > 0)
+            self.onSubEntanglementsChanged(newArray);
+    },
+    onSubEntanglementsChanged: function(newSubEntanglements) {
+        // custom code that should be executed when our subEntanglement is changed
+        return newSubEntanglements
     },
     getAllSubObjectsFor: function(instance) {
         // currently onlt all submorphs, but might be a combination

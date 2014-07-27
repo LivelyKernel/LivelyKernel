@@ -1293,6 +1293,21 @@ lively.morphic.Morph.addMethods(
                     default        : return "transitionend";
                 }
             })();
+        var remover = (function(evt) {
+            morphs.forEach(function(ea) { behaveNormal(ea); });
+            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
+            whenDone && whenDone.call(self);
+        });
+
+        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
+
+        (function run() {
+            morphs.forEach(behaveAnimated);
+            morphModifyFunc.call(self);
+        }).delay(0);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         function behaveAnimated(morph) { 
             var morphNode = morph.renderContext().morphNode,
                 shapeNode = morph.renderContext().shapeNode;
@@ -1301,24 +1316,16 @@ lively.morphic.Morph.addMethods(
             morphNode.style[durationProp] = duration + "ms";
             shapeNode.style[durationProp] = duration + "ms";
         }
+
         function behaveNormal(morph) { 
             var morphNode = morph.renderContext().morphNode,
                 shapeNode = morph.renderContext().shapeNode;
             morphNode.style[transitionProp] = "";
-            morphNode.style[durationProp] = "";
             shapeNode.style[transitionProp] = "";
+            morphNode.style[durationProp] = "";
             shapeNode.style[durationProp] = "";
         }
-        var remover = (function(evt) {
-            morphs.forEach(function(ea) { behaveNormal(ea); });
-            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
-            whenDone && whenDone.call(self);
-        });
-        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
-        (function run() {
-            morphs.forEach(function(ea) { behaveAnimated(ea); });
-            morphModifyFunc.call(self);
-        }).delay(0);
+
     },
 
 

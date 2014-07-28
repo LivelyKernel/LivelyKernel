@@ -156,17 +156,15 @@ Object.extend(lively.ast.Rewriting, {
                 'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
                 'core/lively/lang/LocalStorage.js','core/lively/defaultconfig.js', 'core/lively/Base.js',
                 'core/lively/ModuleSystem.js', 'core/lively/Traits.js', 'core/lively/DOMAbstraction.js',
-                'core/lively/IPad.js', 'core/lively/LogHelper.js', 'core/lively/lang/Closure.js',
+                'core/lively/IPad.js', 'core/lively/LogHelper.js', 'core/lively/localconfig.js',
                 // bootstrap.js
-                'core/lively/bindings/Core.js', 'core/lively/persistence/Serializer.js',
-                'core/lively/Main.js', 'core/lively/net/WebSockets.js', 'core/cop/Layers.js',
-                'core/lively/OldModel.js', 'core/lively/Data.js', 'core/lively/Network.js',
-                // directly necessary for debugging
-                'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
-                'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
-                'core/lively/ast/acorn.js',
-                // for some reason necessary
-                'core/lively/bindings.js'
+                'core/lively/lang/Closure.js',
+                'core/lively/bindings.js', 'core/lively/bindings/Core.js',
+                'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
+                // directly necessary for debugging BUT excluded for now:
+                // 'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
+                // 'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
+                // 'core/lively/ast/acorn.js', 'core/lively/ast/StackReification.js'
             ];
 
             bootstrapRewriteFiles.forEachShowingProgress({

@@ -487,9 +487,9 @@ lively.morphic.SliderKnob.addMethods(
 lively.morphic.HorizontalDivider.addMethods(
 'buildSpec', {
     buildSpecProperties: {
+        fixed: {exclude: true}, // TODO: mark as a valid array entanglement
         scalingAbove: {defaultValue: [], getter: function() { return [] }},
         scalingBelow: {defaultValue: [], getter: function() { return [] }}
     }
 });
-
 }) // end of moduled of module

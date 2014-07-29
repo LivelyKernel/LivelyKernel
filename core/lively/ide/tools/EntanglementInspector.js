@@ -767,8 +767,9 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     withoutLayers: "[GrabbingLayer]",
     createEditorFor: function createEditorFor(method) {
     var source = method.toString();
-    var loc = source.split(/\r\n|\r|\n/).length;    
-    var editor = new Global.lively.ide.newCodeEditor(Global.pt(0).extent(Global.pt(400,loc * 19)), source );
+    var loc = source.split(/\r\n|\r|\n/).length; 
+    var width = source.split(/\r\n|\r|\n/).max(function(line) { return line.length; } ).length;
+    var editor = new Global.lively.ide.newCodeEditor(Global.pt(0).extent(Global.pt(width * 10,loc * 19)), source );
     editor.savedTextString = source;
     editor.isScrollable = function() {  return false }
     editor.setBorderWidth(3);
@@ -826,7 +827,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     function onFold(fold) {
         var expanding = fold.action == 'remove';
         var height = expanding ? (fold.data.end.row - fold.data.start.row) * 19 + 10: 22;
-        var width = fold.data.start.column * 15;
+        var width = editor.getExtent().x;
         editor.setExtent(Global.pt(width, height));
         editor.owner.setExtent(Global.pt(width, height));
         editor.owner.applyLayout()

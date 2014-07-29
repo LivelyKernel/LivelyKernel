@@ -22,7 +22,12 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             alreadyEntangled = alreadyEntangled || [];
             alreadyEntangled.push(spec);
             self.baseSpec = spec;
+            // suppress the setup of connections, as we render this morph out of context just to inspect
+            // its morphical structure
+            var connectionRebuilder = spec.attributeStore.connectionRebuilder;
+            delete spec.attributeStore['connectionRebuilder'];
             var morph = self.baseSpec.createMorph();
+            spec.set('connectionRebuilders', connectionRebuilder);
             
             // we have been named, we should set our identifier to our name
             // the priority of setting the identifier is behaving as follows:
@@ -192,8 +197,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             morph.getBuildSpecProperties(props).forEach(function(key) {
 
                 var getter, setter, defaultVal;
+                
                 // if this property is excluded or a subentanglement, skip
                 if(options && excludes(key)) {
+                    alertOK('excluding: ' + key)
                     return;
                 }
                 
@@ -234,6 +241,16 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             
             this.entangledMorphs.push(morph);
     },
+    postEntangle: function(morph, options) {
+        this.entangleWith(morph, options);
+        // we now need to find the appropriate submorphs for the subEntanglements
+        // Assumption: the order of submorphs is equal to the order of subEntanglements.
+        if(this.subEntanglements) {
+            for ( var i = 0; i < this.subEntanglements.length; i++ ) {
+                this.subEntanglements[i].postEntangle(morph.submorphs[i]);
+            }
+        }
+    },
     entangleFunction: function(morph, functionName) {
         // all entanglement is currently handled by the addMethod/deleteMethod implementations
     },
@@ -259,6 +276,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             self.entangledAttributes[key] = defaultValue || getter(morph, morph[key]);
         } else {
             if(self.entangledAttributes[key].isMorphRef) {
+                alertOK('skipping: ' + key);
                 return;
             } else {
                 setter(morph, self.entangledAttributes);
@@ -438,7 +456,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         if(!instance[propertyName]){
             throw Error('Can not directly access array named: ' + propertyName);
         }
-
+        
         self.updateDict[instance][propertyName] = {};
         self.updateDict[instance][propertyName].updater = lively.Closure.fromFunction(function(instance) {
             var oldArray = self.entangledAttributes[propertyName] || [];
@@ -469,6 +487,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     modifiers.add(morph, element)
                 })
             } else {
+                alertOK('morph added!')
                 // we assume the element provides a buildSpec
                 if(!element.buildSpec)
                     throw Error("Complex objects stored in arrays must be synchronized through BuildSpecs!");
@@ -489,6 +508,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                     modifiers.remove(morph, element)
                 })
             } else {
+                alertOK('morph removed!')
                 // element is entangled and can be removed by calling delete() on entanglement
                 element.delete();
             }

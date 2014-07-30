@@ -4742,7 +4742,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         this.label.unEmphasizeAll();
         this.searchTargetForTerm(this.item, term);
         Functions.debounce(100, this.renderSearchView, false).bind(this)();
-        connect(this.wrapper, 'onScroll', this, 'updateView', {updater: function($proceed) { 
+        this.viewUpdater = connect(this.wrapper, 'onScroll', this, 'updateView', {updater: function($proceed) { 
                     $proceed(self.getWrapperBounds(), function(tree) {
                                 if(!tree.childNodes) {
                                     tree.renderSearchView();
@@ -4832,6 +4832,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     exitSearch: function() {
         this.searchBar.remove();
         this.searchTerm = undefined;
+        this.viewUpdater.disconnect();
         this.setItem(this.target);
         // TODO: preserve expansion from before the search
     },

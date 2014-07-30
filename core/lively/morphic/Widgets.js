@@ -1487,6 +1487,12 @@ lively.morphic.World.addMethods(
         module('lively.morphic.tools.PartsBin').load(true);
         return lively.BuildSpec('lively.morphic.tools.PartsBin').createMorph().openInWorldCenter().comeForward();
     },
+    openEntanglementInspectorFor: function(object, evt) {
+        var e = object.buildSpec().createEntanglement();
+        e.postEntangle(object);
+        return e.visualize();
+    },
+
     openInspectorFor: function(object, evt) {
         module('lively.ide.tools.Inspector').load(true);
         var inspector = lively.BuildSpec('lively.ide.tools.Inspector').createMorph().openInWorldCenter();

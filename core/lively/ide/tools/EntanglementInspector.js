@@ -803,7 +803,9 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     var removeButton = this.getDeleteButtonSpec().createMorph();
     var item = {name: '↠', 
                 submorphs: [removeButton, editor],
-                searchFunction: search};
+                searchFunction: search,
+                mapsTo: function() { return false; }
+                };
 
     removeButton.setExtent(Global.pt(22,22));
     

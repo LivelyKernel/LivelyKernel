@@ -4838,7 +4838,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
     exitSearch: function() {
         this.searchBar.remove();
         this.searchTerm = undefined;
-        this.viewUpdater.disconnect();
+        this.viewUpdater && this.viewUpdater.disconnect(); // we might not have entered a query at all
         this.setItem(this.target);
         // TODO: preserve expansion from before the search
     },

@@ -1250,7 +1250,6 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     }
 },
     saveToBuildSpecFile: function saveToBuildSpecFile() {
-        this.entanglement.saveStateToSpec();
         var source = this.entanglement.baseSpec.stringify();
         var fragment = lively.ide.sourceDB().addModule(this.specPath).ast()
                              .fragmentsOfOwnFile()

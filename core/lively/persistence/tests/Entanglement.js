@@ -248,6 +248,25 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         this.assertEquals(c2.submorphs.length, 0)
     },
 
+    test19savesChangesToBaseSpec: function() {
+        var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
+        var entanglement = m.buildSpec().createEntanglement();
+        var m1 = entanglement.createEntangledMorph();
+
+        m1.setPosition(pt(42,42));
+        m1.setName('George Clooney');
+        m1.setFill(Color.red);
+        
+        entanglement.update();
+        entanglement.saveStateToSpec();
+        
+        var spec = entanglement.baseSpec.attributeStore;
+        
+        this.assertEquals(entanglement.get('_Position'), spec._Position);
+        this.assertEquals(entanglement.get('_Extent'), spec._Extent);
+        this.assertEquals(entanglement.get('_Fill'), spec._Fill);
+    },
+
     test18tracksAddingOfMethods: function() {
         var m = new lively.morphic.Box(new Rectangle(0,0,42,42));
         var entanglement = m.buildSpec().createEntanglement();

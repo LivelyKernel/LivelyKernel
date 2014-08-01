@@ -258,8 +258,7 @@ lively.morphic.tests.MorphTests.subclass('lively.persistence.tests.Entanglement.
         m1.setFill(Color.red);
         
         entanglement.update();
-        entanglement.saveStateToSpec();
-        
+
         var spec = entanglement.baseSpec.attributeStore;
         
         this.assertEquals(entanglement.get('_Position'), spec._Position);

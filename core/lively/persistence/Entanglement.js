@@ -27,7 +27,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             var connectionRebuilder = spec.attributeStore.connectionRebuilder;
             delete spec.attributeStore['connectionRebuilder'];
             var morph = self.baseSpec.createMorph();
-            spec.set('connectionRebuilders', connectionRebuilder);
+            spec.set('connectionRebuilder', connectionRebuilder);
             
             // we have been named, we should set our identifier to our name
             // the priority of setting the identifier is behaving as follows:
@@ -134,19 +134,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 if(self.updateDict[entangledMorph.id][key])
                     self.updateDict[entangledMorph.id][key].setter(entangledMorph, self.entangledAttributes)
             });
+            
+            this.baseSpec.set(key, value);
         },
-    saveStateToSpec: function() {
-        // create and/or set values for properties inside the builSpec based on entanglement
-        this.getBuildSpecProperties().each(function(attr) {
-            if(this.get(attr) != this.baseSpec.attributeStore[attr])
-                this.baseSpec.set(attr, this.get(attr));
-        }, this);
-        // // delete attributes no longer present in entanglement
-        // for (var attr in this.baseSpec.attributeStore) {
-        //     if(!this.entangledAttributes.hasOwnProperty(attr))
-        //         delete this.baseSpec.attributeStore[attr]
-        // }
-    },
+
     visualize: function() {
         var inspector = lively.BuildSpec('lively.ide.tools.EntanglementInspector').createMorph().openInWorldCenter();
         inspector.visualize(this);

@@ -131,8 +131,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 self.entangledAttributes[key] = value;
             // propagate new value among all morphs except the updating one
             self.entangledMorphs.without(self.updatingMorph).forEach(function(entangledMorph) {
-                if(self.updateDict[entangledMorph][key])
-                    self.updateDict[entangledMorph][key].setter(entangledMorph, self.entangledAttributes)
+                if(self.updateDict[entangledMorph.id][key])
+                    self.updateDict[entangledMorph.id][key].setter(entangledMorph, self.entangledAttributes)
             });
         },
     saveStateToSpec: function() {
@@ -192,7 +192,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
                 return options.include(key)
             }
             
-            self.updateDict[morph] = {};
+            self.updateDict[morph.id] = {};
             
             morph.getBuildSpecProperties(props).forEach(function(key) {
 
@@ -283,8 +283,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             }
         }
         
-        self.updateDict[morph][key] = {setter: setter};
-        self.updateDict[morph][key].updater = lively.Closure.fromFunction(function(morph) {
+        self.updateDict[morph.id][key] = {setter: setter};
+        self.updateDict[morph.id][key].updater = lively.Closure.fromFunction(function(morph) {
             var val = getter(morph, morph[key]);
             if(self.get(key) != val) {
                 self.updatingMorph = morph;
@@ -301,8 +301,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
               
         var self = this;
 		
-        self.updateDict[morph][key] = {};        
-        self.updateDict[morph][key].updater = function(entangledMorph) {
+        self.updateDict[morph.id][key] = {};        
+        self.updateDict[morph.id][key].updater = function(entangledMorph) {
             // determine what morphs have been added to the entangledMorph, namely the
             // ones that are entangled by neither of the existing subEntanglements
             var newMorph = entangledMorph.submorphs.find(function(morph) {
@@ -381,8 +381,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         // sub entanglements
         self.entangledMorphs.forEach(function(entangledMorph) {
             for ( var attr in self.entangledAttributes ) {
-                if(self.updateDict[entangledMorph][attr]) { // property might be excluded
-                    var updateTools = self.updateDict[entangledMorph][attr]
+                if(self.updateDict[entangledMorph.id][attr]) { // property might be excluded
+                    var updateTools = self.updateDict[entangledMorph.id][attr]
                     updateTools && updateTools.updater(entangledMorph) //  call the specific update handler
                 }
             }
@@ -457,8 +457,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             throw Error('Can not directly access array named: ' + propertyName);
         }
         
-        self.updateDict[instance][propertyName] = {};
-        self.updateDict[instance][propertyName].updater = lively.Closure.fromFunction(function(instance) {
+        self.updateDict[instance.id][propertyName] = {};
+        self.updateDict[instance.id][propertyName].updater = lively.Closure.fromFunction(function(instance) {
             var oldArray = self.entangledAttributes[propertyName] || [];
             var newArray = getter(instance, instance[propertyName]);
             

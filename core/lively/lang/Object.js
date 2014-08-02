@@ -504,6 +504,10 @@ Object.extend(lively.PropertyPath.prototype, {
         return obj && obj.isPathAccessor && this.parts().equals(obj.parts());
     },
 
+    equals: function(obj) {
+        return obj && obj.isPathAccessor && this.parts().equals(obj.parts());
+    },
+
     isParentPathOf: function(otherPath) {
         otherPath = otherPath && otherPath.isPathAccessor ? otherPath : lively.PropertyPath(otherPath);
         var parts = this.parts(),
@@ -524,7 +528,7 @@ Object.extend(lively.PropertyPath.prototype, {
         var parent = obj
         for (var i = 0; i < this._parts.length-1; i++) {
             var part = this._parts[i];
-            if (parent.hasOwnProperty(part)) {
+            if (parent && parent.hasOwnProperty(part)) {
                 parent = parent[part];
             } else if (ensure) {
                 parent = parent[part] = {};

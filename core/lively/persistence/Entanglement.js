@@ -122,19 +122,13 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         },
         set: function(key, value) {
             var self = this;
+            
             if(self.subEntanglements[key])
-                return; // subEntanglement reference change handled by morphref entanglement
-            if(!self.entangledAttributes.hasOwnProperty(key)){
-                // when we create a new property, expand the entanglement
-            }
+                return;
             if(self.entangledAttributes[key] != value)
                 self.entangledAttributes[key] = value;
-            // propagate new value among all morphs except the updating one
-            self.entangledMorphs.without(self.updatingMorph).forEach(function(entangledMorph) {
-                if(self.updateDict[entangledMorph.id][key])
-                    self.updateDict[entangledMorph.id][key].setter(entangledMorph, self.entangledAttributes)
-            });
             
+            this.propagate(key, value, this.updatingMorph);
             this.baseSpec.set(key, value);
         },
 
@@ -165,23 +159,10 @@ Object.subclass("lively.persistence.Entanglement.Morph",
     "entangling", {
         entangleWith: function(morph, options) {
             var self = this;
-            // make sure the classes are the same
-            if(!self.entangledAttributes.className === morph.constructor) 
-                throw TypeError("Can not entangle to a different kind of Morph!");
-            
-            // prepare a dictionary that defines the appropriate update call on that entangled morph
-
             var props = Object.mergePropertyInHierarchy(morph, "buildSpecProperties");
             
-            var excludes = function(key) {
-                if(key.startsWith('_')){
-                    // we also exlude when the user supplies us
-                    // only with the corresponding setter
-                    return options.include(key) || 
-                           options.include('set' + key.replace(/^_/, '').capitalize())
-                }
-                return options.include(key)
-            }
+            if(!self.entangledAttributes.className === morph.constructor) 
+                throw TypeError("Can not entangle to a different kind of Morph!");
             
             self.updateDict[morph.id] = {};
             
@@ -189,39 +170,11 @@ Object.subclass("lively.persistence.Entanglement.Morph",
 
                 var getter, setter, defaultVal;
                 
-                // if this property is excluded or a subentanglement, skip
-                if(options && excludes(key)) {
-                    alertOK('excluding: ' + key)
+                if(self.excludesProperty(options, morph, key))
                     return;
-                }
-                
-                if(self.propertyIsFunction(morph, key)){
-                    return; // we only change functions through the entanglement itself
-                }
-                
-                if(props[key]) {
-                    getter = props[key].getter;
-                    setter = props[key].recreate;
-                    defaultVal = props[key].defaultValue;
-                }
-                if(!setter) {
-                    setter = morph['set' + key.replace(/^_/, '').capitalize()];
-                    if(!setter) { 
-                        setter = function(m, e) { m[key] = e[key]};
-                    } else {
-                        var boundSetter = setter.bind(morph);
-                        setter = function(m, e) { return boundSetter(e[key]) };
-                    }
-                }
-                if(!getter) {
-                    getter = morph['get' + key.replace(/^_/, '').capitalize()];
-                    if(!getter)
-                        getter = function(m) { return m[key] };
-                    else
-                        getter = getter.bind(morph);
-                }
-                
-                // EXPERIMENTAL: Array handling
+                    
+                getter = self.extractGetter(morph, props, key);
+                setter = self.extractSetter(morph, props, key);
                 
                 if(props[key] && props[key].tracker) {
                     self.handleArrayEntanglement(morph, key, props[key].tracker, getter, setter);
@@ -232,34 +185,121 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             
             this.entangledMorphs.push(morph);
     },
+    extractSetter: function(morph, attributeProperties, attributeName) {
+        var setter;
+        
+        if(attributeProperties[attributeName])
+            setter = attributeProperties[attributeName].setter;
+        if(!setter) {
+            setter = morph['set' + attributeName.replace(/^_/, '').capitalize()];
+            if(!setter) { 
+                setter = function(m, e) { m[attributeName] = e[attributeName]};
+            } else {
+                var boundSetter = setter.bind(morph);
+                setter = function(m, e) { return boundSetter(e[attributeName]) };
+            }
+        }
+        
+        return setter;
+    },
+
+    extractGetter: function(morph, attributeProperties, attributeName) {
+        var getter;
+        
+        if(attributeProperties[attributeName])
+            getter = attributeProperties[attributeName].getter;
+        if(!getter) {
+            getter = morph['get' + attributeName.replace(/^_/, '').capitalize()];
+            if(!getter)
+                getter = function(m) { return m[attributeName] };
+            else
+                getter = getter.bind(morph);
+        }
+        
+        return getter;
+    },
+    excludesProperty: function(options, morph, key) {
+        /* A property is excluded if it is either:
+            
+            1. A function, which are only managed through
+                the editing of code in the Entanglement/Object 
+                Editor respectively.
+                
+            2. The options are explicitly excluding the property
+                from being entangled. */
+        
+        if(this.propertyIsFunction(morph, key))
+            return true;
+            
+        if(!options)
+            return false;
+        
+        if(key.startsWith('_'))
+            return options.include(key) || options.include('set' + key.replace(/^_/, '').capitalize());
+            
+        return options.include(key);
+    },
     postEntangle: function(morph, options) {
+        /* Temporal implementation of an entanglement, where
+           a morph that has been constructed outside of the 
+           entanglement, is introduced to the synchronization.
+           
+           Currently we try to infer a mapping of sub-entanglements
+           to submorphs based on the assumption that the ordering
+           of both is still the same. 
+           
+           TODO: Implement a seperate EntanglementMapper Object, that 
+                 encapsulates the management of this mapping */
+                 
         this.entangleWith(morph, options);
-        // we now need to find the appropriate submorphs for the subEntanglements
-        // Assumption: the order of submorphs is equal to the order of subEntanglements.
         if(this.subEntanglements) {
             for ( var i = 0; i < this.subEntanglements.length; i++ ) {
                 this.subEntanglements[i].postEntangle(morph.submorphs[i]);
             }
         }
     },
+    updatePropertyOn: function(morph, propertyName, value) {
+        /* perform the actual change of a property value,
+           by looking up the required setter for that morph */
+           
+        if(this.updateDict[morph.id][propertyName].setter)
+            this.updateDict[morph.id][propertyName].setter(morph, this.entangledAttributes)
+        else
+            throw Error("Can not find update rules for morph: " + morph.id);
+       
+    },
+
+    propagate: function(propertyName, value, updatingMorph) {
+        /* set the new value for the specific property on all
+           entangled morphs, except the one who cause the update */
+           
+        var self = this;
+        function updatableMorph(m) { 
+            return self.updateDict[m.id][propertyName]; 
+        };
+        self.entangledMorphs
+            .without(updatingMorph)
+            .filter(updatableMorph)
+            .forEach(function(entangledMorph) {
+                self.updatePropertyOn(entangledMorph, propertyName, value);
+            });
+    },
     entangleFunction: function(morph, functionName) {
         // all entanglement is currently handled by the addMethod/deleteMethod implementations
     },
 
     createEntangledMorph: function(options) {
-        // we first augment out buildSpec, by wrapping each
-        // subbuildspec.createMorph with an entangleWith call
-        // that also makes sure that the correct exclusions are applied
-        // we could also: 1 -> wrap all buildSpec objects inside Entanglement Objects.
-        // Or just 2 -> completely do the creation of morphs by ourselves...
-        options = options || []
-        options = options.excludes || options; // is this really necessary..? clarity maybe
-        //by default we exclude all the unsafe subObjects from entanglement
-        options = options.concat(this.unsafeSubObjects);
+        options = this.parseOpts(options);
         this.augmentBuildSpec(options);
         var morph = this.baseSpec.createMorph();
         this.restoreBuildSpec();
         return morph;
+    },
+    parseOpts: function(options) {
+        options = options || []
+        options = options.excludes || options;
+        options.concat(this.unsafeSubObjects);
+        return options;
     },
     entangleProperty: function(morph, key, getter, setter, defaultValue) {
         var self = this;
@@ -415,15 +455,11 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         return this.entangledMorphs.include(morph);
     },
     delete: function() {
-        //FIXME: Do not alter the morph, that has triggered the whole removal
-        // removeAll entangled morphs without
         var self = this;
         self.entangledMorphs.forEach(function(entangled) { 
                 var hand = entangled.hand();
-                if(hand && !hand.submorphs.include(entangled))
+                if(!(hand && !hand.submorphs.include(entangled)))
                     entangled.remove(); })
-        
-        // disconnect from morphs
         self.entangledMorphs.forEach(function(entangled) { self.disconnectMorph(entangled); });
     },
     getBuildSpecProperties: function() {
@@ -469,6 +505,7 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             modifiers: modifiers, propertyName: propertyName}).asFunction();
     },
     propagateArrayChange: function(mode, element, modifiers) {
+        debugger;
         var affectedMorphs = this.entangledMorphs.without(this.updatingMorph);
         if(mode === 'add') {
             // if the element is a primitive, we just copy it across the different entangled objects

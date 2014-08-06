@@ -973,7 +973,14 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     // tools
-    'lively.ide.openWorkspace': {description: 'open Workspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openWorkspace(); return true; }},
+    'lively.ide.openWorkspace': {
+        description: 'open Workspace',
+        exec: function() {
+            lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() {
+                lively.ide.tools.JavaScriptWorkspace.open(); });
+            return true;
+        }
+    },
     'lively.ide.openTextWindow': {description: 'open Text window', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openTextWindow(); return true; }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},
     'lively.ide.openObjectEditor': {description: 'open ObjectEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openObjectEditor().comeForward(); return true; }},
@@ -982,7 +989,15 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openTestRunner': {description: 'open TestRunner', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openTestRunner(); return true; }},
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
     'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function(path) { lively.ide.openFile(path || URL.source.toString()); return true; }},
-    'lively.ide.openSystemConsole': {description: 'open SystemConsole', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemConsole(); return true; }},
+    'lively.ide.openSystemConsole': {
+        description: 'open SystemConsole',
+        exec: function() {
+            lively.require("lively.ide.tools.SystemConsole").toRun(function() {
+                lively.ide.tools.SystemConsole.open();
+            });
+            return true;
+        }
+    },
     'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
     'lively.ide.openSubserverViewer': {
         description: 'open SubserverViewer',
@@ -1050,6 +1065,7 @@ Object.extend(lively.ide.commands.byName, {
             var editors;
 
             Functions.composeAsync(
+                loadRequiredModules,
                 fetchEditorsIfRequired,
                 selectEditor1,
                 selectEditor2,

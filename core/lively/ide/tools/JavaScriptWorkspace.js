@@ -290,4 +290,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     titleBar: "JavaScript Workspace"
 });
 
+Object.extend(lively.ide.tools.JavaScriptWorkspace, {
+    open: function() {
+        return lively.BuildSpec('lively.ide.tools.JavaScriptWorkspace')
+            .createMorph().openInWorld($world.positionForNewMorph()).comeForward();
+    }
+});
+
 }) // end of module

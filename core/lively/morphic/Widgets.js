@@ -1701,10 +1701,7 @@ lively.morphic.World.addMethods(
     },
 
     openWorkspace: function (evt) {
-        lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() {
-            lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace")
-                .createMorph().openInWorldCenter().getWindow().comeForward();
-        });
+        lively.ide.commands.exec('lively.ide.openWorkspace');
     },
 
     openTextWindow: function(evt) {
@@ -1761,7 +1758,7 @@ lively.morphic.World.addMethods(
         }
     },
     openSystemConsole: function() {
-        return this.openPartItem('SystemConsole', 'PartsBin/Tools');
+        lively.ide.commands.exec("lively.ide.openSystemConsole");
     },
 
     openBuildSpecEditor: function() {

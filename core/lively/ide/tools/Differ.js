@@ -1,4 +1,4 @@
-module('lively.ide.tools.Differ').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface').toRun(function() {
+module('lively.ide.tools.Differ').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface').requiresLib({url: Config.codeBase + 'lib/jsdiff/jsdiff.js', loadTest: function() { return typeof JsDiff !== 'undefined'; }}).toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.Differ', {
     _BorderColor: Color.rgb(204,0,0),
@@ -276,7 +276,7 @@ Object.extend(lively.ide, {
     diff: function(stringA, stringB, options, thenDo) { return createDiffer().diffStrings(stringA, stringB, options, thenDo); },
     diffURLs: function(urlA, urlB, options, thenDo) { return createDiffer().diffURLs(urlA, urlB, options, thenDo); },
     diffFiles: function(fileA, fileB, options, thenDo) { return createDiffer().diffFiles(fileA, fileB, options, thenDo); },
-    diffJSON: function(jsonA, jsonB, options, thenDo) { return createDiffer().diffJSON(jsonA, jsonB, thenDo); },
+    diffJSON: function(jsonA, jsonB, options, thenDo) { return createDiffer().diffJSON(jsonA, jsonB, options, thenDo); },
     diffMorphs: function(morphA, morphB, options, thenDo) {
         var jsonA = morphA.copy(true), jsonB = morphB.copy(true);
         return lively.ide.diffJSON(jsonA, jsonB, options, thenDo);

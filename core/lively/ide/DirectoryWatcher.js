@@ -33,28 +33,20 @@ Object.extend(lively.ide.DirectoryWatcher, {
         // This methods synchs those with the cached state held in this object
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // dir = lively.shell.exec('pwd', {sync:true}).resultString()
-        // lively.ide.DirectoryWatcher.dirs[dir]
+        // lively.ide.DirectoryWatcher.dirs
         // lively.ide.DirectoryWatcher.withFilesOfDir(dir, function(files) { show(Object.keys(files).length); })
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         var watchState = this.dirs[dir] || (this.dirs[dir] = {updateInProgress: false, callbacks: []});
         doFunc && watchState.callbacks.push(doFunc);
         if (watchState.updateInProgress) { return; }
         watchState.updateInProgress = true;
-        function whenDone() {
-            watchState.updateInProgress = false;
-            var cb;
-            while ((cb = watchState.callbacks.shift())) cb(watchState.files);
-        }
-        function extend(statObj) { // convert date string into a date object
-            if (!statObj) statObj = {};
-            statObj.isDirectory = !!(statObj.mode & 0x4000);
-            ['atime', 'mtime', 'ctime'].forEach(function(field) {
-                if (statObj[field]) statObj[field] = new Date(statObj[field]); });
-            return statObj;
-        }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         if (!watchState.files) { // first time called
             this.getFiles(dir, function(err, result) {
+                if (err) show("dir watch error: %s", err);
                 result.files && Properties.forEachOwn(result.files, function(path, stat) { extend(stat); })
                 Object.extend(watchState, {
                     files: result.files,
@@ -65,7 +57,9 @@ Object.extend(lively.ide.DirectoryWatcher, {
             });
             return;
         }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         var timeSinceLastUpdate = Date.now() - (watchState.lastUpdated || 0);
         if (timeSinceLastUpdate < 10 * 1000) { whenDone(); } // recently updated
         // get updates
@@ -81,6 +75,23 @@ Object.extend(lively.ide.DirectoryWatcher, {
             });
             whenDone();
         });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function whenDone() {
+            watchState.updateInProgress = false;
+            var cb;
+            while ((cb = watchState.callbacks.shift())) cb(watchState.files);
+        }
+
+        function extend(statObj) { // convert date string into a date object
+            if (!statObj) statObj = {};
+            statObj.isDirectory = !!(statObj.mode & 0x4000);
+            ['atime', 'mtime', 'ctime'].forEach(function(field) {
+                if (statObj[field]) statObj[field] = new Date(statObj[field]); });
+            return statObj;
+        }
+
     }
 
 });

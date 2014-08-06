@@ -1414,7 +1414,7 @@ Object.extend(lively.ast.transform, {
             topLevel = lively.ast.query.topLevelDeclsAndRefs(ast);
 
         if (ignoreUndeclaredExcept) {
-            blacklist = topLevel.undeclaredNames.withoutAll(ignoreUndeclaredExcept);
+            blacklist = topLevel.undeclaredNames.withoutAll(ignoreUndeclaredExcept).concat(blacklist);
         }
 
         // 1. make all references declared in the toplevel scope into property

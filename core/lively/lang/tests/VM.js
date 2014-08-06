@@ -61,6 +61,19 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
 
         this.assert(!varMapper.hasOwnProperty('z'), 'Global "z" was recorded');
         this.done();
+    },
+
+    testDontCaptureBlacklisted: function() {
+        var varMapper = {},
+            code = "var x = 3, y = 5;",
+            result = lively.lang.VM.syncEval(code, {
+                topLevelVarRecorder: varMapper,
+                dontTransform: ['y']
+            });
+
+        this.assertEquals(3, varMapper.x);
+        this.assert(!varMapper.hasOwnProperty('y'), 'y recorded?');
+        this.done();
     }
 
 });

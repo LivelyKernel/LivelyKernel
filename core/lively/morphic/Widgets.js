@@ -2520,6 +2520,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         if (this.targetMorph) {
             var self = this;
             itemFilter = function (items) {
+
+                var publishItem = items.detect(function(item) { return item[0] === "Publish"; });
+                if (publishItem) publishItem[1] = function (evt) { self.copyToPartsBinWithUserRequest(); }
+
                 var toRemove = items.detect(function(ea) { return ea[0].match(/select all submorphs/i); });
                 items.removeAt(items.indexOf(toRemove));
 

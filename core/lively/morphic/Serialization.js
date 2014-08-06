@@ -418,7 +418,7 @@ Object.extend(lively.morphic.World, {
         url = new URL(url); //.withQuery({dontBootstrap: true});
         function createIFrame(url, bounds) {
             // document.body.style.position = 'absolute'
-            var iframe = XHTMLNS.create('iframe');
+            var iframe = document.createElement('iframe');
             // iframe.style.position = 'relative'
             iframe.style.top = bounds.top() + 'px';
             iframe.style.left = bounds.left() + 'px';
@@ -428,12 +428,17 @@ Object.extend(lively.morphic.World, {
             return iframe;
         };
 
-        var iFrame = createIFrame(url, bounds || new Rectangle(0,0, 800,300)),
+        var iFrame = createIFrame(url, bounds || new lively.Rectangle(0,0, 800,300)),
             shape = new lively.morphic.Shapes.External(iFrame),
             morph = new lively.morphic.Morph(shape);
 
         morph.url = url;
         morph.setStyleClassNames(['selectable']);
+
+        morph.addScript(function getURL() { return this.getIFrame().src; });
+        morph.addScript(function setURL(url) {
+            return this.getIFrame().src = this.url = url;
+        });
 
         morph.addScript(function makeEditorEvalInIframe(editor) {
             editor.iframe = this;
@@ -460,6 +465,12 @@ Object.extend(lively.morphic.World, {
                     target.makeEditorEvalInIframe(textEd.get('editor'));
                     textEd.openURL(target.url);
                     lively.bindings.connect(textEd, 'contentStored', target, 'reload');
+                }],
+                ['Change URL', function() {
+                    $world.prompt("Enter URL for iframe", function(input) {
+                        if (!input) return;
+                        target.setURL(input);
+                    }, target.getURL());
                 }]
             ]);
         });

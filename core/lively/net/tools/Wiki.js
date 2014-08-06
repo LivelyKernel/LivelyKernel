@@ -263,10 +263,11 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 isLivelyWorld: path.endsWith('.html')
             }, function(err, diff) {
                     $world.addCodeEditor({
+                        extent: pt(600, 700),
                         title: Strings.format('Diff %s@%s with %s@%s', path, v1, path, v2),
                         content: err || diff.diff,
                         textMode: 'diff'
-                    });
+                    }).getWindow().comeForward();
                 });
         },
     }],

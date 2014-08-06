@@ -1057,6 +1057,10 @@ Object.extend(lively.ide.commands.byName, {
                 showDiff
             )();
 
+            function loadRequiredModules(next) {
+                lively.require('lively.ide.tools.Differ').toRun(function() { next(); });
+            }
+
             function fetchEditorsIfRequired(next) {
                 if (!editor1 || !editor2) editors = $world.withAllSubmorphsSelect(function(ea) {
                     return ea.isCodeEditor && !ea.isCommandLine; }).reverse();
@@ -1083,15 +1087,12 @@ Object.extend(lively.ide.commands.byName, {
             }
 
             function showDiff(fn, diff, next) {
-                lively.require('lively.ide.tools.Differ').toRun(function() {
-                    $world.addCodeEditor({
-                        title: "diff " + fn,
-                        content: diff,
-                        textMode: 'diff',
-                        extent: pt(700, 600)
-                    }).getWindow().comeForward();
-                    next();
-                })
+                $world.addCodeEditor({
+                    title: "diff " + fn,
+                    content: diff,
+                    textMode: 'diff',
+                    extent: pt(700, 600)
+                }).getWindow().comeForward();
             }
 
             function selectMorph(morphs, thenDo) {

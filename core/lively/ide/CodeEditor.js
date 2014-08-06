@@ -755,7 +755,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     context: ctx,
                     topLevelVarRecorder: Global,
                     varRecorderName: 'Global',
-                    blacklist: ['Global']
+                    dontTransform: lively.ast.query.knownGlobals
                 }, function(err, _result) { result = err || _result; });
                 return result;
             } catch(e) {

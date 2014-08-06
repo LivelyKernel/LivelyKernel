@@ -5,8 +5,7 @@ var sqlite3 = require('sqlite3').verbose();
 
 var debug = true;
 
-var dbs = global.sqliteDBs || (global.sqliteDBs = {});
-
+var dbs = module.exports.sqliteDBs || {};
 function getDB(dbAccessCode, thenDo) {
     var db;
     try {
@@ -17,7 +16,7 @@ function getDB(dbAccessCode, thenDo) {
     thenDo(null, db);
 }
 
-function ensureDB(key, fileName, thenDo ) {
+function ensureDB(key, fileName, thenDo) {
     // fileName === ":memory:" for in-mem DB
     getDB(key, function(_, db) {
         if (db) {
@@ -135,3 +134,13 @@ module.exports = function(route, app) {
     });
 
 }
+
+/* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+require('./SQLiteServer').sqliteDBs
+*/
+
+module.exports.ensureDB = ensureDB;
+module.exports.sqliteDBs = dbs;
+module.exports.getDB = getDB;
+module.exports.dbAction = dbAction;
+

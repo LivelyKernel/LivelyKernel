@@ -26,18 +26,19 @@ lively.morphic.ReactMorph.addMethods({
           The idea is that lively objects just operate on this description 
           structure, which we eventually dump into a React Rendering canvas, that
           knows how to interpret this description and render it. */
-        var self = this;
         var state = {morph: this.extractPropsFrom(description.morph),
-                     shape: this.extractPropsFrom(description.shape)};
+                     shape: this.extractPropsFrom(description.shape),
+                     submorphs: description.submorphs};
                      
         var component = React.createClass({
-            self: self,
+            self: this,
+            initialState: state,
             //event handling... should the component directly modify state,
             // or delegate this back to the morph owner object?
             
             // state methods
             getInitialState: function() {
-                return state;
+                return this.initialState;
             },
             getInitialProps: function() {
                 return {style: this.state.morph.style,
@@ -48,13 +49,14 @@ lively.morphic.ReactMorph.addMethods({
             //rendering
             renderSubmorphs: function() {
                 if(this.state.submorphs) {
-                    return React.DOM.div({id: 'origin-node'}, 
-                                this.state.submorphs.map(this.self.componentFromDescription));
+                    return [React.DOM.div({id: 'origin-node'}, 
+                                this.state.submorphs.map(this.self.componentFromDescription, this.self))];
                 } else {
                     return [];
                 }
             },
             render: function() {
+                debugger;
                 return React.DOM.div(this.state.shape, this.renderSubmorphs());
             }
         })
@@ -73,6 +75,43 @@ lively.morphic.ReactMorph.addMethods({
         props.style.position = 'absolute';
         props.style.left = position.x + 'px';
         props.style.top = position.y + 'px';
+    },
+    exampleDescription: function() {
+        /* an example of a description for a morph hierarchy
+           for documentation purposes */
+           
+          return {morph: {},
+                  shape: {Fill: Color.red,
+                          Position: pt(0,0),
+                          Extent: pt(100,100)},
+                  submorphs: [{morph: {},
+                               shape: {Fill: Color.blue,
+                                       Position: pt(42,42),
+                                       Extent: pt(42,42)},
+                                submorphs: []}]}
+    },
+    descriptionFromBuildSpec: function(spec) {
+        spec = spec.attributeStore;
+        var description = {morph: {}, 
+                           shape: {}, 
+                           submorphs: (spec.submorphs && spec.submorphs.map(this.descriptionFromBuildSpec, this)) || []}
+        // we currently place nothing inside the morph part
+        for ( var attr in spec ) {
+            if (attr.startsWith('_')){
+                if(this.renders(attr)){
+                     description.shape[attr.replace('_', "")] = spec[attr];
+                }
+            }
+        }
+        return description;
+    },
+    renders: function(attrName) {
+        return ['_Extent', '_Fill', '_Position'].include(attrName);
+    },
+    renderBuildSpec: function(spec) {
+        React.renderComponent(
+            this.componentFromDescription(
+                this.descriptionFromBuildSpec(spec)), this.renderContext().morphNode);
     },
 
     setFillProps: function(fill, props) {

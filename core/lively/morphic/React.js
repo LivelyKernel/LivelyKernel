@@ -1,5 +1,5 @@
 module('lively.morphic.React').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'lively.morphic.Lists').toRun(function() {
-$.getScript('react.js');
+$.getScript('core/lib/react.js');
 
 lively.morphic.ReactMorph.addMethods({
     defineReactComponents: function() {

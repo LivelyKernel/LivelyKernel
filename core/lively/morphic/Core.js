@@ -1,4 +1,5 @@
 module('lively.morphic.Core').requires('lively.morphic.Shapes', 'lively.Traits').toRun(function() {
+$.getScript('react.js'); // because using .requiresLib() breaks parsing
 
 Object.subclass('lively.morphic.Morph',
 'properties', {
@@ -699,7 +700,20 @@ Object.subclass('lively.morphic.Morph',
         return lively.$(this.jQueryNode());
     }
 });
-
+lively.morphic.Morph.subclass('lively.morphic.ReactMorph',
+'initializing', {
+    initialize: function($super, initialBounds) {
+        if(!initialBounds)
+            initialBounds = pt(0).extent(pt(100,100));
+        $super();
+        this.setPosition(initialBounds.topLeft());
+        this.setFill(Color.blue);
+        //this.defineReactComponents();
+        // this is the initial render call, from which on all the
+        // hierarchical morph rendering is handled through React
+        //React.renderComponent(this.reactComponent, this.renderContext().morphNode);
+    }
+});
 lively.morphic.Morph.subclass('lively.morphic.World',
 'properties', {
     style: {

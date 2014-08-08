@@ -700,12 +700,12 @@ Object.subclass('lively.morphic.Morph',
         return lively.$(this.jQueryNode());
     }
 });
-lively.morphic.Morph.subclass('lively.morphic.ReactMorph',
+lively.morphic.HtmlWrapperMorph.subclass('lively.morphic.ReactMorph',
 'initializing', {
     initialize: function($super, initialBounds) {
         if(!initialBounds)
             initialBounds = pt(0).extent(pt(100,100));
-        $super();
+        $super(initialBounds.extent());
         this.setPosition(initialBounds.topLeft());
         this.setFill(Color.blue);
         //this.defineReactComponents();

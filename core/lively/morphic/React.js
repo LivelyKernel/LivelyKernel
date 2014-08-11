@@ -1,7 +1,8 @@
 module('lively.morphic.React').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'lively.morphic.Lists').toRun(function() {
 $.getScript('core/lib/react.js');
 
-lively.morphic.ReactMorph.addMethods({
+lively.morphic.ReactMorph.addMethods(
+    'default', {
     defineReactComponents: function() {
         // extract a state object from the current values of this morph
         var shapeState = this.getState(this.getShape());
@@ -26,27 +27,16 @@ lively.morphic.ReactMorph.addMethods({
           The idea is that lively objects just operate on this description 
           structure, which we eventually dump into a React Rendering canvas, that
           knows how to interpret this description and render it. */
-        var state = {morph: this.extractPropsFrom(description.morph),
-                     shape: this.extractPropsFrom(description.shape),
-                     submorphs: description.submorphs};
                      
-        var component = React.createClass({
+        var Shape =  React.createClass({
             self: this,
-            initialState: state,
-            //event handling... should the component directly modify state,
-            // or delegate this back to the morph owner object?
-            
-            // state methods
+            initialState: {
+                     shape: description.shape,
+                     submorphs: description.submorphs
+                },
             getInitialState: function() {
                 return this.initialState;
             },
-            getInitialProps: function() {
-                return {style: this.state.morph.style,
-                        className: 'morphNode'
-                };
-            },
-            
-            //rendering
             renderSubmorphs: function() {
                 if(this.state.submorphs) {
                     return [React.DOM.div({id: 'origin-node'}, 
@@ -55,26 +45,66 @@ lively.morphic.ReactMorph.addMethods({
                     return [];
                 }
             },
+           render: function() {
+               this.self.extractPropsFrom(this.state.shape, this.props);
+               return React.DOM.div(this.props, this.renderSubmorphs());
+           } 
+        });
+                     
+        var Morph = React.createClass({
+            self: this,
+            initialState: {morph: description.morph},
+            //event handling... should the component directly modify state,
+            // or delegate this back to the morph owner object?
+            onFocus: function(evt) {
+                alertOK('focused');
+            },
+            onMouseDown: function(evt) {
+                alertOK('react click!');
+            },
+            onMouseOver: function(evt) {
+                alertOK('mouseOver')
+            },
+            onDrag: function(evt) {
+                alertOK('dragging!');
+                this.state.morph.Position = pt(evt.clientX, evt.clientY);
+                this.self.setPositionProps(this.state.morph, this.props);
+                this.forceUpdate();
+            },
+            onDoubleClick: function(evt) {
+                alertOK('double click!')
+                this.setProps(this.props)
+            },
+            // state methods
+            getInitialState: function() {
+                return this.initialState;
+            },
+            getDefaultProps: function() {
+                return {style: {},
+                        className: 'morphNode'}
+            },
+            initEventHandlers: function() {
+                //this.props.onMouseDown = this.onMouseDown;
+                this.props.onDoubleClick = this.onDoubleClick;
+                this.props.onDrag = this.onDrag;
+                this.props.onFocus = this.onFocus;
+                this.props.onClick = this.onMouseDown;
+                this.props.onMouseOver = this.onMouseOver;
+            },
             render: function() {
-                debugger;
-                return React.DOM.div(this.state.shape, this.renderSubmorphs());
+                this.self.extractPropsFrom(this.state.morph, this.props);
+                this.initEventHandlers(); // call only once...
+                return React.DOM.div(this.props, Shape(this.self.extractPropsFrom(this.state.shape)));
             }
         })
-        
-        return component();
+        return Morph();
     },
-    extractPropsFrom: function(state) {
-        var props = {style: {}};
+    extractPropsFrom: function(state, propsStore) {
+        var props = propsStore || {style: {}};
         for( var attr in state ) {
-            this['set' + attr + 'Props'](state[attr], props);
+            this['set' + attr + 'Props'](state, props);
         }
         return props;
-    },
-    setPositionProps: function(position, props) {
-        props = props || this.reaceComponent.props;
-        props.style.position = 'absolute';
-        props.style.left = position.x + 'px';
-        props.style.top = position.y + 'px';
     },
     exampleDescription: function() {
         /* an example of a description for a morph hierarchy
@@ -109,20 +139,9 @@ lively.morphic.ReactMorph.addMethods({
         return ['_Extent', '_Fill', '_Position'].include(attrName);
     },
     renderBuildSpec: function(spec) {
-        React.renderComponent(
+        this.reactComponent = React.renderComponent(
             this.componentFromDescription(
-                this.descriptionFromBuildSpec(spec)), this.renderContext().morphNode);
-    },
-
-    setFillProps: function(fill, props) {
-        props = props || this.reaceComponent.props;
-        props.style.background = fill.toRGBAString();
-    },
-
-    setExtentProps: function(extent, props) {
-        props = props || this.reaceComponent.props;
-        props.style.width = extent.x + 'px';
-        props.style.height = extent.y + 'px';
+                this.descriptionFromBuildSpec(spec)), this.renderContext().shapeNode);
     },
     addMorph: function(subMorphDescription) {
         // for now this method just accepts a description of a morph
@@ -134,6 +153,51 @@ lively.morphic.ReactMorph.addMethods({
     defaultShape: function(optBounds) {
         return new lively.morphic.Shapes.ReactShape(optBounds || new lively.Rectangle(0,0,0,0));
     },
+},
+'setting', {
+    setPositionProps: function(state, props) {
+        var position = state['Position'];
+        props.style.position = 'absolute';
+        props.style.left = position.x + 'px';
+        props.style.top = position.y + 'px';
+    },
+
+
+
+
+
+
+
+    setBorderColorProps: function(state, props) {
+        this.setBorderProps(state, props);
+    },
+    setBorderWidthProps: function(state, props) {
+        this.setBorderProps(state, props);
+    },
+    setBorderProps: function(state, props) {
+        var opacity = state['Opacity'];
+        var fill = state['BorderColor'] || null;
+        var width = state['BorderWidth'];
+        if (this.getStrokeOpacity() != 1) {
+            opacity = this.getStrokeOpacity();
+        } else {
+            opacity = fill === null ? 0 : fill.a;
+        }
+        if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
+        if (!fill) fill = Color.rgba(0,0,0,1);
+        props.style['border'] = state['BorderStyle'] || 'solid' + ' ' + width + 'px ' +
+            fill.toCSSString(state['Bounds']);
+    },
+    setFillProps: function(state, props) {
+        props.style.background = state['Fill'].toRGBAString();
+    },
+    setExtentProps: function(state, props) {
+        var extent = state['Extent']
+        props.style.width = extent.x + 'px';
+        props.style.height = extent.y + 'px';
+    }
+}, 'getting', {
+
 })
 
 lively.morphic.Shapes.ReactShape.addMethods({

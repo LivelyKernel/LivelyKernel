@@ -708,6 +708,8 @@ lively.morphic.HtmlWrapperMorph.subclass('lively.morphic.ReactMorph',
         $super(initialBounds.extent());
         this.setPosition(initialBounds.topLeft());
         this.setFill(Color.blue);
+        this.disableGrabbing();
+        this.disableDragging();
         //this.defineReactComponents();
         // this is the initial render call, from which on all the
         // hierarchical morph rendering is handled through React

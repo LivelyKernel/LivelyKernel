@@ -30,51 +30,41 @@ lively.morphic.ReactMorph.addMethods(
                      
         var Shape =  React.createClass({
             self: this,
-            initialState: {
-                     shape: description.shape,
-                     submorphs: description.submorphs
-                },
-            getInitialState: function() {
-                return this.initialState;
+            getDefaultProps: function() {
+                return {style: {}}
             },
-            
             renderSubmorphs: function() {
-                if(this.state.submorphs.length) {
+                if(this.props.state.submorphs.length) {
                     return [React.DOM.div({id: 'origin-node'}, 
-                                this.state.submorphs.map(this.self.componentFromDescription, this.self))];
+                                this.props.state.submorphs.map(function(morphData) {
+                                    return Morph({state: morphData}) 
+                                }))];
                 } else {
                     return [];
                 }
             },
            render: function() {
-               this.self.extractPropsFrom(this.state.shape, this.props); // oddly we can not pass the properties to the child, through the init call...
+               this.self.extractPropsFrom(this.props.state.shape, this.props);
                return React.DOM.div(this.props, this.renderSubmorphs());
            } 
         });
                      
         var Morph = React.createClass({
             self: this,
-            initialState: {morph: description.morph},
-            // state methods
-            getInitialState: function() {
-                return this.initialState;
-            },
             getDefaultProps: function() {
                 return {style: {},
                         className: 'morphNode'}
             },
-            initEventHandlers: function() {
-                //this.props.onMouseDown = this.onMouseDown;
-                this.props.onDoubleClick = this.onDoubleClick;
-                this.props.onDrag = this.onDrag;
-                this.props.onFocus = this.onFocus;
-                this.props.onClick = this.onMouseDown;
-                this.props.onMouseOver = this.onMouseOver;
+            initProps: function() {
+                if(this.state)
+                    this.props.state = this.state;
+                if(!this.props.state)
+                    this.props.state = description;
+                this.self.extractPropsFrom(this.props.state.morph, this.props);
             },
             render: function() {
-                this.self.extractPropsFrom(this.state.morph, this.props);
-                this.initEventHandlers(); // call only once...
-                return React.DOM.div(this.props, Shape(this.self.extractPropsFrom(this.state.shape)));
+                this.initProps();
+                return React.DOM.div(this.props, Shape({state: this.props.state}));
             }
         })
         return Morph();
@@ -117,12 +107,18 @@ lively.morphic.ReactMorph.addMethods(
     },
     renders: function(attrName) {
         return ['_Extent', '_Fill', '_Position', 
-                '_BorderWidth', '_BorderColor', '_ClipMode'].include(attrName);
+                '_BorderWidth', '_BorderColor', '_ClipMode', 
+                '_Rotation'].include(attrName) || alert('Do not render: ' + attrName);
     },
     renderBuildSpec: function(spec) {
-        this.reactComponent = React.renderComponent(
-            this.componentFromDescription(
-                this.descriptionFromBuildSpec(spec)), this.renderContext().shapeNode);
+        if(!this.reactComponent) {
+            this.reactComponent = React.renderComponent(
+                this.componentFromDescription(
+                    this.descriptionFromBuildSpec(spec)), this.renderContext().shapeNode);
+        } else {
+            this.reactComponent.setState(
+                    this.descriptionFromBuildSpec(spec));
+        }
     },
     addMorph: function(subMorphDescription) {
         // for now this method just accepts a description of a morph
@@ -142,12 +138,6 @@ lively.morphic.ReactMorph.addMethods(
         props.style.left = position.x + 'px';
         props.style.top = position.y + 'px';
     },
-
-
-
-
-
-
 
     setClipModeProps: function(state, props) {
         var state = state['ClipMode'];

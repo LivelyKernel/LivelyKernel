@@ -1667,4 +1667,21 @@ lively.morphic.Box.subclass('lively.morphic.Accordion',
     }
 });
 
+lively.morphic.HtmlWrapperMorph.subclass('lively.morphic.ReactMorph',
+'initializing', {
+    initialize: function($super, initialBounds) {
+        if(!initialBounds)
+            initialBounds = pt(0).extent(pt(100,100));
+        $super(initialBounds.extent());
+        this.setPosition(initialBounds.topLeft());
+        this.setFill(Color.blue);
+        //this.disableGrabbing();
+        //this.disableDragging();
+        //this.defineReactComponents();
+        // this is the initial render call, from which on all the
+        // hierarchical morph rendering is handled through React
+        //React.renderComponent(this.reactComponent, this.renderContext().morphNode);
+    }
+});
+
 }); // end of module

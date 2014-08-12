@@ -37,8 +37,9 @@ lively.morphic.ReactMorph.addMethods(
             getInitialState: function() {
                 return this.initialState;
             },
+            
             renderSubmorphs: function() {
-                if(this.state.submorphs) {
+                if(this.state.submorphs.length) {
                     return [React.DOM.div({id: 'origin-node'}, 
                                 this.state.submorphs.map(this.self.componentFromDescription, this.self))];
                 } else {
@@ -46,7 +47,7 @@ lively.morphic.ReactMorph.addMethods(
                 }
             },
            render: function() {
-               this.self.extractPropsFrom(this.state.shape, this.props);
+               this.self.extractPropsFrom(this.state.shape, this.props); // oddly we can not pass the properties to the child, through the init call...
                return React.DOM.div(this.props, this.renderSubmorphs());
            } 
         });
@@ -54,27 +55,6 @@ lively.morphic.ReactMorph.addMethods(
         var Morph = React.createClass({
             self: this,
             initialState: {morph: description.morph},
-            //event handling... should the component directly modify state,
-            // or delegate this back to the morph owner object?
-            onFocus: function(evt) {
-                alertOK('focused');
-            },
-            onMouseDown: function(evt) {
-                alertOK('react click!');
-            },
-            onMouseOver: function(evt) {
-                alertOK('mouseOver')
-            },
-            onDrag: function(evt) {
-                alertOK('dragging!');
-                this.state.morph.Position = pt(evt.clientX, evt.clientY);
-                this.self.setPositionProps(this.state.morph, this.props);
-                this.forceUpdate();
-            },
-            onDoubleClick: function(evt) {
-                alertOK('double click!')
-                this.setProps(this.props)
-            },
             // state methods
             getInitialState: function() {
                 return this.initialState;
@@ -136,7 +116,8 @@ lively.morphic.ReactMorph.addMethods(
         return description;
     },
     renders: function(attrName) {
-        return ['_Extent', '_Fill', '_Position'].include(attrName);
+        return ['_Extent', '_Fill', '_Position', 
+                '_BorderWidth', '_BorderColor', '_ClipMode'].include(attrName);
     },
     renderBuildSpec: function(spec) {
         this.reactComponent = React.renderComponent(
@@ -167,6 +148,23 @@ lively.morphic.ReactMorph.addMethods(
 
 
 
+
+    setClipModeProps: function(state, props) {
+        var state = state['ClipMode'];
+        var style = props.style;
+        if (typeof state === "string") {
+            style.overflowX = state;
+            style.overflowY = state;
+        } else if (typeof state === "object") {
+            if (!state.x) style.removeProperty('overflow-x');
+            else style.overflowX = state.x;
+            if (!state.y) style.removeProperty('overflow-y');
+            else style.overflowY = state.y;
+        } else {
+            style.removeProperty('overflow-x');
+            style.removeProperty('overflow-y');
+        }
+    },
 
     setBorderColorProps: function(state, props) {
         this.setBorderProps(state, props);

@@ -227,6 +227,7 @@ lively.morphic.World.addMethods(
             var meta = document.createElement('meta');
             meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
             document.head.appendChild(meta.children[0]);
+            this.bertButton = (new lively.morphic.BertButton()).open(this);
         } else { this.addHandMorph(); }
         this.restoreFixedMorphs.bind(this).delay(0);
         this.getLastModificationDate();

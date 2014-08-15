@@ -201,13 +201,16 @@ Object.subclass('lively.morphic.EventHandler',
 
         evt.isCommandKey = function() {
             // this is LK convention, not the content of the event
+            var isCmd = false;
             if (Config.useAltAsCommand)
-                return evt.altKey;
+                isCmd = isCmd || evt.altKey;
             if (UserAgent.isWindows || UserAgent.isLinux )
-                return evt.ctrlKey;
+                isCmd = isCmd || evt.ctrlKey;
             if (UserAgent.isOpera) // Opera recognizes cmd as ctrl!!?
-                return evt.ctrlKey;
-            return evt.metaKey || evt.keyIdentifier === 'Meta';
+                isCmd = isCmd || evt.ctrlKey;
+            if (UserAgent.isMobile)
+                isCmd = isCmd || lively.morphic.World.current().isBertButtonPressed();
+            return isCmd || evt.metaKey || evt.keyIdentifier === 'Meta';
         };
 
         evt.isShiftDown = function() { return !!evt.shiftKey };
@@ -1775,6 +1778,14 @@ lively.morphic.World.addMethods(
         this.cachedWindowBounds = null;
     },
 
+    isBertButtonPressed: function() {
+        return this.bertButtonPressed;
+    },
+    
+    setIsBertButtonPressed: function(bool) {
+        this.bertButtonPressed = bool !== false;
+    },
+
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...
         var ctx = this.renderContext();
@@ -1944,6 +1955,143 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         }
     }
 });
+
+lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart', 'onDragEnd']}),
+    'settings', {
+        isEpiMorph: true,
+        style: {
+            enableGrabbing: false,
+            enableDragging: true,
+            clipMode: 'hidden'
+        },
+        isBertButton: true,
+        radius: 90,
+        activeFill: Color.orange.withA(.7),
+        inactiveFill: Color.gray.darker().withA(.3)
+    },
+    'initializing', {
+        initialize: function($super) {
+            $super();
+            this.setShape(new lively.morphic.Shapes.Ellipse(pt(0,0).extent(pt(this.radius, this.radius))));
+            this.setOrigin(pt(this.radius/2, this.radius/2));
+            this.setFill(this.inactiveFill);
+            this.initializeLogo();
+            connect(this, 'onDragStart', this, 'pressStart');
+            connect(this, 'onDragEnd', this, 'pressEnd');
+            connect(this, 'onDrag', this, 'stayInWorld');
+        },
+        open: function(world) {
+            if (world.isRendered()) {
+                this.addToWorld(world);
+            } else {
+                this.loadConnection = connect(world, 'onRenderFinished', this, 'addToWorld', {converter: function() { return this.sourceObj }});
+            }
+        },
+    initializeLogo: function() {
+        var l = new lively.morphic.Image(
+            pt(0,0).extent(pt(200,200)),
+            Config.codeBase + 'media/front2.svg',
+            false);
+        l.setScale(0.7);
+        l.setPosition(lively.pt(-60,-54));
+        l.disableEvents();
+        l.disableDropping();
+        this.logo = this.addMorph(l);
+    },
+        getGrabShadow: function() {
+            return false
+        },
+
+        addToWorld: function(world) {
+            if (this.loadConnection) {
+                this.loadConnection.disconnect();
+                delete this.loadConnection;
+            }
+            world.addMorph(this);
+            world.bertButtonPressed = false;
+            connect(world, 'bertButtonPressed', this, 'setFill', {converter: function(bool) {
+                return bool === false ? this.targetObj.inactiveFill : this.targetObj.activeFill;
+            },})
+            this.align(this.bounds().bottomLeft(), world.visibleBounds().bottomLeft());
+            this.setFixed(true);
+            return this;
+        }
+    },
+    'interaction', {
+        wantsToBeDroppedInto: function(dropTarget) {
+            return dropTarget.isWorld;
+        },
+    onMouseUp: function() {
+        lively.morphic.World.current().setIsBertButtonPressed(false)
+    },
+
+
+    onMouseDown: function() {
+        lively.morphic.World.current().setIsBertButtonPressed(true);
+    },
+        pressStart: function() {
+            var world = lively.morphic.World.current();
+            this.setFixed(false);
+            this.setPosition(this.getPosition().addPt(world.visibleBounds().topLeft()))
+        },
+
+
+        pressEnd: function() {
+            var world = lively.morphic.World.current();
+            world.addMorph(this);
+            this.positionOnBorder();
+            this.moveBy(pt(0,0).subPt(world.visibleBounds().topLeft()))
+            this.setFixed(true);
+            world.setIsBertButtonPressed(false);
+        },
+    scrollWorld: function() {
+        var world = lively.morphic.World.current(),
+            wb = world.visibleBounds(),
+            mb = this.bounds();
+        if (wb.containsRect(this.bounds())) { return }
+        else {
+            // Shamelessly copied and adapted from lively.morphic.Morph.scrollRectIntoView
+            // which cannot handle usual world scroll;
+            var scrollDeltaX = 0, scrollDeltaY = 0;
+            if (mb.left() < wb.left())
+                scrollDeltaX = mb.left() - wb.left();
+            else if (mb.right() > wb.right())
+                scrollDeltaX = mb.right() - wb.right();
+            if (mb.top() < wb.top())
+                scrollDeltaY = mb.top() - wb.top();
+            else if (mb.bottom() > wb.bottom())
+                scrollDeltaY = mb.bottom() - wb.bottom();
+            var scroll = world.getScroll();
+            world.setScroll(scroll[0] + scrollDeltaX, scroll[1] + scrollDeltaY);
+        }
+    },
+    stayInWorld: function() {
+        this.scrollWorld();
+        var vp = lively.morphic.World.current().visibleBounds().copy(),
+            b = this.bounds();
+        this.moveBy(pt(Math.max(0, vp.left() - b.left()),0));
+        this.moveBy(pt(Math.min(0, vp.right() - b.right()),0));
+        this.moveBy(pt(0, Math.max(0, vp.top() - b.top())));
+        this.moveBy(pt(0, Math.min(0, vp.bottom() - b.bottom())));
+    },
+
+    positionOnBorder: function() {
+        var vp = lively.morphic.World.current().visibleBounds(),
+            b = this.globalBounds();
+        var absMin = function(x, y) { return Math.abs(x) < Math.abs(y) ? x : y };
+        var dx = absMin(vp.x - b.topLeft().x, vp.x + vp.width - b.bottomRight().x),
+            dy = absMin(vp.y - b.topLeft().y, vp.y + vp.height - b.bottomRight().y);
+        this.moveBy(Math.abs(dx) < Math.abs(dy) ? pt(dx, 0) : pt(0, dy));
+    },
+
+
+    
+
+        
+
+
+    }
+)
 
 Object.extend(lively.morphic.Events, {
 

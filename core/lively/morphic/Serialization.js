@@ -224,6 +224,9 @@ lively.morphic.World.addMethods(
         this.hands = [];
         if (UserAgent.isMobile) {
             for (var i = 0; i<5; i++) { this.addHandMorph(); }
+            var meta = document.createElement('meta');
+            meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
+            document.head.appendChild(meta.children[0]);
         } else { this.addHandMorph(); }
         this.restoreFixedMorphs.bind(this).delay(0);
         this.getLastModificationDate();

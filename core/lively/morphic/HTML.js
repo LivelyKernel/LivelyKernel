@@ -341,7 +341,10 @@ lively.morphic.Morph.addMethods(
         return ctx.morphNode ? ctx.morphNode.dispatchEvent(evt) : null;
     },
     setPointerEventsHTML: function(ctx, value) {
-        if (ctx.morphNode) ctx.morphNode.style.pointerEvents = value;
+        if (ctx.morphNode) {
+            ctx.morphNode.style.pointerEvents = value;
+            ctx.morphNode.setAttribute('touch-action', 'none');
+        }
     }
 },
 'focus', {

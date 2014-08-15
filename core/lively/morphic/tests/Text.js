@@ -1259,10 +1259,10 @@ AsyncTestCase.subclass("lively.morphic.tests.Text.HoverActions",
         }});
 
         // NOTE! jQuery event triggering is async!
-        lively.$(morph.firstTextChunk().getChunkNode()).trigger('mouseenter');
+        lively.$(morph.firstTextChunk().getChunkNode()).trigger('pointerenter');
         this.delay(function() {
             this.assertEquals(1, morph.x);
-            lively.$(morph.firstTextChunk().getChunkNode()).trigger('mouseleave');
+            lively.$(morph.firstTextChunk().getChunkNode()).trigger('pointerleave');
         }, 0);
         this.delay(function() {
             this.assertEquals(2, morph.x);

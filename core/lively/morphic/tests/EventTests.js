@@ -29,17 +29,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
         morph.onDrag = function() { dragMoved = true }
         morph.onDragEnd = function() { dragEnded = true }
 
-        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'pointerdown', pos: pt(20,20), target: morphNode, button: 0});
         this.assert(!dragStarted, 'drag already started after mousedown');
 
-        this.doMouseEvent({type: 'mousemove', pos: pt(25,25), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'pointermove', pos: pt(25,25), target: morphNode, button: 0});
         this.assert(dragStarted, 'drag not started after mousedown and mousemove');
         this.assert(!dragMoved, 'drag already moved at dragStart');
 
-        this.doMouseEvent({type: 'mousemove', pos: pt(30,30), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'pointermove', pos: pt(30,30), target: morphNode, button: 0});
         this.assert(dragMoved, 'drag not moved after mousemove');
 
-        this.doMouseEvent({type: 'mouseup', pos: pt(30,30), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'pointerup', pos: pt(30,30), target: morphNode, button: 0});
         this.assert(dragEnded, 'dragEnd not called');
     },
     test02RelayMouseEventsToMorphBeneath: function() {
@@ -52,7 +52,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
         morph2.relayMouseEventsToMorphBeneath();
 
         lively.morphic.EventSimulator.doMouseEvent(
-            {type: 'mousedown', pos: pt(20,20), target: morph2, button: 0});
+            {type: 'pointerdown', pos: pt(20,20), target: morph2, button: 0});
         this.assertIdentity(morph1, this.world.clickedOnMorph);
     },
     test03DropMorph: function() {
@@ -127,13 +127,13 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
     dragFromTo: function(morph, startMousePos, endMousePos) {
         var dragTriggerOffset = pt(10,0)
         // grab morph
-        this.doMouseEvent({type: 'mousedown', pos: startMousePos, target: morph});
-        this.doMouseEvent({type: 'mousemove', pos: startMousePos.addPt(dragTriggerOffset), target: morph});
-        this.doMouseEvent({type: 'mousemove', pos: startMousePos, target: morph});
+        this.doMouseEvent({type: 'pointerdown', pos: startMousePos, target: morph});
+        this.doMouseEvent({type: 'pointermove', pos: startMousePos.addPt(dragTriggerOffset), target: morph});
+        this.doMouseEvent({type: 'pointermove', pos: startMousePos, target: morph});
         // move
-        this.doMouseEvent({type: 'mousemove', pos: endMousePos, target: morph});
+        this.doMouseEvent({type: 'pointermove', pos: endMousePos, target: morph});
         // drop
-        this.doMouseEvent({type: 'mouseup', pos: endMousePos, target: morph.world()});
+        this.doMouseEvent({type: 'pointerup', pos: endMousePos, target: morph.world()});
     },
 },
 'testing', {

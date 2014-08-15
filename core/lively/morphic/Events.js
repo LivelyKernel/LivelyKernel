@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib({url: Config.codeBase + 'lib/pointerevents/pointerevents.min.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -32,8 +32,8 @@ lively.morphic.EventSimulator = {
         return simulatedEvent;
     },
     doMouseEvent: function(spec) {
-        // type one of click, mousedown, mouseup, mouseover, mousemove, mouseout.
-        if (!spec.type) spec.type = 'mousedown';
+        // type one of click, pointerdown, pointerup, pointerover, pointermove, pointerout.
+        if (!spec.type) spec.type = 'pointerdown';
         if (!spec.pos) spec.pos = pt(0,0);
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;
@@ -52,14 +52,14 @@ lively.morphic.EventSimulator = {
 
         keys = {meta: true}
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'mousedown',
+            type: 'pointerdown',
             pos: pos,
             target: btn,
             keys: keys
         });
 
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'mouseup',
+            type: 'pointerup',
             pos: pos,
             target: btn,
             keys: keys
@@ -236,7 +236,7 @@ Object.subclass('lively.morphic.EventHandler',
             return Event.pressedKeyString(evt, options);
         }
 
-        evt.isMouseEvent = evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'mousemove' || evt.type === 'mouseover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
+        evt.isMouseEvent = evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'pointermove' || evt.type === 'pointerover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');
 
@@ -346,7 +346,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         }
 
         // For some reason it works a bit better when we generate the events again...
-        if (evt.type === 'mousemove' || evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'mouseout' || evt.type === 'mousewheel' || evt.type === 'mouseenter' || evt.type === 'mouseleave') {
+        if (evt.type === 'pointermove' || evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'pointerout' || evt.type === 'mousewheel' || evt.type === 'pointerenter' || evt.type === 'pointerleave') {
             var e = document.createEvent("MouseEvents"),
                 be = evt,
                 et = be.type;
@@ -386,18 +386,18 @@ Object.extend(Event, {
 
     MOUSE_LEFT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 1 } :
-            function(evt) { return evt.which === 1 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 1 || evt.buttons === 1) } :
+            function(evt) { return (evt.which === 1 || evt.buttons === 1) }
     })(),
     MOUSE_MIDDLE_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 2 } :
-            function(evt) { return evt.which === 2 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 2 || evt.buttons === 4) } :
+            function(evt) { return (evt.which === 2 || evt.buttons === 4) }
     })(),
     MOUSE_RIGHT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 3 } :
-            function(evt) { return evt.which === 3 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 3 || evt.buttons === 2) } :
+            function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
 
     manualKeyIdentifierLookup: (function() {
@@ -749,10 +749,10 @@ lively.morphic.Morph.addMethods(
         this.registerForEvents();
     },
     registerForEvents: function(handleOnCapture) {
+        this.registerForPointerEvents(handleOnCapture);
         this.registerForMouseEvents(handleOnCapture);
         this.registerForKeyboardEvents(handleOnCapture);
         this.registerForOtherEvents(handleOnCapture);
-        this.registerForTouchEvents(handleOnCapture);
         this.registerForFocusAndBlurEvents();
     }
 },
@@ -763,12 +763,23 @@ lively.morphic.Morph.addMethods(
         this.registerForEvent('keypress', this, 'onKeyPress', handleOnCapture);
     },
 
+    registerForPointerEvents: function(handleOnCapture) {
+        if (this.onMouseUpEntry) {
+            this.registerForEvent('pointercancel', this, 'onPointerCancelEntry', handleOnCapture);
+            this.registerForEvent('pointerup', this, 'onMouseUpEntry', handleOnCapture);
+        }
+        if (this.onMouseDownEntry) this.registerForEvent('pointerdown', this, 'onMouseDownEntry', handleOnCapture);
+        if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
+        if (this.onMouseMoveEntry) this.registerForEvent('pointermove', this, 'onMouseMoveEntry', handleOnCapture);
+        if (this.onMouseOver) this.registerForEvent('pointerover', this, 'onMouseOver', handleOnCapture);
+        if (this.onMouseOut) this.registerForEvent('pointerout', this, 'onMouseOut', handleOnCapture);
+    },
 
     registerForMouseEvents: function(handleOnCapture) {
-        if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
-        if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
-        if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
-        if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
+        // if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
+        // if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
+        // if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
+        // if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
         if (this.onDoubleClick) this.registerForEvent('dblclick', this, 'onDoubleClick', handleOnCapture);
 
         if (this.onSelectStart) this.registerForEvent('selectstart', this, 'onSelectStart', handleOnCapture);
@@ -778,8 +789,8 @@ lively.morphic.Morph.addMethods(
 
         if (this.onMouseWheelEntry) this.registerForEvent('mousewheel', this, 'onMouseWheelEntry',
 handleOnCapture);
-        if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
-        if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
+        // if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
+        // if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
         if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
@@ -790,13 +801,13 @@ handleOnCapture);
         if (this.onChange) this.registerForEvent('change', this, 'onChange', handleOnCapture);
         if (this.onScroll) this.registerForEvent('scroll', this, 'onScroll', handleOnCapture);
     },
-    registerForTouchEvents: function(handleOnCapture) {
-        if (!UserAgent.isTouch || true) return;
-        if (this.onTouchStart)
-            this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
-        if (this.onTouchEnd)
-            this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
-    },
+    // registerForTouchEvents: function(handleOnCapture) {
+    //     if (!UserAgent.isTouch || true) return;
+    //     if (this.onTouchStart)
+    //         this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
+    //     if (this.onTouchEnd)
+    //         this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
+    // },
     registerForFocusAndBlurEvents: function() {
         this.registerForEvent('blur', this, 'onBlur', true);
         this.registerForEvent('focus', this, 'onFocus', true);

@@ -203,7 +203,7 @@ lively.BuildSpec("lively.ide.tools.SearchPrompt", {
         var searchOpts = oop.mixin({}, ed.$search.$options);
         this.endSearch();
         occurStartCommand.exec(ed, searchOpts);
-        ed.once('mousedown', function() {
+        ed.once('pointerdown', function() {
             var cmds = ed.getKeyboardHandler().commands;
             if (!cmds.occuraccept) return;
             setTimeout(function() {

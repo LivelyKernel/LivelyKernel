@@ -2897,7 +2897,7 @@ Object.subclass('lively.morphic.TextEmphasis',
 
                 // setup
                 var actionQueue = lively.morphic.TextEmphasis.hoverActions;
-                this.addCallbackWhenApplyDone('mouseenter', function(evt) {
+                this.addCallbackWhenApplyDone('pointerenter', function(evt) {
                     actionQueue.enter(function() {
                         var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
@@ -2905,7 +2905,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                     });
                     return true;
                 });
-                this.addCallbackWhenApplyDone('mouseleave', function(evt) {
+                this.addCallbackWhenApplyDone('pointerleave', function(evt) {
                     actionQueue.leave(function() {
                         var morph = lively.$(evt.target).parents('[data-lively-node-type="morph-node"]').eq(0).data('morph');
                         lively.morphic.EventHandler.prototype.patchEvent(evt);
@@ -3242,9 +3242,9 @@ Object.subclass('lively.morphic.TextEmphasis',
 
     installCallbackHandler: function(node) {
         var $node = lively.$(node);
-        [{type: 'click', handler: 'mouseup'},
-         {type: 'mouseenter', handler: 'mouseenter'},
-         {type: 'mouseleave', handler: 'mouseleave'}].forEach(function(spec) {
+        [{type: 'click', handler: 'pointerup'},
+         {type: 'pointerenter', handler: 'pointerenter'},
+         {type: 'pointerleave', handler: 'pointerleave'}].forEach(function(spec) {
              $node.off(spec.handler);
              if (!this.callbacks
                || !this.callbacks[spec.type]

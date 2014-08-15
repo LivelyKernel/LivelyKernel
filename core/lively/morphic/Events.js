@@ -387,17 +387,23 @@ Object.extend(Event, {
     MOUSE_LEFT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 1 || evt.buttons === 1) } :
-            function(evt) { return (evt.which === 1 || evt.buttons === 1) }
+            UserAgent.isMobile ?
+                function(evt) { return true } :
+                function(evt) { return (evt.which === 1 || evt.buttons === 1) }
     })(),
     MOUSE_MIDDLE_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 2 || evt.buttons === 4) } :
-            function(evt) { return (evt.which === 2 || evt.buttons === 4) }
+            UserAgent.isMobile ?
+                function(evt) { return false } :
+                function(evt) { return (evt.which === 2 || evt.buttons === 4) }
     })(),
     MOUSE_RIGHT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 3 || evt.buttons === 2) } :
-            function(evt) { return evt.which === 3 || evt.buttons === 2 }
+            UserAgent.isMobile ?
+                function(evt) { return false } :
+                function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
 
     manualKeyIdentifierLookup: (function() {

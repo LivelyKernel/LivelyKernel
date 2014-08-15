@@ -735,7 +735,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
             scale = 1 / this.getScale(),
             topLeft = pt(body.scrollLeft - (canvas.offsetLeft || 0), body.scrollTop - (canvas.offsetTop || 0)),
             width, height;
-        if (UserAgent.isTouch){
+        if (UserAgent.isTouch || UserAgent.isMobile){
             width = window.innerWidth * scale;
             height = window.innerHeight * scale;
         } else {

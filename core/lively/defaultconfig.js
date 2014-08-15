@@ -19,6 +19,7 @@ var isRhino = !Global.navigator || Global.navigator.userAgent.indexOf("Rhino") >
     isChrome = Global.navigator && Global.navigator.userAgent.indexOf("Chrome") > -1,
     isOpera = Global.navigator && Global.navigator.userAgent.indexOf("Opera") > -1,
     isIE = Global.navigator && Global.navigator.userAgent.indexOf("MSIE") > -1,
+    isMobile = Global.navigator && Global.navigator.userAgent.indexOf("Mobile") > -1,
     fireFoxVersion = Global.navigator &&
     (Global.navigator.userAgent.split("Firefox/")[1] ||
      Global.navigator.userAgent.split("Minefield/")[1]); // nightly
@@ -59,10 +60,9 @@ Global.UserAgent = {
 
     isMacOS: Global.navigator && Global.navigator.platform.startsWith("Mac"),
 
-    isTouch: Global.navigator
-          && (Global.navigator.platform == "iPhone"
-            || Global.navigator.platform == "iPad"
-            || Global.navigator.platform == "iPod"),
+    isTouch: false,
+
+    isMobile: isMobile,
 
     touchIsMouse: false,
 

@@ -119,12 +119,12 @@ lively.morphic.World.addMethods(
 lively.morphic.Box.subclass('lively.morphic.Halo',
 'settings', {
     style: {
-        borderWidth: 1, borderRadius: 12, borderColor: Color.darkGray,
+        borderWidth: 1, borderRadius: UserAgent.isMobile? 24 : 12, borderColor: Color.darkGray,
         enableHalos: false, enableDropping: false, enableDragging: true,
         opacity: 0.7, zIndex: 1010
     },
     dragTriggerDistance: 5,
-    defaultExtent: pt(24,24),
+    defaultExtent: UserAgent.isMobile ? pt(40,40) : pt(24,24),
     labelText: '',
     maxHorizontalLabels: 3,
     maxVerticalLabels: 3,

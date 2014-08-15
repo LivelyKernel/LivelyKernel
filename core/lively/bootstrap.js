@@ -76,8 +76,8 @@
             var uaInfo = userAgent.split(' '),
                 uaInfoCount = uaInfo.length,
                 i = 0;
-            while (uaInfo[i].indexOf(prefix) < 0) { i += 1; }
-            return uaInfo[i].split('/')[1];
+            while (uaInfo[i] && uaInfo[i].indexOf(prefix) < 0) { i += 1; }
+            return i < uaInfo.length ? uaInfo[i].split('/')[1] : "";
         };
 
         that.detectVersion = function(optBrowserSpec) {

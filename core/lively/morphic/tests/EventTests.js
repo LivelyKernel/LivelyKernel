@@ -53,7 +53,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
 
         lively.morphic.EventSimulator.doMouseEvent(
             {type: 'pointerdown', pos: pt(20,20), target: morph2, button: 0});
-        this.assertIdentity(morph1, this.world.clickedOnMorph);
+        this.assertIdentity(morph1, this.world.firstHand().clickedOnMorph);
     },
     test03DropMorph: function() {
         var morph1 = new lively.morphic.Box(new Rectangle(0, 0, 100, 100)),

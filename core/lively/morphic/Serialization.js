@@ -216,11 +216,15 @@ lively.morphic.World.addMethods(
     doNotSerialize: ["_lastZoomAttemptDelta","cachedWindowBounds","clickedOnMorph",
                      "clickedOnMorphTime","currentHaloTarget","currentMenu","draggedMorph",
                      "lastAlert","loadingMorph","revisionOnLoad","savedWorldAsURL","scrollOffset",
-                     "statusMessages","worldMenuOpened"],
+                     "statusMessages","worldMenuOpened", "bertButton"],
 
     onrestore: function($super) {
         $super();
-        if (!this.firstHand()) this.addHandMorph();
+        this.hands.invoke('remove');
+        this.hands = [];
+        if (UserAgent.isMobile) {
+            for (var i = 0; i<5; i++) { this.addHandMorph(); }
+        } else { this.addHandMorph(); }
         this.restoreFixedMorphs.bind(this).delay(0);
         this.getLastModificationDate();
     },

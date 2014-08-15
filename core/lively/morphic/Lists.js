@@ -237,7 +237,7 @@ lively.morphic.Box.subclass('lively.morphic.OldList',
         return true;
     },
     onMouseUpEntry: function ($super, evt) {
-        var completeClick = evt.world && evt.world.clickedOnMorph === this;
+        var completeClick = evt.hand && evt.hand.clickedOnMorph === this;
 
         if (completeClick && evt.isRightMouseButtonDown()) {
             return false;

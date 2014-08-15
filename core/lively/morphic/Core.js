@@ -717,10 +717,16 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     isWorld: true
 },
 'accessing -- morphic relationship', {
+    draggedMorphs: function() {
+        return this.hands.map(function (hand) { return hand.draggedMorph }).filter(function (ea) { return ea });
+    },
+
     addMorph: function($super, morph, optMorphBefore) {
         // my first hand is almost the topmost morph
         var r = $super(morph, optMorphBefore);
-        $super(this.firstHand());
+        this.hands.forEach(function(hand) {
+            $super(hand);
+        })
         return r;
     }
 },

@@ -257,8 +257,11 @@ Object.subclass('lively.morphic.EventHandler',
 
         var world = lively.morphic.World.current();
         evt.world = world;
-        evt.hand = world ? world.hands[0] : undefined;
-
+        
+        var evtHand = world.hands.find(function(hand) { return hand.pointerId === evt.pointerId});
+        evt.hand = world ?
+                evtHand || world.hands.find(function(hand) { return !hand.pointerId }) :
+                undefined;
         evt.getPosition = function() {
             if (!evt.scaledPos) {
                 evt.scaledPos = evt.mousePoint.scaleBy(1 / evt.world.getScale());
@@ -833,6 +836,7 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt, allHits) {
+        evt.hand.pointerId = evt.pointerId;
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below
             if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
@@ -869,7 +873,7 @@ handleOnCapture);
           && !this.eventsAreIgnored
           && evt.isRightMouseButtonDown()
           && evt.getTargetMorph() == this) {
-              evt.world.clickedOnMorph=this;
+              evt.hand.clickedOnMorph=this;
             this.world().worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
@@ -890,8 +894,8 @@ handleOnCapture);
 
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
-        evt.world.clickedOnMorph = this;
-        evt.world.clickedOnMorphTime = Date.now();
+        evt.hand.clickedOnMorph = this;
+        evt.hand.clickedOnMorphTime = Date.now();
 
         return this.onMouseDown(evt);
 
@@ -900,6 +904,7 @@ handleOnCapture);
     onMouseUp: function(evt) { return false; },
 
     onMouseUpEntry: function(evt, allHits) {
+        evt.hand.pointerId = undefined; 
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below
             if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
@@ -923,8 +928,8 @@ handleOnCapture);
         // delayed so that the event onMouseUp event handlers that
         // are invoked after this point still have access
         (function removeClickedOnMorph() {
-            world.clickedOnMorph = null;
-            evt.world.eventStartPos = null;
+            evt.hand.clickedOnMorph = null;
+            evt.hand.eventStartPos = null;
         }).delay(0);
 
         if (invokeHalos) {
@@ -992,6 +997,13 @@ handleOnCapture);
         if (!nativeMenu) evt.stop();
         return nativeMenu;
     },
+
+    onPointerCancelEntry: function(evt) {
+        var dirtyHand = $world.hands.find(function (hand) { return hand.pointerId === evt.pointerId; });
+        if (dirtyHand) {
+            delete dirtyHand.pointerId;
+        }
+    }
 
 },
 'keyboard events', {
@@ -1519,7 +1531,7 @@ lively.morphic.World.addMethods(
 },
 'mouse event handling', {
     onMouseDown: function($super, evt) {
-        this.eventStartPos = evt.getPosition();
+        evt.hand.eventStartPos = evt.getPosition();
         // remove the selection when clicking into the world...
          if (this.selectionMorph
           && this.selectionMorph.owner
@@ -1530,7 +1542,7 @@ lively.morphic.World.addMethods(
         var evtTarget = evt.getTargetMorph();
         while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
 
-        if (evt.isAltDown() && this.clickedOnMorph && !this.draggedMorph) {
+        if (evt.isAltDown() && evt.hand.clickedOnMorph && !evt.hand.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world
@@ -1557,17 +1569,21 @@ lively.morphic.World.addMethods(
         if (activeWindow && (!evtTarget || evtTarget.getWindow() !== activeWindow)) {
             activeWindow.highlight(false); };
 
-        // FIXME should be hand.draggedMorph!
-        var draggedMorph = this.draggedMorph;
+        var draggedMorph = evt.hand.draggedMorph;
         if (draggedMorph) {
-            this.clickedOnMorph = null
-            this.draggedMorph = null;
+            // DEPRECATED: world.draggedMorph is just kept for compatibility reasons.
+            // It is now handeled by hands.
+            if (evt.hand.draggedMorph === evt.world.draggedMorph) {
+                delete evt.world.draggedMorph;
+            }
+            evt.hand.clickedOnMorph = null
+            evt.hand.draggedMorph = null;
             draggedMorph.onDragEnd(evt);
         }
 
         if (this.dispatchDrop(evt)) {
-            this.clickedOnMorph = null
-            this.draggedMorph = null;
+            evt.hand.clickedOnMorph = null
+            evt.hand.draggedMorph = null;
             return true;
         }
 
@@ -1580,24 +1596,25 @@ lively.morphic.World.addMethods(
         // more than that distance and still is down (move started in the morph) than
         // morph.onDragStart is called. moving further triggers morph.onDrag. Releasing
         // mouse button triggers morph.onDragEnd.
-
+        
         evt.hand.move(evt);
 
         var focused = this.focusedMorph();
         if (!focused || focused === this) evt.stop();
 
         // dargging was initiated before, just call onDrag
-        if (this.draggedMorph) {
-            this.draggedMorph.onDrag && this.draggedMorph.onDrag(evt);
+        if (evt.hand.draggedMorph) {
+            evt.hand.draggedMorph.onDrag && evt.hand.draggedMorph.onDrag(evt);
             return false;
         }
 
         // try to initiate dragging and call onDragStart
-        var targetMorph = this.clickedOnMorph;
+        var targetMorph = evt.hand.clickedOnMorph;
         if (!targetMorph) return false;
-        var minDragDistReached = this.eventStartPos &&
-            (this.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
+        var minDragDistReached = evt.hand.eventStartPos &&
+            (evt.hand.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
         if (!minDragDistReached) return false;
+        
         if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return false;
             if (!targetMorph.isGrabbable(evt)) return false;  // Don't drag world, etc
@@ -1631,13 +1648,14 @@ lively.morphic.World.addMethods(
                 var lockOwner = targetMorph.lockOwner(),
                     grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
                 if (grabTarget.correctForDragOffset()) {
-                    grabTarget.moveBy(evt.getPosition().subPt(this.eventStartPos));
+                    grabTarget.moveBy(evt.getPosition().subPt(evt.hand.eventStartPos));
                 }
             }
-            this.draggedMorph = targetMorph;
-            this.draggedMorph.onDragStart && this.draggedMorph.onDragStart(evt);
+            evt.hand.draggedMorph = targetMorph;
+            this.draggedMorph = targetMorph; // DEPRECATED! Use the array returned by $world.draggedMorphs()
+            evt.hand.draggedMorph.onDragStart && evt.hand.draggedMorph.onDragStart(evt);
         } else if (targetMorph === this) { // world handles selections
-            this.draggedMorph = this;
+            evt.hand.draggedMorph = this;
             this.onDragStart(evt);
         }
         return false;
@@ -1836,7 +1854,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'testing', {
     isPressed: function() {
         // FIXME, this depends on world behavior!!!
-        return !!this.world().clickedOnMorph;
+        return !!this.clickedOnMorph;
     }
 },
 'event handling', {

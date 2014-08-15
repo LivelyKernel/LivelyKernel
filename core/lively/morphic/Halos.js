@@ -292,7 +292,7 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         if (!target || !world || !world.eventStartPos) {
             return
         }
-        target.moveBy(evt.getPosition().subPt(world.eventStartPos));
+        target.moveBy(evt.getPosition().subPt(evt.hand.eventStartPos));
         target.halos.invoke('alignAtTarget');
     },
 },

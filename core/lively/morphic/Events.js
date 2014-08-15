@@ -907,7 +907,8 @@ handleOnCapture);
     onMouseUp: function(evt) { return false; },
 
     onMouseUpEntry: function(evt, allHits) {
-        evt.hand.pointerId = undefined; 
+        evt.hand.move(evt);
+        evt.hand.pointerId = undefined;
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below
             if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());

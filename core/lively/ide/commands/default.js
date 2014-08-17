@@ -998,6 +998,17 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.ide.openServerProcessViewer': {
+        description: 'open server process viewer',
+        exec: function() {
+            lively.require("lively.ide.tools.ServerProcessViewer").toRun(function() {
+                lively.ide.tools.ServerProcessViewer.open();
+            });
+            return true;
+        }
+    },
+
     'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
     'lively.ide.openSubserverViewer': {
         description: 'open SubserverViewer',

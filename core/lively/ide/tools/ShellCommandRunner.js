@@ -1,6 +1,11 @@
 module('lively.ide.tools.ShellCommandRunner').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface', 'lively.ide.tools.CommandLine').toRun(function() {
 
 Object.extend(lively.ide.tools.ShellCommandRunner, {
+    run: function(cmdString) {
+        var cmd = lively.ide.CommandLineInterface.run(cmdString, {}, function(cmd) { });
+        return lively.ide.tools.ShellCommandRunner.forCommand(cmd)
+            .openInWorldCenter().comeForward();
+    },
     forCommand: function(cmd) {
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
         runner.attachTo(cmd);
@@ -285,8 +290,8 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             items.push(['Browse Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.browseRunningShellCommands'); }]);
             items.push(['Show Running commands', function() { lively.ide.commands.exec('lively.ide.CommandLineInterface.showRunningShellCommands'); }]);
             items.push(['Send signal...', 
-                ["SIGHUP","SIGINT","SIGQUIT","SIGKILL","SIGUSR1","SIGUSR2"].map(function(sig) {
-                    return [sig, self.killCommand.bind(self, "SIGHUP")]
+                ["SIGHUP","SIGINT","SIGTERM", "SIGKILL","SIGUSR1","SIGUSR2"].map(function(sig) {
+                    return [sig, self.killCommand.bind(self, sig)]
                 })]);
             return items;
         }

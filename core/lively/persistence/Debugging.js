@@ -113,9 +113,9 @@ ObjectGraphLinearizer.addMethods(
         //   s.findIdReferencePathFromToId(0, 5, {showPath: false, showPropNames: true});
         options = options || {};
         var showPath = options.showPath === undefined ?  true : options.showPath,
-            showClassNames = options.showClassNames || !showPath,
-            showPropNames = options.showPropNames || showPath,
-            hideId = options.hideId || showPath;
+            showClassNames = options.hasOwnProperty('showClassNames') ? options.showClassNames : !showPath,
+            showPropNames = options.hasOwnProperty('showPropNames') ? options.showPropNames : showPath,
+            hideId = options.hasOwnProperty('hideId') ? options.hideId : showPath;
 
         // how can one get from obj behind fromId to obj behind toId
         // returns an array of ids
@@ -138,6 +138,8 @@ ObjectGraphLinearizer.addMethods(
             stack.pop();
         }
         pathFromIdToId(fromId, toId, 0);
+
+        if (!found) return null;
 
         if (!showClassNames && !showPropNames) return found;
 

@@ -731,7 +731,6 @@ lively.morphic.World.addMethods(
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
-        if (!Config.get('verboseLogging')) return;
         var msg = (optName || 'LOGERROR: ') + String(er) + "\nstack:" + er.stack;
         this.setStatusMessage(msg, Color.red, 10, function() {
             var errorStackViewer = this.openPartItem("ErrorStackViewer", "PartsBin/Tools");
@@ -743,8 +742,11 @@ lively.morphic.World.addMethods(
 },
 'logging', {
     setStatusMessage: function (msg, color, delay, callback, optStyle) {
-        var msgMorph = this.createStatusMessage(msg, {fill: color});
+        console[color == Color.red ? "error" : "log"](msg);
 
+        if (!lively.Config.get('verboseLogging')) return null;
+
+        var msgMorph = this.createStatusMessage(msg, {fill: color});
         // callbacks are currently not supported...
         if (false && callback) {
             var btn = new lively.morphic.Button(lively.rect(0,0,50,20), 'more')
@@ -753,11 +755,7 @@ lively.morphic.World.addMethods(
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
             connect(btn, 'fire', btn, 'callbackFunc')
         }
-        if (color == Color.red) {
-            console.error(msg);
-        } else {
-            console.log(msg);
-        }
+        
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 

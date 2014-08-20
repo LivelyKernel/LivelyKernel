@@ -811,6 +811,28 @@ Object.extend(lively.ide.commands.byName, {
             });
         }
     },
+
+    'lively.ide.CommandLineInterface.printDirectory': {
+        description: 'Print directory hierarchy',
+        exec: function() {
+            function printIt(dir) {
+                lively.shell.run("find " + dir.path + "", {}, function(cmd) {
+                    lively.require('lively.data.DirectoryUpload').toRun(function() {
+                        var files = cmd.getStdout().split('\n')
+                        new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
+                    });
+                    
+                })
+            }
+            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                'choose directory: ',
+                lively.ide.CommandLineInterface.cwd(),
+                function(files) { return files.filterByKey('isDirectory'); },
+                "lively.ide.browseFiles.baseDir.NarrowingList",
+                [printIt]);
+        }
+    },
+
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {

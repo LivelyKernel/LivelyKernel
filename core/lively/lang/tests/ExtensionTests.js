@@ -177,6 +177,11 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertyPath',
         p.set(obj, 3, true);
         this.assertEquals(3, obj.foo.bar.baz);
     },
+    testEnsureOverwritesString: function() {
+        var obj = {foo: "b a r"}, p = lively.PropertyPath('foo.b a r.baz');
+        p.set(obj, 3, true);
+        this.assertEqualState({foo: {"b a r": {baz: 3}}}, obj);
+    },
     testSplitter: function() {
         var obj = {}, p = lively.PropertyPath('foo/bar/baz', '/');
         p.set(obj, 3, true);

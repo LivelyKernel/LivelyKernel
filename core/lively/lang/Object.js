@@ -524,7 +524,7 @@ Object.extend(lively.PropertyPath.prototype, {
         var parent = obj
         for (var i = 0; i < this._parts.length-1; i++) {
             var part = this._parts[i];
-            if (parent.hasOwnProperty(part)) {
+            if (parent.hasOwnProperty(part) && Object.isObject(parent[part]) || Object.isArray(parent[part])) {
                 parent = parent[part];
             } else if (ensure) {
                 parent = parent[part] = {};

@@ -1252,6 +1252,13 @@ lively.morphic.Box.subclass('lively.morphic.List',
             function setState() { self.selected = bool; }
             if (suppressUpdate) lively.bindings.noUpdate(setState); else setState();
         });
+        text.addScript(function onDrag(evt) {
+            if (!evt.hand.eventStartPos) return;
+            var list = this.owner.owner,
+                scrollByY = evt.hand.eventStartPos.subPt(evt.getPosition()).y / 4
+            list.setScroll(0, list.getScroll()[1]+scrollByY);
+        })
+        
         text.addScript(this.textOnMouseDown);
         // text.disableEvents();
         text.unignoreEvents();

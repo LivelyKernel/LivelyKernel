@@ -263,7 +263,7 @@ Object.subclass('lively.morphic.EventHandler',
         
         var evtHand = world.hands.find(function(hand) { return hand.pointerId === evt.pointerId});
         evt.hand = world ?
-                evtHand || world.hands.find(function(hand) { return !hand.pointerId }) :
+                evtHand || world.hands.find(function(hand) { return !hand.pointerId }) || world.firstHand() :
                 undefined;
         evt.getPosition = function() {
             if (!evt.scaledPos) {
@@ -877,6 +877,7 @@ handleOnCapture);
           && evt.isRightMouseButtonDown()
           && evt.getTargetMorph() == this) {
               evt.hand.clickedOnMorph=this;
+              this.world().clickedOnMorph=this;
             this.world().worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
@@ -898,7 +899,9 @@ handleOnCapture);
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
         evt.hand.clickedOnMorph = this;
+        this.world().clickedOnMorph = this;
         evt.hand.clickedOnMorphTime = Date.now();
+        this.world().clickedOnMorphTime = Date.now();
 
         return this.onMouseDown(evt);
 
@@ -932,6 +935,9 @@ handleOnCapture);
         // delayed so that the event onMouseUp event handlers that
         // are invoked after this point still have access
         (function removeClickedOnMorph() {
+            if (evt.world.clickedOnMoprh == evt.hand.clickedOnMorph) {
+                evt.world.clickedOnMoprh = null
+            }
             evt.hand.clickedOnMorph = null;
             evt.hand.eventStartPos = null;
         }).delay(0);
@@ -1580,6 +1586,9 @@ lively.morphic.World.addMethods(
             if (evt.hand.draggedMorph === evt.world.draggedMorph) {
                 delete evt.world.draggedMorph;
             }
+            if (evt.world.clickedOnMorph === evt.hand.clickedOnMorph) {
+                evt.world.clickedOnMorph = null;
+            }
             evt.hand.clickedOnMorph = null
             evt.hand.draggedMorph = null;
             draggedMorph.onDragEnd(evt);
@@ -1963,6 +1972,7 @@ lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic
         style: {
             enableGrabbing: false,
             enableDragging: true,
+            enableHalos: false,
             clipMode: 'hidden'
         },
         isBertButton: true,
@@ -2009,10 +2019,7 @@ lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic
                 delete this.loadConnection;
             }
             world.addMorph(this);
-            world.bertButtonPressed = false;
-            connect(world, 'bertButtonPressed', this, 'setFill', {converter: function(bool) {
-                return bool === false ? this.targetObj.inactiveFill : this.targetObj.activeFill;
-            },})
+            world.setIsBertButtonPressed(false);
             this.align(this.bounds().bottomLeft(), world.visibleBounds().bottomLeft());
             this.setFixed(true);
             return this;
@@ -2022,13 +2029,17 @@ lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic
         wantsToBeDroppedInto: function(dropTarget) {
             return dropTarget.isWorld;
         },
+    tellWorld: function(bool) {
+        lively.morphic.World.current().setIsBertButtonPressed(bool);
+        this.setFill(bool === false ? this.inactiveFill : this.activeFill);
+    },
     onMouseUp: function() {
-        lively.morphic.World.current().setIsBertButtonPressed(false)
+        this.tellWorld(false)
     },
 
 
     onMouseDown: function() {
-        lively.morphic.World.current().setIsBertButtonPressed(true);
+        this.tellWorld(true);
     },
         pressStart: function() {
             var world = lively.morphic.World.current();
@@ -2043,7 +2054,7 @@ lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic
             this.positionOnBorder();
             this.moveBy(pt(0,0).subPt(world.visibleBounds().topLeft()))
             this.setFixed(true);
-            world.setIsBertButtonPressed(false);
+            this.tellWorld(false);
         },
     scrollWorld: function() {
         var world = lively.morphic.World.current(),

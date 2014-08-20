@@ -29,17 +29,17 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
         morph.onDrag = function() { dragMoved = true }
         morph.onDragEnd = function() { dragEnded = true }
 
-        this.doMouseEvent({type: 'pointerdown', pos: pt(20,20), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'mousedown', pos: pt(20,20), target: morphNode, button: 0});
         this.assert(!dragStarted, 'drag already started after mousedown');
 
-        this.doMouseEvent({type: 'pointermove', pos: pt(25,25), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'mousemove', pos: pt(25,25), target: morphNode, button: 0});
         this.assert(dragStarted, 'drag not started after mousedown and mousemove');
         this.assert(!dragMoved, 'drag already moved at dragStart');
 
-        this.doMouseEvent({type: 'pointermove', pos: pt(30,30), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'mousemove', pos: pt(30,30), target: morphNode, button: 0});
         this.assert(dragMoved, 'drag not moved after mousemove');
 
-        this.doMouseEvent({type: 'pointerup', pos: pt(30,30), target: morphNode, button: 0});
+        this.doMouseEvent({type: 'mouseup', pos: pt(30,30), target: morphNode, button: 0});
         this.assert(dragEnded, 'dragEnd not called');
     },
     test02RelayMouseEventsToMorphBeneath: function() {
@@ -52,8 +52,8 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.DragAn
         morph2.relayMouseEventsToMorphBeneath();
 
         lively.morphic.EventSimulator.doMouseEvent(
-            {type: 'pointerdown', pos: pt(20,20), target: morph2, button: 0});
-        this.assertIdentity(morph1, this.world.firstHand().clickedOnMorph);
+            {type: 'mousedown', pos: pt(20,20), target: morph2, button: 0});
+        this.assertIdentity(morph1, this.world.clickedOnMorph);
     },
     test03DropMorph: function() {
         var morph1 = new lively.morphic.Box(new Rectangle(0, 0, 100, 100)),
@@ -127,13 +127,13 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.LockingT
     dragFromTo: function(morph, startMousePos, endMousePos) {
         var dragTriggerOffset = pt(10,0)
         // grab morph
-        this.doMouseEvent({type: 'pointerdown', pos: startMousePos, target: morph});
-        this.doMouseEvent({type: 'pointermove', pos: startMousePos.addPt(dragTriggerOffset), target: morph});
-        this.doMouseEvent({type: 'pointermove', pos: startMousePos, target: morph});
+        this.doMouseEvent({type: 'mousedown', pos: startMousePos, target: morph});
+        this.doMouseEvent({type: 'mousemove', pos: startMousePos.addPt(dragTriggerOffset), target: morph});
+        this.doMouseEvent({type: 'mousemove', pos: startMousePos, target: morph});
         // move
-        this.doMouseEvent({type: 'pointermove', pos: endMousePos, target: morph});
+        this.doMouseEvent({type: 'mousemove', pos: endMousePos, target: morph});
         // drop
-        this.doMouseEvent({type: 'pointerup', pos: endMousePos, target: morph.world()});
+        this.doMouseEvent({type: 'mouseup', pos: endMousePos, target: morph.world()});
     },
 },
 'testing', {
@@ -226,7 +226,23 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
         this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'after addMorph again');
     }
 });
-
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.PointereventsTests',
+'testing', {
+    testHasLayerXAndLayerY: function() {
+        var world = lively.morphic.World.current();
+        var morph = world.addMorph(lively.morphic.Morph.makeRectangle(100,120,100,100));
+        var layerX, layerY;
+        morph.onMouseDown = function(evt) {
+            layerX = evt.layerX;
+            layerY = evt.layerY;
+        };
+        this.doMouseEvent({type: 'mousedown', pos: pt(150,150), target: morph});
+        this.assert(layerX, 'Property layerX is missing on mousedown evt');
+        this.assert(layerY, 'Property layerY is missing on mousedown evt');
+        this.assertEquals(layerX, 50, 'evt.layerX should be the evt position within the morph')
+        this.assertEquals(layerY, 30, 'evt.layerY should be the evt position within the morph')
+    },
+});
 TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
 "running", {
     setUp: function($super) {

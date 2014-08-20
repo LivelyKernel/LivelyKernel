@@ -851,8 +851,8 @@
         var p = pointermap.get(this.POINTER_ID);
         if (p && p.button === inEvent.button) {
           var e = this.prepareEvent(inEvent);
-          dispatcher.up(e);
           this.cleanupMouse();
+          dispatcher.up(e);
         }
       }
     },

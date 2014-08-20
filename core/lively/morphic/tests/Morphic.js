@@ -828,7 +828,7 @@ AsyncTestCase.subclass('lively.morphic.tests.MenuTests',
     testWrongSubMenuItems: function() {
         var menu = lively.morphic.Menu.openAt(pt(0,0), 'test', [['foo', ['bar']], ['foo2', ['bar2']]]),
             item = menu.submorphs[1]; // 0 is title, 1 is first item
-        this.doMouseEvent({type: 'pointerover', pos: pt(5,5), target: item.renderContext().getMorphNode()});
+        this.doMouseEvent({type: 'mouseover', pos: pt(5,5), target: item.renderContext().getMorphNode()});
         this.delay(function() {
             this.assertEquals('bar', menu.subMenu.items[0].string, 'sub menu is wrong');
             this.done();

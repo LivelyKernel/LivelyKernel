@@ -2361,6 +2361,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         //Functions.False,
         // TODO: refactor to evt.hand.clickedOnMorph when everything else is ready for it
         evt.hand.clickedOnMorph = this.windowMorph;
+        evt.world.clickedOnMorph = this.windowMorph;
     },
     onMouseUp: Functions.False
 });

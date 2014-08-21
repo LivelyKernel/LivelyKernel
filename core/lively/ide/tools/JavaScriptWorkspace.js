@@ -1,6 +1,5 @@
 module("lively.ide.tools.JavaScriptWorkspace").requires("lively.ide.CodeEditor", "lively.persistence.BuildSpec", "lively.lang.VM").toRun(function() {
 
-
 lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     _BorderColor: null,
     _BorderWidth: 1,
@@ -176,6 +175,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     },
         onFromBuildSpecCreated: function onFromBuildSpecCreated() {
             $super();
+            this.getWindow().addMorphBack(this.get("listContainer"));
             this.resetState();
             this.startStepping(1000, 'showVars');
         },

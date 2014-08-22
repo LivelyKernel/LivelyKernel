@@ -27,9 +27,25 @@ lively.morphic.ReactMorph.addMethods(
           The idea is that lively objects just operate on this description 
           structure, which we eventually dump into a React Rendering canvas, that
           knows how to interpret this description and render it. */
-                     
+        var self = this;      
         var Shape =  React.createClass({
-            self: this,
+            self: self,
+            onMouseDown: function() {
+                this.self.focusedMorph = this;
+                alertOK('mouseDown!');
+            },
+            onMouseMove: function(evt) {
+                if(this.self.focusedMorph) debugger;
+                if(this.self.focusedMorph == this){
+                    alertOK('moving!')
+                    this.self.setPositionProps({Position: pt(evt.screenX, evt.screenY)},
+                                                this.props);
+                }
+            },
+            onMouseUp: function() {
+                //this.self.focusedMorph = null;
+                alertOK('mouseUp!');
+            },
             getDefaultProps: function() {
                 return {style: {}}
             },
@@ -43,8 +59,25 @@ lively.morphic.ReactMorph.addMethods(
                     return [];
                 }
             },
+            componentWillUpdate: function(newProps, newState){
+                // rescue node state into the old morph state,
+                // to make sure that if the same morph is used somewhere else
+                // we can recreate the node state
+                var oldShape = this.props.state.shape.rescued = {};
+                oldShape.scrollTop = this.getDOMNode().scrollTop;
+                oldShape.scrollLeft = this.getDOMNode().scrollLeft;
+            },
            render: function() {
-               this.self.extractPropsFrom(this.props.state.shape, this.props);
+               this.props.onMouseMove = this.onMouseMove;
+               this.props.onMouseDown = this.onMouseDown;
+               this.props.onMouseUp = this.onMouseUp;
+               this.props.style = this.self.extractStylePropsFrom(this.props.state.shape);
+               var rescued = this.props.state.shape.rescued
+                if(rescued) {
+                    for(var attr in rescued){
+                        this.props[attr] = rescued[attr];
+                    }
+               }
                return React.DOM.div(this.props, this.renderSubmorphs());
            } 
         });
@@ -60,7 +93,7 @@ lively.morphic.ReactMorph.addMethods(
                     this.props.state = this.state;
                 if(!this.props.state)
                     this.props.state = description;
-                this.self.extractPropsFrom(this.props.state.morph, this.props);
+                this.props.style = this.self.extractStylePropsFrom(this.props.state.morph);
             },
             render: function() {
                 this.initProps();
@@ -69,12 +102,12 @@ lively.morphic.ReactMorph.addMethods(
         })
         return Morph();
     },
-    extractPropsFrom: function(state, propsStore) {
+    extractStylePropsFrom: function(state, propsStore) {
         var props = propsStore || {style: {}};
         for( var attr in state ) {
             this['set' + attr + 'Props'](state, props);
         }
-        return props;
+        return props.style;
     },
     exampleDescription: function() {
         /* an example of a description for a morph hierarchy
@@ -99,7 +132,10 @@ lively.morphic.ReactMorph.addMethods(
         for ( var attr in spec ) {
             if (attr.startsWith('_')){
                 if(this.renders(attr)){
-                     description.shape[attr.replace('_', "")] = spec[attr];
+                    if(this.isShapePart(attr))
+                        description.shape[attr.replace('_', "")] = spec[attr];
+                    else
+                        description.morph[attr.replace('_', "")] = spec[attr];
                 }
             }
         }
@@ -116,10 +152,14 @@ lively.morphic.ReactMorph.addMethods(
                 this.componentFromDescription(
                     this.descriptionFromBuildSpec(spec)), this.renderContext().shapeNode);
         } else {
-            this.reactComponent.setState(
+            this.reactComponent.replaceState(
                     this.descriptionFromBuildSpec(spec));
         }
     },
+    isShapePart: function(attr) {
+        return ![/* this containes all the morph attributes */].include(attr)
+    },
+
     addMorph: function(subMorphDescription) {
         // for now this method just accepts a description of a morph
         // wich is then rendered as a reactComponent
@@ -162,6 +202,10 @@ lively.morphic.ReactMorph.addMethods(
     setBorderWidthProps: function(state, props) {
         this.setBorderProps(state, props);
     },
+    setRotationProps: function(state, props) {
+        
+    },
+
     setBorderProps: function(state, props) {
         var opacity = state['Opacity'];
         var fill = state['BorderColor'] || null;

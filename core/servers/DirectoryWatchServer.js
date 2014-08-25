@@ -41,7 +41,8 @@ dirWatcherDomain.on('error', function(er) {
     console.error('DirectoryWatchServer error %s\n%s©', er, er.stack);
 });
 
-var watchState = global.DirectoryWatchServerState || (global.DirectoryWatchServerState = {});
+
+var watchState = module.exports.DirectoryWatchServerState || {};
 
 function ignore(ignoredItems, f) {
     for (var i = 0; i < ignoredItems.length; i++) {
@@ -157,5 +158,6 @@ module.exports = dirWatcherDomain.bind(function(route, app) {
 
 });
 
+module.exports.DirectoryWatchServerState = watchState;
 module.exports.getChangesSince = getChangesSince;
 module.exports.getWatchedFiles = getWatchedFiles;

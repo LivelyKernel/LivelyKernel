@@ -742,32 +742,36 @@ lively.morphic.Box.subclass('lively.morphic.List',
     },
 
     initializeLayout: function(layoutStyle) {
-        // // layoutStyle: {
-        // //   type: "tiling"|"horizontal"|"vertical",
-        // //   spacing: NUMBER,
-        // //   border: NUMBER
-        // // }
-        // var defaultLayout = {
-        //     type: 'tiling',
-        //     border: 0, spacing: 20
+        // FIXME, currently only a vert layout is supported. For more layout
+        // options use MorphList (allows you to use any morphic layout)
+        return;
+
+        // layoutStyle: {
+        //   type: "tiling"|"horizontal"|"vertical",
+        //   spacing: NUMBER,
+        //   border: NUMBER
         // }
-        // layoutStyle = Object.extend(defaultLayout, layoutStyle || {});
-        // this.applyStyle({
-        //     fill: Color.white, borderWidth: 0,
-        //     borderColor: Color.black, clipMode: 'auto',
-        //     resizeWidth: true, resizeHeight: true
-        // })
-        // var klass;
-        // switch (layoutStyle.type) {
-        //     case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
-        //     case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
-        //     case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
-        //     default: klass = lively.morphic.Layout.TileLayout; break;
-        // }
-        // var layouter = new klass(this);
-        // layouter.setBorderSize(layoutStyle.border);
-        // layouter.setSpacing(layoutStyle.spacing);
-        // this.setLayouter(layouter);
+        var defaultLayout = {
+            type: 'tiling',
+            border: 0, spacing: 20
+        }
+        layoutStyle = Object.extend(defaultLayout, layoutStyle || {});
+        this.applyStyle({
+            fill: Color.white, borderWidth: 0,
+            borderColor: Color.black, clipMode: 'auto',
+            resizeWidth: true, resizeHeight: true
+        })
+        var klass;
+        switch (layoutStyle.type) {
+            case 'vertical': klass = lively.morphic.Layout.VerticalLayout; break;
+            case 'horizontal': klass = lively.morphic.Layout.HorizontalLayout; break;
+            case 'tiling': klass = lively.morphic.Layout.TileLayout; break;
+            default: klass = lively.morphic.Layout.TileLayout; break;
+        }
+        var layouter = new klass(this);
+        layouter.setBorderSize(layoutStyle.border);
+        layouter.setSpacing(layoutStyle.spacing);
+        this.setLayouter(layouter);
     },
 
     initLayout: function(noOfCandidates, existingLayout) {

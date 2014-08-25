@@ -1012,7 +1012,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
     'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function(path) { lively.ide.openFile(path || URL.source.toString()); return true; }},
     'lively.ide.openSystemConsole': {
-        description: 'open SystemConsole',
+        description: 'open SystemConsole (to see console logging)',
         exec: function() {
             lively.require("lively.ide.tools.SystemConsole").toRun(function() {
                 lively.ide.tools.SystemConsole.open();
@@ -1081,13 +1081,6 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
-    'lively.ide.openLog': {
-        description: 'open log console',
-        exec: function() {
-            $world.openPartItem("SystemConsole", "PartsBin/Tools/");
-            return true;
-        }
-    },
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 

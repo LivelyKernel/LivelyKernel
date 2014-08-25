@@ -995,14 +995,17 @@ lively.morphic.Shapes.Ellipse.addMethods(
     reallyContainsPoint: function(p) {
         // Check that p is really within the ellipse shape
         // Note border width not yet taken into account
-        var bnds = this.getBounds(), c = bnds.center();
-        var a = (p.x-c.x)/bnds.width, b = (p.y-c.y)/bnds.height;
-
-        // If it is filled, then any inside point is a hit
-        if (this.getFill() != null) return a*a + b*b <= 0.25;
-
-        // Case of unfilled ellipse we allow outer ring
-        return a*a + b*b > 0.20 && a*a + b*b < 0.25;
+        var bnds = this.getBounds(), c = bnds.center(),
+            dx = (p.x-c.x) / bnds.width, dy = (p.y-c.y) / bnds.height;
+        // The Canonical form is
+        // where a and b are one-half of the ellipse's major and minor axes respectively.
+        // We are using the entire width and height, so each term is 1/4 as big.
+        // Beacuse of this, the constant must be 1/4 instead of 1.
+        return this.getFill() ?
+            // If it is filled, then any inside point is a hit
+            dx*dx + dy*dy <= 0.25 :
+            // Case of unfilled ellipse we allow outer ring
+            dx*dx + dy*dy > 0.20 && dx*dx + dy*dy < 0.25;
     }
 
 });

@@ -1,4 +1,4 @@
-module('lively.morphic.React').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'lively.morphic.Lists').requiresLib({url: 'core/lib/react.js', loadTest: function() { return Global.React }}).toRun(function() {
+module('lively.morphic.React').requires('lively.morphic.Rendering', 'lively.morphic.PathShapes', 'lively.Traits', 'lively.morphic.Lists').requiresLib({url: Config.codeBase + 'lib/react.js', loadTest: function() { return !!Global.React; }}).toRun(function() {
 
 lively.morphic.ReactMorph.addMethods(
     'default', {

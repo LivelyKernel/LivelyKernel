@@ -1,5 +1,4 @@
 module('lively.morphic.Core').requires('lively.morphic.Shapes', 'lively.Traits').toRun(function() {
-$.getScript('react.js'); // because using .requiresLib() breaks parsing
 
 Object.subclass('lively.morphic.Morph',
 'properties', {

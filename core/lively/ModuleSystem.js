@@ -365,7 +365,7 @@ var Module = Object.subclass('lively.Module',
 
     loadRequirementsFirst: function() {
         this.pendingRequirements && this.pendingRequirements.invoke('load');
-        this.requiredLibs && this.requiredLibs.invoke('load');
+        this.requiredLibs && this.requiredLibs.reject(function(libSpec) { return libSpec.loadTest(); }).invoke('load');
     },
 
     wasRequiredBy: function() {

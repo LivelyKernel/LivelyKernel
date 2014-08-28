@@ -106,8 +106,7 @@ Object.subclass('lively.PartsBin.PartItem',
     },
     deserializePart: function(json, optMetaInfo) {
         var part = lively.morphic.Morph.deserialize(json, {
-            metainfo: optMetaInfo,
-            serializer: this.getSerializer()
+            metainfo: optMetaInfo
         });
         var metaInfo = part.getPartsBinMetaInfo();
         metaInfo.setPartsSpace(this.getPartsSpace());

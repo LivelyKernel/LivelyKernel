@@ -309,8 +309,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                e = e.unwindException;
+            if (lively.Config.get('loadRewrittenCode') && !(e instanceof UnwindException)) {
+                if (e.unwindException)
+                    e = e.unwindException;
+                else {
+                    e = new UnwindException(e);
+                    frame.setPC(node);
+                    e.shiftFrame(frame);
+                }
+            }
             if (!frame.isResuming() && e.error && e.error.toString() != 'Break') {
                 frame.setPC(node);
                 e.shiftFrame(frame);

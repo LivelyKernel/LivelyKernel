@@ -2,7 +2,7 @@ module('lively.bindings.FRP').requires('lively.bindings.FRPCore', 'lively.persis
 
 lively.morphic.Morph.addMethods({
     openFRPInspector: function() {
-        var inspectorWindow = $world.openPartItem('FRPInspector', 'PartsBin/Tools');
+        var inspectorWindow = $world.openPartItem('FRPInspector', 'PartsBin/FRP');
         var inspector = inspectorWindow.get("FRPInspector");
         inspector.setTarget(this);
     },

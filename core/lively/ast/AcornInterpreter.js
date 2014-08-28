@@ -465,8 +465,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node.block, state);
         } catch (e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.toString() == 'Break')
-                throw e.unwindException;
+            if (lively.Config.get('loadRewrittenCode')) {
+                if (e instanceof UnwindException)
+                    throw e;
+                else  if (e.unwindException && e.toString() == 'Break')
+                    throw e.unwindException;
+            }
             hasError = true;
             state.error = err = e;
         }

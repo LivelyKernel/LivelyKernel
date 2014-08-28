@@ -1344,7 +1344,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.arguments = argValues;
     },
 
-    getArguments: function(args) {
+    getArguments: function() {
         if (this.scope && this.scope.getMapping() != Global && this.func.isFunction())
             return this.arguments;
         throw new ReferenceError('arguments is not defined');

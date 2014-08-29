@@ -1863,9 +1863,9 @@ lively.morphic.World.addMethods(
                 })}]];
 
         items.push(["Show connectors", function() {
-                    world.submorphs.forEach(function(ea) {
-                        if (ea.isPath && ea.con) ea.owner.addMorph(ea);
-                    }); }
+            world.submorphs.forEach(function(ea) {
+                if (ea.isPath && ea.con) ea.owner.addMorph(ea);
+            }); }
         ]);
 
         // world requirements
@@ -1907,38 +1907,6 @@ lively.morphic.World.addMethods(
                 require("lively.Tracing").toRun(function() {
                     lively.Tracing.installStackTracers();
                 });
-            }]);
-        }
-        if (Global.AutoIndentLayer && AutoIndentLayer.isGlobal()) {
-            items.push(['[X] Auto Indent', function() {
-                AutoIndentLayer.beNotGlobal();
-            }]);
-        } else {
-            items.push(['[  ] Auto Indent', function() {
-                require('users.cschuster.AutoIndent').toRun(function() {
-                    AutoIndentLayer.beGlobal();
-                });
-            }]);
-        }
-        if (localStorage['Config_quickLoad'] == "false") {
-            items.push(['[  ] Quick Load', function() {
-                localStorage['Config_quickLoad'] = "true"
-            }]);
-        } else {
-            items.push(['[X] Quick Load', function() {
-                localStorage['Config_quickLoad'] = "false";
-            }]);
-        }
-        if (localStorage['Config_CopyAndPaste'] == "false") {
-            items.push(['[  ] Copy And Paste', function() {
-                localStorage['Config_CopyAndPaste'] = "true"
-                module('lively.experimental.CopyAndPaste').load(true)
-                ClipboardLayer.beGlobal()
-            }]);
-        } else {
-            items.push(['[X] Copy And Paste', function() {
-                localStorage['Config_CopyAndPaste'] = "false";
-                ClipboardLayer.beNotGlobal()
             }]);
         }
         return items;

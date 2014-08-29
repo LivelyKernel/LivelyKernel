@@ -1138,12 +1138,12 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         codePane.evalEnabled = true;
         codePane.applyStyle({scaleProportional: true});
         codePane.savedTextString = codePane.textString;
-        if(localStorage.getItem("LivelyChangesets:" + location.pathname))
+        if (lively.LocalStorage.get('Changesets:' + location.pathname))
             codePane.doBrowseImplementors = function () {
-                openFunctionList('implementors', this.getSelectionOrLineString())};
-        if(localStorage.getItem("LivelyChangesets:" + location.pathname))
+                openFunctionList('implementors', this.getSelectionOrLineString()); };
+        if (lively.LocalStorage.get('Changesets:' + location.pathname))
             codePane.doBrowseReferences = function () {
-                openFunctionList('references', this.getSelectionOrLineString(), true)};
+                openFunctionList('references', this.getSelectionOrLineString(), true); };
         return codePane
     },
     newReadOnlyCodePane: function newReadOnlyCodePane(extent) {
@@ -1151,12 +1151,12 @@ lively.morphic.Box.subclass('lively.morphic.Panel',
         codePane.enableSyntaxHighlighting();
         codePane.evalEnabled = true;
         codePane.applyStyle({scaleProportional: true, allowInput: false});
-        if(localStorage.getItem("LivelyChangesets:" + location.pathname))
+        if (lively.LocalStorage.get("Changesets:" + location.pathname))
             codePane.doBrowseImplementors = function () {
-                openFunctionList('implementors', this.getSelectionOrLineString())};
-        if(localStorage.getItem("LivelyChangesets:" + location.pathname))
+                openFunctionList('implementors', this.getSelectionOrLineString()); };
+        if (lively.LocalStorage.get("Changesets:" + location.pathname))
             codePane.doBrowseReferences = function () {
-                openFunctionList('references', this.getSelectionOrLineString(), true)};
+                openFunctionList('references', this.getSelectionOrLineString(), true); };
         return codePane;
     },
 

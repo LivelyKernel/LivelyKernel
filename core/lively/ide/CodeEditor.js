@@ -767,9 +767,9 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
 
         try {
-            var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx);
-            if (Config.changesetsExperiment && $world.getUserName() &&
-        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
+            var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx),
+                itemName = "Changesets:" +  $world.getUserName() + ":" + location.pathname;
+            if (Config.changesetsExperiment && $world.getUserName() && lively.LocalStorage.get(itemName) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
         } catch(e) {

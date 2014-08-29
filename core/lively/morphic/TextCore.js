@@ -1793,9 +1793,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 try { return eval(str = "("+__evalStatement+")")} catch (e) { return eval(str = __evalStatement) }
                 };
         try {
-            var result = interactiveEval.call(ctx);
-            if (Config.changesetsExperiment && $world.getUserName() &&
-        localStorage.getItem("LivelyChangesets:" +  $world.getUserName() + ":" + location.pathname) !== "off")
+            var result = interactiveEval.call(ctx),
+                itemName = "Changesets:" +  $world.getUserName() + ":" + location.pathname;
+            if (Config.changesetsExperiment && $world.getUserName() && lively.LocalStorage.get(itemName) !== "off")
                 lively.ChangeSet.logDoit(str, ctx.lvContextPath());
             return result;
         } catch(e) {throw e}

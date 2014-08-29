@@ -861,8 +861,8 @@ lively.userData = (function setupUserDataExpt() {
 
             if (!data) { res.status(400).end('no data'); return; }
             if (!stored) { res.status(400).end('cannot access stored data'); return; }
-            if (!lively.server.lifeStar.config.authConf.enabled) {
-                // only change credentials if there is no login system in place
+            // only change credentials if there is no login system in place:
+            if (!lively.server.lifeStar.config.authConf || !lively.server.lifeStar.config.authConf.enabled) {
                 stored.username = data.username || stored.username || 'unknown user';
                 stored.email = data.email || stored.email || null;
                 stored.group = data.group || stored.group || null;

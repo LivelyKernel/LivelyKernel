@@ -75,6 +75,7 @@ TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
 });
 
 TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
+
     setup: function() {
         this['__test__'] = lively.LocalStorage.get('__test__');
     },
@@ -84,16 +85,40 @@ TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
     },
 
     test01LocalStorageAvailability: function() {
-        this.assertEquals(window.localStorage != undefined, lively.LocalStorage.isAvailable());
+        try {
+            this.assertEquals(window.localStorage != undefined, lively.LocalStorage.isAvailable());
+        } catch (e) {
+            // Accessing window.localStorage may lead to SecurityError
+            this.assert(true);
+        }
     },
 
     test02LocalStorageValues: function() {
-        if (!lively.LocalStorage.isAvailable()) {
-            this.assert(true);
-        }
+        if (!lively.LocalStorage.isAvailable())
+            return this.assert(true);
+
         lively.LocalStorage.set('__test__', 22.2);
         this.assertEquals(lively.LocalStorage.get('__test__'), 22.2);
+    },
+
+    test03LocalStorageRemove: function() {
+        if (!lively.LocalStorage.isAvailable())
+            return this.assert(true);
+
+        lively.LocalStorage.remove('__test__');
+        this.assertEquals(lively.LocalStorage.get('__test__'), null);
+    },
+
+    test04LocalStorageKeys: function() {
+        if (!lively.LocalStorage.isAvailable())
+            return this.assert(true);
+
+        lively.LocalStorage.remove('__test__');
+        this.assert(!lively.LocalStorage.keys().include('__test__'));
+        lively.LocalStorage.set('__test__', 123);
+        this.assert(lively.LocalStorage.keys().include('__test__'));
     }
+
 });
 
 

@@ -836,34 +836,42 @@ SessionTracker.default = function() { return global.tracker; }
 lively.userData = (function setupUserDataExpt() {
     // first approach to a login/user system. does not really belong here!
     var cookieField = 'lvUserData_2013-10-12';
+
     function getStoredUserData(sess) {
-        if (!sess) return null;
-        return sess[cookieField] || (sess[cookieField] = {});
+        return sess ? sess[cookieField] || (sess[cookieField] = {}) : null;
     }
 
     var userData = {};
-
     userData.getUserDataFromRequest = function(request) {
         return request.session && getStoredUserData(request.session);
     }
-
     userData.getUserName = function(request) {
         var stored = this.getUserDataFromRequest(request);
         return stored && stored.username;
+    }
+    userData.getGroupName = function(request) {
+        var stored = this.getUserDataFromRequest(request);
+        return stored && stored.group;
     }
 
     userData.registerHTTPHandlers = function(app, server) {
         app.post('/login', function(req, res) {
             var data = req.body || {},
                 stored = userData.getUserDataFromRequest(req);
+
             if (!data) { res.status(400).end('no data'); return; }
             if (!stored) { res.status(400).end('cannot access stored data'); return; }
-            console.log('user %s logged in %s at %s ip %s',
-                data.username, req.path, data.currentWorld || req.get('referer'), req.ip);
-            stored.username = data.username || 'unknown user';
-            stored.email = data.email || null;
+            if (!lively.server.lifeStar.config.authConf.enabled) {
+                // only change credentials if there is no login system in place
+                stored.username = data.username || stored.username || 'unknown user';
+                stored.email = data.email || stored.email || null;
+                stored.group = data.group || stored.group || null;
+            }
+
             stored.lastLogin = new Date().toISOString();
-            res.end();
+            console.log('user %s logged in %s at %s ip %s',
+                stored.username, req.path, data.currentWorld || req.get('referer'), req.ip);
+            res.json(stored).end();
         });
         app.get('/login', function(req, res) {
             var stored = getStoredUserData(req.session);

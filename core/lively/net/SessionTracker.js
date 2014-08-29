@@ -545,11 +545,41 @@ Object.extend(lively.net.SessionTracker, {
 
 Object.extend(lively.net.SessionTracker, {
     serverLogin: function(thenDo) {
-        var data = {username: $world.getUserName(true), email: null, currentWorld: String(URL.source)};
+        var data = {
+            username: $world.getUserName(true),
+            email: null,
+            currentWorld: String(URL.source)
+        };
         URL.root.withFilename('login').asWebResource()
             .beAsync().post(JSON.stringify(data), 'application/json')
-            .whenDone(function(_,status) {
+            .withJSONWhenDone(function(creds, status) {
+                if (creds) {
+                    creds.username && lively.Config.set("UserName", creds.username);
+                    creds.group && lively.Config.set("UserGroup", creds.group);
+                    creds.email && lively.Config.set("UserEmail", creds.email);
+                    if (data.username !== creds.username) lively.Config.loadUserConfigModule();
+                }
                 thenDo && thenDo(status.isSuccess() ? null : status); });
+    },
+
+    setupSessionTrackerConnection: function(thenDo) {
+        if (UserAgent.isNodejs || UserAgent.isWorker) return;
+        lively.whenLoaded(function(world) {
+            if (!lively.Config.get('lively2livelyAutoStart')) return;
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // 1) connect to tracker
+            console.log('setupSessionTrackerConnection');
+            lively.net.SessionTracker.resetSession();
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // start UI
+            if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
+                lively.require('lively.net.tools.Lively2Lively').toRun(function() {
+                    if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
+                    lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
+                });
+            }
+            thenDo && thenDo();
+        });
     }
 });
 
@@ -570,28 +600,12 @@ Object.extend(lively.net.SessionTracker, {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // initialization, at load time
-(function setupSessionTrackerConnection() {
-    if (UserAgent.isNodejs || UserAgent.isWorker) return;
-    lively.whenLoaded(function(world) {
-        if (!lively.Config.get('lively2livelyAutoStart')) return;
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // 1) connect to tracker
-        console.log('setupSessionTrackerConnection');
-        lively.net.SessionTracker.resetSession();
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // start UI
-        if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
-            lively.require('lively.net.tools.Lively2Lively').toRun(function() {
-                if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
-                lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
-            });
-        }
-    });
-})();
-
 (function serverLogin() {
     lively.whenLoaded(function(world) {
-        lively.net.SessionTracker.serverLogin();
+        Functions.composeAsync(
+            lively.net.SessionTracker.serverLogin,
+            lively.net.SessionTracker.setupSessionTrackerConnection
+        )(function(err) { console.log("lively.set.SessionTracker setup done"); });
     });
 })();
 

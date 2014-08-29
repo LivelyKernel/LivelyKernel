@@ -390,6 +390,18 @@ Config.addOptions(
             return (sslAuth && sslAuth.user) || user;
         },
         set: function(val) { return lively.LocalStorage.set('UserName', val ? val.replace(/ /g, '_') : val); }
+    },
+    {
+        name: 'UserEmail',
+        type: 'String',
+        doc: 'Email of user',
+        get: function() {
+            var val = lively.LocalStorage.get('UserEmail');
+            if (val && val !== 'undefined') return val;
+            var sslAuth = Config.get('ssl-auth');
+            return (sslAuth && sslAuth.email) || val;
+        },
+        set: function(val) { return lively.LocalStorage.set('UserEmail', val ? val.replace(/ /g, '_') : val); }
     }
 ],
 

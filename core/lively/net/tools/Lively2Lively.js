@@ -1001,7 +1001,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         this.addDropDownTargetSessionList(function(session) {
             return {
                 string: session.user + ' (' + session.worldURL + ')',
-                value: {worldURL: session.worldURL, user: session.user},
+                value: session,
                 isListItem: true
             };
         });

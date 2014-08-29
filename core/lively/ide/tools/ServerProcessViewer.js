@@ -8,8 +8,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
     draggingEnabled: true,
     name: "ServerProcessViewer",
     submorphs: [{
-        _BorderColor: Color.rgb(95,94,95),
-        _BorderWidth: 1,
+        _BorderWidth: 0,
         _Extent: lively.pt(547.0,200.0),
         _Fill: Color.rgb(255,255,255),
         _Position: lively.pt(3.0,22.0),
@@ -23,9 +22,8 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
             type: "lively.morphic.Layout.VerticalLayout"
         },
         name: "ServerProcesses",
-        sourceModule: "lively.morphic.Core",
         submorphs: [{
-            _BorderWidth: 1,
+            _BorderWidth: 0,
             _ClipMode: "auto",
             _Extent: lively.pt(547.0,180.0),
             _FontSize: 10,
@@ -33,6 +31,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
         	font-family: monospace      !important;\n\
         	font-size: 9pt !important;\n\
         }",
+            style: { cssStylingMode: true },
             className: "lively.morphic.List",
             itemList: [],
             itemMorphs: [],

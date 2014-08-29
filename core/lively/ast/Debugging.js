@@ -169,8 +169,8 @@ Object.extend(JSLoader, {
         }
 
         // rewrite code
-        var url = url.indexOf(LivelyLoader.rootPath) == 0 ? url.substr(LivelyLoader.rootPath.length) : url,
-            ast = lively.ast.acorn.parse(source, { locations: true, directSourceFile: url }),
+        var relUrl = url.indexOf(LivelyLoader.rootPath) == 0 ? url.substr(LivelyLoader.rootPath.length) : url,
+            ast = lively.ast.acorn.parse(source, { locations: true, directSourceFile: relUrl }),
             rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry),
             rewrittenSource = Strings.format(
                 '(function() {\n%s\n%s\n})();',
@@ -182,7 +182,7 @@ Object.extend(JSLoader, {
         try {
             // adding sourceURL improves conventional debugging as it will be used
             // in stack traces by some debuggers
-            eval.call(Global, rewrittenSource + "\n//# sourceURL=" + this.makeAbsolute(url));
+            eval.call(Global, rewrittenSource + "\n//# sourceURL=" + url);
         } catch (e) {
             console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);
         }

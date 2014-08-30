@@ -505,6 +505,7 @@ Config.addOptions(
 
 'lively.morphic.Events', [
     ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
+    ["enableHaloItems", true, "enable or disable showing halo items when Command/Control-clicking"],
     ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],
     ["hideSystemCursor", false],
     ["handleOnCapture", true],

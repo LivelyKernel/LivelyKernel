@@ -544,6 +544,16 @@ Global.Functions = {
         // if called subsequently before workerFunc is done, the other thenDoFunc
         // will "pile up" and called with the same arguments as the first
         // thenDoFunc once workerFunc is done
+        /* Example:
+           var proc = Functions.workerWithCallbackQueue(
+               Strings.newUUID(),
+               // long running work:
+               function(thenDo) { setTimeout(function() { thenDo("arg1", "arg2"); }, 50); });
+
+           proc.whenDone(function(arg1, arg2) { show("wait 1: " + arg1 + "__" + arg2); });
+           proc.whenDone(function(arg1, arg2) { show("wait 2: " + arg1 + "__" + arg2); });
+           proc.whenDone(function(arg1, arg2) { show("wait 3: " + arg1 + "__" + arg2); });
+         */
 
         var store = Functions._queueUntilCallbacks || (Functions._queueUntilCallbacks = {}),
             queueCallbacks = store[id],

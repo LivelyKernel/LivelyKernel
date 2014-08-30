@@ -6,6 +6,7 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
     contentOffset: lively.pt(3.0,22.0),
     draggingEnabled: true,
     name: "SystemConsole",
+    layout: {adjustForNewBounds: true},
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
         _ClipMode: { x: "hidden", y: "scroll" },
@@ -51,11 +52,13 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
         },
 
         editItems: function editItems(items) {
-            $world.addCodeEditor({
-                title: 'log items',
-                content: items.pluck('value').join('\n\n'),
-                textMode: 'text'
-            }).getWindow().comeForward();
+            items.pluck('value').map(function(v) {
+                $world.addCodeEditor({
+                    title: 'log item ' + new Date(v.time),
+                    content: v.string,
+                    textMode: 'text'
+                }).getWindow().comeForward();
+            });
         },
 
         install: function install() {
@@ -171,75 +174,75 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
 
         wrapperFunc: function wrapperFunc(type) {
 
-            var list = this;
+        var list = this;
 
-            return function consoleWrapper(/*args*/) {
-                var string = String(arguments[0]);
-                for (var i = 1; i < arguments.length; i++) {
-                    var idx = string.indexOf('%s');
-                    if (idx > -1) string = string.slice(0,idx) + String(arguments[i]) + string.slice(idx+2);
-                }
+        return function consoleWrapper(/*args*/) {
+            var string = String(arguments[0]);
+            for (var i = 1; i < arguments.length; i++) {
+                var idx = string.indexOf('%s');
+                if (idx > -1) string = string.slice(0,idx) + String(arguments[i]) + string.slice(idx+2);
+            }
 
-                string = string.replace(/\n/g, '');
+            var oneLine = string.replace(/\n/g, '');
 
-                keepScrollOrScrollDownAfter(function() {
-                    var last = list.getList().last()
-                    var repeated = repeatEntry(string, last);
-                    if (repeated) {
-                        list.removeItemOrValue(last);
-                        string = repeated;
-                    };
+            keepScrollOrScrollDownAfter(function() {
+                var last = list.getList().last()
+                var repeated = repeatEntry(oneLine, last);
+                if (repeated) {
+                    list.removeItemOrValue(last);
+                    oneLine = repeated;
+                };
 
-                    list.addItem({
-                        isListItem: true,
-                        string: string,
-                        value: {string: string, time: Date.now()},
-                        cssClassNames: [type, 'new-log-item']
-                    });
-
-                    unemphasizeOldItems();
+                list.addItem({
+                    isListItem: true,
+                    string: oneLine,
+                    value: {string: string, time: Date.now()},
+                    cssClassNames: [type, 'new-log-item']
                 });
+
+                unemphasizeOldItems();
+            });
+        }
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function repeatEntry(string, item) {
+            if (!item) return null;
+            var repeatRe = /^[0-9]+x\s*/,
+                repeatMatch = item.string.match(repeatRe);
+            if (repeatMatch && repeatMatch[0]) {
+                var repeat = parseInt(repeatMatch[0]);
+                var itemString = item.string.replace(repeatRe, '');
+            } else {
+                var repeat = 1;
+                var itemString = item.string;
             }
 
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            return !isNaN(repeat) && itemString === string ?
+                (repeat + 1) + 'x ' + string : null;
+        }
 
-            function repeatEntry(string, item) {
-                if (!item) return null;
-                var repeatRe = /^[0-9]+x\s*/,
-                    repeatMatch = item.string.match(repeatRe);
-                if (repeatMatch && repeatMatch[0]) {
-                    var repeat = parseInt(repeatMatch[0]);
-                    var itemString = item.string.replace(repeatRe, '');
-                } else {
-                    var repeat = 1;
-                    var itemString = item.string;
-                }
+        function keepScrollOrScrollDownAfter(func) {
+            if (!list.world()) { func(); return; }
 
-                return !isNaN(repeat) && itemString === string ?
-                    (repeat + 1) + 'x ' + string : null;
-            }
+            var maxScroll = list.getMaxScrollExtent().y;
+            var scroll = list.getScroll();
+            var scrollDown = scroll[1] >= maxScroll - 10;
 
-            function keepScrollOrScrollDownAfter(func) {
-                if (!list.world()) { func(); return; }
+            func();
 
-                var maxScroll = list.getMaxScrollExtent().y;
-                var scroll = list.getScroll();
-                var scrollDown = scroll[1] >= maxScroll - 10;
+            if (scrollDown) list.scrollToBottom();
+            else list.setScroll(scroll[0], scroll[1])
+        }
 
-                func();
-
-                if (scrollDown) list.scrollToBottom();
-                else list.setScroll(scroll[0], scroll[1])
-            }
-
-            function unemphasizeOldItems() {
-                var now = Date.now();
-                var old = 1000*10;
-                list.getList()
-                    .filter(function(ea) { return now - ea.value.time > old; })
-                    .forEach(function(ea) { ea.cssClassNames.remove('new-log-item'); })
-            }
-        },
+        function unemphasizeOldItems() {
+            var now = Date.now();
+            var old = 1000*10;
+            list.getList()
+                .filter(function(ea) { return now - ea.value.time > old; })
+                .forEach(function(ea) { ea.cssClassNames.remove('new-log-item'); })
+        }
+    },
 
     }],
     titleBar: "System Console"

@@ -173,6 +173,13 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         this.updateToggleVarsButton(newEditorBounds);
         this.animatedSetBounds(this, newEditorBounds);
     },
+
+        onLoad: function onLoad() {
+            $super();
+            // FIXME...
+            this.getWindow().addMorphBack(this.get("listContainer"));
+        },
+
         onFromBuildSpecCreated: function onFromBuildSpecCreated() {
             $super();
             this.getWindow().addMorphBack(this.get("listContainer"));

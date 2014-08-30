@@ -475,7 +475,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         if (!items) items = [];
         this.itemList = items;
         var oldItemMorphs = this.getItemMorphs();
-        var itemMorphs = this.itemMorphs = items.collect(function(ea) { return list.renderFunction(ea); });
+        var itemMorphs = this.itemMorphs = items.map(function(ea) { return list.renderFunction(ea); });
         oldItemMorphs.withoutAll(itemMorphs).invoke('remove');
         itemMorphs.forEach(function(ea, i) {
             list.submorphs.include(ea) || list.addMorph(ea, itemMorphs[i+1]); });
@@ -838,29 +838,33 @@ lively.morphic.Box.subclass('lively.morphic.List',
         return undefined;
     },
 
-    setList: function(items) {
-        var oldSelection = this.selection;
+    setList: function (items) {
+        var self = this;
+        var oldSelectionValues = this.getSelections();
         if (!items) items = [];
         this.itemList = items;
         this.layout = this.initLayout(items.length, this.layout);
         this.setupScroll(items.length, this.layout);
 
-        var newIndexForOldSelection;
-        if (this.isMultipleSelectionList || oldSelection === undefined ||
-            (newIndexForOldSelection = this.find(oldSelection)) === undefined) {
-                this.selectedIndexes.length = 0;
-                if(oldSelection !== undefined) {
-                    lively.bindings.signal(this, 'selection', this.selection);
-                    lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
-                }
-                this.updateView();
-                this.setScroll(0,0);
-                return;
-        }
-        if (this.selectedLineNo !== newIndexForOldSelection) {
-            lively.bindings.noUpdate(this.updateSelectionAndLineNo.bind(this,newIndexForOldSelection));
-        }
+        var newSelectionIndexes = oldSelectionValues.reduce(function(all, i) {
+            var found = self.find(i);
+            if (!isNaN(found)) all.push(found);
+            return all;
+        }, []);
+
+        var selectionChanged = !newSelectionIndexes.equals(oldSelectionValues);
+        if (selectionChanged) this.selectedIndexes.length = 0;
+
+        lively.bindings.noUpdate(function() {
+            newSelectionIndexes.forEach(function(i) {
+                self.updateSelectionAndLineNo(i); }); });
+
         this.updateView();
+
+        if (selectionChanged) {
+            lively.bindings.signal(this, 'selection', this.selection);
+            lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
+        }
     },
 
     updateList: function(items) { return this.setList(items); },

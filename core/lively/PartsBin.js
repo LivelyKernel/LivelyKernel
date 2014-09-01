@@ -648,6 +648,19 @@ Object.extend(lively.PartsBin, {
             }
         }
         return [localURL].concat(additionalURLs);
+    },
+
+    discoverPartSpaces: function(thenDo) {
+        var pb = lively.PartsBin;
+        var webR = pb.getLocalPartsBinURL().asWebResource()
+            .beAsync()
+            .getSubElements(1).whenDone(function(result, status) {
+                (function() {
+                    webR.subCollections.invoke("getURL").map(pb.partsSpaceWithURL.bind(pb));
+                    show(webR.subCollections.invoke("getURL"));
+                    if (thenDo) thenDo(null, pb.partSpaces);
+                }).delay(0);
+            });
     }
 });
 

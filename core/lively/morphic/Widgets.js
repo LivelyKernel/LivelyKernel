@@ -1969,9 +1969,11 @@ lively.morphic.World.addMethods(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],
             ['Preferences', [
-                ['Preferences', this.openPreferences.bind(this)],
-                ['Set username', this.askForUserName.bind(this)],
+                ['Show login info', function() {
+                    lively.require("lively.net.Wiki").toRun(function() { lively.net.Wiki.showLoginInfo(); })
+                }],
                 ['My user config', this.showUserConfig.bind(this)],
+                ['Preferences', this.openPreferences.bind(this)],
                 ['Set world extent', this.askForNewWorldExtent.bind(this)],
                 ['Set background color', this.askForNewBackgroundColor.bind(this)],
                 ['Set grid spacing', function() { lively.ide.commands.exec("lively.morphic.Morph.setGridSpacing") }]]

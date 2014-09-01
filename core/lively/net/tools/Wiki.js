@@ -1,5 +1,222 @@
 module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec').toRun(function() {
 
+lively.BuildSpec("lively.wiki.LoginInfo", {
+    _BorderColor: null,
+    _Extent: lively.pt(375.0,100.0),
+    className: "lively.morphic.Window",
+    contentOffset: lively.pt(3.0,22.0),
+    draggingEnabled: true,
+    droppingEnabled: false,
+    layout: {
+        adjustForNewBounds: true
+    },
+    name: "LoginInfo",
+    submorphs: [{
+        _BorderColor: Color.rgb(95,94,95),
+        _Extent: lively.pt(369.0,75.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(3.0,22.0),
+        className: "lively.morphic.Box",
+        layout: {
+            adjustForNewBounds: true,
+            resizeHeight: true,
+            resizeWidth: true
+        },
+        name: "LoginInfo",
+        submorphs: [{
+            _ClipMode: "auto",
+            _Extent: lively.pt(369.0,75.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _InputAllowed: false,
+            _Padding: lively.rect(4,2,0,0),
+            _TextColor: Color.rgb(0,0,0),
+            allowInput: false,
+            className: "lively.morphic.Text",
+            droppingEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            layout: {
+                resizeHeight: true,
+                resizeWidth: true
+            },
+            name: "userText"
+        }],
+        actionChangeEmail: function actionChangeEmail() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.passwordPrompt("enter password for " + context.user.name, function(input) {
+                    context.morph.httpCheckPassword(context.user.name, input, next);
+                });
+            },
+            function(matches, next) {
+                $world.prompt("enter new email for " + context.user.name, function(input) {
+                    context.morph.validateEmail(input, function(err, match) {
+                        next(err || !match && "email invalid", input); }); });
+            },
+            function(email, next) { context.morph.httpModifyUser({email: email}, next); }
+        )(function(err, data) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionLogoutAndExit: function actionLogoutAndExit() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.confirm("Are you sure to close this world? Unsaved changes will be lost.", function(ok) {
+                    if (!ok) {
+                        context.morph.uiInform("logout canceled");
+                        context.morph.update.bind(context.morph).delay(3);
+                    } else next();
+                });
+            },
+            function(next) { context.morph.httpLogout(next); },
+            function(next) {
+                lively.Config.set("askBeforeQuit", false);
+                window.close();
+            }
+        )(function(err, user) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.uiInform("you should not see this");
+        });
+    
+    },
+        actionSwitchUser: function actionSwitchUser() {
+        var context = this, newUserName, password;
+        Functions.composeAsync(
+            function(next) {
+                $world.prompt("enter user name", function(input) {
+                    next(!input || !input.length ? new Error("not a valid user name: " + input) : null, input);
+                });
+            },
+            function(userName, next) {
+                $world.passwordPrompt("enter password for user " + userName, function(input) {
+                    newUserName = userName;
+                    password = input;
+                    context.morph.httpCheckPassword(userName, input, next)
+                });
+            },
+            function(matches, next) {
+                if (!matches) next(new Error("Could not login as " + newUserName));
+                else context.morph.httpLogin(newUserName, password, next)
+            },
+            function(user, next) { $world.setCurrentUser(user.name); next(null, user); }
+        )(function(err, user) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionUpdate: function actionUpdate() {
+        this.morph.update();
+    },
+        httpCheckPassword: function httpCheckPassword(userName, password, thenDo) {
+        Global.URL.root.withFilename("uvic-check-password").asWebResource()
+            .beAsync()
+            .post(JSON.stringify({name: userName, password: password}), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error("Could not login as " + userName);
+                thenDo(err, status.isSuccess());
+            });
+    },
+        httpCurrentUserData: function httpCurrentUserData(doFunc) {
+        this.httpDataRequest("get", doFunc);
+    },
+        httpDataRequest: function httpDataRequest(method, doFunc) {
+        var self = this;
+        Global.URL.root.withFilename('uvic-current-user').asWebResource()
+            .beAsync()[method]()
+            .withJSONWhenDone(function(json, status) {
+                doFunc.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        httpLogin: function httpLogin(name, password, thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-login").asWebResource()
+            .beAsync()
+            .post(JSON.stringify({name: name, password: password}), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                thenDo.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        httpLogout: function httpLogout(thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-logout").asWebResource().whenDone
+        Global.URL.root.withFilename("uvic-logout").asWebResource()
+            .beAsync().post()
+            .whenDone(function(_, status) {
+                thenDo.call(self, !status.isSuccess() ? new Error(String(status)) : null);
+            });
+    },
+        httpModifyUser: function httpModifyUser(data, thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-current-user").asWebResource()
+            .beAsync()
+            .post(JSON.stringify(data), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                thenDo.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        this.onLoad();
+    },
+        onLoad: function onLoad() {
+        this.get("userText").setRichTextMarkup([["Loading", {fontWeight: "bold"}]]);
+        this.update();
+    },
+        reset: function reset() {
+        this.get("userText").setTextString("")
+    },
+        textDoit: function textDoit(actionName, context) {
+        return {
+            code: Strings.format(";(%s).call(this);", this['action' + actionName.capitalize()]),
+            context: context
+        }
+    },
+        uiInform: function uiInform(msg) {
+        var markup = this.get("userText").getRichTextMarkup();
+        markup.unshift([String(msg) + '\n', {italics: "italic"}])
+        // markup.unshift(['Error' + (action ? 'while trying ' + action : "") + ":", {}])
+        this.get("userText").setRichTextMarkup(markup);
+    },
+        uiShowError: function uiShowError(err, action) {
+        var markup = this.get("userText").getRichTextMarkup();
+        markup.unshift([String(err) + '\n', {color: Global.Color.red, fontWeight: 'bold'}])
+        // markup.unshift(['Error' + (action ? 'while trying ' + action : "") + ":", {}])
+        this.get("userText").setRichTextMarkup(markup);
+    },
+        update: function update() {
+        this.httpCurrentUserData(function(err, data) {
+            if (err) return this.uiShowError(err);
+            var context = {morph: this, user: data};
+            this.get("userText").setRichTextMarkup([
+                ["You are logged in as ", {}], [data.name, {fontWeight: "bold"}], ["\n", {}],
+                ["Your email is ", {}], [data.email, {fontWeight: "bold"}], ["\n", {}],
+                ["⥁", {doit: this.textDoit("update", context)}], [" ", {}],
+                ["switch user", {doit: this.textDoit("switchUser", context)}], [" ", {}],
+                ["change email", {doit: this.textDoit("changeEmail", context)}], [" ", {}],
+                ["logout and exit", {doit: this.textDoit("logoutAndExit", context)}]
+            ]);
+        });
+    },
+        validateEmail: function validateEmail(email, thenDo) {
+        var matches = Object.isString(email) && /^[^@]+@[^@]+/.test(email);
+        thenDo(matches ? null : new Error(email + " is not a valid email"), matches);
+    }
+    }],
+    titleBar: "Login info"
+});
+
 lively.BuildSpec('lively.wiki.VersionViewer', {
     _Extent: lively.pt(354.0,196.0),
     _Position: lively.pt(812.0,61.0),

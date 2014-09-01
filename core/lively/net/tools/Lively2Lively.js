@@ -163,13 +163,22 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         isConnected = lively.net.SessionTracker.isConnected(),
         allowRemoteEval = !!lively.Config.get('lively2livelyAllowRemoteEval');
     if (!isConnected) {
+        items.push(['show login info', function() {
+            lively.net.Wiki.showLoginInfo();
+            self.collapse();
+        }]);
         items.push(['connect', function() {
             lively.net.SessionTracker.resetSession();
             self.update.bind(self).delay(0.2);
             self.collapse();
         }]);
     } else {
-        items = [['open chat', function() {
+        items = [
+        ['show login info', function() {
+            lively.net.Wiki.showLoginInfo();
+            self.collapse();
+        }],
+        ['open chat', function() {
             if ($morph('Lively2LivelyChat')) $morph('Lively2LivelyChat').openInWorldCenter().comeForward();
             else lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

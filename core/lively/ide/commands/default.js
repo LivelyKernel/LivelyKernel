@@ -1447,6 +1447,15 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    "lively.net.wiki.tools.showLoginInfo": {
+        description: "show login info",
+        exec: function(withInfoMorphDo) {
+            lively.require("lively.net.Wiki").toRun(function() {
+                lively.net.Wiki.showLoginInfo(withInfoMorphDo);
+            });
+        }
+    },
+
     // debugging
     'lively.ide.debugging.globalTrace': {
         description: "start / stop global tracing",

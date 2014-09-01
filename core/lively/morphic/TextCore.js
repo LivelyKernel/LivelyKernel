@@ -2938,6 +2938,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                     node.style.textDecoration = 'none';
                     node.style.color = 'inherit';
                     LivelyNS.removeAttribute(node, 'doit');
+                    lively.$(node).removeClass("doit");
                     delete this.doit;
                     return;
                 }
@@ -2956,6 +2957,7 @@ Object.subclass('lively.morphic.TextEmphasis',
                 node.style.cursor = 'pointer';
                 node.style.textDecoration = 'underline';
                 node.style.color = 'darkgreen';
+                lively.$(node).addClass("doit");
                 LivelyNS.setAttribute(node, 'doit', doit.code);
             }
         },

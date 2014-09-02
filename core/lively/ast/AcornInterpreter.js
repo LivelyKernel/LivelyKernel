@@ -309,8 +309,15 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this['visit' + node.type](node, state);
         } catch (e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                e = e.unwindException;
+            if (lively.Config.get('loadRewrittenCode') && !(e instanceof UnwindException)) {
+                if (e.unwindException)
+                    e = e.unwindException;
+                else {
+                    e = new UnwindException(e);
+                    frame.setPC(node);
+                    e.shiftFrame(frame);
+                }
+            }
             if (!frame.isResuming() && e.error && e.error.toString() != 'Break') {
                 frame.setPC(node);
                 e.shiftFrame(frame);
@@ -458,8 +465,12 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         try {
             this.accept(node.block, state);
         } catch (e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.toString() == 'Break')
-                throw e.unwindException;
+            if (lively.Config.get('loadRewrittenCode')) {
+                if (e instanceof UnwindException)
+                    throw e;
+                else  if (e.unwindException && e.toString() == 'Break')
+                    throw e.unwindException;
+            }
             hasError = true;
             state.error = err = e;
         }
@@ -1344,7 +1355,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
         return this.arguments = argValues;
     },
 
-    getArguments: function(args) {
+    getArguments: function() {
         if (this.scope && this.scope.getMapping() != Global && this.func.isFunction())
             return this.arguments;
         throw new ReferenceError('arguments is not defined');

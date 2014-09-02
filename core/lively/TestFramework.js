@@ -385,8 +385,8 @@ Object.subclass('TestCase',
     },
     doMouseEvent: function(spec) {
         // cs: this should be moved to lively.morphic.tests.TestCase
-        // type one of click, mousedown, mouseup, mouseover, mousemove, mouseout.
-        if (!spec.type) spec.type = 'mousedown';
+        // type one of click, pointerdown, pointerup, pointerover, pointermove, pointerout.
+        if (!spec.type) spec.type = 'pointerdown';
         if (!spec.pos) spec.pos = pt(0,0);
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;

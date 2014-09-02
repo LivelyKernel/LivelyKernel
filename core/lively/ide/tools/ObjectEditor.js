@@ -292,7 +292,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     $super(evt);
 
                     // remove the scene presentation when clicked elsewhere
-                    var target = evt.world.clickedOnMorph;
+                    var target = evt.hand.clickedOnMorph;
                     if (!this.listMorph || !this.listMorph.isAncestorOf(target)) {
                         this.removeTargetChooser();
                     } else {
@@ -1182,7 +1182,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     $super(evt);
 
                     // workaround - otherwise other morphs get this event
-                    var clickedMorph = evt && evt.world && evt.world.clickedOnMorph;
+                    var clickedMorph = evt && evt.hand && evt.hand.clickedOnMorph;
                     if (clickedMorph && (clickedMorph !== this && clickedMorph !== this.listMorph)) {
                         this.removeList();
                     }

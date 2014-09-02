@@ -153,14 +153,16 @@ Object.subclass('lively.ide.ModuleWrapper',
     },
 
     handleSaveStatus: function(webR) {
-        if (!webR.status.isDone()) return;
-        this.networkRequestInProgress = false;
-        if (webR.status.code() === 412) {
-            this.askToOverwrite(webR.status.url);
-        } else if (webR.status.isSuccess()) {
-            this.lastModifiedDate = webR.lastModified;
-            this.runQueuedRequest();
+        if (webR.status.isDone()) {
+            this.networkRequestInProgress = false;
+            if (webR.status.code() === 412) {
+                this.askToOverwrite(webR.status.url);
+            } else if (webR.status.isSuccess()) {
+                this.lastModifiedDate = webR.lastModified;
+                this.runQueuedRequest();
+            }
         }
+        return webR;
     },
 
     askToOverwrite: function(url) {

@@ -88,7 +88,7 @@ Object.subclass('lively.morphic.Shapes.Shape',
 });
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Rectangle');
-
+lively.morphic.Shapes.Rectangle.subclass('lively.morphic.Shapes.ReactShape');
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Ellipse');
 
 lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Image',

@@ -1,9 +1,9 @@
-var path = require('path');
+var path  = require('path');
 var async = require('async');
-var exec = require("child_process").exec;
-var fs = require("fs");
+var exec  = require("child_process").exec;
+var fs    = require("fs");
+var url   = require("url");
 
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 var log = function log(/*args*/) {
     console.log.apply(console, arguments);
 }
@@ -45,7 +45,7 @@ function withRecordsDo(queryString, thenDo) {
 module.exports = function(route, app) {
 
     app.get(route, function(req, res) {
-        var query = req.query;
+        var query = url.parse(req.url, true).query;
         if (query.getRecords) {
             withRecordsDo(query.getRecords, function(err, rows) {
                 if (err) res.status(400).json({error: String(err)});

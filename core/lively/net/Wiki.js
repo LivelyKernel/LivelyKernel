@@ -103,8 +103,15 @@ Object.extend(lively.net.Wiki, {
             try { jso = jsoFromHTML(content) } catch(e) { iterator(e, next, path); return; }
             iterator(null, next, path, jso);
         }, thenDo);
-    }
+    },
 
+    showLoginInfo: function(withInfoMorphDo) {
+        lively.require("lively.net.tools.Wiki").toRun(function() {
+            var m = lively.BuildSpec("lively.wiki.LoginInfo")
+                .createMorph().openInWorldCenter().comeForward();
+            withInfoMorphDo && withInfoMorphDo(null, m);
+        });
+    }
 });
 
 }) // end of module

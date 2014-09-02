@@ -99,6 +99,10 @@ module.exports = function(route, app) {
             res.end('db ' + key + ' remove');
         });
     });
+    
+    app.get(route + 'allDBs', function(req, res) {
+        res.end(JSON.stringify(dbs))
+    })
 
     app.post(route, function(req, res) {
         // req.body = {

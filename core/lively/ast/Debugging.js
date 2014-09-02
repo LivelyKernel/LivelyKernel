@@ -182,7 +182,7 @@ Object.extend(JSLoader, {
         try {
             // adding sourceURL improves conventional debugging as it will be used
             // in stack traces by some debuggers
-            eval.call(Global, rewrittenSource + "\n//# sourceURL=" + url);
+            eval.call(Global, rewrittenSource + "\n//# sourceURL=" + this.makeAbsolute(url));
         } catch (e) {
             console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);
         }

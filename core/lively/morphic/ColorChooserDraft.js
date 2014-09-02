@@ -177,7 +177,7 @@ lively.morphic.Text.subclass('lively.morphic.ColorChooserSwitcher',
     initialize: function($super, colorChooser) {
         this.colorChooser = colorChooser;
         $super(new Rectangle(0,0,10,10), colorChooser.colorNames);
-        this.registerForEvent('mouseMove', this, 'onMouseMove');
+        this.registerForEvent('pointerMove', this, 'onMouseMove');
     },
 },
 'mouse events', {

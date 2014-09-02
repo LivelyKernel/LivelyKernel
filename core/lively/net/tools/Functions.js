@@ -77,17 +77,16 @@ Object.extend(lively.net.tools.Functions, {
     },
 
     openWorkspaceForSession: function(session) {
-        var worldURL = session.worldURL, user = session.user,
-            workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
+        var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
         workspace.openInWorldCenter().comeForward();
         (function() {
             workspace.targetMorph.showNameInput();
             (function() {
                 var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
-                    return item.value.user === user && item.value.worldURL === worldURL;
+                    return item.value.id === session.id;
                 });
                 workspace.get('ConnectionInput').setSelection(sel);
-            }).delay(.5);
+            }).delay(1);
         }).delay(0);
     },
 

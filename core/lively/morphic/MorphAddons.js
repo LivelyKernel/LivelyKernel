@@ -731,7 +731,6 @@ lively.morphic.World.addMethods(
 'debugging', {
     logError: function (er, optName) {
         Global.LastError = er;
-        if (!Config.get('verboseLogging')) return;
         var msg = (optName || 'LOGERROR: ') + String(er) + "\nstack:" + er.stack;
         this.setStatusMessage(msg, Color.red, 10, function() {
             var errorStackViewer = this.openPartItem("ErrorStackViewer", "PartsBin/Tools");
@@ -743,8 +742,11 @@ lively.morphic.World.addMethods(
 },
 'logging', {
     setStatusMessage: function (msg, color, delay, callback, optStyle) {
-        var msgMorph = this.createStatusMessage(msg, {fill: color});
+        console[color == Color.red ? "error" : "log"](msg);
 
+        if (!lively.Config.get('verboseLogging')) return null;
+
+        var msgMorph = this.createStatusMessage(msg, {fill: color});
         // callbacks are currently not supported...
         if (false && callback) {
             var btn = new lively.morphic.Button(lively.rect(0,0,50,20), 'more')
@@ -753,11 +755,7 @@ lively.morphic.World.addMethods(
             btn.align(btn.bounds().topRight(), closeBtn.bounds().topLeft().addPt(pt(-5,0)));
             connect(btn, 'fire', btn, 'callbackFunc')
         }
-        if (color == Color.red) {
-            console.error(msg);
-        } else {
-            console.log(msg);
-        }
+        
         return this.addStatusMessageMorph(msgMorph, delay || 5);
     },
 
@@ -1295,6 +1293,21 @@ lively.morphic.Morph.addMethods(
                     default        : return "transitionend";
                 }
             })();
+        var remover = (function(evt) {
+            morphs.forEach(function(ea) { behaveNormal(ea); });
+            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
+            whenDone && whenDone.call(self);
+        });
+
+        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
+
+        (function run() {
+            morphs.forEach(behaveAnimated);
+            morphModifyFunc.call(self);
+        }).delay(0);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         function behaveAnimated(morph) { 
             var morphNode = morph.renderContext().morphNode,
                 shapeNode = morph.renderContext().shapeNode;
@@ -1303,24 +1316,16 @@ lively.morphic.Morph.addMethods(
             morphNode.style[durationProp] = duration + "ms";
             shapeNode.style[durationProp] = duration + "ms";
         }
+
         function behaveNormal(morph) { 
             var morphNode = morph.renderContext().morphNode,
                 shapeNode = morph.renderContext().shapeNode;
             morphNode.style[transitionProp] = "";
-            morphNode.style[durationProp] = "";
             shapeNode.style[transitionProp] = "";
+            morphNode.style[durationProp] = "";
             shapeNode.style[durationProp] = "";
         }
-        var remover = (function(evt) {
-            morphs.forEach(function(ea) { behaveNormal(ea); });
-            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
-            whenDone && whenDone.call(self);
-        });
-        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
-        (function run() {
-            morphs.forEach(function(ea) { behaveAnimated(ea); });
-            morphModifyFunc.call(self);
-        }).delay(0);
+
     },
 
 
@@ -1343,104 +1348,6 @@ lively.morphic.Morph.addMethods(
     setExtentAnimated: function(extent, time, callback) {
         this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }
-});
-
-lively.morphic.Morph.addMethods({
-    openInFlap: function(alignment) {
-        var owner = this.owner || lively.morphic.World.current();
-        return owner.addFlapWithMorph(this, alignment);
-    },
-    addFlapWithMorph: function(morph, alignment) {
-        if (!morph.owner)
-            this.addMorph(morph)
-        var offset = 5,
-            flapBounds = this.determineFlapBounds(alignment, morph, offset),
-            scaleFactor = this.isWorld? this.getZoomLevel() : 1,
-            flap = new lively.morphic.Flap(alignment, this, flapBounds);
-        flap.addMorph(morph);
-        flap.setFixed(false);
-        flap.setScale(1/scaleFactor);
-        flap.setFixed(true);
-        this.adjustHandlePosition(flap);
-        morph.setScale(scaleFactor);
-        morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
-        return flap;
-    },
-    determineFlapBounds: function(alignment, morph, offset) {
-        var flapExtent = this.determineFlapExtent(alignment, morph, offset),
-            flapPosition = this.determineFlapPosition(alignment, morph, flapExtent, offset);
-        return flapPosition.extent(flapExtent);
-    },
-    determineFlapExtent: function(alignment, morph, offset) {
-        var myBounds = morph.getBounds(),
-            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
-            extent;
-        switch (alignment) {
-            case 'top': {
-                extent = pt(myBounds.width, myBounds.bottomRight().y - ownerBounds.topLeft().y);
-                break;
-            }
-            case 'left': {
-                extent = pt(myBounds.bottomRight().x - ownerBounds.topLeft().x, myBounds.height);
-                break
-            }
-            case 'bottom': {
-                extent = pt(myBounds.width, ownerBounds.bottomRight().y - myBounds.topLeft().y);
-                break;
-            }
-            case 'right': {
-                extent = pt(ownerBounds.bottomRight().x - myBounds.topLeft().x, myBounds.height);
-                break;
-            }
-        }
-        return extent.addPt(pt(2*offset, 2*offset));
-    },
-    determineFlapPosition: function(alignment, morph, flapExtent, offset) {
-        var myBounds = morph.getBounds(),
-            myPosition = morph.getPosition(),
-            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
-            ownerPosition = ownerBounds.topLeft(),
-            ownerExtent = ownerBounds.extent();
-        switch (alignment) {
-            case 'top': return pt(myPosition.x - ownerPosition.x - offset, 0);
-            case 'left': return pt(0,myPosition.y - ownerPosition.y - offset);
-            case 'bottom': return pt(myPosition.x - offset, ownerBounds.bottomRight().y - flapExtent.y).subPt(ownerPosition);
-            case 'right': return pt(ownerBounds.bottomRight().x - flapExtent.x + offset, myPosition.y).subPt(ownerPosition);
-            default: return pt(0,0);
-        }
-    },
-
-    determinePositionInFlap: function(alignment, flapExtent, scaleFactor, offset) {
-        var myExtent = this.getExtent();
-        switch (alignment) {
-            case 'top': return pt(offset, (flapExtent.y - myExtent.y) * scaleFactor - offset);
-            case 'left': return pt((flapExtent.x - myExtent.x) * scaleFactor - offset, offset);
-            case 'bottom': case 'right': return pt(offset,offset);
-            default: return pt(0,0);
-        }
-    },
-
-    adjustHandlePosition: function(flap) {
-        switch(flap.alignment) {
-            case 'top': {
-                flap.flapHandle.setPosition(pt(5,flap.getExtent().y));
-                break
-            }
-            case 'right': {
-                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5));
-                break
-            }
-            case 'left': {
-                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5));
-                break
-            }
-            case 'bottom': {
-                flap.flapHandle.setPosition(pt(5,flap.flapHandle.getPosition().y));
-                break
-            }
-        }
-    }
-
 });
 
 Trait('lively.morphic.FixedPositioning.WorldTrait', {

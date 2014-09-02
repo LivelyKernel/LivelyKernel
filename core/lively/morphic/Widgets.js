@@ -1116,7 +1116,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     },
 
     onMouseUp: function($super, evt) {
-        if (evt.world.clickedOnMorph !== this && (Date.now() - evt.world.clickedOnMorphTime < 500)) {
+        if (evt.hand.clickedOnMorph !== this && (Date.now() - evt.hand.clickedOnMorphTime < 500)) {
             return false; // only a click
         }
         $super(evt);
@@ -1205,11 +1205,7 @@ lively.morphic.Morph.addMethods(
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // morphic hierarchy / windows
         items.push(['Open in...', [
-            ['Window', function(evt) { self.openInWindow(evt.mousePoint); }],
-            ['Flap...', ['top', 'right', 'bottom', 'left'].map(function(align) {
-                return [align, function(evt) {
-                    require('lively.morphic.MorphAddons').toRun(function() {
-                        self.openInFlap(align); }); }]; })]
+            ['Window', function(evt) { self.openInWindow(evt.mousePoint); }]
         ]]);
 
         // Drilling into scene to addMorph or get a halo
@@ -1973,9 +1969,11 @@ lively.morphic.World.addMethods(
                         function(ea) {ea.stopStepping && ea.stopStepping()})}],
             ]],
             ['Preferences', [
-                ['Preferences', this.openPreferences.bind(this)],
-                ['Set username', this.askForUserName.bind(this)],
+                ['Show login info', function() {
+                    lively.require("lively.net.Wiki").toRun(function() { lively.net.Wiki.showLoginInfo(); })
+                }],
                 ['My user config', this.showUserConfig.bind(this)],
+                ['Preferences', this.openPreferences.bind(this)],
                 ['Set world extent', this.askForNewWorldExtent.bind(this)],
                 ['Set background color', this.askForNewBackgroundColor.bind(this)],
                 ['Set grid spacing', function() { lively.ide.commands.exec("lively.morphic.Morph.setGridSpacing") }]]
@@ -2364,6 +2362,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     onMouseDown: function (evt) {
         //Functions.False,
         // TODO: refactor to evt.hand.clickedOnMorph when everything else is ready for it
+        evt.hand.clickedOnMorph = this.windowMorph;
         evt.world.clickedOnMorph = this.windowMorph;
     },
     onMouseUp: Functions.False
@@ -2707,8 +2706,8 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             if (self.expandedTransform) self.setTransform(self.expandedTransform);
             if (self.expandedExtent) self.setExtent(self.expandedExtent);
             if (self.expandedPosition) self.setPosition(self.expandedPosition);
-            self.addMorph(self.targetMorph);
             self.helperMorphs.forEach(function(ea) { self.addMorph(ea); });
+            self.addMorph(self.targetMorph);
         }
         this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {
             self.comeForward();
@@ -3665,7 +3664,7 @@ Trait('SelectionMorphTrait',
         this.resetSelection()
         this.addMorphFront(this.selectionMorph);
 
-        var pos = this.localize(this.eventStartPos || evt.getPosition());
+        var pos = this.localize(evt.hand.eventStartPos || evt.getPosition());
         this.selectionMorph.withoutPropagationDo(function() {
             this.selectionMorph.setPosition(pos)
             this.selectionMorph.setExtent(pt(1, 1))
@@ -3973,18 +3972,18 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
 'initializing', {
     initialize: function($super, initialBounds, scaleIfAny) {
         $super(initialBounds);
-        connect(this, 'value', this, 'adjustSliderParts');
+        lively.bindings.connect(this, 'value', this, 'adjustSliderParts');
         this.setValue(0);
         this.setSliderExtent(0.1);
         this.valueScale = (scaleIfAny === undefined) ? 1.0 : scaleIfAny;
         this.sliderKnob = this.addMorph(
-            new lively.morphic.SliderKnob(new Rectangle(0, 0, this.mss, this.mss), this));
+            new lively.morphic.SliderKnob(new lively.Rectangle(0, 0, this.mss, this.mss), this));
         this.adjustSliderParts();
         this.sliderKnob.setAppearanceStylingMode(true);
         this.sliderKnob.setBorderStylingMode(true);
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
-    },
+    }
 },
 'accessing', {
     getValue: function() { return this.value },

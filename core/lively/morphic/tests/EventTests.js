@@ -226,7 +226,23 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.EventTests.Shadow
         this.assertEquals(morph.submorphs.length, shadow.submorphs.length, 'after addMorph again');
     }
 });
-
+lively.morphic.tests.TestCase.subclass('lively.morphic.tests.EventTests.PointereventsTests',
+'testing', {
+    testHasLayerXAndLayerY: function() {
+        var world = lively.morphic.World.current();
+        var morph = world.addMorph(lively.morphic.Morph.makeRectangle(100,120,100,100));
+        var layerX, layerY;
+        morph.onMouseDown = function(evt) {
+            layerX = evt.layerX;
+            layerY = evt.layerY;
+        };
+        this.doMouseEvent({type: 'mousedown', pos: pt(150,150), target: morph});
+        this.assert(layerX, 'Property layerX is missing on mousedown evt');
+        this.assert(layerY, 'Property layerY is missing on mousedown evt');
+        this.assertEquals(layerX, 50, 'evt.layerX should be the evt position within the morph')
+        this.assertEquals(layerY, 30, 'evt.layerY should be the evt position within the morph')
+    },
+});
 TestCase.subclass('lively.morphic.tests.EventTests.KeyDispatcher',
 "running", {
     setUp: function($super) {

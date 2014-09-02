@@ -1,5 +1,529 @@
 module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec').toRun(function() {
 
+lively.BuildSpec("lively.wiki.LoginInfo", {
+    _BorderColor: null,
+    _Extent: lively.pt(360.0,320.0),
+    className: "lively.morphic.Window",
+    contentOffset: lively.pt(3.0,22.0),
+    draggingEnabled: true,
+    droppingEnabled: false,
+    layout: {
+        adjustForNewBounds: true
+    },
+    name: "LoginInfo",
+    submorphs: [{
+        _BorderColor: Color.rgb(95,94,95),
+        _Extent: lively.pt(354.0,295.0),
+        _Fill: Color.rgb(255,255,255),
+        _Position: lively.pt(3.0,22.0),
+        _StyleSheet: "span.doit:hover {\n\
+    	font-weight: bold;\n\
+    }",
+        className: "lively.morphic.Box",
+        layout: {
+            adjustForNewBounds: true,
+            resizeHeight: true,
+            resizeWidth: true
+        },
+        name: "LoginInfo",
+        submorphs: [{
+            _ClipMode: "auto",
+            _Extent: lively.pt(354.0,295.0),
+            _FontFamily: "Arial, sans-serif",
+            _FontSize: 11,
+            _HandStyle: "default",
+            _InputAllowed: false,
+            _Padding: lively.rect(4,2,0,0),
+            _TextColor: Color.rgb(0,0,0),
+            allowInput: false,
+            className: "lively.morphic.Text",
+            droppingEnabled: false,
+            fixedHeight: true,
+            fixedWidth: true,
+            grabbingEnabled: false,
+            layout: {
+                resizeHeight: true,
+                resizeWidth: true
+            },
+            name: "userText"
+        }],
+        actionChangeEmail: function actionChangeEmail() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.passwordPrompt("enter password for " + context.user.name, function(input) {
+                    context.morph.httpCheckPassword(context.user.name, input, next);
+                });
+            },
+            function(matches, next) {
+                $world.prompt("enter new email for " + context.user.name, function(input) {
+                    context.morph.validateEmail(input, function(err, match) {
+                        next(err || !match && "email invalid", input); }); });
+            },
+            function(email, next) { context.morph.httpModifyUser({email: email}, next); }
+        )(function(err, data) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionJoinGroup: function actionJoinGroup() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.prompt("Which group to join?", function(input) {
+                    if (!input || !input.length) context.morph.uiShowError("Invalid input " + input);
+                    else next(null, input);
+                })
+            },
+            function(groupName, next) {
+                context.user.custom.groups = context.user.custom.groups || [];
+                context.user.custom.groups.push(groupName);
+                context.morph.httpModifyUser({custom: context.user.custom}, next); }
+        )(function(err, data) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionLeaveGroup: function actionLeaveGroup() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.confirm("Do you really want to leave the group " + context.group, function(input) {
+                    if (!input) context.morph.uiInform("Not leaving group " + context.group);
+                    else next();
+                })
+            },
+            function(next) {
+                var groups = (context.user.custom.groups || []).without(context.group);
+                context.user.custom.groups = groups
+                context.morph.httpModifyUser({custom: context.user.custom}, next); }
+        )(function(err, data) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionLogoutAndExit: function actionLogoutAndExit() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.confirm("Are you sure to close this world? Unsaved changes will be lost.", function(ok) {
+                    if (!ok) {
+                        context.morph.uiInform("logout canceled");
+                        context.morph.update.bind(context.morph).delay(3);
+                    } else next();
+                });
+            },
+            function(next) { context.morph.httpLogout(next); },
+            function(next) {
+                lively.Config.set("askBeforeQuit", false);
+                window.close();
+                next();
+            },
+            function(next) {
+                ;(function() { document.location.reload(); next(); }).delay(0.1);
+            }
+        )(function(err, user) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.uiInform("you should not see this");
+        });
+    
+    },
+        actionShowGroupMembers: function actionShowGroupMembers() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) { context.morph.httpGetGroupMembers(context.group, next); }
+        )(function(err, members) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else $world.addCodeEditor({
+                title: "Members of group " + context.group,
+                textMode: "text",
+                content: members.join('\n')
+            })
+        });
+    },
+        actionShowGroupResources: function actionShowGroupResources() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) { context.morph.httpGetGroupResources(context.group, next); }
+        )(function(err, resources) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else if (false) {
+                $world.addCodeEditor({
+                    title: "Resources of group " + context.group,
+                    textMode: "text",
+                    content: resources.join('\n')
+                });
+            } else context.morph.openResource(resources, "group " + context.group);
+        });
+    },
+        actionShowMyResources: function actionShowMyResources() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) { context.morph.httpGetUserResources(context.user.name, next); }
+        )(function(err, resources) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else if (false) $world.addCodeEditor({
+                title: "Resources of user " + context.user.name,
+                textMode: "text",
+                content: resources.join('\n')
+            }); else context.morph.openResource(resources, "user " + context.user.name);
+        });
+    },
+        actionSwitchUser: function actionSwitchUser() {
+        var context = this, newUserName, password;
+        Functions.composeAsync(
+            function(next) {
+                $world.prompt("enter user name", function(input) {
+                    next(!input || !input.length ? new Error("not a valid user name: " + input) : null, input);
+                });
+            },
+            function(userName, next) {
+                $world.passwordPrompt("enter password for user " + userName, function(input) {
+                    newUserName = userName;
+                    password = input;
+                    context.morph.httpCheckPassword(userName, input, next)
+                });
+            },
+            function(matches, next) {
+                if (!matches) next(new Error("Could not login as " + newUserName));
+                else context.morph.httpLogin(newUserName, password, next)
+            },
+            function(user, next) { $world.setCurrentUser(user.name); next(null, user); }
+        )(function(err, user) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+                context.morph.update.bind(context.morph).delay(5);
+            } else context.morph.update();
+        });
+    },
+        actionUpdate: function actionUpdate() {
+        this.morph.update();
+    },
+        httpCheckPassword: function httpCheckPassword(userName, password, thenDo) {
+        Global.URL.root.withFilename("uvic-check-password").asWebResource()
+            .beAsync()
+            .post(JSON.stringify({name: userName, password: password}), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error("Could not login as " + userName);
+                thenDo(err, status.isSuccess());
+            });
+    },
+        httpCurrentGroupData: function httpCurrentGroupData(thenDo) {
+        var self = this;
+        Global.URL.nodejsBase.withFilename("AuthServer/user-db/groups/" + $world.getUserName(true))
+            .asWebResource().beAsync().get()
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get groups");
+                thenDo.call(self, err, json.groups || []);
+            });
+    
+    },
+        httpCurrentUserData: function httpCurrentUserData(doFunc) {
+        this.httpDataRequest("get", doFunc);
+    },
+        httpDataRequest: function httpDataRequest(method, doFunc) {
+        var self = this;
+        Global.URL.root.withFilename('uvic-current-user').asWebResource()
+            .beAsync()[method]()
+            .withJSONWhenDone(function(json, status) {
+                doFunc.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        httpGetGroupMembers: function httpGetGroupMembers(groupName, thenDo) {
+        // this.httpGetGroupMembers("admin", show.bind(null, "%s %s"));
+        var self = this;
+        Global.URL.nodejsBase.withFilename("AuthServer/user-db/group-members/" + groupName)
+            .asWebResource().beAsync().get()
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get group members");
+                thenDo.call(self, err, json.users || []);
+            });
+    
+    },
+        httpGetGroupResources: function httpGetGroupResources(groupName, thenDo) {
+        // this.httpGetGroupResources("admin", show.bind(null, "%s %s"))
+        var self = this;
+        Global.URL.nodejsBase.withFilename("AuthServer/user-db/group-resources/" + groupName)
+            .asWebResource().beAsync().get()
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get resources of group " + groupName);
+                thenDo.call(self, err, json.resources || []);
+            });
+    },
+        httpGetUserResources: function httpGetUserResources(userName, thenDo) {
+        // this.httpGetUserResources("robertkrahn", show.bind(null, "%s %s"))
+        var self = this;
+        Global.URL.nodejsBase.withFilename("AuthServer/user-db/user-resources/" + userName)
+            .asWebResource().beAsync().get()
+            .withJSONWhenDone(function(json, status) {
+                var err = json && json.error;
+                if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get resources of user " + userName);
+                thenDo.call(self, err, json.resources || []);
+            });
+    },
+        httpLogin: function httpLogin(name, password, thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-login").asWebResource()
+            .beAsync()
+            .post(JSON.stringify({name: name, password: password}), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                thenDo.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        httpLogout: function httpLogout(thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-logout").asWebResource().whenDone
+        Global.URL.root.withFilename("uvic-logout").asWebResource()
+            .beAsync().post()
+            .whenDone(function(_, status) {
+                thenDo.call(self, !status.isSuccess() ? new Error(String(status)) : null);
+            });
+    },
+        httpModifyUser: function httpModifyUser(data, thenDo) {
+        var self = this;
+        Global.URL.root.withFilename("uvic-current-user").asWebResource()
+            .beAsync()
+            .post(JSON.stringify(data), 'application/json')
+            .withJSONWhenDone(function(json, status) {
+                thenDo.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+            });
+    },
+        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        this.onLoad();
+    },
+        onLoad: function onLoad() {
+        this.update();
+    },
+        openResource: function openResource(resources, title) {
+        var nGroups = 0;
+        var grouped = groupResources(resources);
+        
+        var container = makeContainer();
+        
+        if (grouped.partsbin && grouped.partsbin.length) {
+            nGroups++;
+            // container.openInWorld()
+            var partItemList = makeList();
+            var partItems = createPartItemList(grouped.partsbin);
+            var label1 = makeLabel("PartsBin items");
+            partItems.forEach(function(ea) { partItemList.addMorph(ea) });
+            container.addMorph(label1);
+            container.addMorph(partItemList);
+        }
+        
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        
+        if (grouped.world && grouped.world.length) {
+            nGroups++;
+            var list = makeList();
+            setStringList(grouped.world, list);
+            container.addMorph(makeLabel("Worlds"));
+            container.addMorph(list);
+            lively.bindings.connect(list, 'selection', {visitWorld: function(morph) {
+                $world.confirm("open world " + morph.item.value + '?', function(input) {
+                    if (input) window.open(Global.URL.root.withFilename(morph.item.value).toString() , '_blank');
+                });
+            }}, 'visitWorld');
+        }
+        
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        
+        if (grouped.module && grouped.module.length) {
+            nGroups++;
+            var list = makeList();
+            setStringList(grouped.module, list);
+            container.addMorph(makeLabel("Modules and files"));
+            container.addMorph(list);
+            lively.bindings.connect(list, 'selection', {open: function(morph) {
+                lively.ide.browse(morph.item.value);
+            }}, 'open');
+        }
+        
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    
+        if (grouped.other && grouped.other.length) {
+            nGroups++;
+            var list = makeList();
+            setStringList(grouped.other, list);
+            container.addMorph(makeLabel("Other resources"));
+            container.addMorph(list);
+            lively.bindings.connect(list, 'selection', {open: function(morph) {
+                lively.ide.openFile(Global.URL.root.withFilename(morph.item.value));
+            }}, 'open');
+        }
+        
+        if (nGroups === 0) {
+            nGroups++;
+            container.addMorph(makeLabel("You have no resources yet"));
+        }
+        
+        container.setExtent(pt(630, (140+20)*nGroups));
+        container.setVisible(false);
+        container.openInWorld();
+        
+        (function() {
+            container.openInWindow({title: "Resources of " + title})
+            container.applyLayout();
+            container.setVisible(true);
+        }).delay(0);
+    
+        
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // helper
+        // -=-=-=-
+        
+        function makeContainer() {
+            var container = lively.morphic.Morph.makeRectangle(0,0, 630, 20);
+            container.setLayouter({type: "vertical"})
+            container.getLayouter().setSpacing(5)
+            container.applyStyle({fill: Global.Color.white})
+            return container;
+        }
+        
+        function makeLabel(string) {
+            var label = lively.morphic.Text.makeLabel(string);
+            label.emphasizeAll({fontWeight: 'bold'});
+            return label;
+        }
+        
+        function makeList() {
+            var list = new lively.morphic.MorphList()
+            list.setLayouter({type: 'tiling'})
+            list.getLayouter().setSpacing(10);
+            // list.openInWorldCenter()
+            list.setExtent(lively.pt(630.0,140));
+            return list
+        }
+        
+        function groupResources(resources) {
+            return resources.groupBy(function(ea) {
+                if (ea.startsWith("PartsBin/")) return "partsbin";
+                if (ea.endsWith(".html")) return "world";
+                if (ea.endsWith(".js")) return "module";
+                return "other";
+            });
+        }
+        
+        function setStringList(listItems, list) {
+            var items = listItems.map(function(path) { return {isListItem: true, value: path, string: path}; })
+            list.setList(items);
+            list.getItemMorphs().forEach(function(ea) {
+                ea.setWhiteSpaceHandling("nowrap")
+                return ea.fitThenDo(function() {})
+            });
+        }
+        
+        function createPartItemList(partResources) {
+            return partResources
+                .map(function(ea) { return ea.replace(/\.[^\.]+$/, ''); }).uniq()
+                .map(function(ea) {
+                    return {partsSpace: ea.slice(0, ea.lastIndexOf('/')),
+                            name: ea.slice(ea.lastIndexOf('/') + 1)};
+                })
+                .map(function(ea) {
+                    var item = {
+                        isListItem: true,
+                        value: lively.PartsBin.getPartItem(ea.name, ea.partsSpace).asPartsBinItem(),
+                        string: ea.name,
+                    }
+                    item.value.item = item;
+                    item.value.disableGrabbing();
+                    return item.value;
+                });
+        }
+    },
+        reset: function reset() {
+        this.get("userText").setTextString("")
+    },
+        textDoit: function textDoit(actionName, context) {
+        return {
+            doit: {
+                code: Strings.format(";(%s).call(this);", this['action' + actionName.capitalize()]),
+                context: context
+            },
+            hover: {
+                inAction: function(evt) {
+                    lively.$(evt.target).parent().find('span').removeClass("highlight-doit")
+                    lively.$(evt.target).addClass("highlight-doit")
+                }, outAction: function(evt) {
+                    lively.$(evt.target).parent().find('span').removeClass("highlight-doit")
+                }
+            }
+        }
+    },
+        uiInform: function uiInform(msg) {
+        var markup = this.get("userText").getRichTextMarkup();
+        markup.unshift([String(msg) + '\n', {italics: "italic"}])
+        // markup.unshift(['Error' + (action ? 'while trying ' + action : "") + ":", {}])
+        this.get("userText").setRichTextMarkup(markup);
+    },
+        uiShowError: function uiShowError(err, action) {
+        var markup = this.get("userText").getRichTextMarkup();
+        markup.unshift([String(err) + '\n', {color: Global.Color.red, fontWeight: 'bold'}])
+        // markup.unshift(['Error' + (action ? 'while trying ' + action : "") + ":", {}])
+        this.get("userText").setRichTextMarkup(markup);
+    },
+        update: function update() {
+        this.get("userText").setRichTextMarkup([["Loading", {fontWeight: "bold"}]]);
+        this.httpCurrentUserData(function(err, data) {
+            this.httpCurrentGroupData(function(groupErr, groups) {
+                if (err) return this.uiShowError(err);
+                if (groupErr) this.uiShowError(groupErr);
+                var context = {morph: this, user: data};
+    
+                var markup = [
+                    ["You are logged in as ", {}], [data.name, {fontWeight: "bold"}],           ["\n", {}],
+                    ["Your email is ",        {}], [data.email, {fontWeight: "bold"}],          ["\n", {}],
+                    ["switch user",           this.textDoit("switchUser", context)],    [" ", {}],
+                    ["change email",          this.textDoit("changeEmail", context)],   [" ", {}],
+                    ["logout and exit",       this.textDoit("logoutAndExit", context)], ["\n\n", {}],
+                    ["Show resources I have created or modified", this.textDoit("showMyResources", context)], ["\n", {}],
+                    ["\nYour groups:",        {}],                                              ["\n", {}]
+                ];
+    
+                markup = markup.concat.apply(markup, groups.map(function(group) {
+                    return [
+                        [group + " ", {fontWeight: "bold"}],
+                        ['show members',   this.textDoit("showGroupMembers", Object.extend({group: group}, context))], [" ", {}],
+                        ['show resources', this.textDoit("showGroupResources", Object.extend({group: group}, context))],    [" ", {}],
+                        ['leave',          this.textDoit("leaveGroup", Object.extend({group: group}, context))],    [" ", {}],
+                        ["\n", {}]]
+                }, this));
+    
+                markup.push(["Join group", this.textDoit("joinGroup", context)])
+    
+                markup.push(["\n\nRefresh",                     this.textDoit("update", context)],        [" ", {}])
+    
+                this.get("userText").setRichTextMarkup(markup);
+            })
+        });
+    },
+        validateEmail: function validateEmail(email, thenDo) {
+        var matches = Object.isString(email) && /^[^@]+@[^@]+/.test(email);
+        thenDo(matches ? null : new Error(email + " is not a valid email"), matches);
+    }
+    }],
+    titleBar: "Login info"
+});
+
 lively.BuildSpec('lively.wiki.VersionViewer', {
     _Extent: lively.pt(354.0,196.0),
     _Position: lively.pt(812.0,61.0),

@@ -106,8 +106,7 @@ Object.subclass('lively.PartsBin.PartItem',
     },
     deserializePart: function(json, optMetaInfo) {
         var part = lively.morphic.Morph.deserialize(json, {
-            metainfo: optMetaInfo,
-            serializer: this.getSerializer()
+            metainfo: optMetaInfo
         });
         var metaInfo = part.getPartsBinMetaInfo();
         metaInfo.setPartsSpace(this.getPartsSpace());
@@ -649,6 +648,19 @@ Object.extend(lively.PartsBin, {
             }
         }
         return [localURL].concat(additionalURLs);
+    },
+
+    discoverPartSpaces: function(thenDo) {
+        var pb = lively.PartsBin;
+        var webR = pb.getLocalPartsBinURL().asWebResource()
+            .beAsync()
+            .getSubElements(1).whenDone(function(result, status) {
+                (function() {
+                    webR.subCollections.invoke("getURL").map(pb.partsSpaceWithURL.bind(pb));
+                    show(webR.subCollections.invoke("getURL"));
+                    if (thenDo) thenDo(null, pb.partSpaces);
+                }).delay(0);
+            });
     }
 });
 

@@ -139,7 +139,7 @@ Object.subclass('lively.Main.Loader',
                 + "  -ms-user-select: none;\n"
                 + "  user-select: none;\n"
                 + "}\n"
-                + ".selectable *, .visibleSelection:focus {\n"
+                + ".selectable *, .visibleSelection:focus * {\n"
                 + "  -moz-user-select: element;\n"
                 + "  -webkit-user-select: auto;\n"
                 + "  -ms-user-select: auto;\n"

@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib({url: Config.codeBase + 'lib/pointerevents/pointerevents.min.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -32,8 +32,8 @@ lively.morphic.EventSimulator = {
         return simulatedEvent;
     },
     doMouseEvent: function(spec) {
-        // type one of click, mousedown, mouseup, mouseover, mousemove, mouseout.
-        if (!spec.type) spec.type = 'mousedown';
+        // type one of click, pointerdown, pointerup, pointerover, pointermove, pointerout.
+        if (!spec.type) spec.type = 'pointerdown';
         if (!spec.pos) spec.pos = pt(0,0);
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;
@@ -52,14 +52,14 @@ lively.morphic.EventSimulator = {
 
         keys = {meta: true}
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'mousedown',
+            type: 'pointerdown',
             pos: pos,
             target: btn,
             keys: keys
         });
 
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'mouseup',
+            type: 'pointerup',
             pos: pos,
             target: btn,
             keys: keys
@@ -201,13 +201,16 @@ Object.subclass('lively.morphic.EventHandler',
 
         evt.isCommandKey = function() {
             // this is LK convention, not the content of the event
+            var isCmd = false;
             if (Config.useAltAsCommand)
-                return evt.altKey;
+                isCmd = isCmd || evt.altKey;
             if (UserAgent.isWindows || UserAgent.isLinux )
-                return evt.ctrlKey;
+                isCmd = isCmd || evt.ctrlKey;
             if (UserAgent.isOpera) // Opera recognizes cmd as ctrl!!?
-                return evt.ctrlKey;
-            return evt.metaKey || evt.keyIdentifier === 'Meta';
+                isCmd = isCmd || evt.ctrlKey;
+            if (UserAgent.isMobile)
+                isCmd = isCmd || lively.morphic.World.current().isBertButtonPressed();
+            return isCmd || evt.metaKey || evt.keyIdentifier === 'Meta';
         };
 
         evt.isShiftDown = function() { return !!evt.shiftKey };
@@ -236,7 +239,7 @@ Object.subclass('lively.morphic.EventHandler',
             return Event.pressedKeyString(evt, options);
         }
 
-        evt.isMouseEvent = evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'mousemove' || evt.type === 'mouseover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
+        evt.isMouseEvent = evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'pointermove' || evt.type === 'pointerover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');
 
@@ -257,8 +260,11 @@ Object.subclass('lively.morphic.EventHandler',
 
         var world = lively.morphic.World.current();
         evt.world = world;
-        evt.hand = world ? world.hands[0] : undefined;
-
+        
+        var evtHand = world.hands.find(function(hand) { return hand.pointerId === evt.pointerId});
+        evt.hand = world ?
+                evtHand || world.hands.find(function(hand) { return !hand.pointerId }) || world.firstHand() :
+                undefined;
         evt.getPosition = function() {
             if (!evt.scaledPos) {
                 evt.scaledPos = evt.mousePoint.scaleBy(1 / evt.world.getScale());
@@ -346,7 +352,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         }
 
         // For some reason it works a bit better when we generate the events again...
-        if (evt.type === 'mousemove' || evt.type === 'mousedown' || evt.type === 'mouseup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'mouseover' || evt.type === 'mouseout' || evt.type === 'mousewheel' || evt.type === 'mouseenter' || evt.type === 'mouseleave') {
+        if (evt.type === 'pointermove' || evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'pointerout' || evt.type === 'mousewheel' || evt.type === 'pointerenter' || evt.type === 'pointerleave') {
             var e = document.createEvent("MouseEvents"),
                 be = evt,
                 et = be.type;
@@ -386,18 +392,24 @@ Object.extend(Event, {
 
     MOUSE_LEFT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 1 } :
-            function(evt) { return evt.which === 1 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 1 || evt.buttons === 1) } :
+            UserAgent.isMobile ?
+                function(evt) { return true } :
+                function(evt) { return (evt.which === 1 || evt.buttons === 1) }
     })(),
     MOUSE_MIDDLE_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 2 } :
-            function(evt) { return evt.which === 2 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 2 || evt.buttons === 4) } :
+            UserAgent.isMobile ?
+                function(evt) { return false } :
+                function(evt) { return (evt.which === 2 || evt.buttons === 4) }
     })(),
     MOUSE_RIGHT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && evt.which === 3 } :
-            function(evt) { return evt.which === 3 }
+            function(evt) { return evt.world.clickedOnMorph && (evt.which === 3 || evt.buttons === 2) } :
+            UserAgent.isMobile ?
+                function(evt) { return false } :
+                function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
 
     manualKeyIdentifierLookup: (function() {
@@ -749,10 +761,10 @@ lively.morphic.Morph.addMethods(
         this.registerForEvents();
     },
     registerForEvents: function(handleOnCapture) {
+        this.registerForPointerEvents(handleOnCapture);
         this.registerForMouseEvents(handleOnCapture);
         this.registerForKeyboardEvents(handleOnCapture);
         this.registerForOtherEvents(handleOnCapture);
-        this.registerForTouchEvents(handleOnCapture);
         this.registerForFocusAndBlurEvents();
     }
 },
@@ -763,12 +775,23 @@ lively.morphic.Morph.addMethods(
         this.registerForEvent('keypress', this, 'onKeyPress', handleOnCapture);
     },
 
+    registerForPointerEvents: function(handleOnCapture) {
+        if (this.onMouseUpEntry) {
+            this.registerForEvent('pointercancel', this, 'onPointerCancelEntry', handleOnCapture);
+            this.registerForEvent('pointerup', this, 'onMouseUpEntry', handleOnCapture);
+        }
+        if (this.onMouseDownEntry) this.registerForEvent('pointerdown', this, 'onMouseDownEntry', handleOnCapture);
+        if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
+        if (this.onMouseMoveEntry) this.registerForEvent('pointermove', this, 'onMouseMoveEntry', handleOnCapture);
+        if (this.onMouseOver) this.registerForEvent('pointerover', this, 'onMouseOver', handleOnCapture);
+        if (this.onMouseOut) this.registerForEvent('pointerout', this, 'onMouseOut', handleOnCapture);
+    },
 
     registerForMouseEvents: function(handleOnCapture) {
-        if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
-        if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
-        if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
-        if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
+        // if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
+        // if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
+        // if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
+        // if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
         if (this.onDoubleClick) this.registerForEvent('dblclick', this, 'onDoubleClick', handleOnCapture);
 
         if (this.onSelectStart) this.registerForEvent('selectstart', this, 'onSelectStart', handleOnCapture);
@@ -778,8 +801,8 @@ lively.morphic.Morph.addMethods(
 
         if (this.onMouseWheelEntry) this.registerForEvent('mousewheel', this, 'onMouseWheelEntry',
 handleOnCapture);
-        if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
-        if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
+        // if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
+        // if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
         if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
@@ -790,13 +813,13 @@ handleOnCapture);
         if (this.onChange) this.registerForEvent('change', this, 'onChange', handleOnCapture);
         if (this.onScroll) this.registerForEvent('scroll', this, 'onScroll', handleOnCapture);
     },
-    registerForTouchEvents: function(handleOnCapture) {
-        if (!UserAgent.isTouch || true) return;
-        if (this.onTouchStart)
-            this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
-        if (this.onTouchEnd)
-            this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
-    },
+    // registerForTouchEvents: function(handleOnCapture) {
+    //     if (!UserAgent.isTouch || true) return;
+    //     if (this.onTouchStart)
+    //         this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
+    //     if (this.onTouchEnd)
+    //         this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
+    // },
     registerForFocusAndBlurEvents: function() {
         this.registerForEvent('blur', this, 'onBlur', true);
         this.registerForEvent('focus', this, 'onFocus', true);
@@ -816,6 +839,7 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt, allHits) {
+        evt.hand.pointerId = evt.pointerId;
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below
             if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
@@ -852,7 +876,8 @@ handleOnCapture);
           && !this.eventsAreIgnored
           && evt.isRightMouseButtonDown()
           && evt.getTargetMorph() == this) {
-              evt.world.clickedOnMorph=this;
+              evt.hand.clickedOnMorph=this;
+              this.world().clickedOnMorph=this;
             this.world().worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
@@ -864,7 +889,7 @@ handleOnCapture);
         // This is like clickedOnMorph, but also takes into consideration
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
-        if (this.halosEnabled && (
+        if (lively.Config.get("enableHaloItems") && this.halosEnabled && (
                 (evt.isLeftMouseButtonDown() && evt.isCommandKey()) ||
                 (UserAgent.isLinux && evt.isRightMouseButtonDown()))) {
             evt.hand.haloTarget = this;
@@ -873,8 +898,10 @@ handleOnCapture);
 
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
-        evt.world.clickedOnMorph = this;
-        evt.world.clickedOnMorphTime = Date.now();
+        evt.hand.clickedOnMorph = this;
+        this.world().clickedOnMorph = this;
+        evt.hand.clickedOnMorphTime = Date.now();
+        this.world().clickedOnMorphTime = Date.now();
 
         return this.onMouseDown(evt);
 
@@ -883,6 +910,8 @@ handleOnCapture);
     onMouseUp: function(evt) { return false; },
 
     onMouseUpEntry: function(evt, allHits) {
+        evt.hand.move(evt);
+        evt.hand.pointerId = undefined;
         if (!this.shape.reallyContainsPoint(this.localize(evt.getPosition()))) {
             // Click point was not really on this morph;  try next thing below
             if (!allHits) allHits = this.world().morphsContainingPoint(evt.getPosition());
@@ -906,8 +935,11 @@ handleOnCapture);
         // delayed so that the event onMouseUp event handlers that
         // are invoked after this point still have access
         (function removeClickedOnMorph() {
-            world.clickedOnMorph = null;
-            evt.world.eventStartPos = null;
+            if (evt.world.clickedOnMoprh == evt.hand.clickedOnMorph) {
+                evt.world.clickedOnMoprh = null
+            }
+            evt.hand.clickedOnMorph = null;
+            evt.hand.eventStartPos = null;
         }).delay(0);
 
         if (invokeHalos) {
@@ -975,6 +1007,13 @@ handleOnCapture);
         if (!nativeMenu) evt.stop();
         return nativeMenu;
     },
+
+    onPointerCancelEntry: function(evt) {
+        var dirtyHand = $world.hands.find(function (hand) { return hand.pointerId === evt.pointerId; });
+        if (dirtyHand) {
+            delete dirtyHand.pointerId;
+        }
+    }
 
 },
 'keyboard events', {
@@ -1502,7 +1541,7 @@ lively.morphic.World.addMethods(
 },
 'mouse event handling', {
     onMouseDown: function($super, evt) {
-        this.eventStartPos = evt.getPosition();
+        evt.hand.eventStartPos = evt.getPosition();
         // remove the selection when clicking into the world...
          if (this.selectionMorph
           && this.selectionMorph.owner
@@ -1513,7 +1552,7 @@ lively.morphic.World.addMethods(
         var evtTarget = evt.getTargetMorph();
         while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
 
-        if (evt.isAltDown() && this.clickedOnMorph && !this.draggedMorph) {
+        if (evt.isAltDown() && evt.hand.clickedOnMorph && !evt.hand.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world
@@ -1540,17 +1579,24 @@ lively.morphic.World.addMethods(
         if (activeWindow && (!evtTarget || evtTarget.getWindow() !== activeWindow)) {
             activeWindow.highlight(false); };
 
-        // FIXME should be hand.draggedMorph!
-        var draggedMorph = this.draggedMorph;
+        var draggedMorph = evt.hand.draggedMorph;
         if (draggedMorph) {
-            this.clickedOnMorph = null
-            this.draggedMorph = null;
+            // DEPRECATED: world.draggedMorph is just kept for compatibility reasons.
+            // It is now handeled by hands.
+            if (evt.hand.draggedMorph === evt.world.draggedMorph) {
+                delete evt.world.draggedMorph;
+            }
+            if (evt.world.clickedOnMorph === evt.hand.clickedOnMorph) {
+                evt.world.clickedOnMorph = null;
+            }
+            evt.hand.clickedOnMorph = null
+            evt.hand.draggedMorph = null;
             draggedMorph.onDragEnd(evt);
         }
 
         if (this.dispatchDrop(evt)) {
-            this.clickedOnMorph = null
-            this.draggedMorph = null;
+            evt.hand.clickedOnMorph = null
+            evt.hand.draggedMorph = null;
             return true;
         }
 
@@ -1563,24 +1609,25 @@ lively.morphic.World.addMethods(
         // more than that distance and still is down (move started in the morph) than
         // morph.onDragStart is called. moving further triggers morph.onDrag. Releasing
         // mouse button triggers morph.onDragEnd.
-
+        
         evt.hand.move(evt);
 
         var focused = this.focusedMorph();
         if (!focused || focused === this) evt.stop();
 
         // dargging was initiated before, just call onDrag
-        if (this.draggedMorph) {
-            this.draggedMorph.onDrag && this.draggedMorph.onDrag(evt);
+        if (evt.hand.draggedMorph) {
+            evt.hand.draggedMorph.onDrag && evt.hand.draggedMorph.onDrag(evt);
             return false;
         }
 
         // try to initiate dragging and call onDragStart
-        var targetMorph = this.clickedOnMorph;
+        var targetMorph = evt.hand.clickedOnMorph;
         if (!targetMorph) return false;
-        var minDragDistReached = this.eventStartPos &&
-            (this.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
+        var minDragDistReached = evt.hand.eventStartPos &&
+            (evt.hand.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
         if (!minDragDistReached) return false;
+        
         if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return false;
             if (!targetMorph.isGrabbable(evt)) return false;  // Don't drag world, etc
@@ -1614,13 +1661,14 @@ lively.morphic.World.addMethods(
                 var lockOwner = targetMorph.lockOwner(),
                     grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
                 if (grabTarget.correctForDragOffset()) {
-                    grabTarget.moveBy(evt.getPosition().subPt(this.eventStartPos));
+                    grabTarget.moveBy(evt.getPosition().subPt(evt.hand.eventStartPos));
                 }
             }
-            this.draggedMorph = targetMorph;
-            this.draggedMorph.onDragStart && this.draggedMorph.onDragStart(evt);
+            evt.hand.draggedMorph = targetMorph;
+            this.draggedMorph = targetMorph; // DEPRECATED! Use the array returned by $world.draggedMorphs()
+            evt.hand.draggedMorph.onDragStart && evt.hand.draggedMorph.onDragStart(evt);
         } else if (targetMorph === this) { // world handles selections
-            this.draggedMorph = this;
+            evt.hand.draggedMorph = this;
             this.onDragStart(evt);
         }
         return false;
@@ -1740,6 +1788,14 @@ lively.morphic.World.addMethods(
         this.cachedWindowBounds = null;
     },
 
+    isBertButtonPressed: function() {
+        return this.bertButtonPressed;
+    },
+    
+    setIsBertButtonPressed: function(bool) {
+        this.bertButtonPressed = bool !== false;
+    },
+
     onScroll: function(evt) {
         // This is a fix for the annoying bug that cost us a keynote...
         var ctx = this.renderContext();
@@ -1819,7 +1875,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'testing', {
     isPressed: function() {
         // FIXME, this depends on world behavior!!!
-        return !!this.world().clickedOnMorph;
+        return !!this.clickedOnMorph;
     }
 },
 'event handling', {
@@ -1909,6 +1965,145 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         }
     }
 });
+
+lively.morphic.Morph.subclass('lively.morphic.BertButton', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart', 'onDragEnd']}),
+    'settings', {
+        isEpiMorph: true,
+        style: {
+            enableGrabbing: false,
+            enableDragging: true,
+            enableHalos: false,
+            clipMode: 'hidden'
+        },
+        isBertButton: true,
+        radius: 90,
+        activeFill: Color.orange.withA(.7),
+        inactiveFill: Color.gray.darker().withA(.3)
+    },
+    'initializing', {
+        initialize: function($super) {
+            $super();
+            this.setShape(new lively.morphic.Shapes.Ellipse(pt(0,0).extent(pt(this.radius, this.radius))));
+            this.setOrigin(pt(this.radius/2, this.radius/2));
+            this.setFill(this.inactiveFill);
+            this.initializeLogo();
+            connect(this, 'onDragStart', this, 'pressStart');
+            connect(this, 'onDragEnd', this, 'pressEnd');
+            connect(this, 'onDrag', this, 'stayInWorld');
+        },
+        open: function(world) {
+            if (world.isRendered()) {
+                this.addToWorld(world);
+            } else {
+                this.loadConnection = connect(world, 'onRenderFinished', this, 'addToWorld', {converter: function() { return this.sourceObj }});
+            }
+        },
+    initializeLogo: function() {
+        var l = new lively.morphic.Image(
+            pt(0,0).extent(pt(200,200)),
+            Config.codeBase + 'media/front2.svg',
+            false);
+        l.setScale(0.7);
+        l.setPosition(lively.pt(-60,-54));
+        l.disableEvents();
+        l.disableDropping();
+        this.logo = this.addMorph(l);
+    },
+        getGrabShadow: function() {
+            return false
+        },
+
+        addToWorld: function(world) {
+            if (this.loadConnection) {
+                this.loadConnection.disconnect();
+                delete this.loadConnection;
+            }
+            world.addMorph(this);
+            world.setIsBertButtonPressed(false);
+            this.align(this.bounds().bottomLeft(), world.visibleBounds().bottomLeft());
+            this.setFixed(true);
+            return this;
+        }
+    },
+    'interaction', {
+        wantsToBeDroppedInto: function(dropTarget) {
+            return dropTarget.isWorld;
+        },
+    tellWorld: function(bool) {
+        lively.morphic.World.current().setIsBertButtonPressed(bool);
+        this.setFill(bool === false ? this.inactiveFill : this.activeFill);
+    },
+    onMouseUp: function() {
+        this.tellWorld(false)
+    },
+
+
+    onMouseDown: function() {
+        this.tellWorld(true);
+    },
+        pressStart: function() {
+            var world = lively.morphic.World.current();
+            this.setFixed(false);
+            this.setPosition(this.getPosition().addPt(world.visibleBounds().topLeft()))
+        },
+
+
+        pressEnd: function() {
+            var world = lively.morphic.World.current();
+            world.addMorph(this);
+            this.positionOnBorder();
+            this.moveBy(pt(0,0).subPt(world.visibleBounds().topLeft()))
+            this.setFixed(true);
+            this.tellWorld(false);
+        },
+    scrollWorld: function() {
+        var world = lively.morphic.World.current(),
+            wb = world.visibleBounds(),
+            mb = this.bounds();
+        if (wb.containsRect(this.bounds())) { return }
+        else {
+            // Shamelessly copied and adapted from lively.morphic.Morph.scrollRectIntoView
+            // which cannot handle usual world scroll;
+            var scrollDeltaX = 0, scrollDeltaY = 0;
+            if (mb.left() < wb.left())
+                scrollDeltaX = mb.left() - wb.left();
+            else if (mb.right() > wb.right())
+                scrollDeltaX = mb.right() - wb.right();
+            if (mb.top() < wb.top())
+                scrollDeltaY = mb.top() - wb.top();
+            else if (mb.bottom() > wb.bottom())
+                scrollDeltaY = mb.bottom() - wb.bottom();
+            var scroll = world.getScroll();
+            world.setScroll(scroll[0] + scrollDeltaX, scroll[1] + scrollDeltaY);
+        }
+    },
+    stayInWorld: function() {
+        this.scrollWorld();
+        var vp = lively.morphic.World.current().visibleBounds().copy(),
+            b = this.bounds();
+        this.moveBy(pt(Math.max(0, vp.left() - b.left()),0));
+        this.moveBy(pt(Math.min(0, vp.right() - b.right()),0));
+        this.moveBy(pt(0, Math.max(0, vp.top() - b.top())));
+        this.moveBy(pt(0, Math.min(0, vp.bottom() - b.bottom())));
+    },
+
+    positionOnBorder: function() {
+        var vp = lively.morphic.World.current().visibleBounds(),
+            b = this.globalBounds();
+        var absMin = function(x, y) { return Math.abs(x) < Math.abs(y) ? x : y };
+        var dx = absMin(vp.x - b.topLeft().x, vp.x + vp.width - b.bottomRight().x),
+            dy = absMin(vp.y - b.topLeft().y, vp.y + vp.height - b.bottomRight().y);
+        this.moveBy(Math.abs(dx) < Math.abs(dy) ? pt(dx, 0) : pt(0, dy));
+    },
+
+
+    
+
+        
+
+
+    }
+)
 
 Object.extend(lively.morphic.Events, {
 

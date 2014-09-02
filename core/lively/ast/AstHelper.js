@@ -1224,7 +1224,8 @@ Object.extend(lively.ast.query, {
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function declaredVarNames(scope) {
-            return scope.funcDecls.pluck('id').pluck('name').compact()
+            return [scope.node.id && scope.node.id.name]
+                .concat(scope.funcDecls.pluck('id').pluck('name')).compact()
                 .concat(scope.params.pluck('name'))
                 .concat(scope.varDecls.pluck('declarations').flatten()
                     .pluck('id').pluck('name'))

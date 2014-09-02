@@ -811,6 +811,28 @@ Object.extend(lively.ide.commands.byName, {
             });
         }
     },
+
+    'lively.ide.CommandLineInterface.printDirectory': {
+        description: 'Print directory hierarchy',
+        exec: function() {
+            function printIt(dir) {
+                lively.shell.run("find " + dir.path + "", {}, function(cmd) {
+                    lively.require('lively.data.DirectoryUpload').toRun(function() {
+                        var files = cmd.getStdout().split('\n')
+                        new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
+                    });
+                    
+                })
+            }
+            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                'choose directory: ',
+                lively.ide.CommandLineInterface.cwd(),
+                function(files) { return files.filterByKey('isDirectory'); },
+                "lively.ide.browseFiles.baseDir.NarrowingList",
+                [printIt]);
+        }
+    },
+
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
@@ -990,7 +1012,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
     'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function(path) { lively.ide.openFile(path || URL.source.toString()); return true; }},
     'lively.ide.openSystemConsole': {
-        description: 'open SystemConsole',
+        description: 'open SystemConsole (to see console logging)',
         exec: function() {
             lively.require("lively.ide.tools.SystemConsole").toRun(function() {
                 lively.ide.tools.SystemConsole.open();
@@ -998,6 +1020,17 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.ide.openServerProcessViewer': {
+        description: 'open server process viewer',
+        exec: function() {
+            lively.require("lively.ide.tools.ServerProcessViewer").toRun(function() {
+                lively.ide.tools.ServerProcessViewer.open();
+            });
+            return true;
+        }
+    },
+
     'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
     'lively.ide.openSubserverViewer': {
         description: 'open SubserverViewer',
@@ -1048,13 +1081,6 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
-    'lively.ide.openLog': {
-        description: 'open log console',
-        exec: function() {
-            $world.openPartItem("SystemConsole", "PartsBin/Tools/");
-            return true;
-        }
-    },
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 
@@ -1418,6 +1444,15 @@ Object.extend(lively.ide.commands.byName, {
                 }
             });
             return true;
+        }
+    },
+
+    "lively.net.wiki.tools.showLoginInfo": {
+        description: "show login info",
+        exec: function(withInfoMorphDo) {
+            lively.require("lively.net.Wiki").toRun(function() {
+                lively.net.Wiki.showLoginInfo(withInfoMorphDo);
+            });
         }
     },
 

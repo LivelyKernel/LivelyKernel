@@ -37,21 +37,53 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
         });
     },
 
-    startReading: function() {
-        readEntry(this.asWebKitEntry(this.file, this.evt), function(err, entryTree) {
-            this.openPrinted(entryTree);
-        }.bind(this));
+    printFileNameListAsTree: function(files, title) {
+        var fileSplitter = "/";
+        var fileMap = files
+            .map(function(ea) { return ea.startsWith(fileSplitter) ? ea.slice(1) : ea; })
+            .reduce(function(fileMap, file) {
+                lively.PropertyPath(file, fileSplitter).set(fileMap, file, true);
+                return fileMap;
+            }, {})
 
-        function readEntry(entry, thenDo) {
-            var reader = entry.createReader();
-            reader.readEntries(function(entries) {
-                entry.children = [];
-                entries.doAndContinue(function(next, subentry) {
-                    entry.children.push(subentry);
-                    if (subentry.isDirectory) readEntry(subentry, next);
-                    else next();
-                }, function() { thenDo(null, entry); });
-            })
+        var hier = createHierarchy(fileMap, ".");
+        if (hier.children.length === 1) hier = hier.children[0];
+        var printed = Strings.printTree(hier, function(ea) { return ea.name.split(fileSplitter).last(); }, function(ea) { return ea.children; })
+        $world.addCodeEditor({
+            title: (title || "file listing"),
+            content: printed,
+            textMode: 'text'
+        });
+
+        function createHierarchy(fileMap, currentPath) {
+            if (Object.isString(fileMap)) return {name: currentPath};
+            return {
+                name: currentPath,
+                children: Object
+                    .keys(fileMap)
+                    .map(function(key) { return createHierarchy(fileMap[key], currentPath + fileSplitter + key); })
+            }
+        }
+    },
+
+    startReading: function() {
+        var self = this;
+        readEntry(this.asWebKitEntry(this.file, this.evt), [],
+            function(err, entries) {
+                self.printFileNameListAsTree(entries.pluck('fullPath'),
+                    entries[0] && 'Directory contents of ' + entries[0].fullPath);
+            });
+
+        function readEntry(entry, entryList, thenDo) {
+            entryList.push(entry);
+            if (entry.isDirectory) {
+                entry.createReader().readEntries(function(entries) {
+                    entries.doAndContinue(function(next, subentry) {
+                        readEntry(subentry, entryList, next);
+                    }, function() { thenDo(null, entryList); });
+                });
+            } else thenDo(null, entryList);
+
         }
 
     }

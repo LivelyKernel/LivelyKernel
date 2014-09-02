@@ -420,6 +420,13 @@ TestCase.subclass('lively.ast.tests.Querying',
                         {start:189,end:192, name:"foo", type:"Identifier"}];
 
         this.assertEqualState(expected, result);
+    },
+
+    testRecognizeFunctionDeclaration: function() {
+        var code = "this.addScript(function run(n) { if (n > 0) run(n-1); show('done'); });",
+            result = lively.ast.query.topLevelDeclsAndRefs(code),
+            expected = ["show"];
+        this.assertEqualState(expected, result.undeclaredNames);
     }
 
 });

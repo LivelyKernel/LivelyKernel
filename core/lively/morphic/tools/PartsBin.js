@@ -553,7 +553,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         partsSpace.load(true);
     },
         commitLogString: function commitLogString(metaInfo) {
-        if (!metaInfo.changes) return "";
+        if (!metaInfo || !metaInfo.changes) return "";
         return metaInfo.changes
             .reverse()
             .collect(function(ea) {

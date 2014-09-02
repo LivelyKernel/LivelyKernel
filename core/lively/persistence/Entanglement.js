@@ -505,10 +505,8 @@ Object.subclass("lively.persistence.Entanglement.Morph",
             modifiers: modifiers, propertyName: propertyName}).asFunction();
     },
     propagateArrayChange: function(mode, element, modifiers) {
-        debugger;
         var affectedMorphs = this.entangledMorphs.without(this.updatingMorph);
         if(mode === 'add') {
-            // if the element is a primitive, we just copy it across the different entangled objects
             if(typeof element != 'object') {
                 // element is a primitive
                 affectedMorphs.forEach(function(morph) {

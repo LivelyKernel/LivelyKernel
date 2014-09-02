@@ -451,6 +451,32 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
         this.assertEquals(expected2, cssClasses2, 'cssClasses 2');
 
         this.done();
+    },
+
+    testKeepSelectionWhenListChanges: function() {
+        var list = new lively.morphic.List(lively.rect(0, 0, 100, 100), [1,2,3,4]);
+        list.saveSelectAt(1);
+        this.assertEquals([2], list.getSelections(), 1);
+        list.setList([1,2,3,4]);
+        this.assertEquals([2], list.getSelections(), 2);
+        list.saveSelectAt(3);
+        list.setList([1,2,3]);
+        this.assertEquals([], list.getSelections(), 3 + Objects.inspect(list.getSelections()));
+        this.done();
+    },
+
+    testKeepSelectionWhenListChangesInMultiSelectionList: function() {
+        var list = new lively.morphic.List(lively.rect(0, 0, 100, 100), [1,2,3,4]);
+        list.enableMultipleSelections();
+        list.selectAll();
+        list.setList([1,2,3]);
+        this.assertEquals([1,2,3], list.getSelections(), 1);
+        
+        list.deselectAll();
+        list.saveSelectAt(2);
+        list.setList([3,4,5]);
+        this.assertEquals([3], list.getSelections(), 2);
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

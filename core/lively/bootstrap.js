@@ -125,6 +125,10 @@
             return (typeof process !== 'undefined') && !!process.versions.node;
         };
 
+	that.isIE = function() {
+            return navigator.userAgent.match(/(MSIE|Trident)/);
+        };
+
         that.isSpecSatisfied = function() {
             var matchingSpec = this.browserSpec(),
                 specVersion,
@@ -1034,7 +1038,7 @@
                 urlOption = Global.JSLoader.getOption('quickLoad'),
                 useRewritten = !!JSLoader.getOption('loadRewrittenCode'),
                 runCodeOption = Global.JSLoader.getOption('runCode'),
-                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive && !useRewritten,
+                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive && !useRewritten && !browserDetector.isIE(),
                 combinedModulesHash;
 
             if (runCodeOption) {

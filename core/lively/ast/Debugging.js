@@ -41,7 +41,7 @@ Object.extend(lively.ast, {
             submorphs: [{
                 _Align: "center",
                 _ClipMode: "hidden",
-                _Extent: lively.pt(87.0,20.0),
+                _Extent: lively.pt(103.0,20.0),
                 _FontFamily: "Helvetica",
                 _HandStyle: "pointer",
                 _InputAllowed: false,
@@ -66,10 +66,10 @@ Object.extend(lively.ast, {
         alignSubmorphs: function alignSubmorphs() {
             this.statusText.align(this.statusText.bounds().center(), this.innerBounds().bottomCenter().addXY(0,-8));
             if (lively.Config.get('loadRewrittenCode')) {
-                this.statusText.textString = 'Debugging: on';
+                this.statusText.textString = 'In Debug Session';
                 this.statusText.applyStyle({textColor: Color.green.lighter()});
             } else {
-                this.statusText.textString = 'Debugging: off';
+                this.statusText.textString = 'Not Debugging';
                 this.statusText.applyStyle({textColor: Color.red});
             }
             this.menu && this.menu.align(
@@ -77,7 +77,6 @@ Object.extend(lively.ast, {
                 this.innerBounds().bottomCenter().addXY(2, -8-20));
         },
             collapse: function collapse() {
-            // this.collapse()
             this.withCSSTransitionForAllSubmorphsDo(function() {
                 this.setExtent(lively.pt(130.0,30.0));
                 this.alignSubmorphs();
@@ -92,7 +91,7 @@ Object.extend(lively.ast, {
             var self = this,
                 dbgStmt = !!lively.Config.get('enableDebuggerStatements'),
                 items = [
-                ['[' + (dbgStmt ? ' ' : 'x') + '] ignore debugger', function() {
+                ['[' + (dbgStmt ? 'x' : ' ') + '] break on debugger', function() {
                     lively.Config.set('enableDebuggerStatements', !dbgStmt);
                     self.collapse();
                 }]
@@ -125,22 +124,6 @@ Object.extend(lively.ast, {
         },
             onWorldResize: function onWorldResize() {
             this.alignInWorld();
-        },
-            reset: function reset() {
-            this.setExtent(lively.pt(100.0,30.0));
-            this.statusText = lively.morphic.Text.makeLabel('Debugging off', {align: 'center', textColor: Color.red, fill: null});
-            this.addMorph(this.statusText);
-            this.statusText.name = 'statusText'
-            this.setFixed(true);
-            this.isEpiMorph = true;
-            this.setHandStyle('pointer');
-            this.statusText.setHandStyle('pointer');
-            this.startStepping(5*1000, 'update');
-            this.grabbingEnabled = false;
-            this.lock();
-            this.doNotSerialize = ['currentMenu']
-            this.currentMenu = null;
-            this.buildSpec();
         }
         });
 

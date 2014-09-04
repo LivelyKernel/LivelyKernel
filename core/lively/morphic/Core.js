@@ -879,6 +879,14 @@ Object.subclass('lively.morphic.Script',
         try {
             this.execute()
         } catch(e) {
+            // mr 2014-05-11: e.unwindException has to be used because e is unwrapped when rewritten
+            if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
+                require('lively.ast.StackReification', 'lively.ast.Debugging').toRun(function() {
+                    var cont = lively.ast.Continuation.fromUnwindException(e.unwindException);
+                    lively.ast.openDebugger(cont.currentFrame, e.toString());
+                });
+            }
+
             alert('Error executing script ' + this + ': ' + e + '\n' + e.stack);
             return;
         }

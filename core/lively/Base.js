@@ -29,6 +29,18 @@
 /**
   * LK class system.
   */
+
+if (!Function.prototype.name) {
+    Function.prototype.__defineGetter__("name", function () {
+	var md = (this + "").match(/function\s+(.*)\s*\(\s*/);
+	if (md) {
+	    return md[1];
+	} else {
+	    return "Empty";
+	}
+    });
+}
+
 Object.extend(Function.prototype, {
 
     defaultCategoryName: 'default category',

@@ -176,7 +176,8 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             return;
         }
         var s = this.getSession();
-        s.sendTo(s.trackerId, selector, msg, function(answer) { thenDo(null, answer); });
+        var serverId = this._options.serverSession ? this._options.serverSession.id : s.trackerId;
+        s.sendTo(serverId, selector, msg, function(answer) { thenDo(null, answer); });
     }
 
 },
@@ -189,6 +190,12 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             stdin: this._options.stdin,
             isExec: false
         }, self = this;
+
+        if (this._options.server && !this._options.serverSession) {
+            this.startServerIDLookup();
+            return;
+        }
+
         this.send('runShellCommand', cmdInstructions, function(err, answer) {
             if (!answer) return;
             if (!answer.expectMoreResponses) { self.onEnd(answer.data); return; }
@@ -268,6 +275,47 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 'internal', {
     getCommand: function() {
         return ["/usr/bin/env", "bash", "-c", this._commandString];
+    },
+
+    startServerIDLookup: function() {
+        var cmd = this;
+        var url = this._options.server;
+        var sess = this.getSession();
+
+        Functions.composeAsync(
+            getIpAddress,
+            getLively2LivelyId,
+            filterTrackerSessions
+        )(function(err, sess) {
+            if (err || !sess) {
+                cmd._stderr = String(err);
+                show("server find session error: %s", err);
+                cmd.onEnd(404);
+            } else {
+                cmd._options.serverSession = sess;
+                cmd.start();
+            }
+        })
+        
+        function getIpAddress(next) {
+            lively.shell.run("nslookup " + url, {}, function(cmd) {
+                var nsLookupString = cmd.resultString(true);
+                var answer = Strings.tableize(nsLookupString).filter(function(entry) { return entry[0] === "Address:" ? entry[1] : null }).last();
+                var ip = answer ? answer.last() : null;
+                next(ip ? null : new Error("nslookup failed"), ip);
+            });
+        }
+        
+        function getLively2LivelyId(ip, next) {
+            lively.net.tools.Functions.withTrackerSessionsDo(sess,
+            function(err, trackers) { next(err, ip, trackers); });
+        }
+        
+        function filterTrackerSessions(ip, trackers, next) {
+            var sess = trackers.detect(function(sess) { return sess.remoteAddress === ip; });
+            next(sess ? null : new Error("Could not find tracker session to run remote shell"), sess);
+        }
+
     }
 },
 'compatibility', {

@@ -216,7 +216,6 @@ Object.extend(lively.net.tools.Functions, {
         }
 
         localSession.getSessions(function(remotes) {
-
             var sessions = Object.keys(remotes).map(function(trackerId) {
                 return Object.keys(remotes[trackerId]).map(function(sessionId) {
                     return remotes[trackerId][sessionId];
@@ -232,6 +231,14 @@ Object.extend(lively.net.tools.Functions, {
 
             thenDo(null, sorted);
         }, localSession);
+    },
+
+    withTrackerSessionsDo: function(localSession, thenDo, forceRefresh) {
+        URL.nodejsBase.withFilename("SessionTracker/sessions/default-flattened")
+            .asWebResource().beAsync().get().withJSONWhenDone(function(sessions, status) {
+                var trackers = sessions.filter(function(sess) { return sess.type === 'tracker'; });
+                thenDo(null, trackers);
+            });
     },
 
     visitWorldOfSession: function(session) {

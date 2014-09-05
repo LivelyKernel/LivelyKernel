@@ -465,4 +465,85 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',
     }
 });
 
+AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute',
+'running', {
+    setUp: function($super) {
+        $super();
+
+        // 1. Prepare fake nslookup
+        var nslookupTable = this.nslookupTable = {};
+        var shellRun = this.origShellRun = lively.shell.run;
+        lively.shell.run = function(cmd, options, callback) {
+            if (cmd.startsWith("nslookup")) {
+                var addr = cmd.match(/nslookup\s+(.*)$/)[1];
+                var c = new lively.ide.CommandLineInterface.PersistentCommand(cmd, options);
+                Object.extend(c, {_code: 0,_done: true, _stdout: nslookupTable[addr], _stderr: ""});
+                callback(c);
+            } else return shellRun.call(lively.shell, cmd, options, callback);
+        };
+
+        // 2. Prepare fake l2l runShellCommand
+        var sess = lively.net.SessionTracker.getSession();
+        var sendTo = this.origSendTo = sess.sendTo;
+        var l2lReceiver = this.l2lReceiver = {};
+        sess.sendTo = function(id, action, data, callback) {
+            if (l2lReceiver[id]) l2lReceiver[id].call(sess, id, action, data, callback);
+            else sendTo.call(sess, id, action, data, callback);
+        };
+
+        // 3. Prepare fake getSession results
+        var fakeTrackers = this.fakeTrackers = [];
+        var withTrackerSessionsDo = this.origWithTrackerSessionsDo = lively.net.tools.Functions.withTrackerSessionsDo;
+        lively.net.tools.Functions.withTrackerSessionsDo = function(localSess, callback) {
+            withTrackerSessionsDo.call(lively.net.tools.Functions, localSess, function(err, trackers) {
+                callback(err, trackers ? trackers.concat(fakeTrackers) : trackers); });
+        };
+    },
+
+    tearDown: function($super) {
+        $super();
+        lively.shell.run = this.origShellRun;
+        var sess = lively.net.SessionTracker.getSession();
+        sess.sendTo = sess.constructor.prototype.sendTo;
+        lively.net.tools.Functions.withTrackerSessionsDo = this.origWithTrackerSessionsDo;
+    }
+
+},
+'testing', {
+
+    testExecuteRemoteShellCommand: function() {
+        this.setMaxWaitDelay(2000);
+        var test = this;
+
+        // 1. fake domain - ip mapping
+        this.nslookupTable['foo.bar.com'] = "Server:		74.207.241.5\n"
+                                           + "Address:	74.207.241.5#53\n"
+                                           + "\n"
+                                           + "Non-authoritative answer:\n"
+                                           + "Name:	foo.bar.com\n"
+                                           + "Address: 123.456.0.789\n";
+
+        // 2. fake get session result (get a "tracker" session for the fake ip)
+        this.fakeTrackers.push({
+          id: "tracker-A111111-000-000-000-123456789012",
+          location: {}, remoteAddress: "123.456.0.789", type: "tracker"});
+
+        // 3. l2lReceiver
+        this.l2lReceiver["tracker-A111111-000-000-000-123456789012"] = function(id, action, data, callback) {
+            callback({expectMoreResponses: true, data: {pid: 321}})
+            callback({expectMoreResponses: true, data: {stdout: "foo"}})
+            callback({expectMoreResponses: true, data: {stdout: "bar"}})
+            callback({expectMoreResponses: false, data: 1})
+        };
+
+        // Now run the actual test
+        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(cmd) {
+            test.assertEquals(1, cmd.getCode());
+            test.assertEquals("foobar", cmd.getStdout());
+            test.done();
+        });
+    }
+
+});
+
 }) // end of module

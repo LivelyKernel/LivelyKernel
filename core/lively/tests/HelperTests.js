@@ -1,15 +1,22 @@
 module('lively.tests.HelperTests').requires('lively.TestFramework', 'lively.Helper').toRun(function() {
 
-TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
+TestCase.subclass('lively.tests.HelperTests.XMLConverterTest',
+'helper', {
 
 	toXML: function(string) {
 		return new DOMParser().parseFromString(string, "text/xml").documentElement;
-	},
+	}
+
+},
+'running', {
 
 	setUp: function($super) {
 		$super();
 		this.sut = new lively.Helper.XMLConverter();
-	},
+	}
+
+},
+'testing', {
 
 	test01XMLNodeToJSON: function() {
 		var xml = this.toXML('<test/>');
@@ -72,17 +79,22 @@ TestCase.subclass('lively.tests.HelperTests.XMLConverterTest', {
 		this.assertEquals(result.childNodes[0].childNodes.length, 2);
 		this.assertEquals(result.childNodes[0].textContent, 'Hello World');
 	}
+
 });
 
-TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
+TestCase.subclass('lively.tests.HelperTests.LocalStorageTests',
+'running', {
 
-    setup: function() {
+    setUp: function() {
         this['__test__'] = lively.LocalStorage.get('__test__');
     },
 
     tearDown: function() {
         lively.LocalStorage.set('__test__', this['__test__']);
-    },
+    }
+
+},
+'testing', {
 
     test01LocalStorageAvailability: function() {
         try {
@@ -121,5 +133,173 @@ TestCase.subclass('lively.tests.HelperTests.LocalStorageTests', {
 
 });
 
+AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
+'running', {
+
+    testKey: 'test_9U3bQPVMb8hOVZgevYqTVZUu7CdlKZ7AAbnpbAHU',
+    altStore: 'test_123_store',
+
+    setUp: function() {
+        this.openedDB = lively.IndexedDB.currentDB;
+        lively.IndexedDB.currentDB = null;
+    },
+
+    tearDown: function() {
+        lively.IndexedDB.currentDB = this.openedDB;
+    }
+
+},
+'testing', {
+
+    test01IndexedDBAvailability: function() {
+        this.assertEquals(window.indexedDB != undefined, lively.IndexedDB.isAvailable());
+        this.done();
+    },
+
+    test02OpenDatabase: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        this.assert(lively.IndexedDB.currentDB == null);
+        lively.IndexedDB.ensureDatabase(null, null, function(err) {
+            this.assert(err == undefined);
+            this.assert(lively.IndexedDB.currentDB != null);
+            this.done();
+        }.bind(this));
+    },
+
+    test03StoreValue: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            lively.IndexedDB.get(key, function(err, value) {
+                this.assert(err == undefined);
+                this.assert(value == testValue);
+                lively.IndexedDB.remove(this.testKey, function(err) {
+                    this.assert(err == undefined);
+                    this.done();
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
+    },
+
+    test04ReplaceValue: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            testValue = 'new TEST(value)';
+            lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+                this.assert(err == undefined);
+                this.assert(key == this.testKey);
+                lively.IndexedDB.get(key, function(err, value) {
+                    this.assert(err == undefined);
+                    this.assert(value == testValue);
+                    lively.IndexedDB.remove(this.testKey, function(err) {
+                        this.assert(err == undefined);
+                        this.done();
+                    }.bind(this));
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
+    },
+
+    test05CheckForKey: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            lively.IndexedDB.has(key, function(err, exists) {
+                this.assert(err == undefined);
+                this.assert(exists);
+                lively.IndexedDB.remove(this.testKey, function(err) {
+                    this.assert(err == undefined);
+                    lively.IndexedDB.has(this.testKey, function(err, exists) {
+                        this.assert(err == undefined);
+                        this.assert(!exists);
+                        this.done();
+                    }.bind(this));
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
+    },
+
+    test06OpenAltStore: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        lively.IndexedDB.ensureDatabase(null, null, function(err) {
+            this.assert(err == undefined);
+            this.assert(lively.IndexedDB.currentDB != null);
+            lively.IndexedDB.ensureObjectStore(this.altStore, null, function(err) {
+                this.assert(err == undefined);
+                var stores = Array.from(lively.IndexedDB.currentDB.objectStoreNames);
+                this.assert(stores.include(this.altStore));
+                this.done();
+            }.bind(this), this.altStore);
+        }.bind(this));
+    },
+
+    test07StoreValueInAltStore: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            lively.IndexedDB.has(key, function(err, exists) {
+                this.assert(err == undefined);
+                this.assert(!exists);
+                lively.IndexedDB.get(key, function(err, value) {
+                    this.assert(err == undefined);
+                    this.assert(value == testValue);
+                    lively.IndexedDB.remove(this.testKey, function(err) {
+                        this.assert(err == undefined);
+                        this.done();
+                    }.bind(this), this.altStore);
+                }.bind(this), this.altStore);
+            }.bind(this));
+        }.bind(this), this.altStore);
+    },
+
+    test08CheckForKeyInAltStore: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            lively.IndexedDB.has(key, function(err, exists) {
+                this.assert(err == undefined);
+                this.assert(!exists);
+                lively.IndexedDB.has(key, function(err, exists) {
+                    this.assert(err == undefined);
+                    this.assert(exists);
+                    lively.IndexedDB.remove(this.testKey, function(err) {
+                        this.assert(err == undefined);
+                        lively.IndexedDB.has(this.testKey, function(err, exists) {
+                            this.assert(err == undefined);
+                            this.assert(!exists);
+                            this.done();
+                        }.bind(this), this.altStore);
+                    }.bind(this), this.altStore);
+                }.bind(this), this.altStore);
+            }.bind(this));
+        }.bind(this), this.altStore);
+    }
+
+});
 
 }); // end of module

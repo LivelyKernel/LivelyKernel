@@ -564,22 +564,20 @@ Object.extend(lively.net.SessionTracker, {
 
     setupSessionTrackerConnection: function(thenDo) {
         if (UserAgent.isNodejs || UserAgent.isWorker) return;
-        lively.whenLoaded(function(world) {
-            if (!lively.Config.get('lively2livelyAutoStart')) return;
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // 1) connect to tracker
-            console.log('setupSessionTrackerConnection');
-            lively.net.SessionTracker.resetSession();
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // start UI
-            if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
-                lively.require('lively.net.tools.Lively2Lively').toRun(function() {
-                    if (world.get('Lively2LivelyStatus')) world.get('Lively2LivelyStatus').remove();
-                    lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
-                });
-            }
-            thenDo && thenDo();
-        });
+        if (!lively.Config.get('lively2livelyAutoStart')) return;
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // 1) connect to tracker
+        console.log('setupSessionTrackerConnection');
+        lively.net.SessionTracker.resetSession();
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // start UI
+        if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
+            lively.require('lively.net.tools.Lively2Lively').toRun(function() {
+                if ($world.get('Lively2LivelyStatus')) $world.get('Lively2LivelyStatus').remove();
+                lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
+            });
+        }
+        thenDo && thenDo();
     }
 });
 

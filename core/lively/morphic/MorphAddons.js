@@ -1326,6 +1326,16 @@ lively.morphic.Morph.addMethods(
             shapeNode.style[durationProp] = "";
         }
 
+        var remover = (function(evt) {
+            morphs.forEach(function(ea) { behaveNormal(ea); });
+            self.renderContext().morphNode.removeEventListener(endEvent, remover, false);
+            whenDone && whenDone.bind(self).delay(0);
+        });
+        self.renderContext().morphNode.addEventListener(endEvent, remover, false);
+        (function run() {
+            morphs.forEach(function(ea) { behaveAnimated(ea); });
+            morphModifyFunc.call(self);
+        }).delay(0);
     },
 
 

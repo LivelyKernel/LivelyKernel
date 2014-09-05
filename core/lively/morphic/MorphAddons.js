@@ -746,7 +746,7 @@ lively.morphic.World.addMethods(
 
         if (!lively.Config.get('verboseLogging')) return null;
 
-        var msgMorph = this.createStatusMessage(msg, {fill: color});
+        var msgMorph = this.createStatusMessage(msg, Object.merge([{fill: color}, optStyle]));
         // callbacks are currently not supported...
         if (false && callback) {
             var btn = new lively.morphic.Button(lively.rect(0,0,50,20), 'more')
@@ -831,12 +831,12 @@ lively.morphic.World.addMethods(
         var textMsg = msgMorph.addMorph(new lively.morphic.Text(msgMorph.innerBounds().insetBy(10), ''));
         textMsg.name = 'messageText'
         textMsg.addStyleClassName(textMsg.name);
-        textMsg.beLabel({
+        textMsg.beLabel(Object.merge([{
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
             allowInput: false,
             clipMode: 'visible', whiteSpaceHandling: 'pre'
-        });
+        }, (options.textStyle || {})]));
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

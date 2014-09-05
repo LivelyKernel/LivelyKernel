@@ -156,7 +156,7 @@ Object.extend(lively.ide, {
                  "div.ace_gutter", "div.ace_layer.ace_cursor-layer",
                  "div.ace_layer.ace_text-layer", "div.ace_layer.ace_marker-layer",
                  "div.ace_marker-layer .ace_bracket"].inject("\n", function (css, next) {
-            return css + next + " { z-index: 0; }\n"
+            return css + next + " { z-index: 0 !important; }\n"
         });
         document.head.insertBefore(cssOverrides, document.head.firstChild);
     }

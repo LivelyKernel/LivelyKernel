@@ -63,9 +63,34 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
             function(email, next) { context.morph.httpModifyUser({email: email}, next); }
         )(function(err, data) {
             if (err) {
-                context.morph.uiShowError(String(err));
-                context.morph.update.bind(context.morph).delay(5);
+                context.morph.update(function() { context.morph.uiShowError(String(err)); });
             } else context.morph.update();
+        });
+    },
+        actionChangePassword: function actionChangePassword() {
+        var context = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.passwordPrompt("enter current password for " + context.user.name, function(input) {
+                    context.morph.httpCheckPassword(context.user.name, input, next);
+                });
+            },
+            function(matches, next) {
+                show("%s", matches);
+                $world.passwordPrompt("enter new password", function(password1) { next(null, password1); });
+            },
+            function(password1, next) {
+                $world.passwordPrompt("repeat new password", function(password2) {
+                    next(password1 !== password2 ? "repeated password does not match initial input" : null, password2);
+                });
+            },
+            function(password, next) { context.morph.httpModifyUser({password: password}, next); }
+        )(function(err, data) {
+            if (err) {
+                context.morph.uiShowError(String(err));
+            } else {
+                context.morph.update(function() { context.morph.uiInform("password changed"); });
+            }
         });
     },
         actionJoinGroup: function actionJoinGroup() {
@@ -134,7 +159,39 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 context.morph.update.bind(context.morph).delay(5);
             } else context.morph.uiInform("you should not see this");
         });
-    
+
+    },
+        actionOpenMyWorkspace: function actionOpenMyWorkspace() {
+        var context = this;
+        var user = context.user.name, msg;
+
+        // user workspace doit snippet
+        // Step 1: create user directory
+        var userDir = $world.ensureUserDir(user);
+        var startFile = 'start.html';
+        var start = userDir.withFilename(startFile);
+        function visit() {
+            $world.confirm('Visit ' + start + '?', function(bool) {
+                if (bool) window.open(start)
+            });
+        }
+
+
+        // Step 2: create first world, without overwriting an existing world
+        var startWorldExists = start.asWebResource().get().exists();
+        var templateDir = $world.ensureUserDir('template');
+
+        if (!startWorldExists && templateDir) {
+            var startTemplate = templateDir.withFilename(startFile);
+            startTemplate.asWebResource().beAsync().get().whenDone(function(content, status) {
+                content = content.replace(/%USERNAME%/g, user);
+                start.asWebResource().beAsync().put(content).whenDone(function(_, status) {
+                    visit(); })
+            })
+        } else {
+            // Step 3: offer to open the world in a new window
+            visit()
+        }
     },
         actionShowGroupMembers: function actionShowGroupMembers() {
         var context = this;
@@ -225,14 +282,14 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
     },
         httpCurrentGroupData: function httpCurrentGroupData(thenDo) {
         var self = this;
-        Global.URL.nodejsBase.withFilename("AuthServer/user-db/groups/" + $world.getUserName(true))
+        Global.URL.nodejsBase.withFilename("AuthServer/groups/of-user/" + $world.getUserName(true))
             .asWebResource().beAsync().get()
             .withJSONWhenDone(function(json, status) {
                 var err = json && json.error;
                 if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get groups");
                 thenDo.call(self, err, json.groups || []);
             });
-    
+
     },
         httpCurrentUserData: function httpCurrentUserData(doFunc) {
         this.httpDataRequest("get", doFunc);
@@ -248,19 +305,19 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
         httpGetGroupMembers: function httpGetGroupMembers(groupName, thenDo) {
         // this.httpGetGroupMembers("admin", show.bind(null, "%s %s"));
         var self = this;
-        Global.URL.nodejsBase.withFilename("AuthServer/user-db/group-members/" + groupName)
+        Global.URL.nodejsBase.withFilename("AuthServer/groups/members-of/" + groupName)
             .asWebResource().beAsync().get()
             .withJSONWhenDone(function(json, status) {
                 var err = json && json.error;
                 if (!err && !status.isSuccess()) err = new Error(json.error || "Could not get group members");
                 thenDo.call(self, err, json.users || []);
             });
-    
+
     },
         httpGetGroupResources: function httpGetGroupResources(groupName, thenDo) {
         // this.httpGetGroupResources("admin", show.bind(null, "%s %s"))
         var self = this;
-        Global.URL.nodejsBase.withFilename("AuthServer/user-db/group-resources/" + groupName)
+        Global.URL.nodejsBase.withFilename("AuthServer/groups/resources-of/" + groupName)
             .asWebResource().beAsync().get()
             .withJSONWhenDone(function(json, status) {
                 var err = json && json.error;
@@ -271,7 +328,7 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
         httpGetUserResources: function httpGetUserResources(userName, thenDo) {
         // this.httpGetUserResources("robertkrahn", show.bind(null, "%s %s"))
         var self = this;
-        Global.URL.nodejsBase.withFilename("AuthServer/user-db/user-resources/" + userName)
+        Global.URL.nodejsBase.withFilename("AuthServer/users/resources-of/" + userName)
             .asWebResource().beAsync().get()
             .withJSONWhenDone(function(json, status) {
                 var err = json && json.error;
@@ -290,7 +347,6 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
     },
         httpLogout: function httpLogout(thenDo) {
         var self = this;
-        Global.URL.root.withFilename("uvic-logout").asWebResource().whenDone
         Global.URL.root.withFilename("uvic-logout").asWebResource()
             .beAsync().post()
             .whenDone(function(_, status) {
@@ -315,9 +371,9 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
         openResource: function openResource(resources, title) {
         var nGroups = 0;
         var grouped = groupResources(resources);
-        
+
         var container = makeContainer();
-        
+
         if (grouped.partsbin && grouped.partsbin.length) {
             nGroups++;
             // container.openInWorld()
@@ -328,9 +384,9 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
             container.addMorph(label1);
             container.addMorph(partItemList);
         }
-        
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        
+
         if (grouped.world && grouped.world.length) {
             nGroups++;
             var list = makeList();
@@ -343,9 +399,9 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 });
             }}, 'visitWorld');
         }
-        
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        
+
         if (grouped.module && grouped.module.length) {
             nGroups++;
             var list = makeList();
@@ -356,9 +412,9 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 lively.ide.browse(morph.item.value);
             }}, 'open');
         }
-        
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    
+
         if (grouped.other && grouped.other.length) {
             nGroups++;
             var list = makeList();
@@ -369,27 +425,27 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 lively.ide.openFile(Global.URL.root.withFilename(morph.item.value));
             }}, 'open');
         }
-        
+
         if (nGroups === 0) {
             nGroups++;
             container.addMorph(makeLabel("You have no resources yet"));
         }
-        
+
         container.setExtent(pt(630, (140+20)*nGroups));
         container.setVisible(false);
         container.openInWorld();
-        
+
         (function() {
             container.openInWindow({title: "Resources of " + title})
             container.applyLayout();
             container.setVisible(true);
         }).delay(0);
-    
-        
+
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // helper
         // -=-=-=-
-        
+
         function makeContainer() {
             var container = lively.morphic.Morph.makeRectangle(0,0, 630, 20);
             container.setLayouter({type: "vertical"})
@@ -397,13 +453,13 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
             container.applyStyle({fill: Global.Color.white})
             return container;
         }
-        
+
         function makeLabel(string) {
             var label = lively.morphic.Text.makeLabel(string);
             label.emphasizeAll({fontWeight: 'bold'});
             return label;
         }
-        
+
         function makeList() {
             var list = new lively.morphic.MorphList()
             list.setLayouter({type: 'tiling'})
@@ -412,7 +468,7 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
             list.setExtent(lively.pt(630.0,140));
             return list
         }
-        
+
         function groupResources(resources) {
             return resources.groupBy(function(ea) {
                 if (ea.startsWith("PartsBin/")) return "partsbin";
@@ -421,7 +477,7 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 return "other";
             });
         }
-        
+
         function setStringList(listItems, list) {
             var items = listItems.map(function(path) { return {isListItem: true, value: path, string: path}; })
             list.setList(items);
@@ -430,7 +486,7 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 return ea.fitThenDo(function() {})
             });
         }
-        
+
         function createPartItemList(partResources) {
             return partResources
                 .map(function(ea) { return ea.replace(/\.[^\.]+$/, ''); }).uniq()
@@ -481,24 +537,34 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
         // markup.unshift(['Error' + (action ? 'while trying ' + action : "") + ":", {}])
         this.get("userText").setRichTextMarkup(markup);
     },
-        update: function update() {
+        update: function update(thenDo) {
         this.get("userText").setRichTextMarkup([["Loading", {fontWeight: "bold"}]]);
         this.httpCurrentUserData(function(err, data) {
+            if (err) {
+                if (String(err).match("not logged in")) {
+                    var context = {morph: this}
+                    this.get("userText").setRichTextMarkup([
+                        ["login", this.textDoit("switchUser", context)]]);
+                }
+                this.uiShowError(err);
+                thenDo && thenDo(err, data);
+                return;
+            }
+
             this.httpCurrentGroupData(function(groupErr, groups) {
-                if (err) return this.uiShowError(err);
-                if (groupErr) this.uiShowError(groupErr);
                 var context = {morph: this, user: data};
-    
+
                 var markup = [
                     ["You are logged in as ", {}], [data.name, {fontWeight: "bold"}],           ["\n", {}],
                     ["Your email is ",        {}], [data.email, {fontWeight: "bold"}],          ["\n", {}],
                     ["switch user",           this.textDoit("switchUser", context)],    [" ", {}],
                     ["change email",          this.textDoit("changeEmail", context)],   [" ", {}],
-                    ["logout and exit",       this.textDoit("logoutAndExit", context)], ["\n\n", {}],
+                    ["change password",          this.textDoit("changePassword", context)],   ["\n\n", {}],
                     ["Show resources I have created or modified", this.textDoit("showMyResources", context)], ["\n", {}],
+                    ["Open my workspace", this.textDoit("openMyWorkspace", context)], ["\n", {}],
                     ["\nYour groups:",        {}],                                              ["\n", {}]
                 ];
-    
+
                 markup = markup.concat.apply(markup, groups.map(function(group) {
                     return [
                         [group + " ", {fontWeight: "bold"}],
@@ -507,13 +573,17 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                         ['leave',          this.textDoit("leaveGroup", Object.extend({group: group}, context))],    [" ", {}],
                         ["\n", {}]]
                 }, this));
-    
-                markup.push(["Join group", this.textDoit("joinGroup", context)])
-    
-                markup.push(["\n\nRefresh",                     this.textDoit("update", context)],        [" ", {}])
-    
+
+                markup.push(["Join group", this.textDoit("joinGroup", context)]);
+
+                markup.push(["\n\nRefresh", this.textDoit("update", context)], [" ", {}]);
+                markup.push(["Logout and exit", this.textDoit("logoutAndExit", context)], ["\n", {}]);
+
                 this.get("userText").setRichTextMarkup(markup);
-            })
+                if (groupErr) this.uiShowError(groupErr);
+
+                thenDo && thenDo(groupErr || null, data);
+            });
         });
     },
         validateEmail: function validateEmail(email, thenDo) {

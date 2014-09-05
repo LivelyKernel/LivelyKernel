@@ -344,25 +344,23 @@
             var el = document.createElement('div'),
                 text1 = document.createTextNode('An error occurred. '
                                                + 'If the world does not load '
-                                               + 'check '),
-                text2 = document.createTextNode(' for help.'),
+                                               + 'you can '),
                 link = document.createElement('a')
             el.setAttribute('id', this.brokenWorldMsgId);
-            el.setAttribute('style', "position: fixed;"
-                                   + "margin-left:auto; margin-right:auto;"
-                                   + "padding: 5px;"
+            el.setAttribute('style', "position: fixed; padding: 5px;"
                                    + "background-color: white;"
-                                   + "font-family: Arial,times;"
-                                   + "color: red;"
+                                   + "font-family: Arial,times; color: red;"
                                    + "font-size: large-x;")
             el.style.top = (this.height() / 2 - 70) + 'px';
-            el.style.left = (this.width() / 2 - 290) + 'px';
+            el.style.left = (this.width() / 2 - 250) + 'px';
             link.style.color = 'red';
-            link.setAttribute('href', 'javascript:window.open(lively.moduleDependencyViz());');
-            link.textContent = 'which modules did not load';
+            link.setAttribute('href', '/world-versions.html?world-path=' + encodeURIComponent(document.location.pathname.replace(/^\//, '')));
+            link.setAttribute('target', '_blank');
+            link.textContent = 'revert ' + (document.location.pathname.match(/[^\/]+$/)) + ' by clicking here';
+            link.style.fontWeight = 'bold';
             el.appendChild(text1);
+            el.appendChild(document.createElement('br'));
             el.appendChild(link);
-            el.appendChild(text2);
             return el;
         },
 

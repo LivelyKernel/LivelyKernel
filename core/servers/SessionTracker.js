@@ -416,11 +416,12 @@ function SessionTracker(options) {
         function answer(response) {
             log(3, '%s got answer from routed message %s: ', tracker, msg.messageId, response);
             connection.send({
-                action: msg.action + 'Result',
-                inResponseTo: msg.messageId,
-                data: response.data,
-                target: msg.sender,
-                messageId: response.messageId
+                action:              msg.action + 'Result',
+                inResponseTo:        msg.messageId,
+                data:                response.data,
+                target:              msg.sender,
+                messageId:           response.messageId,
+                expectMoreResponses: response.expectMoreResponses
             });
         }
         var tracker = this, target = msg.target || msg.data.target;
@@ -428,14 +429,14 @@ function SessionTracker(options) {
         this.findConnection(target, function(err, targetConnection) {
             if (err || !targetConnection) {
                 console.warn('%s failed to route message: Failure finding target connection: ', tracker, err);
-                answer({data: {error: 'Failure finding target connection: ' + err, target: target}})
-                return; }
+                return answer({data: {error: 'Failure finding target connection: ' + err, target: target}});
+            }
             targetConnection.send({
-                action: msg.action,
-                data: msg.data,
-                sender: msg.sender,
-                target: target,
-                messageId: msg.messageId
+                action:    msg.action,
+                data:      msg.data,
+                sender:    msg.sender,
+                target:    target,
+                messageId: msg.messageId,
             }, answer);
         });
     }

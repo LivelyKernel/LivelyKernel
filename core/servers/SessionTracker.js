@@ -273,6 +273,18 @@ var sessionActions = {
             sessionServer.routeMessage(msg, connection);
         }
     },
+
+    remoteEvalRequest: function(sessionServer, connection, msg) {
+        try {
+            var result = eval(msg.data.expr);
+        } catch (e) { result = String(e); }
+        console.log("remote eval result ", result);
+        connection.send({
+            action: msg.action + 'Result',
+            inResponseTo: msg.messageId,
+            data: {result: result}
+        });
+    }
 }
 
 var services = require("./LivelyServices").services;

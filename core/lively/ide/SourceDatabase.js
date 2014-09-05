@@ -153,13 +153,20 @@ Object.subclass('lively.ide.ModuleWrapper',
     },
 
     handleSaveStatus: function(webR) {
-        if (webR.status.isDone()) {
+        var status = webR.status,
+            world = lively.morphic.World.current();
+        if (status.isDone()) {
             this.networkRequestInProgress = false;
-            if (webR.status.code() === 412) {
-                this.askToOverwrite(webR.status.url);
-            } else if (webR.status.isSuccess()) {
+            if (status.code() === 412) {
+                this.askToOverwrite(status.url);
+            } else if (status.isSuccess()) {
                 this.lastModifiedDate = webR.lastModified;
                 this.runQueuedRequest();
+            } else if (status.isForbidden()) {
+                world.createStatusMessage('Saving to:\n' + status.url + '\nis not allowed!', {
+                    openAt: 'center', fill: Color.red, extent: pt(400, 75),
+                    removeAfter: 5000 //, textStyle: { align: 'center' }
+                });
             }
         }
         return webR;

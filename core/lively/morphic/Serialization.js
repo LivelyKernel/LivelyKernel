@@ -290,6 +290,11 @@ lively.morphic.World.addMethods(
             this.savedWorldAsURL =  status.url;
             lively.bindings.signal(this, 'savingDone', status.url);
             Config.get('showWorldSave') && this.alertOK('World successfully saved');
+        } else if (status.isForbidden()) {
+            this.createStatusMessage('Saving to:\n' + status.url + '\nis not allowed!', {
+                openAt: 'center', fill: Color.red, extent: pt(400, 75)
+                // removeAfter: 5000, textStyle: { align: 'center' }
+            });
         } else {
             Config.get('showWorldSave') && this.alert('Problem saving ' + status.url + ': ' + status);
         }

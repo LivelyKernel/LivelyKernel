@@ -487,6 +487,19 @@ Object.subclass('NetRequestStatus',
         }
         return code >= 200 && code < 300;
     },
+
+    isForbidden: function() {
+        var code;
+        try {
+            code = this.transport.status;
+        } catch (e) {
+            // sometimes the browser throws an error when trying
+            // to access transport.status too early
+            return false;
+        }
+        return code == 403;
+    }
+
 },
 'accessing', {
     setException: function(e) { this.exception = e },

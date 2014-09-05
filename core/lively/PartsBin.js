@@ -329,7 +329,6 @@ Object.subclass('lively.PartsBin.PartItem',
 
     del: function() {
         this.getPartsSpace().removePartItemNamed(this.name);
-        new WebResource(this.getLogoURL()).beAsync().del();
         new WebResource(this.getHTMLLogoURL()).beAsync().del();
         new WebResource(this.getFileURL()).beAsync().del();
         new WebResource(this.getMetaInfoURL()).beAsync().del();
@@ -410,7 +409,8 @@ Object.subclass('lively.PartsBin.PartItem',
 
     handleSaveStatus: function(webR) {
         // handles the request for overwrite on header 412
-        var status = webR.status;
+        var status = webR.status,
+            world = lively.morphic.World.current();
         if (!status.isDone()) return;
         if (status.code() === 412) {
             if (status.url.asWebResource().exists()) {
@@ -422,8 +422,7 @@ Object.subclass('lively.PartsBin.PartItem',
             return;
         }
         if (status.isSuccess()) {
-            var world = lively.morphic.World.current(),
-                metaInfo = this.part.getPartsBinMetaInfo();
+            var metaInfo = this.part.getPartsBinMetaInfo();
             world.alertOK("Successfully saved "+status.url+" in PartsBin.")
             metaInfo.lastModifiedDate = webR.lastModified;
             this.updateRevisionOnLoad();
@@ -431,6 +430,11 @@ Object.subclass('lively.PartsBin.PartItem',
                 world.publishPartDialog.remove();
                 delete world.publishPartDialog;
             }
+        } else if (status.isForbidden()) {
+            world.createStatusMessage('Saving to:\n' + status.url + '\nis not allowed!', {
+                openAt: 'center', fill: Color.red, extent: pt(400, 75)
+                // removeAfter: 5000, textStyle: { align: 'center' }
+            });
         } else {
             var msg = 'Problem saving ' + status.url + ': ' + status;
             Config.verboseLogging ? alert(msg) : console.error(msg);

@@ -238,15 +238,15 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 
-        lively.IndexedDB.ensureDatabase(null, null, function(err) {
+        lively.IndexedDB.ensureObjectStore(this.altStore, null, function(err) {
             this.assert(err == undefined);
-            this.assert(lively.IndexedDB.currentDB != null);
-            lively.IndexedDB.ensureObjectStore(this.altStore, null, function(err) {
+            var stores = Array.from(lively.IndexedDB.currentDB.objectStoreNames);
+            this.assert(stores.include(this.altStore));
+            lively.IndexedDB.hasStore(this.altStore, function(err, exists) {
                 this.assert(err == undefined);
-                var stores = Array.from(lively.IndexedDB.currentDB.objectStoreNames);
-                this.assert(stores.include(this.altStore));
+                this.assert(exists);
                 this.done();
-            }.bind(this), this.altStore);
+            }.bind(this));
         }.bind(this));
     },
 
@@ -258,7 +258,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
             this.assert(err == undefined);
             this.assert(key == this.testKey);
-            lively.IndexedDB.has(key, function(err, exists) {
+            lively.IndexedDB.has(key, function(err, exists) {  // check default store
                 this.assert(err == undefined);
                 this.assert(!exists);
                 lively.IndexedDB.get(key, function(err, value) {
@@ -281,7 +281,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
             this.assert(err == undefined);
             this.assert(key == this.testKey);
-            lively.IndexedDB.has(key, function(err, exists) {
+            lively.IndexedDB.has(key, function(err, exists) { // check default store
                 this.assert(err == undefined);
                 this.assert(!exists);
                 lively.IndexedDB.has(key, function(err, exists) {
@@ -298,6 +298,50 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
                 }.bind(this), this.altStore);
             }.bind(this));
         }.bind(this), this.altStore);
+    },
+
+    test09ClearStore: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        var testValue = 'TEST value';
+        lively.IndexedDB.set(this.testKey, testValue, function(err, key) {
+            this.assert(err == undefined);
+            this.assert(key == this.testKey);
+            lively.IndexedDB.has(key, function(err, exists) {
+                this.assert(err == undefined);
+                this.assert(exists);
+                lively.IndexedDB.clear(function(err) {
+                    this.assert(err == undefined);
+                    lively.IndexedDB.has(this.testKey, function(err, exists) {
+                        this.assert(err == undefined);
+                        this.assert(!exists);
+                        this.done();
+                    }.bind(this), this.altStore);
+                }.bind(this), this.altStore);
+            }.bind(this), this.altStore);
+        }.bind(this), this.altStore);
+    },
+
+    test10RemoveStore: function() {
+        if (!lively.IndexedDB.isAvailable())
+            return this.assert(true) || this.done();
+
+        lively.IndexedDB.ensureObjectStore(this.altStore, null, function(err) {
+            this.assert(err == undefined);
+            lively.IndexedDB.hasStore(this.altStore, function(err, exists) {
+                this.assert(err == undefined);
+                this.assert(exists);
+                lively.IndexedDB.removeStore(this.altStore, function(err) {
+                    this.assert(err == undefined);
+                    lively.IndexedDB.hasStore(this.altStore, function(err, exists) {
+                        this.assert(err == undefined);
+                        this.assert(!exists);
+                        this.done();
+                    }.bind(this));
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
     }
 
 });

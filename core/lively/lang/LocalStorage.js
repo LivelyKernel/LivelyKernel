@@ -87,22 +87,21 @@ lively.IndexedDB = {
         };
     },
 
-    ensureObjectStore: function(storeName, options, callback) {
-        var db = this.currentDB,
-            dbStores = Array.from(db.objectStoreNames);
-        if (!dbStores.include(storeName)) {
-            options = options || { autoIncrement: true };
+    ensureObjectStore: function(store, options, callback) {
+        options = options || { autoIncrement: true };
+        this.hasStore(store, function(err, exists) {
+            if (exists) return callback && callback(null);
+            var db = this.currentDB;
             try {
-                var objectStore = db.createObjectStore(storeName, options);
-                callback && callback(null)
+                var objectStore = db.createObjectStore(store, options);
+                callback && callback(null);
             } catch (e) {
                 // most likely not in DB upgrade => trigger upgrade
                 this.ensureDatabase(db.version + 1, function(db) {
-                    db.createObjectStore(storeName, options);
+                    db.createObjectStore(store, options);
                 }, callback);
             }
-        } else if (callback instanceof Function)
-            return callback(null);
+        }.bind(this));
     },
 
     set: function(key, value, callback, optStore) {
@@ -156,7 +155,7 @@ lively.IndexedDB = {
 
     has: function(key, callback, optStore) {
         if (!(callback instanceof Function))
-            throw new Error('You need to provide a callback to retrieve a value!');
+            throw new Error('You need to provide a callback to see if a key exists!');
         if (!this.isAvailable()) return callback(new Error('IndexedDB is not available.'));
 
         optStore = optStore || 'default';
@@ -192,6 +191,67 @@ lively.IndexedDB = {
                 transaction.onerror = function(event) {
                     next(event.target.error);
                 };
+            }.bind(this)
+        )(callback);
+    },
+
+    hasStore: function(store, callback) {
+        if (!(callback instanceof Function))
+            throw new Error('You need to provide a callback to see if a store exists!');
+        if (!this.isAvailable()) return callback(new Error('IndexedDB is not available.'));
+
+        if (this.currentDB) {
+            var stores = Array.from(this.currentDB.objectStoreNames);
+            callback(null, stores.include(store));
+        } else {
+            Functions.composeAsync(
+                this.ensureDatabase.bind(this, undefined, undefined),
+                function(next) {
+                    var stores = Array.from(this.currentDB.objectStoreNames);
+                    next(null, stores.include(store));
+                }.bind(this)
+            )(callback);
+        }
+    },
+
+    clear: function(callback, optStore) {
+        if (!this.isAvailable()) return callback && callback(new Error('IndexedDB is not available.'));
+
+        optStore = optStore || 'default';
+        Functions.composeAsync(
+            this.ensureDatabase.bind(this, undefined, undefined),
+            function(next) {
+                var transaction = this.currentDB.transaction(optStore, 'readwrite').
+                        objectStore(optStore).clear();
+                transaction.onsuccess = function(event) {
+                    next(null);
+                };
+                transaction.onerror = function(event) {
+                    next(event.target.error);
+                };
+            }.bind(this)
+        )(callback);
+    },
+
+    removeStore: function(store, callback) {
+        if (!this.isAvailable()) return callback && callback(new Error('IndexedDB is not available.'));
+
+        Functions.composeAsync(
+            this.ensureDatabase.bind(this, undefined, undefined),
+            this.hasStore.bind(this, store),
+            function(exists, next) {
+                if (!exists) next(null);
+
+                var db = this.currentDB;
+                try {
+                    var objectStore = db.deleteObjectStore(store);
+                    next(null);
+                } catch (e) {
+                    // most likely not in DB upgrade => trigger upgrade
+                    this.ensureDatabase(db.version + 1, function(db) {
+                        db.deleteObjectStore(store);
+                    }, next);
+                }
             }.bind(this)
         )(callback);
     }

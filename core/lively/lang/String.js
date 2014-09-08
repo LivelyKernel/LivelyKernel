@@ -299,7 +299,7 @@ Global.Strings = {
                     if (!Global.isNaN(num)) return num;
                     var date = new Date(tok);
                     if (!Global.isNaN(+date)) return date;
-                    return tok;
+                    return tok.trim();
                 });
             }
             if (tokens.length > 0) table.push(tokens);

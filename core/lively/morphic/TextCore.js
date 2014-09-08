@@ -669,6 +669,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         if (evt.isShiftDown()) {
             this.priorSelectionRange = this.getSelectionRange();
         }
+        
+        if (UserAgent.isChrome && UserAgent.isMobile) {
+            this.onKeyPress(evt);
+        }
 
         evt.stop();
         return true;
@@ -1685,7 +1689,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         function isWhiteSpace(c) { return c === '\t' || c === ' '; }
         function isAlpha(s) {
             var regEx = /^[a-zA-Z0-9\-]+$/;
-            return s.match(regEx);
+            return (s || '').match(regEx);
         };
         function periodWithDigit(c, prev) {
             // return true iff c is a period and prev is a digit

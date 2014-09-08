@@ -150,12 +150,11 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         this.setExtent(lively.pt(130.0,30.0));
         this.alignInWorld();
         this.alignNotificationIcon();
-    }, 500, function() {
         if (this.menu) {
             this.menu.remove();
             this.menu = null;
         }
-    });
+    }, 500, function() {});
 },
     expand: function expand() {
     var self = this,
@@ -205,7 +204,7 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
     var m = this.menu = new lively.morphic.Menu(null, items);
     m.openIn(this, pt(0,-items.length * 23), false);
     this.withCSSTransitionForAllSubmorphsDo(function() {
-        this.setExtent(pt(140, this.getExtent().y + m.getExtent().y + 10));
+        this.setExtent(pt(140, m.getExtent().y + 15));
         this.alignInWorld();
         this.alignNotificationIcon();
     }, 500, function() {});

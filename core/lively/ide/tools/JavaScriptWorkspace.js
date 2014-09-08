@@ -138,29 +138,29 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         var morphBounds = morph.bounds();
         var posDiff = bounds.topLeft().subPt(morphBounds.topLeft());
         var extentDiff = bounds.extent().subPt(morphBounds.extent());
-    
+
         var time = 400; // ms
         var steps = 10;
         var stepMove = posDiff.scaleBy(1/steps);
         var stepResize = extentDiff.scaleBy(1/steps);
         animatedScale(steps);
-    
+
         function animatedScale(step) {
             if (step === 0) { morph.setBounds(bounds); return; }
             morph.moveBy(stepMove);
             morph.resizeBy(stepResize);
             animatedScale.curry(step-1).delay(time/steps / 1000);
         }
-    
+
     },
         boundEval: function boundEval(__evalStatement) {
             // Evaluate the string argument in a context in which "this" is
             // determined by the reuslt of #getDoitContext
             var ctx = this.getDoitContext() || this,
                 result;
-        
+
             if (!this.state.workspaceVars) this.state.workspaceVars = {};
-        
+
             lively.lang.VM.runEval(__evalStatement, {
                 context: ctx,
                 topLevelVarRecorder: this.state.workspaceVars
@@ -172,6 +172,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         // this.setBounds(newEditorBounds);
         this.updateToggleVarsButton(newEditorBounds);
         this.animatedSetBounds(this, newEditorBounds);
+        this.stopStepping();
     },
 
         onLoad: function onLoad() {
@@ -184,7 +185,6 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             $super();
             this.getWindow().addMorphBack(this.get("listContainer"));
             this.resetState();
-            this.startStepping(1000, 'showVars');
         },
         rerender: function rerender() {
             var obs = this.get('workspaceVarObserver');
@@ -218,33 +218,34 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             newEditorBounds = rect(
                 pt(3,22),
                 varList.bounds().bottomRight().addXY(-3 - varAreaWidth - border, 0));
-    
+
         varList.setExtent(varList.getExtent().withX(varAreaWidth));
         varList.align(varList.bounds().topRight(), this.getWindow().innerBounds().topRight().addXY(-3,22));
-    
+
         this.updateToggleVarsButton(newEditorBounds);
-    
+
         this.animatedSetBounds(this, newEditorBounds);
-    
+        this.startStepping(1000, "showVars");
+
     },
         showVars: function showVars() {
             // this.startStepping(1000, 'showVars')
             // obs.setList([]);
-        
+
             var style = {
                 allowInput: false,
                 fixedHeight: false, fixedWidth: true,
                 whiteSpaceHandling: 'pre',
                 cssStylingMode: true
             };
-        
+
             var s = this.state;
             var vars = s.workspaceVars || {};
             var keys = Object.keys(vars);
-        
+
             var obs = this.get('workspaceVarObserver');
             var list = obs.getList() || [];
-        
+
             var preexistingItems = list.filter(function(item) {
                     return keys.include(item.value.key); })
                 .map(function(ea) {
@@ -252,7 +253,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
                     ea.morph = render(ea.value.key, ea.value.value, ea.morph);
                     return ea
                 });
-        
+
             var newItems = keys
                 .withoutAll(preexistingItems.pluck('value').pluck('key'))
                 .map(function(k) {
@@ -260,17 +261,17 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
                         item = {morph: morph, isListItem: true, string: 'foo', value: {key: k, value: vars[k]}};
                     morph.item = item;
                     return item; });
-        
+
             var items = preexistingItems.concat(newItems);
-        
+
             obs.setList(items);
             obs.applyLayout();
-        
+
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        
+
             function render(key, val, optListItemMorph) {
                 var morph = optListItemMorph || createListItemMorph();
-        
+
                 var valString = stringifyObj(val);
                 var string = key + ': ' + valString;
                 if (morph.textString !== string) {
@@ -278,20 +279,20 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
                     morph.textString = string;
                     morph.fitThenDo(function() { morph.setClipMode("hidden"); });
                 };
-        
+
                 return morph;
             }
-        
+
             function createListItemMorph() {
                 var morph = new lively.morphic.Text(
                     obs.getExtent()
                         .addXY(-2 * obs.layout.layouter.borderSize, 0)
                         .extentAsRectangle(), '');
-        
+
                 morph.applyStyle(style);
-        
+
                 morph.addStyleClassName('list-item');
-        
+
                 morph.addScript(function showControls() {
                     var resetButton = new lively.morphic.Button(this.innerBounds());
                     resetButton.align(resetButton.getPosition(), this.innerBounds().bottomLeft());
@@ -301,27 +302,27 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
                     this.cachedBounds = null;
                     this.owner.applyLayout();
                 });
-        
+
                 morph.addScript(function hideControls() {
                     this.controls.invoke('remove');
                     this.controls.length = 0;
                     this.owner.applyLayout();
                 })
-        
+
                 morph.addScript(function onHoverIn(evt) {
                     this.showControls();
                 });
-        
+
                 morph.addScript(function onHoverOut(evt) {
                     this.hideControls();
                 });
-        
+
                 morph.addScript(function onMouseMove(evt) {
                     if (this.thereIsAHandInMe) return false;
                     this.thereIsAHandInMe = true;
                     this.onHoverIn(evt);
                 });
-        
+
                 morph.addScript(function onMouseOut(evt) {
                     var wasHovered = !!this.thereIsAHandInMe;
                     var hoverInMorph = evt.relatedTarget && lively.$(evt.relatedTarget).parents('.morphNode').data('morph');
@@ -329,10 +330,10 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
                     this.thereIsAHandInMe = false;
                     wasHovered && this.onHoverOut(evt);
                 });
-        
+
                 return morph;
             }
-        
+
             function stringifyObj(obj) {
                 var string;
                 if (obj && obj.isMorph) {
@@ -349,10 +350,10 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         updateToggleVarsButton: function updateToggleVarsButton(bnds) {
         var btn = this.get("toggleVarsButton");
         bnds = bnds || this.bounds();
-        
+
         var newButtonBounds = btn.bounds().withTopRight(bnds.topRight().addXY(-4,4))
         this.animatedSetBounds(btn, newButtonBounds);
-    
+
         var hidden = this.varAreaIsHidden();
         var label = hidden ? "hide vars" : "show vars";
         btn.setLabel(label);

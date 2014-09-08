@@ -344,7 +344,7 @@ lively.morphic.World.addMethods(
         }.bind(this))
     },
     storeDoc: function (doc, url, checkForOverwrites) {
-        var webR = new WebResource(url).beAsync();
+        var webR = new WebResource(url).noProxy().beAsync();
         webR.createProgressBar('Saving...');
         lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
             $upd(status, this.sourceObj); // pass in WebResource as well

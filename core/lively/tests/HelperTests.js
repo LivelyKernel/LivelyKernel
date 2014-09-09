@@ -134,6 +134,14 @@ TestCase.subclass('lively.tests.HelperTests.LocalStorageTests',
 });
 
 AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
+'initialize', {
+
+    initialize: function($super, testResult, testSelector) {
+        $super(testResult, testSelector);
+        this._maxWaitDelay = 5000; // extend the async wait time, IndexedDB can be slooooow
+    }
+
+},
 'running', {
 
     testKey: 'test_9U3bQPVMb8hOVZgevYqTVZUu7CdlKZ7AAbnpbAHU',

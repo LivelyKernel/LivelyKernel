@@ -111,7 +111,9 @@ lively.IndexedDB = {
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             this.ensureObjectStore.bind(this, optStore, null),
-            this.has.bind(this, key),
+            function(next) {
+                this.has(key, next, optStore);
+            }.bind(this),
             function (exists, next) {
                 if (!exists) return next();
 
@@ -200,18 +202,13 @@ lively.IndexedDB = {
             throw new Error('You need to provide a callback to see if a store exists!');
         if (!this.isAvailable()) return callback(new Error('IndexedDB is not available.'));
 
-        if (this.currentDB) {
-            var stores = Array.from(this.currentDB.objectStoreNames);
-            callback(null, stores.include(store));
-        } else {
-            Functions.composeAsync(
-                this.ensureDatabase.bind(this, undefined, undefined),
-                function(next) {
-                    var stores = Array.from(this.currentDB.objectStoreNames);
-                    next(null, stores.include(store));
-                }.bind(this)
-            )(callback);
-        }
+        Functions.composeAsync(
+            this.ensureDatabase.bind(this, undefined, undefined),
+            function(next) {
+                var stores = Array.from(this.currentDB.objectStoreNames);
+                next(null, stores.include(store));
+            }.bind(this)
+        )(callback);
     },
 
     clear: function(callback, optStore) {

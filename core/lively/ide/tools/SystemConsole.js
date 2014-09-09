@@ -9,7 +9,7 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
     layout: {adjustForNewBounds: true},
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _ClipMode: { x: "hidden", y: "scroll" },
+        _ClipMode: "scroll",
         _Extent: lively.pt(487.0,209.0),
         _Fill: Color.rgb(255,255,255),
         _FontSize: 10,
@@ -155,6 +155,11 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
             this.getWindow().setTitle('System Console');
             this.getWindow().name = "SystemConsole";
             // this.partsBinMetaInfo = meta
+        },
+
+        setupScroll: function setupScroll(noOfItems, layout) {
+            $super(noOfItems, layout);
+            this.setClipMode('scroll');
         },
 
         uninstall: function uninstall() {

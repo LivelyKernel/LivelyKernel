@@ -157,13 +157,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
            + '\npattern:\n  ' + Strings.print(match.pattern) + '\nerror:\n  ' + Strings.print(match.error));
     },
 
-    assertAstNodesEqual: function(node1, node2, msg) {
+    assertASTNodesEqual: function(node1, node2, msg) {
         var notEqual = lively.ast.acorn.compareAst(node1, node2);
         if (!notEqual) return;
         this.assert(false, 'nodes not equal: ' + (msg ? '\n  ' + msg : '') + '\n  ' + notEqual.join('\n  '));
     },
 
-    assertAstReference: function(entry, msg) {
+    assertASTReference: function(entry, msg) {
         var isReference = entry.hasOwnProperty('registryRef') && entry.hasOwnProperty('indexRef');
         this.assert(isReference, msg || 'registry entry is no reference');
     }
@@ -484,8 +484,8 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             ast = this.parser.parse(src);
         this.rewrite(ast);
         this.assertEquals(3, registry.length, 'registry has wrong size after rewrite');
-        this.assertAstReference(registry[1], 'FunctionDeclaration is no reference');
-        this.assertAstReference(registry[2], 'FunctionExpression is no reference');
+        this.assertASTReference(registry[1], 'FunctionDeclaration is no reference');
+        this.assertASTReference(registry[2], 'FunctionExpression is no reference');
 
         var refAst = registry[registry[1].registryRef],
             refAstIndex = registry[1].indexRef,
@@ -901,7 +901,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 },
 'assertion', {
 
-    assertAstNodesEqual: lively.ast.tests.RewriterTests.AcornRewrite.prototype.assertAstNodesEqual
+    assertASTNodesEqual: lively.ast.tests.RewriterTests.AcornRewrite.prototype.assertASTNodesEqual
 
 },
 'testing', {
@@ -949,7 +949,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var capturedAst = frame.getOriginalAst(),
             generatedAst = lively.ast.acorn.parseFunction(String(code));
         generatedAst.type = capturedAst.type;
-        this.assertAstNodesEqual(generatedAst, capturedAst);
+        this.assertASTNodesEqual(generatedAst, capturedAst);
 
         // where did the execution stop?
         // this.assertIdentity(5, frame.getPC(), 'pc');
@@ -979,13 +979,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         // captured asts
         var expectedAst = lively.ast.acorn.parseFunction('function() { debugger; return x * 2; }'),
             actualAst = frame1.getOriginalAst();
-        this.assertAstNodesEqual(expectedAst, actualAst);
-        this.assertAstNodesEqual(lively.ast.acorn.parseFunction(String(code)), frame2.getOriginalAst());
+        this.assertASTNodesEqual(expectedAst, actualAst);
+        this.assertASTNodesEqual(lively.ast.acorn.parseFunction(String(code)), frame2.getOriginalAst());
 
         // access the node where execution stopped
         var resumeNode = frame1.getPC(),
             debuggerNode = actualAst.body.body[0];
-        this.assertAstNodesEqual(debuggerNode, resumeNode, 'resumeNode');
+        this.assertASTNodesEqual(debuggerNode, resumeNode, 'resumeNode');
     },
 
     test04BreakAndContinue: function() {
@@ -1364,7 +1364,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         var capturedAst = frame.getOriginalAst(),
             generatedAst = lively.ast.acorn.parseFunction(String(code));
         generatedAst.type = capturedAst.type;
-        this.assertAstNodesEqual(generatedAst, capturedAst);
+        this.assertASTNodesEqual(generatedAst, capturedAst);
         this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');
     },
 

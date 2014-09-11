@@ -30,7 +30,7 @@
   * LK class system.
   */
 
-if (!Function.prototype.name) {
+if (Function.prototype.name === undefined) {
     Function.prototype.__defineGetter__("name", function () {
 	var md = (this + "").match(/function\s+(.*)\s*\(\s*/);
 	if (md) {

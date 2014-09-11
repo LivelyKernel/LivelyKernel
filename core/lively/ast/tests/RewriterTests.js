@@ -173,48 +173,59 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 
     test01WrapperTest: function() {
         var ast = this.parser.parse('12345;'),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast);
         this.assertASTMatchesCode(result, this.tryCatch(0, null, '12345;\n'))
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test02LocalVarTest: function() {
         var src = 'var i = 0; i;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'i': 'undefined'},
                 this.postfixResult(this.setVar(0, 'i', '0'), 2 /*astIndex*/) + ';\n' +
                 this.getVar(0, 'i') + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test03GlobalVarTest: function() {
         var src = 'i;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast);
         this.assertASTMatchesCode(result, this.tryCatch(0, null, 'i;\n'));
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test04MultiVarDeclarationTest: function() {
         var src = 'var i = 0, j;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'i': 'undefined', 'j': 'undefined'},
                 '(' + this.postfixResult(this.setVar(0, 'i', '0')) + '), ' + this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test05FunctionDeclarationTest: function() {
         var src = 'function fn(k, l) {}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'fn': this.closureWrapper(0, 'fn', ['k', 'l'], {}, "")},
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test06ScopedVariableTest: function() {
         var src = 'var i = 0; function fn() {var i = 1;}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {
                     'i': 'undefined',
@@ -224,11 +235,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 this.postfixResult(this.setVar(0, 'i', '0')) + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test07UpperScopedVariableTest: function() {
         var src = 'var i = 0; function fn() {i;}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {
                     'i': 'undefined',
@@ -237,11 +250,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 this.postfixResult(this.setVar(0, 'i', '0')) + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test08ForWithVarDeclarationTest: function() {
         var src = 'for (var i = 0; i < 10; i++) {}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'i': 'undefined'},
                 "for ("
@@ -250,11 +265,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
               + this.prefixResult(this.getVar(0, 'i') + '++')
               + ") {\n}\n");
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test09aForInWithVarDeclarationTest: function() {
         var src = 'for (var key in obj) {}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'key': 'undefined'},
                 "for ("
@@ -264,11 +281,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
               + this.intermediateReference() + '.shift();\n'
               + "}\n");
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test09bForInWithoutCurlys: function() {
         var src = "for (var key in obj) 1;\n",
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'key': 'undefined'},
                 "for ("
@@ -279,30 +298,36 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
               + this.intermediateReference() + '.shift();\n'
               + "}\n");
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test10EmptyForTest: function() {
         var src = 'for (;;) {}',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {}, "for (;;) {\n}\n");
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test11FunctionAssignmentTest: function() {
         var src = 'var foo = function bar() {};',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {'foo': 'undefined'},
                 this.postfixResult(this.setVar(0, 'foo',
                     this.storeResult(this.closureWrapper(0, 'bar', [], {}, ''))
                 )) + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test12FunctionAsParameterTest: function() {
         var src = 'fn(function () {});',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 this.storeResult(
@@ -310,22 +335,26 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         '(' + this.postfixResult(this.closureWrapper(0, '', [], {}, '')) + ')' +
                     ')') + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test13FunctionAsPropertyTest: function() {
         var src = '({fn: function () {}});',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 '({\nfn: '
                 + this.storeResult(this.closureWrapper(0, '', [], {}, '')) + '\n'
                 + '});\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test14FunctionAsSetterGetterTest: function() {
         var src = '({get foo() {}, set bar(val) {val++;}});',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 '({\n' +
@@ -334,11 +363,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                         this.prefixResult(this.getVar(1, 'val') + '++') + ';\n') + '}\n' +
                 '});\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test15FunctionAsReturnArgumentTest: function() {
         var src = '(function () {return function() {};});',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 this.storeResult(
@@ -346,32 +377,38 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                       'return ' + this.storeResult(
                           this.closureWrapper(1, '', [], {}, '')) + ';\n')) + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test16FunctionInConditionalTest: function() {
         var src = 'true ? function() {} : 23;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 'true ? ' +
                 this.storeResult(this.closureWrapper(0, '', [], {}, '')) + ' : 23;\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test17ClosureCallTest: function() {
         var src = '(function() {})();',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 this.prefixResult(
                     '(' + this.storeResult(this.closureWrapper(0, '', [], {}, '')) +
                     ')()') + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test18MemberChainSolvingTest: function() {
         var src = 'var lively, ast, morphic; lively.ast.morphic;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {lively: 'undefined', ast: 'undefined', morphic: 'undefined'},
                 this.pcAdvance() + ', ' +   // for lively
@@ -381,11 +418,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 // this.pcAdvance() + ', (' + this.pcAdvance() + ', ' + this.getVar(0, 'lively') + '.ast).morphic'
                 this.getVar(0, 'lively') + '.ast.morphic' + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test19FunctionInMemberChainTest: function() {
         var src = '(function() {}).toString();',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
               this.prefixResult(
@@ -393,25 +432,30 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                   + this.storeResult(this.closureWrapper(0, '', [], {}, ''))
                   + ').toString()') + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test20ObjectPropertyNamingTest: function() {
         var src = 'var foo; ({foo: foo});',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {foo: 'undefined'},
                 this.pcAdvance() + ';\n' +
                 "({ foo: " + this.getVar(0, 'foo') + ' });\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test21FunctionAsArrayElementTest: function() {
         var src = '[function() {}];',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 '[' + this.storeResult(this.closureWrapper(0, '', [], {}, '')) + '];\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test22aLocalFunctionCall: function() {
@@ -435,27 +479,32 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     test23FunctionDeclarationAfterUse: function() {
         var src = 'foo(); function foo() { }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {}, '') },
                 this.prefixResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test24FunctionReDeclaration: function() {
         var src = 'function foo() { 1; } foo(); function foo() { 2; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {}, '2;\n') },
                 this.pcAdvance() + ';\n' +
                 this.prefixResult(this.getVar(0, 'foo') + '.call(Global)') + ';\n' +
                 this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test25aNoRewritePrefixFunctionDecl: function() {
         var src = 'var a, b; function _NO_REWRITE_foo(a, b) { return a + b; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {
                 'a': 'undefined',
@@ -463,17 +512,20 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '_NO_REWRITE_foo': 'function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n}'
             }, this.pcAdvance() + ', ' + this.pcAdvance() + ';\n' + this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test25bNoRewritePrefixFunctionExpr: function() {
         var src = 'var bar = function _NO_REWRITE_foo(a, b) { return a + b; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'bar': 'undefined' },
                 this.postfixResult(this.setVar(0, 'bar',
                     this.prefixResult('function _NO_REWRITE_foo(a, b) {\nreturn a + b;\n}')
                 )) + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     xtest26CompressedAstRegistryRewrite: function() {
@@ -503,41 +555,49 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     test27aReferencingArguments: function() {
         var src = 'function foo() { arguments; arguments[0]; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {},
                 'arguments;\n' +
                 'arguments[0];\n'
             ) }, this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test27bRedeclaringArguments: function() {
         var src = 'function foo() { var arguments; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'foo': this.closureWrapper(0, 'foo', [], {},
                 this.pcAdvance() + ';\n'
             ) }, this.pcAdvance() + ';\n');
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test28TryAndCatchErrorRecovery: function() {
-        var src = 'try { } catch (e) { }',
+        var src = 'try { throw Error(); } catch (e) { }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 'try {\n' +
+                'throw ' + this.pcAdvance() + ', ' + this.prefixResult('Error()') + ';\n' +
                 '} catch (e) {\n' +
                 this.catchIntro(1, 'e') +
                 this.catchOutro(1) +
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test29aTryFinallyAndDebugger: function() {
         var src = 'try { debugger; } finally { 1; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, {},
                 'try {\n' +
@@ -549,11 +609,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test29bTryCatchFinallyAndDebugger: function() {
         var src = 'try { debugger; } catch (e) { 1; } finally { 2; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 'try {\n' +
@@ -567,11 +629,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test29cTryCatchAndFunctionDecl: function() {
         var src = 'try { debugger; } catch (e) { (function() { e; }); }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 'try {\n' +
@@ -584,11 +648,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test30aWithStatement: function() {
         var src = 'var a = 1; with ({ a: 2 }) { a; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'a': 'undefined' },
                 this.postfixResult(this.setVar(0, 'a', '1')) + ';\n' +
@@ -604,11 +670,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "}\n"
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test30bNestedWithStatements: function() {
         var src = 'var a = 1; with ({ a: 2 }) { with ({ b: 3 }) { a; } }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'a': 'undefined' },
                 this.postfixResult(this.setVar(0, 'a', '1')) + ';\n' +
@@ -633,11 +701,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "}\n"
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test30cWithStatementWithoutDeclaredVar: function() {
         var src = 'with ({ a: 1 }) { a; }',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 "{\n" +
@@ -651,13 +721,14 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 "__0 = __0[2];\n" +
                 "}\n"
             );
-        console.log(escodegen.generate(result));
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test31aDebuggerStatementInIf: function() {
         var src = 'if (true) debugger; else 1;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 'if (true) {\n' +
@@ -666,11 +737,13 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '1;\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test31bDebuggerStatementInElse: function() {
         var src = 'if (true) 1; else debugger;',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 'if (true)\n' +
@@ -680,21 +753,25 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 '}\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test32aFunctionCallWithoutParameter: function() {
         var src = 'fn();',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 this.prefixResult('fn()', 1) + ';\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test32bFunctionCallWithSimpleParameter: function() {
         var src = 'fn(1, a, b);',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { },
                 this.storeResult('fn(1, a, ' +
@@ -702,17 +779,70 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 ')', 4) + ';\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     },
 
     test32dLocalFunctionCallWithoutParameter: function() {
         var src = 'var fn; fn();',
             ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { fn: 'undefined' },
                 this.pcAdvance() + ';\n' +
                 this.prefixResult(this.getVar(0, 'fn') + '.call(Global)') + ';\n'
             );
         this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
+    },
+
+    test33SwitchStatement: function() {
+        var src = 'var a = 1, b; switch (a) { case 1: break; case b: a++; default: a--; }',
+            ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'a': 'undefined', 'b': 'undefined' },
+                '(' + this.postfixResult(this.setVar(0, 'a', '1')) + '), ' + this.pcAdvance() + ';\n' +
+                'switch (' + this.getVar(0, 'a') + ') {\n' +
+                'case 1:\n' +
+                'break;\n' +
+                'case ' + this.getVar(0, 'b') + ':\n' +
+                this.prefixResult(this.getVar(0, 'a') + '++') + ';\n' +
+                'default:\n' +
+                this.prefixResult(this.getVar(0, 'a') + '--') + ';\n' +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
+    },
+
+    test34DoWhileStatement: function() {
+        var src = 'var i = 0; do { i++; } while(i < 3);',
+            ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'i': 'undefined' },
+                this.postfixResult(this.setVar(0, 'i', '0')) + ';\n' +
+                'do {\n' +
+                this.prefixResult(this.getVar(0, 'i') + '++') + ';\n' +
+                '} while (' + this.getVar(0, 'i') + ' < 3);\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
+    },
+
+    test35WhileStatement: function() {
+        var src = 'var i = 0; while (i < 3) { i++; }',
+            ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'i': 'undefined' },
+                this.postfixResult(this.setVar(0, 'i', '0')) + ';\n' +
+                'while (' + this.getVar(0, 'i') + ' < 3) {\n' +
+                this.prefixResult(this.getVar(0, 'i') + '++') + ';\n' +
+                '}\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     }
 
 });

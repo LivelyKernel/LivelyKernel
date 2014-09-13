@@ -1231,25 +1231,24 @@ handleOnCapture);
     },
 
     dropOn: function(aMorph) {
-        var placeholderPosition;
-        if (this.placeholder) {
-            placeholderPosition = this.placeholder.getPosition();
-        }
-        
+        var placeholder = this.placeHolder;
         var layouter = aMorph.getLayouter();
-        if (layouter) {
-            layouter.removeAllPlaceholders();
+
+        if (placeholder) {
+            this.noLayoutDuring(function() {
+                aMorph.addMorph(this);
+                this.onDropOn(aMorph);
+                this.setPosition(placeholder.getPosition().subPt(this.getOrigin()));
+            });
+        } else {
+            aMorph.addMorph(this);
+            this.onDropOn(aMorph);
         }
-        
-        aMorph.addMorph(this);
-        this.onDropOn(aMorph);
         delete this.previousOwner;
         delete this.previousPosition;
-        if (placeholderPosition) {
-            delete(this.placeholder);
-            this.setPosition(placeholderPosition.subPt(this.getOrigin())); //.subPt(pt(1,1)));
-            aMorph.applyLayout();
-        }
+        delete this.placeholder;
+        if (layouter) layouter.removeAllPlaceholders();
+        aMorph.applyLayout();
     },
 
     onDropOn: function(aMorph) {
@@ -1910,11 +1909,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         for (var i = 0; i < submorphs.length; i++) {
             var submorph = submorphs[i],
                 submorphPos = submorph.getPosition();
-            if (submorph.isGrabShadow) {
-                submorph.remove();
-            } else {
-                submorph.dropOn(morph);
-            }
+            if (submorph.isGrabShadow) submorph.remove();
+            else submorph.dropOn(morph);
         };
         evt && evt.stop();
         return true;

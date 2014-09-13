@@ -6,6 +6,15 @@ lively.morphic.Morph.addMethods(
     // set this to false)
     isLayoutable: true,
 
+    noLayoutDuring: function(func) {
+        var orig = this.isInLayoutCycle, self = this;
+        function enableLayouting() { self.isInLayoutCycle = orig; }
+        this.isInLayoutCycle = false;
+        try {
+            return func.length ? func.call(this, enableLayouting) : func.call(this);
+        } finally { if (!func.length) enableLayouting(); }
+    },
+
     adjustForNewBounds: function() {
         // resizeVertical, resizeHorizontal, moveVertical, moveHorizontal
 
@@ -76,31 +85,21 @@ lively.morphic.Morph.addMethods(
     getLayouter: function() {
         return this.layout ? this.layout.layouter: undefined;
     },
+
     getMinWidth: function() {
-        if (!this.doesResize('width')) {
-            return this.getExtent().x;
-        }
-        if (this.getLayouter()) {
-            if (lively.morphic.Layout.widthClipHidden(this)) {
-                return 0;
-            } else {
-                return this.getLayouter().getMinWidth(this, this.getLayoutableSubmorphs());
-            }
-        }
-        return 0;
+        if (!this.doesResize('width')) return this.getExtent().x;
+        if (!this.getLayouter()) return 0;
+        if (lively.morphic.Layout.widthClipHidden(this)) return 0;
+        return this.getLayouter().getMinWidth(this, this.getLayoutableSubmorphs());
     },
+
     getMinHeight: function() {
-        if (!this.doesResize('height')) {
-            return this.getExtent().y;
-        }
-        if (this.getLayouter()) {
-            if (lively.morphic.Layout.heightClipHidden(this))
-                return 0
-            else
-                return this.getLayouter().getMinHeight(this, this.getLayoutableSubmorphs());
-        }
-        return 0;
+        if (!this.doesResize('height')) return this.getExtent().y;
+        if (!this.getLayouter()) return 0;
+        if (lively.morphic.Layout.heightClipHidden(this)) return 0;
+        return this.getLayouter().getMinHeight(this, this.getLayoutableSubmorphs());
     },
+
     submorphResized: function(aSubmorph) {
         // my submorph aSubmorph has changed its size
         var layouter = this.getLayouter();
@@ -124,7 +123,6 @@ lively.morphic.Morph.addMethods(
     setPositionCentered: function(pos) {
         this.setPosition(pos.subPt(this.innerBounds().center()));
     },
-
 
     getLayoutableSubmorphs: function() {
         // reject is damn slow..., optimize it!
@@ -156,15 +154,14 @@ lively.morphic.Morph.addMethods(
     },
 
     destroyPlaceholder: function() {
-        if (!this.placeholder) return;
-        var owner = this.placeholder.owner;
-        this.placeholder.remove();
+        var placeholder = this.placeholder;
+        if (!placeholder) return;
         delete this.placeholder;
-
+        var owner = placeholder.owner;
+        placeholder.remove();
         if (owner && owner.layout && owner.layout.extentWithoutPlaceholder) {
             owner.setExtent(owner.layout.extentWithoutPlaceholder);
         }
-
     },
     getLayoutConstraintInfo: function() {
         if (!this.layout) {
@@ -360,11 +357,11 @@ Object.subclass('lively.morphic.Layout.Layout',
         // does the layout class show placeholders when dragging a submorphs?
         return false;
     },
-    showPlaceholderFor: function(aMorph, anEvent) {
+    showPlaceholderFor: function(morph, evt) {
         if (!this.container || !this.container.droppingEnabled) return;
         var localPos = this.container.getGlobalTransform().
-            inverse().transformPoint(anEvent.getPosition());
-        var placeholder = aMorph.obtainPlaceholder();
+            inverse().transformPoint(evt.getPosition());
+        var placeholder = morph.obtainPlaceholder();
         if (!placeholder.isSubmorphOf(this.container)) {
             this.container.insertPlaceholder(placeholder);
         }
@@ -620,7 +617,7 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
     isJournalLayout: function () { return true; },
     handlesSubmorphResized: function() { return true; },
 
-    layoutOrder: function(aMorph) { return aMorph.getPosition().y; },
+    layoutOrder: function(aMorph) { return aMorph.bounds().top(); },
 
     displaysPlaceholders: Functions.True,
 
@@ -630,6 +627,11 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
         if (aMorph.getExtent().y != minHeight) {
             aMorph.setExtent(pt(aMorph.getExtent().x, minHeight));
         }
+    },
+    
+    onSubmorphAdded: function($super, newOwner, morph, newOwnerSubmorphs) {
+        if (morph.placeholder) morph.setPosition(morph.placeholder.getPosition());
+        $super(newOwner, morph, newOwnerSubmorphs);
     }
 });
 

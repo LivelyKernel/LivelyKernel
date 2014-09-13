@@ -2806,8 +2806,8 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         this.buttons = ['Ok', 'Cancel'];
     },
 
-    openIn: function($super, owner, pos) {
-        this.lastFocusedMorph = lively.morphic.Morph.focusedMorph();
+    openIn: function($super, owner, pos, focusedMorph) {
+        this.lastFocusedMorph = focusedMorph || lively.morphic.Morph.focusedMorph();
         return $super(owner, pos);
     },
 
@@ -4062,12 +4062,6 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
     dragTriggerDistance: 0,
     isSliderKnob: true
 },
-'initializing', {
-    initialize: function($super, initialBounds, slider) {
-        $super(initialBounds);
-        this.slider = slider;
-    },
-},
 'mouse events', {
     onDragStart: function($super, evt) {
         this.hitPoint = this.owner.localize(evt.getPosition());
@@ -4077,30 +4071,31 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
         // the hitpoint is the offset that make the slider move smooth
         if (!this.hitPoint) return; // we were not clicked on...
 
-        // Compute the value from a new mouse point, and emit it
-        var delta = this.owner.localize(evt.getPosition()).subPt(this.hitPoint),
-            p = this.bounds().topLeft().addPt(delta),
-            bnds = this.slider.innerBounds(),
-            ext = this.slider.getSliderExtent();
+        var slider = this.owner;
 
-        this.hitPoint = this.owner.localize(evt.getPosition());
-        if (this.slider.vertical()) {
+        // Compute the value from a new mouse point, and emit it
+        var delta = slider.localize(evt.getPosition()).subPt(this.hitPoint),
+            p = this.bounds().topLeft().addPt(delta),
+            bnds = slider.innerBounds(),
+            ext = slider.getSliderExtent();
+
+        if (slider.vertical()) {
             // thickness of elevator in pixels
-            var elevPix = Math.max(ext*bnds.height,this.slider.mss),
+            var elevPix = Math.max(ext*bnds.height,slider.mss),
                 newValue = p.y / (bnds.height-elevPix);
         } else {
             // thickness of elevator in pixels
-            var elevPix = Math.max(ext*bnds.width,this.slider.mss),
+            var elevPix = Math.max(ext*bnds.width,slider.mss),
                 newValue =  p.x / (bnds.width-elevPix);
         }
 
         if (isNaN(newValue)) newValue = 0;
-        this.slider.setScaledValue(this.slider.clipValue(newValue));
+        var prevVal = slider.getScaledValue(this);
+        var newVal = slider.setScaledValue(slider.clipValue(newValue), this);
+        if (+newVal != +prevVal) this.hitPoint = slider.localize(evt.getPosition());
     },
     onDragEnd: function($super, evt) { return $super(evt) },
-    onMouseDown: function(evt) {
-        return true;
-    }
+    onMouseDown: function(evt) { return true; }
 
 });
 

@@ -1325,6 +1325,7 @@ lively.morphic.Morph.addMethods(
             morphNode.style[durationProp] = "";
             shapeNode.style[durationProp] = "";
         }
+
     },
 
 

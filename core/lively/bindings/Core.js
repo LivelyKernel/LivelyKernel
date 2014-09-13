@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.bindings.Core').requires().toRun(function() {
+module('lively.bindings.Core').requires('lively.lang.Closure').toRun(function() {
 
 Object.subclass('AttributeConnection',
 'settings', {

@@ -636,6 +636,49 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});
     },
+        createDirInteractively: function createDirInteractively() {
+        var base = this.dirState.path,
+            self = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.prompt("Create directory: Enter a name", function(input) {
+                    next(!input ? new Error("no input") : null, input); });
+            },
+            function(dirName, next) {
+                var path = base + (base.endsWith("/") ? "" : "/") + dirName;
+                lively.shell.run("mkdir -p " + path, {}, function(cmd) {
+                    next(null, dirName); });
+            },
+            function(dirName, next) {
+                self.fetchAndDisplayDirContent();
+                lively.bindings.connect(
+                    self, 'dirContentUpdated',
+                    {next: function() { next(null, dirName); }}, 'next');
+            },
+            function(dirName, next) {
+                var firstPart = dirName.split('/').first();
+                self.get("fileList").setSelectionMatching(firstPart);
+            })(function(err) {
+                if (err) show("Error creating directory: " + err);
+                else Global.alertOK("Directory created");
+            });
+    },
+
+        deleteSelectedFileInteractively: function deleteSelectedFileInteractively() {
+        var sel = this.get("fileList").selection;
+        if (!sel) { show("nothing selected"); return; }
+    
+        var base = this.dirState.path,
+            self = this;
+        var path = base + (base.endsWith("/") ? "" : "/") + sel.fileName;
+    
+        $world.confirm("Really delete " + path + "?", function(input) {
+            if (!input) return;
+            lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(cmd) {
+                self.fetchAndDisplayDirContent(); });
+        });
+    },
+
         doActionForFileItem: function doActionForFileItem(fileItem) {
         var j = lively.ide.FileSystem.joinPaths;
         var fullPath = j(this.dirState.path, fileItem.path);
@@ -645,7 +688,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             lively.ide.openFile(fullPath)
         }
     },
-        fetchAndDisplayDirContent: function fetchAndDisplayDirContent() {
+        fetchAndDisplayDirContent: function fetchAndDisplayDirContent(thenDo) {
         // this.fetchAndDisplayDirContent();
         var self = this;
         this.get('filter').textString = ''
@@ -668,6 +711,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             function(files) {
                 self.dirState.files = [parentDir].concat(files);
                 self.renderDebounced();
+                thenDo && thenDo();
             });
     },
         focusChanged: function focusChanged(newFocus) {
@@ -798,12 +842,6 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         keys            = evt.getKeyString(),
         wasHandled      = true;
 
-    function ensureSelectionIsInView(topOrBottom) {
-        var visible = fl.getVisibleIndexes();
-        // if (visible.include(fl.selectedLineNo)) return;
-        var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
-        fl.selectAt(newIdx);
-    }
     switch (keys) {
         case 'Enter':
             var sel = fl.getSelection();
@@ -813,12 +851,14 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 wasHandled = false;
             break;
         case 'Shift-^': this.gotoParentDir(); break;
+        case 'Shift-D': if (fileListFocused) this.deleteSelectedFileInteractively(); break;
         case 'Control-N': case 'Down': fl.selectNext(); break;
         case 'Control-P': case 'Up': fl.selectPrev(); break;
         case "Alt-V": case "PageUp": fl.scrollPage('up'); ensureSelectionIsInView('top'); break;
         case "Control-V": case "PageDown": fl.scrollPage('down'); ensureSelectionIsInView('bottom'); break;
         case "Alt-Shift->": case "End": fl.scrollToBottom(); ensureSelectionIsInView('bottom'); break;
         case "Alt-Shift-<": case "Home": fl.scrollToTop(); ensureSelectionIsInView('top'); break;
+        case "Command-Shift-+": case "Control-Shift-+": this.createDirInteractively(); break;
         case 'F1': dirInput.focus(); break;
         case 'F2': fl.focus(); break;
         case 'F3': filter.focus(); break;
@@ -844,6 +884,14 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         return dirInputFocused || filterFocused ? false : $super(evt);
     } else {
         evt.stop(); return true;
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    function ensureSelectionIsInView(topOrBottom) {
+        var visible = fl.getVisibleIndexes();
+        // if (visible.include(fl.selectedLineNo)) return;
+        var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
+        fl.selectAt(newIdx);
     }
 },
         onWindowGetsFocus: function onWindowGetsFocus() {

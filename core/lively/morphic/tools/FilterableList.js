@@ -18,6 +18,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
 	font-size: 9pt !important;\n\
 }",
     className: "lively.morphic.Box",
+    connections: {rendered: {}},
     droppingEnabled: true,
     filterState: {
         filterTimeout: 100,
@@ -370,6 +371,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         // this.get('resultText').textString = processedItems.length + ' matches';
         list.isInLayoutCycle = false;
         list.applyLayout();
+        lively.bindings.signal(this, "rendered");
         thenDo && thenDo.call(this, null, processItems);
     },
 

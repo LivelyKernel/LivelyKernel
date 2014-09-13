@@ -202,16 +202,15 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         });
     }
 
-    Functions.debounceNamed(this.id+'doSearch', 800, function(searchTerm) {
+    Functions.debounceNamed(this.id+'doSearch', 800, function(searchTerm, thenDo) {
         loadingIndicator.setLabel('Loading...');
         self.getWindow().setTitle('CodeSearch for ' + String(searchTerm).truncate(100));
-        searchMethod.bind(self, searchTerm, function(err, list) {
+        searchMethod.call(self, searchTerm, function(err, list) {
             isLoaded = true;
-            if (loadingIndicator) loadingIndicator.remove();
-            false && show('search done')
+            lively.bindings.connect(self.get("FilterableList"), 'rendered', loadingIndicator, 'remove');
             thenDo && thenDo.call(self, err, list);
-        }).delay(0.1);
-    })(searchTerm);
+        });
+    })(searchTerm, thenDo);;
 },
     reset: function reset() {
     this.get('FilterableList').reset();

@@ -62,7 +62,8 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         //return this.cachedVertices;
     },
     getBounds: function() {
-        return this.renderContextDispatch('getPathBounds');
+        return this.renderContextDispatch('getPathBounds')
+            || lively.rect(0,0,0,0);
     },
     getExtent: function() {
         return this.getBounds().extent()

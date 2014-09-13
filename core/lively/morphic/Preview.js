@@ -63,8 +63,15 @@ Object.extend(lively.morphic.Preview, {
 
     renderNodeToNewImage: function(node, options, thenDo) {
         options = options || {};
-        var w = options.width || 100, h = options.height || 100,
-            image = new lively.morphic.Image(lively.rect(0,0, w, h));
+        var w = options.width, h = options.height;
+
+        if (!w || !h) {
+            var nodeBounds = lively.$(node).bounds();
+            if (!w) w = nodeBounds ? nodeBounds.width() : 100;
+            if (!h) h = nodeBounds ? nodeBounds.height() : 100;
+        }
+
+        var image = new lively.morphic.Image(lively.rect(0,0, w, h));
         this.renderNodeToImage(node, image, options, thenDo);
     },
 

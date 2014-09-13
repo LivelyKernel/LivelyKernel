@@ -1229,7 +1229,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.confirmUnsavedChanges(thenDo);
         },
         confirmUnsavedChanges: function confirmUnsavedChanges(callback) {
-            return $world.confirm("Discard unsaved changes?", callback.bind(this));
+            var dialog = $world.confirm("Discard unsaved changes?", callback.bind(this));
+            (function() { dialog.view.focus(); }).delay(0.1);
+            return dialog;
         },
         copyToPartsBinWithUserRequest: function copyToPartsBinWithUserRequest() {
             this.owner.copyToPartsBinWithUserRequest();
@@ -1459,7 +1461,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 
     editor.lastSaveSource = source;
     this.changeIndicator.indicateUnsavedChanges();
-    this.updateLists();
+    this.updateListsAndSelectNewFunction();
     editor.setStatusMessage("saved source", Color.green);
 
 },
@@ -1569,6 +1571,15 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             if (!Arrays.equal(connectionListItems, this.connectionList.getList())) {
                 this.connectionList.setList(connectionListItems);
             }
+        },
+
+        updateListsAndSelectNewFunction: function updateListsAndSelectNewFunction() {
+            var oldScriptListItems = this.scriptList.getList();
+            this.updateLists();
+            var newScriptListItems = this.sortedScriptNamesOfObj(this.target);
+        
+            var diff = newScriptListItems.withoutAll(oldScriptListItems);
+            if (diff.length === 1) this.scriptList.setSelection(diff[0]);
         },
 
         updateTitleBar: function updateTitleBar() {

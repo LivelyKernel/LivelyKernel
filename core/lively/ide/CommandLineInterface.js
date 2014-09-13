@@ -800,7 +800,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (lastFind) lastFind.kill();
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
-                if (cmd.getCode() != 0) { console.warn(cmd.getStderr()); return []; }
+                if (cmd.getCode() != 0) console.warn(cmd.getStderr());
                 result = parseDirectoryList(cmd.getStdout(), rootDirectory);
                 callback && callback(result);
             });

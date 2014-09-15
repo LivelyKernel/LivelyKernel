@@ -460,7 +460,7 @@ Config.addOptions(
 
     // Tests
     ["serverInvokedTest", false],
-    ["serverTestDebug", true],
+    ["serverTestDebug", false],
 
     // Modules
     ["moduleLoadTestTimeout", 10*1000, "Timeout in ms after which to run a module load check. Make it falsy to disable the check."],

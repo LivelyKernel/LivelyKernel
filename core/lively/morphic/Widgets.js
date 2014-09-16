@@ -524,6 +524,33 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
     }
 });
 
+lively.morphic.Morph.subclass('lively.morphic.FileInput',
+'properties', {
+    connections: {
+        selectedFile: {}
+    }
+},
+'initializing', {
+    initialize: function($super) {
+        $super(this.createShape());
+        this.setExtent(lively.pt(200, 20));
+        this.doNotSerialize.push("selectedFile");
+    },
+    createShape: function() {
+        var node = XHTMLNS.create('input');
+        node.type = 'file';
+        return new lively.morphic.Shapes.External(node);
+    },
+},
+'events', {
+    onChange: function(evt) {
+        var fileList = evt.target.files;
+        for (var i = 0, f; f = fileList[i]; i++)
+            this.selectedFile = f;  // fire connection
+    },
+});
+
+
 lively.morphic.Morph.subclass('lively.morphic.PasswordInput',
 'initializing', {
     initialize: function($super, isChecked) {

@@ -158,10 +158,11 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 
 lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterface.PersistentCommand',
 "initializing", {
-    _pid: null
+    _pid: null,
+    _started: false
 },
 'testing', {
-    isRunning: function() { return !this.isDone() && !!this.getPid(); }
+    isRunning: function() { return !this.isDone() && (this._started || !!this.getPid()); }
 },
 "connection", {
 
@@ -183,6 +184,8 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 },
 "control", {
     start: function() {
+        if (this._started) return this;
+        this._started = true;
         var cmdInstructions = {
             command: this.getCommand(),
             cwd: this._options.cwd,
@@ -259,17 +262,25 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     getPid: function() { return this._pid; },
 
     kill: function(signal, thenDo) {
-        if (this._done) { thenDo && thenDo(null); return}
-        var pid = this.getPid();
-        if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
-        var self = this;
-        this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
-            err = err || (answer.data && answer.data.error);
-            if (err) show(err);
-            var running = answer && answer.commandIsRunning;
-            self._killed = !running; // hmmmmm
-            thenDo && thenDo(err, answer);
-        });
+        thenDo = Functions.once(thenDo);
+        if (this._done) {
+            thenDo && thenDo();
+        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
+            this._killed = true;
+            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+            thenDo && thenDo();
+        } else {
+            var pid = this.getPid();
+            if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
+            var self = this;
+            this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
+                err = err || (answer.data && answer.data.error);
+                if (err) show(err);
+                var running = answer && answer.commandIsRunning;
+                self._killed = !running; // hmmmmm
+                thenDo && thenDo(err, answer);
+            });
+        }
     }
 },
 'internal', {

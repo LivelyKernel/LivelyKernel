@@ -672,7 +672,7 @@ Object.extend(lively.PartsBin, {
         files.clone().doAndContinue(function(next, file) {
             Functions.composeAsync(
                 function(next) {
-                    fromURL.withFilename(file).asWebResource()
+                    fromURL.withFilename(file).asWebResource().noProxy()
                         .beAsync().get().whenDone(function(content, status) {
                             next(status.isSuccess() ? null : status, content); });
                 },

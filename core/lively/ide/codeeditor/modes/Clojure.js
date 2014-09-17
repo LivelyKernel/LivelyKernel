@@ -286,7 +286,63 @@ ClojureMode.addMethods({
     }
 });
 
+lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Clojure.ChangeHandler',
+"settings", {
+    targetMode: "ace/mode/clojure"
+},
+"parsing", {
+    parse: function(src, session) {
+        var options = {};
+        return null;
+        // return closer.parse(src, options);
     }
+},
+'rendering', {
+
+    onDocumentChange: function(evt) {
+        this.updateAST(evt)
+    },
+
+    updateAST: function(evt) {
+        var codeEditor = evt.codeEditor,
+            session = evt.session,
+            src = evt.codeEditor.textString,
+            ast;
+
+        // 1. parse
+        try {
+            ast = session.$ast = this.parse(src, session);
+        } catch(e) { ast = session.$ast = e; }
+
+        // 2. update lively codemarker
+        var marker = this.ensureLivelyCodeMarker(session);
+        marker.modeId = this.targetMode;
+        marker.markerRanges.length = 0;
+
+        // if (codeEditor.getShowWarnings()) {
+        //     marker.markerRanges.pushAll(
+        //         lively.ast.query.findGlobalVarRefs(ast, {jslintGlobalComment: true}).map(function(ea) {
+        //             ea.cssClassName = "ace-global-var"; return ea; }));
+        // }
+
+        // if (ast.parseError && codeEditor.getShowErrors()) {
+        //     ast.parseError.cssClassName = "ace-syntax-error";
+        //     marker.markerRanges.push(ast.parseError);
+        // }
+
+        // marker.redraw(session);
+
+        // 3. emit session astChange event
+        var astChange = {ast: ast, docChange: evt.data, codeEditor: codeEditor};
+        session._signal('astChange', astChange);
+    }
+
 });
+
+(function registerModeHandler() {
+    lively.module('lively.ide.codeeditor.DocumentChange').runWhenLoaded(function() {
+        lively.ide.CodeEditor.DocumentChangeHandler.registerModeHandler(lively.ide.codeeditor.modes.Clojure.ChangeHandler);
+    });
+})();
 
 }) // end of module

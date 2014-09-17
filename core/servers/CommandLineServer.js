@@ -145,7 +145,7 @@ function runShellCommand(cmdInstructions) {
     });
 
     shellCommand.process.on('close', function(code) {
-        debug && console.log('shell command exited with code ' + code);
+        debug && console.log('Shell command %s exited %s', shellCommand.process.pid, code);
         shellCommand.process = null;
         shellCommand.lastExitCode = code;
         shellCommand.emit('close', code);
@@ -218,9 +218,7 @@ var shellServices = {
         var pid = cmd.process.pid
         answer(true, {pid: pid});
         cmd.on('output', function(out) { answer(true, out); });
-        cmd.on('close', function(exit) {
-            debug && console.log('Shell command %s exited %s', pid, exit);
-            answer(false, exit); });
+        cmd.on('close', function(exit) { answer(false, exit); });
     },
 
     stopShellCommand: function(sessionServer, connection, msg) {
@@ -233,7 +231,6 @@ var shellServices = {
         if (!pid) { answer({commandIsRunning: false, error: 'no pid'}); return; }
         var cmd = findShellCommand(pid);
         if (!cmd) { answer({commandIsRunning: false, error: 'command not found'}); return; }
-        debug && console.log('signal pid %s with', pid, signal);
         signal = signal.toUpperCase().replace(/^SIG/, '');
         doKill(pid, cmd, signal, function(code, out, err) {
             answer({

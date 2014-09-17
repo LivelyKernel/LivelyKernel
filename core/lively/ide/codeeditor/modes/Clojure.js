@@ -134,6 +134,35 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
 Object.extend(lively.ide.codeeditor.modes.Clojure, {
 
+    prettyPrint: function(code, thenDo) {
+        // this is WORK IN PROGRESS!
+        var prettify = Strings.format(
+            "(require '(rewrite-clj parser printer))\n"
+          + "(rewrite-clj.printer/print-edn (rewrite-clj.parser/parse-string-all \"%s\"))",
+            code.replace(/"/g, '\\"'));
+
+        // var prettify = Strings.format(
+        //     "(clojure.pprint/write '%s :dispatch clojure.pprint/code-dispatch)",
+        //     code);
+        // var prettify = Strings.format(
+        //     "(require '[fipp.edn :refer (pprint) :rename {pprint fipp}]) (fipp '%s)",
+        //     code);
+
+        lively.ide.codeeditor.modes.Clojure.doEval(
+            prettify, {passError: true, resultIsJSON: false},
+            function(err, prettified) {
+                if (err) show(err);
+                if (err) prettified = code;
+                else {
+                    // try { prettified = eval(prettified); } catch (e) { prettified = code; }
+                    prettified = prettified.replace(/^(nil\s*)+/g, '');
+                    // FIXME pretty printer seems to add additional newlines after comments
+                    prettified = prettified.replace(/(;[^\n]*)[\n]+/gm, '$1\n');
+                    if (!prettified.length) prettified = code;
+                }
+                thenDo && thenDo(err, prettified);
+            });
+    },
 
     fetchDoc: function(expr, thenDo) {
         this.doEval("(doc " + expr + ")", {prettyPrint: true}, thenDo);
@@ -182,10 +211,31 @@ var ClojureMode = lively.ide.ace.require('ace/mode/clojure').Mode;
 ClojureMode.addMethods({
 
     commands: {
+        prettyPrint: {
+            exec: function(ed) {
+                var string = ed.$morph.getSelectionOrLineString();
+                lively.ide.codeeditor.modes.Clojure.prettyPrint(string, function(err, string) {
+                    ed.insert(string);
+                    // ed.$morph.printObject(ed, err ? err : string);
+                });
+                
+            }
+        },
+
+        printDoc: {
+            exec: function(ed) {
+                var string = ed.$morph.getSelectionOrLineString();
+                lively.ide.codeeditor.modes.Clojure.fetchDoc(string, function(err, docString) {
+                    ed.$morph.printObject(ed, err ? err : docString);
+                });
+            }
+        },
     },
 
     keybindings: {
         "Command-Shift-/": "printDoc",
+        "Tab": "prettyPrint"
+    },
 
     keyhandler: null,
 

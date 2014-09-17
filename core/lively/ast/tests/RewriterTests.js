@@ -845,6 +845,19 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             );
         this.assertASTMatchesCode(result, expected);
         this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
+    },
+
+    test36UnaryExpression: function() {
+        var src = 'var i = true; !i;',
+            ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
+            result = this.rewrite(ast),
+            expected = this.tryCatch(0, { 'i': 'undefined' },
+                this.postfixResult(this.setVar(0, 'i', 'true')) + ';\n' +
+                '!' + this.getVar(0, 'i') + ';\n'
+            );
+        this.assertASTMatchesCode(result, expected);
+        this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
     }
 
 });

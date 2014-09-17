@@ -1436,6 +1436,19 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }, start, end, astIndex);
     },
 
+    visitUnaryExpression: function(n, rewriter) {
+        // node.operator is an UnaryOperator enum:
+        // "-" | "+" | "!" | "~" | "typeof" | "void" | "delete"
+        // n.prefix has a specific type that is boolean
+        // argument is a node of type Expression
+        return {
+            start: n.start, end: n.end, type: 'UnaryExpression',
+            argument: this.accept(n.argument, rewriter),
+            operator: n.operator, prefix: n.prefix,
+            astIndex: n.astIndex
+        };
+    },
+
     visitBinaryExpression: function(n, rewriter) {
         // node.operator is an BinaryOperator enum:
         // "==" | "!=" | "===" | "!==" | | "<" | "<=" | ">" | ">=" | | "<<" | ">>" | ">>>" | | "+" | "-" | "*" | "/" | "%" | | "|" | "^" | "&" | "in" | | "instanceof" | ".."

@@ -573,6 +573,12 @@ Object.extend(lively.bindings, {
         }
     },
 
+    once: function(sourceObj, attrName, targetObj, targetMethodName, spec) {
+        spec = spec || {};
+        spec.removeAfterUpdate = true;
+        return lively.bindings.connect(sourceObj, attrName, targetObj, targetMethodName, spec);
+    },
+
     signal: function(sourceObj, attrName, newVal) {
         var connections = sourceObj.attributeConnections;
         if (!connections) return;
@@ -614,6 +620,7 @@ Object.extend(lively.bindings, {
 
         helper.whenDefined(source);
     },
+
     noUpdate: function(noUpdateSpec, func) {
         var globalNoUpdate = false, result;
         if (!func && Object.isFunction(noUpdateSpec)) {

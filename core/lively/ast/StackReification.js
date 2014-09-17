@@ -30,8 +30,11 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 
     rewrite: function(astRegistry) {
         var src = this.getFuncSource(),
-            ast = lively.ast.acorn.parseFunction(src);
-        return this.ast = lively.ast.Rewriting.rewriteFunction(ast, astRegistry);
+            ast = lively.ast.acorn.parseFunction(src),
+            namespace = '[runtime]';
+        if (this.originalFunc && this.originalFunc.sourceModule)
+            namespace = new URL(this.originalFunc.sourceModul.findUri()).relativePathFrom(URL.root);
+        return this.ast = lively.ast.Rewriting.rewriteFunction(ast, astRegistry, namespace);
     }
 
 });
@@ -151,9 +154,9 @@ Object.extend(Global, {
     // halt: lively.ast.StackReification.halt,
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    __createClosure: Global.__createClosure || function(idx, parentFrameState, f) {
+    __createClosure: Global.__createClosure || function(namespace, idx, parentFrameState, f) {
         // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
-        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[idx];
+        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[namespace][idx];
         // parentFrameState = [computedValues, varMapping, parentParentFrameState]
         f._cachedScopeObject = parentFrameState;
         f.livelyDebuggingEnabled = true;
@@ -161,8 +164,9 @@ Object.extend(Global, {
     },
 
     // FIXME naming -- actually we return the ast node not a closure
-    __getClosure: Global.__getClosure || function(idx) {
-        return lively.ast.Rewriting.getCurrentASTRegistry()[idx]; // ast
+    __getClosure: Global.__getClosure || function(namespace, idx) {
+        var subRegistry = lively.ast.Rewriting.getCurrentASTRegistry()[namespace];
+        return (subRegistry != null ? subRegistry[idx] : null); // ast
     }
 
 });

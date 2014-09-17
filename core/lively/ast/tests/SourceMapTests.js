@@ -26,7 +26,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test01EmptyRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -37,7 +37,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test02IdentifierRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('fooBar', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -48,7 +48,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test03MemberExpressionRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('foo.bar', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -59,7 +59,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test04CallExpressionRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('foo()', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -70,7 +70,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test05FunctionExpressionRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('(function(foo) { return foo; })', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -81,7 +81,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test06VarDeclarationRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('var obj = {}, none; for (var key in obj) {}', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -92,7 +92,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test07LogicalExpressionRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('true && false', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -103,7 +103,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test08ConditinalExpressionRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('true ? [] : [1]', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -114,7 +114,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test09ForStatementRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('for (var i = 0; i < 10; i++) {}', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -125,7 +125,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test10TryCatchFinallyRewrite: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('try { 1; } catch (e) { 2; } finally { 3; }', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);
@@ -136,7 +136,7 @@ TestCase.subclass('lively.ast.tests.SourceMapTests.RewriteMapTest',
 
     test11Redefinition: function() {
         var registry = [],
-            rewriter = new lively.ast.Rewriting.Rewriter(registry),
+            rewriter = new lively.ast.Rewriting.Rewriter(registry, 'RewriteMapTest'),
             ast = lively.ast.acorn.parse('function foo() {} function foo() {}', { locations: true }),
             rewrittenAst = rewriter.rewrite(ast),
             rewrittenSrc = escodegen.generate(rewrittenAst);

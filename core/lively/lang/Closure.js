@@ -85,10 +85,10 @@ Object.subclass('lively.Closure',
 'function creation', {
 
     recreateFunc: function() {
-        return this.recreateFuncFromSource(this.getFuncSource());
+        return this.recreateFuncFromSource(this.getFuncSource(), this.originalFunc);
     },
 
-    recreateFuncFromSource: function(funcSource) {
+    recreateFuncFromSource: function(funcSource, optFunc) {
         // what about objects that are copied by value, e.g. numbers?
         // when those are modified after the originalFunc we captured
         // varMapping then we will have divergent state
@@ -126,8 +126,11 @@ Object.subclass('lively.Closure',
         if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
         if (lively.Config.get('loadRewrittenCode')) {
             module('lively.ast.Rewriting').load(true);
+            var namespace = '[runtime]';
+            if (optFunc && optFunc.sourceModule)
+                namespace = new URL(optFunc.sourceModule.findUri()).relativePathFrom(URL.root);
             var fnAst = lively.ast.acorn.parse(src),
-                rewrittenAst = lively.ast.Rewriting.rewrite(fnAst, lively.ast.Rewriting.getCurrentASTRegistry()),
+                rewrittenAst = lively.ast.Rewriting.rewrite(fnAst, lively.ast.Rewriting.getCurrentASTRegistry(), namespace),
                 retVal = rewrittenAst.body[0].block.body.last();
 
             // FIXME: replace last ExpressionStatement with ReturnStatement

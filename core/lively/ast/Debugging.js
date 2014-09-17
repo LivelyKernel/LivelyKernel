@@ -154,7 +154,7 @@ Object.extend(JSLoader, {
         // rewrite code
         var relUrl = url.indexOf(LivelyLoader.rootPath) == 0 ? url.substr(LivelyLoader.rootPath.length) : url,
             ast = lively.ast.acorn.parse(source, { locations: true, directSourceFile: relUrl }),
-            rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry),
+            rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry, relUrl),
             rewrittenSource = Strings.format(
                 '(function() {\n%s\n%s\n})();',
                 escodegen.generate(rewrittenAst),

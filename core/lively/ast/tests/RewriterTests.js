@@ -6,9 +6,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     setUp: function($super) {
         $super();
         this.parser = lively.ast.acorn;
-        this.rewrite = function(node) { return lively.ast.Rewriting.rewrite(node, astRegistry); };
+        this.rewrite = function(node) {
+            return lively.ast.Rewriting.rewrite(node, astRegistry, 'AcornRewriteTests');
+        };
         this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
-        var astRegistry = this.astRegistry = [];
+        var astRegistry = this.astRegistry = {};
         lively.ast.Rewriting.setCurrentASTRegistry(astRegistry);
     },
 
@@ -29,7 +31,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             + "%s"
             + "} catch (e) {\n"
             + "    var ex = e.isUnwindException ? e : new UnwindException(e);\n"
-            + "    ex.storeFrameInfo(this, arguments, __%s, lastNode, %s);\n"
+            + "    ex.storeFrameInfo(this, arguments, __%s, lastNode, 'AcornRewriteTests', %s);\n"
             + "    throw ex;\n"
             + "}\n",
             level, level, generateVarMappingString(), level, level,
@@ -92,7 +94,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 
     closureWrapper: function(level, name, args, innerVarDecl, inner, optInnerLevel) {
         // something like:
-        // __createClosure(333, __0, function () {
+        // __createClosure('AcornRewriteTests', 333, __0, function () {
         //     try {
         //         var _ = {}, _1 = {}, __1 = [_,_1,__0];
         //     ___ DO INNER HERE ___
@@ -102,7 +104,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         optInnerLevel = !isNaN(optInnerLevel) ? optInnerLevel : (level + 1);
         args.forEach(function(argName) { argDecl[argName] = argName; });
         return Strings.format(
-            "__createClosure(__/[0-9]+/__, __%s, function %s(%s) {\n"
+            "__createClosure('AcornRewriteTests', __/[0-9]+/__, __%s, function %s(%s) {\n"
           + this.tryCatch(optInnerLevel, argDecl, inner, level)
           + "})", level, name, args.join(', '));
     },
@@ -854,9 +856,11 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
     setUp: function($super) {
         $super();
         this.parser = lively.ast.acorn;
-        this.rewrite = function(node) { return lively.ast.Rewriting.rewrite(node, astRegistry); };
+        this.rewrite = function(node) {
+            return lively.ast.Rewriting.rewrite(node, astRegistry, 'AcornRewriteTests');
+        };
         this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
-        var astRegistry = this.astRegistry = [];
+        var astRegistry = this.astRegistry = {};
         lively.ast.Rewriting.setCurrentASTRegistry(astRegistry);
     },
 
@@ -1015,7 +1019,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         $super();
         if (!lively.Config.get('loadRewrittenCode')) {
             this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
-            lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = []);
+            lively.ast.Rewriting.setCurrentASTRegistry(this.astRegistry = {});
         }
         this.config = lively.Config.enableDebuggerStatements;
         lively.Config.enableDebuggerStatements = true;

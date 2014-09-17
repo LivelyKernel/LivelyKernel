@@ -309,7 +309,7 @@ lively.Class = {
         var src = lively.Class.initializerTemplate.replace(/CLASS/g, name);
         if (lively.Config.loadRewrittenCode) {
             var idx = src.match('.*storeFrameInfo\([^\)]*, ([0-9]+)\)')[2];
-            src = '__createClosure(' + idx + ', Global, ' + src + ');';
+            src = '__createClosure("core/lively/Base.js", ' + idx + ', Global, ' + src + ');';
         } else
             src += ' ' + name;
         return eval(src);

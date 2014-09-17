@@ -240,7 +240,7 @@ Object.subclass('lively.PartsBin.PartItem',
                     console.log('Error on setPartFromJSON: ' + e)
                 }
             },
-            triggerCallback: cb ? cb.curry(null) : Functions.Null,
+            triggerCallback: cb ? Functions.once(cb.curry(null)) : Functions.Null,
         }
         lively.bindings.connect(this, 'json', loadTrigger, 'jsonLoaded', {removeAfterUpdate: true});
         lively.bindings.connect(this, 'loadedMetaInfo', loadTrigger, 'metaInfoLoaded', {removeAfterUpdate: true});
@@ -661,7 +661,30 @@ Object.extend(lively.PartsBin, {
                     if (thenDo) thenDo(null, pb.partSpaces);
                 }).delay(0);
             });
+    },
+
+    copyRemotePart: function(partName, partsSpaceName, serverURL, thenDo) {
+        var fromURL = new URL(serverURL).withFilename(partsSpaceName).asDirectory();
+        var files = ['.json', '.html', '.metainfo'].map(function(ea) { return  partName + ea; });
+        var toURL = URL.root.withFilename(partsSpaceName).asDirectory();
+        toURL.asWebResource().ensureExistance();
+        var errors = [];
+        files.clone().doAndContinue(function(next, file) {
+            Functions.composeAsync(
+                function(next) {
+                    fromURL.withFilename(file).asWebResource()
+                        .beAsync().get().whenDone(function(content, status) {
+                            next(status.isSuccess() ? null : status, content); });
+                },
+                function(content, next) {
+                    toURL.withFilename(file).asWebResource()
+                        .beAsync().put(content).whenDone(function(_, status) {
+                            next(status.isSuccess() ? null : status); });
+                }
+            )(function(err) { if (err) errors.push(err); files.remove(file); next(); });
+        }, function() { thenDo && thenDo(errors.length ? errors : null); });
     }
+
 });
 
 Trait('lively.PartsBin.PartTrait', {

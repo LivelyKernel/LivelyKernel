@@ -82,12 +82,13 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
             if (this._errorHandler) return;
 
             this._errorHandler = (function errorHandler(errEvent, url, lineNumber, column, errorObj) {
-                var err = errEvent.error || err;
+                var err = errEvent.error || errEvent;
                 if (err.stack) {
                     var string = String(err.stack)
                     console.error("%s", string.replace(/\n/g, ''));
-                } else
-                    console.error("%s  %s:%s", err, url, lineNumber);
+                } else if (err.message) {
+                    console.error(err.message);
+                } else console.error("%s  %s:%s", err, url, lineNumber);
             }).bind(this);
 
             window.addEventListener('error', this._errorHandler);

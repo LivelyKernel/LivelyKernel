@@ -1541,6 +1541,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.resizeWindow.bottom': {mac: "cmd-s-l r e s b", win: "ctrl-s-l r e s b"},
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.findFile': {mac: ['Control-X F', 'Control-X Control-F'], win: ['Control-X F', 'Control-X Control-F']},
+    'lively.ide.openDirViewer': 'Control-X D',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-shift-y",

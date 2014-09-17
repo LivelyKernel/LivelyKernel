@@ -475,7 +475,7 @@ Object.extend(Array.prototype, {
             };
         }, function() {
             progressBar.setValue(1);
-            if (progressBarAdded) (function() { debugger; progressBar.remove(); }).delay(0);
+            if (progressBarAdded) (function() { progressBar.remove(); }).delay(0);
             if (whenDoneFunc) whenDoneFunc.call(context);
         }))();
 

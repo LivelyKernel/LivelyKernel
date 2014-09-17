@@ -629,7 +629,8 @@ Global.Functions = {
             var nextActivated = false;
             return function() {
                 var args = Array.from(arguments);
-                if (!endCallback) endCallback = args.length === 0 ? function() {} : args.pop();
+                if (!endCallback) endCallback = args.length > 0 && args.pop();
+                if (typeof endCallback !== 'function') endCallback = function() {};
                 function next(/*err and args*/) {
                     nextActivated = true;
                     var args = Array.from(arguments),
@@ -678,5 +679,15 @@ Global.Functions = {
             var timeStep = timeLeft < 50 ? timeLeft : 50;
             setTimeout(test, timeStep);
         })();
+    },
+
+    once: function(func) {
+        var invoked = false, result;
+        return function() {
+            if (invoked) return result;
+            invoked = true;
+            return result = func.apply(this, arguments);
+        }
     }
+
 };

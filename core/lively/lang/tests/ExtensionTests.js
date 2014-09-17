@@ -1103,6 +1103,16 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         (function foo() { return $super() + 23; }).asScriptOf(obj);
         this.assertEquals(26, obj.foo());
         this.done();
+    },
+
+    testOnce: function() {
+        var c = 0;
+        function counter(arg1) { c++; return arg1 + c; }
+        var once = Functions.once(counter);
+        once(22); once();
+        this.assertEquals(1, c);
+        this.assertEquals(23, once());
+        this.done();
     }
 });
 

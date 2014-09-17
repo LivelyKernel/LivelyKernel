@@ -1,7 +1,18 @@
 /*global Buffer, module, require, setTimeout*/
 
+var debug = true;
+var exec  = require("child_process").exec;
+var async = require("async");
+var path  = require("path");
+var fs  = require("fs");
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 /*
 con = require("./ClojureServer").clientConnectionState.connection
+
+con.interrupt("36B0531A-DDA0-4498-85A8-A7E414BD2B90", function() { console.log(arguments); })
+con.interrupt(undefined, function() { console.log(arguments); })
 con.address()
 con.end()
 
@@ -16,14 +27,29 @@ b=require("/home/lively/clojure-om/node-nrepl-client/node_modules/bencode")
 b.
 */
 
-var debug = true;
-var exec = require("child_process").exec;
-var nreplClient = require("/home/lively/clojure-om/node-nrepl-client/src/nrepl-client.js");
-// delete require.cache["/home/lively/clojure-om/node-nrepl-client/src/nrepl-client.js"];
-
 var clientConnectionState = module.exports.clientConnectionState || {
     connection: null
 }
+
+function ensureNreplModule(thenDo) {
+    try {
+        var nreplClient = require("nrepl-client");
+        process.nextTick(function() { thenDo(null, nreplClient); });
+    } catch (e) {
+        console.log("Installing nodejs module nrepl-client");
+        var path = require('path'),
+            fs = require('fs'),
+            node_modules = path.join(process.env.WORKSPACE_LK, 'node_modules');
+        exec("git clone https://github.com/rksm/node-nrepl-client nrepl-client; cd nrepl-client; npm install;",
+            {cwd: path.join(process.env.WORKSPACE_LK, 'node_modules')},
+            function(code, out, err) {
+                try { nreplClient = require("nrepl-client"); } catch (e) { thenDo(e, null); return; }
+                console.log("nrepl-client installed");
+                thenDo(null, nreplClient);
+            });
+    }
+}
+
 
 function findNreplServerPort(thenDo) {
     var cmdString = "lsof -i tcp | "
@@ -42,34 +68,42 @@ function findNreplServerPort(thenDo) {
     });
 }
 
-function ensureNREPLConnection(thenDo) {
+function ensureNreplConnection(thenDo) {
     if (clientConnectionState.connection) {
         thenDo(null, clientConnectionState.connection);
         return;
     }
-    findNreplServerPort(function(err, port) {
-        console.log("Found nREPL server on port %s", port);
-        if (err) { thenDo(err, null); return; }
-        clientConnectionState.connection = nreplClient.connect({
-            host: "127.0.0.1",
-            port: port,
-            verbose: true});
-        clientConnectionState.connection.once("connect", function() {
-            thenDo(null, clientConnectionState.connection);
-        });
-        clientConnectionState.connection.once("close", function() {
-            clientConnectionState.connection = null;
-        });
+    async.waterfall([
+        findNreplServerPort,
+        function(port, next) {
+            console.log("Found nREPL server on port %s", port);
+            ensureNreplModule(function(err, nreplClient) {
+                next(err, port, nreplClient); });
+        },
+        function(port, nreplClient, next) {
+            clientConnectionState.connection = nreplClient.connect({
+                host: "127.0.0.1",
+                port: port,
+                verbose: true});
+            clientConnectionState.connection.once("connect", function() {
+                next(null, clientConnectionState.connection); });
+            clientConnectionState.connection.once("close", function() {
+                clientConnectionState.connection = null; });
+        }
+    ], function(err, con) {
+        if (err) console.error("Error in ensureNreplConnection: ", err);
+        thenDo(err, con);
     });
 }
 
 function doEval(code, thenDo) {
     debug && console.log("Clojure eval: ", code);
-    ensureNREPLConnection(function(err, con) {
+    ensureNreplConnection(function(err, con) {
         if (err) { thenDo(err, null); return; }
         con.messageStream.on("error", function(err) { con.end(); thenDo(err, null); })
         con.messageStream.once("messageSequence", function(messages) { thenDo(null, messages); })
-        con.eval(code, function(err, result) {/*currently ignore*/});
+        var id = con.eval(code, function(err, result) {/*currently ignore*/});
+        console.log(id);
     });
 }
 
@@ -92,7 +126,7 @@ module.exports = function(route, app) {
         var con = module.exports.clientConnectionState.connection
         con && con.end();
         module.exports.clientConnectionState.connection = null;
-        delete require.cache["/home/lively/clojure-om/node-nrepl-client/src/nrepl-client.js"];
+        delete require.cache[require.resolve("nrepl-client")];
         res.end("OK");
     });
 

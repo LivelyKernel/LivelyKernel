@@ -1238,6 +1238,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 lively.bindings.noUpdate(function() { itemMorph.selected = selected; });
             }
         }, this);
+        lively.bindings.signal(this, "rendered");
     },
 
     createListItemMorph: function(string, i, layout) {

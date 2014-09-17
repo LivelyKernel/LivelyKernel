@@ -135,6 +135,10 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 Object.extend(lively.ide.codeeditor.modes.Clojure, {
 
 
+    fetchDoc: function(expr, thenDo) {
+        this.doEval("(doc " + expr + ")", {prettyPrint: true}, thenDo);
+    },
+
     doEval: function(expr, options, thenDo) {
         if (!thenDo) { thenDo = options; options = null; };
         options = options || {};
@@ -181,6 +185,7 @@ ClojureMode.addMethods({
     },
 
     keybindings: {
+        "Command-Shift-/": "printDoc",
 
     keyhandler: null,
 

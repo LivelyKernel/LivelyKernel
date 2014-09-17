@@ -1,4 +1,4 @@
-module('lively.persistence.BuildSpecMorphExtensions').requires("lively.morphic.Widgets", "lively.morphic.Serialization", "lively.morphic.AdditionalMorphs", "lively.morphic.Lists").toRun(function() {
+module('lively.persistence.BuildSpecMorphExtensions').requires("lively.morphic.Core").toRun(function() {
 
 lively.morphic.Morph.addMethods(
 'UI builder', {
@@ -153,85 +153,106 @@ lively.morphic.Morph.addMethods(
     onFromBuildSpecCreated: Functions.Null
 });
 
-lively.morphic.List.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        itemList: {defaultValue: []},
-        selectedIndexes: {defaultValue: []}
+Object.extend(lively.morphic.Morph, {
+    fromSpec: function(object) {
+        return lively.persistence.SpecObject.fromPlainObject(object).createMorph();
     },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        return this.setList(this.itemList || []);
-    }
-});
 
-lively.morphic.OldList.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        itemList: {defaultValue: []}
-    },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.setList(this.itemList || []);
+    fromSpecString: function(string) {
+        return lively.persistence.SpecObject.fromString(string).createMorph();
     }
 });
 
 
-lively.morphic.Text.addMethods(
-'UI builder', {
-
-    buildSpecProperties: {
-        textString: {
-            defaultValue: '',
-            getter: function(morph, val) { return val || '' },
-            recreate: function(instance, spec) {
-                instance.textString = spec.textString;
-                // important: emphasis after textString!
-                if (spec.emphasis) instance.emphasizeRanges(spec.emphasis);
-            }
-        },
-        emphasis: {
-            getter: function(morph, val) {
-                var styles = morph.getChunkStyles(),
-                    ranges = morph.getChunkRanges();
-                return ranges.collect(function(range, i) {
-                        return [range[0], range[1], styles[i].asSpec()]; });
+(function setupLists() {
+    module("lively.morphic.Lists").runWhenLoaded(function() {
+        lively.morphic.List.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                itemList: {defaultValue: []},
+                selectedIndexes: {defaultValue: []}
             },
-            recreate: function(instance, spec) { /*see textString*/ }
-        },
-        isLabel: {defaultValue: false, recreate: function(instance, spec) { if (spec.isLabel) instance.beLabel(); }},
-        _FontSize: {defaultValue: 10},
-        fixedWidth: {defaultValue: false},
-        fixedHeight: {defaultValue: false},
-        allowsInput: {defaultValue: true},
-        _FontFamily: {defaultValue: 'Arial'},
-        _MaxTextWidth: {defaultValue: null},
-        _MaxTextHeight: {defaultValue: null},
-        textColor: {defaultValue: Color.rgb(0,0,0)},
-        _Padding: { defaultValue: lively.Rectangle.inset(0),
-                    getter: function(morph) { return morph.shape.getPadding(); },
-                    recreate: function(instance, spec) { instance.setPadding(spec._Padding); }},
-        _WhiteSpaceHandling: {defaultValue: "pre-wrap"},
-        _MinTextWidth: {defaultValue: null},
-        _MinTextHeight: {defaultValue: null},
-        _WordBreak: {defaultValue: 'normal'},
-        // excludes:
-        cachedTextString: {exclude: true},
-        savedTextString: {exclude: true},
-        charsReplaced: {exclude: true},
-        charsTyped: {exclude: true},
-        lastFindLoc: {exclude: true},
-        parseErrors: {exclude: true},
-        textChunks: {exclude: true},
-        priorSelectionRange: {exclude: true},
-        previousSelection: {exclude: true},
-        undoSelectionRange: {exclude: true}
-    }
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                return this.setList(this.itemList || []);
+            }
+        });
 
+        lively.morphic.OldList.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                itemList: {defaultValue: []}
+            },
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.setList(this.itemList || []);
+            }
+        });
 });
+
+})();
+
+(function setupText() {
+    module("lively.morphic.TextCore").runWhenLoaded(function() {
+
+
+        lively.morphic.Text.addMethods(
+        'UI builder', {
+
+            buildSpecProperties: {
+                textString: {
+                    defaultValue: '',
+                    getter: function(morph, val) { return val || '' },
+                    recreate: function(instance, spec) {
+                        instance.textString = spec.textString;
+                        // important: emphasis after textString!
+                        if (spec.emphasis) instance.emphasizeRanges(spec.emphasis);
+                    }
+                },
+                emphasis: {
+                    getter: function(morph, val) {
+                        var styles = morph.getChunkStyles(),
+                            ranges = morph.getChunkRanges();
+                        return ranges.collect(function(range, i) {
+                                return [range[0], range[1], styles[i].asSpec()]; });
+                    },
+                    recreate: function(instance, spec) { /*see textString*/ }
+                },
+                isLabel: {defaultValue: false, recreate: function(instance, spec) { if (spec.isLabel) instance.beLabel(); }},
+                _FontSize: {defaultValue: 10},
+                fixedWidth: {defaultValue: false},
+                fixedHeight: {defaultValue: false},
+                allowsInput: {defaultValue: true},
+                _FontFamily: {defaultValue: 'Arial'},
+                _MaxTextWidth: {defaultValue: null},
+                _MaxTextHeight: {defaultValue: null},
+                textColor: {defaultValue: Color.rgb(0,0,0)},
+                _Padding: { defaultValue: lively.Rectangle.inset(0),
+                            getter: function(morph) { return morph.shape.getPadding(); },
+                            recreate: function(instance, spec) { instance.setPadding(spec._Padding); }},
+                _WhiteSpaceHandling: {defaultValue: "pre-wrap"},
+                _MinTextWidth: {defaultValue: null},
+                _MinTextHeight: {defaultValue: null},
+                _WordBreak: {defaultValue: 'normal'},
+                // excludes:
+                cachedTextString: {exclude: true},
+                savedTextString: {exclude: true},
+                charsReplaced: {exclude: true},
+                charsTyped: {exclude: true},
+                lastFindLoc: {exclude: true},
+                parseErrors: {exclude: true},
+                textChunks: {exclude: true},
+                priorSelectionRange: {exclude: true},
+                previousSelection: {exclude: true},
+                undoSelectionRange: {exclude: true}
+            }
+
+        });
+    });
+})();
 
 (function setupCodeEditor() {
-    require('lively.ide.CodeEditor').toRun(function() {
+    module('lively.ide.CodeEditor').runWhenLoaded(function() {
         lively.morphic.CodeEditor.addMethods(
             'UI builder', {
                 buildSpecProperties: {
@@ -255,241 +276,230 @@ lively.morphic.Text.addMethods(
     });
 })();
 
-lively.morphic.Button.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        submorphs: {
-            exclude: true,
-            filter: function(morph, submorphs) { return submorphs.without(morph.label); }
-        },
-        isActive: {defaultValue: true},
-        label: {
-            defaultValue: '',
-            getter: function(morph, val) { return val.textString || ''; },
-            recreate: function(instance, spec) { instance.ensureLabel(spec.label); }
-        },
-        style: {defaultValue: lively.morphic.Button.prototype.style}
-    }
-});
+(function setupWidgets() {
+    module("lively.morphic.Widgets").runWhenLoaded(function() {
 
-lively.morphic.Window.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        submorphs: {
-            exclude: true,
-            filter: function(morph, submorphs) {
-                var handles = [morph.reframeHandle, morph.bottomReframeHandle, morph.rightReframeHandle];
-                return submorphs.withoutAll(handles).without(morph.titleBar);
+        lively.morphic.Button.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                submorphs: {
+                    exclude: true,
+                    filter: function(morph, submorphs) { return submorphs.without(morph.label); }
+                },
+                isActive: {defaultValue: true},
+                label: {
+                    defaultValue: '',
+                    getter: function(morph, val) { return val.textString || ''; },
+                    recreate: function(instance, spec) { instance.ensureLabel(spec.label); }
+                },
+                style: {defaultValue: lively.morphic.Button.prototype.style}
             }
-        },
-        titleBar: {
-            getter: function(morph, val) { return val ? val.getTitle() : ''; },
-            recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
-        },
-        grabbingEnabled: {defaultValue: false},
-        reframeHandle: {exclude: true},
-        bottomReframeHandle: {exclude: true},
-        rightReframeHandle: {exclude: true},
-        targetMorph: {exclude: true},
-        cameForward: {exlcude: true},
-        collapsedExtent: {exlcude: true},
-        collapsedTransform: {exlcude: true},
-        expandedExtent: {exlcude: true},
-        expandedTransform: {exlcude: true},
-        highlighted: {exlcude: true},
-        ignoreEventsOnExpand: {exlcude: true},
-        contentOffset: {exlcude: true}
-    },
+        });
 
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.makeReframeHandles();
-        this.addMorph(this.titleBar);
-        this.targetMorph = this.submorphs[0];
-    }
-
-});
-
-
-lively.morphic.MorphList.addMethods(
-'buildspec', {
-    onFromBuildSpecCreated: function() {
-        this.setList(this.itemList || []);
-    },
-    buildSpecProperties: {
-        itemList: {recreate: function(instance, spec) { 
-            spec.storedItems && spec.storedItems.forEach(function(item) { instance.addItem(item); }) 
-            }
-        },
-        itemMorphs: {exclude: true}
-    },
-    buildSpec: function($super) {
-        var spec = $super();
-        spec.storedItems = this.itemList.map(function(item) { return item.morph.buildSpec() });
-        return spec;
-    }
-});
-
-lively.morphic.Tree.addMethods(
-'buildSpec', {
-    buildSpecProperties: {
-        childNodes: {exclude: true},
-        icon: {exclude: true},
-        isInLayoutCycle: false,
-        item: {exclude: true},
-        label: {exclude: true},
-        node: {exclude: true},
-        layout: {exclude: true}
-    },
-
-    onBuildSpecCreated: function(buildSpec) {
-        if (this.item && Object.isFunction(this.item.serializeExpr)) {
-            buildSpec.item = item;
-        }
-    },
-
-    onFromBuildSpecCreated: function() {
-        this.initializeLayout();
-        this.disableDragging();
-        this.setItem(this.item || {name: "tree with no item"});
-    }
-});
-
-lively.morphic.Image.addMethods(
-'buildSpec', {
-    buildSpecProperties: {
-        url: {getter: function(morph) { return morph.getImageURL(); }},
-        useNativeExtent: {defaultValue: false}
-    },
-
-    onFromBuildSpecCreated: function() {
-        this.setImageURL(this.url, this.useNativeExtent);
-    }
-});
-
-lively.morphic.Path.addMethods(
-'buildSpec', {
-
-    buildSpecProperties: {
-        controlPoints: {
-
-            getter: function(morph, val) {
-                return morph.shape.getPathElements().invoke('attributeFormat').join(' ');
+        lively.morphic.Window.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                submorphs: {
+                    exclude: true,
+                    filter: function(morph, submorphs) {
+                        var handles = [morph.reframeHandle, morph.bottomReframeHandle, morph.rightReframeHandle];
+                        return submorphs.withoutAll(handles).without(morph.titleBar);
+                    }
+                },
+                titleBar: {
+                    getter: function(morph, val) { return val ? val.getTitle() : ''; },
+                    recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
+                },
+                grabbingEnabled: {defaultValue: false},
+                reframeHandle: {exclude: true},
+                bottomReframeHandle: {exclude: true},
+                rightReframeHandle: {exclude: true},
+                targetMorph: {exclude: true},
+                cameForward: {exlcude: true},
+                collapsedExtent: {exlcude: true},
+                collapsedTransform: {exlcude: true},
+                expandedExtent: {exlcude: true},
+                expandedTransform: {exlcude: true},
+                highlighted: {exlcude: true},
+                ignoreEventsOnExpand: {exlcude: true},
+                contentOffset: {exlcude: true}
             },
 
-            recreate: function(instance, spec) {
-                instance.controlPoints = null;
-                instance.shape.setPathElements(
-                    lively.morphic.Shapes.PathElement.parse(
-                        spec.controlPoints));
-                // FIXME
-                spec._Origin && instance.setOrigin(spec._Origin);
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.makeReframeHandles();
+                this.addMorph(this.titleBar);
+                this.targetMorph = this.submorphs[0];
             }
-        }
-    }
 
-});
+        });
 
-Object.extend(lively.morphic.Morph, {
-    fromSpec: function(object) {
-        return lively.persistence.SpecObject.fromPlainObject(object).createMorph();
-    },
+        lively.morphic.Tree.addMethods(
+        'buildSpec', {
+            buildSpecProperties: {
+                childNodes: {exclude: true},
+                icon: {exclude: true},
+                isInLayoutCycle: false,
+                item: {exclude: true},
+                label: {exclude: true},
+                node: {exclude: true},
+                layout: {exclude: true}
+            },
 
-    fromSpecString: function(string) {
-        return lively.persistence.SpecObject.fromString(string).createMorph();
-    }
-});
+            onBuildSpecCreated: function(buildSpec) {
+                if (this.item && Object.isFunction(this.item.serializeExpr)) {
+                    buildSpec.item = item;
+                }
+            },
 
-lively.morphic.TabBar.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        tabContainer: {exclude: true},
-        tabs: {exclude: true}
-    },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.tabContainer = this.owner;
-        this.tabs = this.submorphs.clone();
-    }
-});
+            onFromBuildSpecCreated: function() {
+                this.initializeLayout();
+                this.disableDragging();
+                this.setItem(this.item || {name: "tree with no item"});
+            }
+        });
 
-lively.morphic.TabContainer.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        tabBarStrategy: {
-            getter: function(morph, val) { return morph.tabBarStrategy.constructor.type; },
-            recreate: function(instance, spec) { instance.tabBarStrategy = new (lively.lookup(spec.tabBarStrategy))(); }
-        }
-    },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.tabBar = this.submorphs.detect(function(ea) { return ea.isTabBar; });
-    }
-});
+        lively.morphic.Image.addMethods(
+        'buildSpec', {
+            buildSpecProperties: {
+                url: {getter: function(morph) { return morph.getImageURL(); }},
+                useNativeExtent: {defaultValue: false}
+            },
 
-lively.morphic.Tab.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        label: {
-            defaultValue: '',
-            getter: function(morph, val) { return val.textString || ''; },
-            exclude: true
-        },
-        pane: { // index of the pane in tabContainer.submorphs
-            defaultValue: -1,
-            getter: function(morph, val) { 
-                return morph.tabContainer.submorphs.indexOf(val); }
-        },
-        tabBar: {exclude: true},
-        tabContainer: {exclude: true}
-    },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; });
-        this.pane = this.tabContainer.submorphs[this.pane];
-        this.tabBar = this.tabContainer.tabBar
-        this.initializeLabel(this.label); 
-    }
-});
+            onFromBuildSpecCreated: function() {
+                this.setImageURL(this.url, this.useNativeExtent);
+            }
+        });
 
-lively.morphic.TabPane.addMethods(
-'UI builder', {
-    buildSpecProperties: {
-        tab: { // index of the tab in tabBar.submorphs
-            defaultValue: -1,
-            getter: function(morph, val) { return morph.tabBar.submorphs.indexOf(val); }
-        },
-        tabContainer: {exclude: true},
-        tabBar: {exclude: true}
-    },
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; })
-        this.tabBar = this.tabContainer.getTabBar();
-        this.tab = this.tabBar.submorphs[this.tab];
-    }
-});
-lively.morphic.Slider.addMethods(
-'UI builder', {
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.sliderKnob = this.submorphs.detect(function(ea) { return ea.isSliderKnob; });
-    }
-});
-lively.morphic.SliderKnob.addMethods(
-'UI builder', {
-    onFromBuildSpecCreated: function($super) {
-        $super();
-        this.slider = this.ownerChain().detect(function(ea) { return ea.isSlider; });
-    }
-});
+        lively.morphic.Slider.addMethods(
+        'UI builder', {
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.sliderKnob = this.submorphs.detect(function(ea) { return ea.isSliderKnob; });
+            }
+        });
+    
+        lively.morphic.SliderKnob.addMethods(
+        'UI builder', {
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.slider = this.ownerChain().detect(function(ea) { return ea.isSlider; });
+            }
+        });
+    
+        lively.morphic.HorizontalDivider.addMethods(
+        'buildSpec', {
+            buildSpecProperties: {
+                fixed: {exclude: true}, // TODO: mark as a valid array entanglement
+                scalingAbove: {defaultValue: [], getter: function() { return [] }},
+                scalingBelow: {defaultValue: [], getter: function() { return [] }}
+            }
+        });
 
-lively.morphic.HorizontalDivider.addMethods(
-'buildSpec', {
-    buildSpecProperties: {
-        fixed: {exclude: true}, // TODO: mark as a valid array entanglement
-        scalingAbove: {defaultValue: [], getter: function() { return [] }},
-        scalingBelow: {defaultValue: [], getter: function() { return [] }}
-    }
-});
+    });
+})();
+
+(function setupAdditionalMorphs() {
+    module("lively.morphic.AdditionalMorphs").runWhenLoaded(function() {
+
+        lively.morphic.Path.addMethods(
+        'buildSpec', {
+
+            buildSpecProperties: {
+                controlPoints: {
+
+                    getter: function(morph, val) {
+                        return morph.shape.getPathElements().invoke('attributeFormat').join(' ');
+                    },
+
+                    recreate: function(instance, spec) {
+                        instance.controlPoints = null;
+                        instance.shape.setPathElements(
+                            lively.morphic.Shapes.PathElement.parse(
+                                spec.controlPoints));
+                        // FIXME
+                        spec._Origin && instance.setOrigin(spec._Origin);
+                    }
+                }
+            }
+
+        });
+    });
+})();
+
+(function setupTabs() {
+    module('lively.morphic.TabMorphs').runWhenLoaded(function() {
+
+        lively.morphic.TabBar.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                tabContainer: {exclude: true},
+                tabs: {exclude: true}
+            },
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.tabContainer = this.owner;
+                this.tabs = this.submorphs.clone();
+            }
+        });
+
+        lively.morphic.TabContainer.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                tabBarStrategy: {
+                    getter: function(morph, val) { return morph.tabBarStrategy.constructor.type; },
+                    recreate: function(instance, spec) { instance.tabBarStrategy = new (lively.lookup(spec.tabBarStrategy))(); }
+                }
+            },
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.tabBar = this.submorphs.detect(function(ea) { return ea.isTabBar; });
+            }
+        });
+
+        lively.morphic.Tab.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                label: {
+                    defaultValue: '',
+                    getter: function(morph, val) { return val.textString || ''; },
+                    exclude: true
+                },
+                pane: { // index of the pane in tabContainer.submorphs
+                    defaultValue: -1,
+                    getter: function(morph, val) {
+                        return morph.tabContainer.submorphs.indexOf(val); }
+                },
+                tabBar: {exclude: true},
+                tabContainer: {exclude: true}
+            },
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; });
+                this.pane = this.tabContainer.submorphs[this.pane];
+                this.tabBar = this.tabContainer.tabBar
+                this.initializeLabel(this.label);
+            }
+        });
+
+        lively.morphic.TabPane.addMethods(
+        'UI builder', {
+            buildSpecProperties: {
+                tab: { // index of the tab in tabBar.submorphs
+                    defaultValue: -1,
+                    getter: function(morph, val) { return morph.tabBar.submorphs.indexOf(val); }
+                },
+                tabContainer: {exclude: true},
+                tabBar: {exclude: true}
+            },
+            onFromBuildSpecCreated: function($super) {
+                $super();
+                this.tabContainer = this.ownerChain().detect(function(ea) { return ea.isTabContainer; })
+                this.tabBar = this.tabContainer.getTabBar();
+                this.tab = this.tabBar.submorphs[this.tab];
+            }
+        });
+    });
+})();
+
 }) // end of moduled of module

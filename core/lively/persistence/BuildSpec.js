@@ -1,4 +1,4 @@
-module('lively.persistence.BuildSpec').requires("lively.morphic.Widgets", "lively.morphic.Serialization", "lively.morphic.AdditionalMorphs", "lively.morphic.Lists").toRun(function() {
+module('lively.persistence.BuildSpec').requires("lively.morphic.Serialization", 'lively.persistence.BuildSpecMorphExtensions').toRun(function() {
 
 Object.subclass('lively.persistence.SpecObject',
 'properties', {
@@ -359,10 +359,5 @@ Object.extend(lively, {
 Object.extend(lively.persistence.BuildSpec, {
     Registry: new lively.persistence.SpecObjectRegistry()
 });
-
-
-(function loadBuildSpecMorphExtensions() {
-    module('lively.persistence.BuildSpecMorphExtensions').load();
-})();
 
 }) // end of moduled of module

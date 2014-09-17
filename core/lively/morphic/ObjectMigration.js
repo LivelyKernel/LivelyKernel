@@ -69,7 +69,7 @@ Object.extend(LivelyMigrationSupport, {
             }.asScript()
         }
     }
-})
+});
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -141,10 +141,12 @@ if (false && LivelyMigrationSupport.documentMigrationLevel < 5) {
 
 if (LivelyMigrationSupport.documentMigrationLevel < 6) {
     // 6 - renderContextTables are no longer props of shapes/morphs, don't deserialize them
-    ObjectLinearizerPlugin.subclass('IgnoreRenderContextTablePlugin', {
-        ignorePropDeserialization: function(regObj, key, val) { return key === 'renderContextTable' }
+    lively.module("lively.persistence.Serializer").runWhenLoaded(function() {
+        ObjectLinearizerPlugin.subclass('IgnoreRenderContextTablePlugin', {
+            ignorePropDeserialization: function(regObj, key, val) { return key === 'renderContextTable' }
+        });
+        lively.persistence.pluginsForLively.push(IgnoreRenderContextTablePlugin);
     });
-    lively.persistence.pluginsForLively.push(IgnoreRenderContextTablePlugin);
 };
 
 if (LivelyMigrationSupport.documentMigrationLevel < 7) {
@@ -157,87 +159,95 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
             return doc;
         });
     }
-    lively.morphic.World.addMethods({
-        onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
-            proceed();
-            // remove deperecated changeSet attribute
-            if (this.hasOwnProperty("changeSet")
-              && this.changeSet
-              && this.changeSet.isChangeSetReplacement) {
-                delete this.changeSet;
-            }
-        })
+    lively.module("lively.morphic.Core").runWhenLoaded(function() {
+        lively.morphic.World.addMethods({
+            onrestore: lively.morphic.World.prototype.onrestore.wrap(function(proceed) {
+                proceed();
+                // remove deperecated changeSet attribute
+                if (this.hasOwnProperty("changeSet")
+                  && this.changeSet
+                  && this.changeSet.isChangeSetReplacement) {
+                    delete this.changeSet;
+                }
+            })
+        });
     });
 };
 
 if (LivelyMigrationSupport.documentMigrationLevel < 8) {
     // 8 - reframe handles are class instances now
-    lively.morphic.Window.addMethods({
-        onrestore: lively.morphic.Window.prototype.onrestore.wrap(function($proceed) {
-            $proceed();
-            [this.rightReframeHandle, this.bottomReframeHandle, this.reframeHandle].compact().invoke('remove');
-            var e = this.getExtent();
-            this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
-            this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
-            this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
-            this.alignAllHandles();
-        })
+    lively.module("lively.morphic.Widgets").runWhenLoaded(function() {
+        lively.morphic.Window.addMethods({
+            onrestore: lively.morphic.Window.prototype.onrestore.wrap(function($proceed) {
+                $proceed();
+                [this.rightReframeHandle, this.bottomReframeHandle, this.reframeHandle].compact().invoke('remove');
+                var e = this.getExtent();
+                this.reframeHandle = this.addMorph(new lively.morphic.ReframeHandle('corner', pt(14,14)));
+                this.rightReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('right', e.withX(this.spacing)));
+                this.bottomReframeHandle = this.addMorph(new lively.morphic.ReframeHandle('bottom', e.withY(this.spacing)));
+                this.alignAllHandles();
+            })
+        });
     });
 };
 
 if (LivelyMigrationSupport.documentMigrationLevel < 9) {
     // a flexible number of window controls are now accessible 
     // via a window's titlebar's buttons property
-    cop.create('DocumentMigrationLevel9Layer')
-    .refineClass(lively.morphic.Window, {
-        onrestore: function() {        
-            var widget = this.targetMorph && this.targetMorph.ownerWidget;
-            
-            // only migrate older windows
-            if (this.titleBar.buttons) return;
-            
-            this.titleBar.buttons = [];
-            this.titleBar.submorphs.select(function (ea) {
-                return ea.constructor.name === 'WindowControl'
-            }).sortBy(function (ea) {
-                return ea.getPosition().x
-            }).reverse().forEach(function (ea) {
-                this.titleBar.buttons.push(ea);
-            }, this);
-            
-            this.menuButton = this.titleBar.menuButton;
-            this.collapseButton = this.titleBar.collapseButton;
-            this.closeButton = this.titleBar.closeButton;
-                        
-            if (widget && widget.constructor.name === 'SystemBrowser') {
-                widget.addNavigationCollapseButton();
+    lively.module("lively.morphic.Widgets").runWhenLoaded(function() {
+        cop.create('DocumentMigrationLevel9Layer')
+        .refineClass(lively.morphic.Window, {
+            onrestore: function() {        
+                var widget = this.targetMorph && this.targetMorph.ownerWidget;
+                
+                // only migrate older windows
+                if (this.titleBar.buttons) return;
+                
+                this.titleBar.buttons = [];
+                this.titleBar.submorphs.select(function (ea) {
+                    return ea.constructor.name === 'WindowControl'
+                }).sortBy(function (ea) {
+                    return ea.getPosition().x
+                }).reverse().forEach(function (ea) {
+                    this.titleBar.buttons.push(ea);
+                }, this);
+                
+                this.menuButton = this.titleBar.menuButton;
+                this.collapseButton = this.titleBar.collapseButton;
+                this.closeButton = this.titleBar.closeButton;
+                            
+                if (widget && widget.constructor.name === 'SystemBrowser') {
+                    widget.addNavigationCollapseButton();
+                }
+                
+                this.titleBar.adjustElementPositions();
+                
+                cop.proceed();
             }
-            
-            this.titleBar.adjustElementPositions();
-            
-            cop.proceed();
-        }
-    }).beGlobal();
+        }).beGlobal();
+    });
 }
 
 if (Config.enableShapeGetterAndSetterRefactoringLayer) {
     // this layer will make shapes compatible that stored their properties
     // manually the new scheme for shapes is the same as for morphs, e.g.:
     // shape._Extent instead of shape.extent
-    cop.create('ShapeGetterAndSetterRefactoringLayer')
-    .refineClass(lively.morphic.Shapes.Shape, {
-        onrestore: function() {
-            if (this.position) { this._Position = this.position; delete this.position };
-            if (this.extent) { this._Extent = this.extent; delete this.extent };
-            if (this.fill) { this._Fill = this.fill; delete this.fill };
-            if (this.position) { this._Position = this.position; delete this.position };
-            if (this.borderWidth) { this._BorderWidth = this.borderWidth; delete this.borderWidth };
-            if (this.borderColor) { this._BorderColor = this.borderColor; delete this.borderColor };
-            if (this.strokeOpacity) { this._StrokeOpacity = this.strokeOpacity; delete this.strokeOpacity };
-            if (this.borderRadius) { this._BorderRadius = this.borderRadius; delete this.borderRadius };
-            cop.proceed();
-        }
-    }).beGlobal();
+    lively.module("lively.morphic.Core").runWhenLoaded(function() {
+        cop.create('ShapeGetterAndSetterRefactoringLayer')
+        .refineClass(lively.morphic.Shapes.Shape, {
+            onrestore: function() {
+                if (this.position) { this._Position = this.position; delete this.position };
+                if (this.extent) { this._Extent = this.extent; delete this.extent };
+                if (this.fill) { this._Fill = this.fill; delete this.fill };
+                if (this.position) { this._Position = this.position; delete this.position };
+                if (this.borderWidth) { this._BorderWidth = this.borderWidth; delete this.borderWidth };
+                if (this.borderColor) { this._BorderColor = this.borderColor; delete this.borderColor };
+                if (this.strokeOpacity) { this._StrokeOpacity = this.strokeOpacity; delete this.strokeOpacity };
+                if (this.borderRadius) { this._BorderRadius = this.borderRadius; delete this.borderRadius };
+                cop.proceed();
+            }
+        }).beGlobal();
+    });
 };
 
 }) // end of module

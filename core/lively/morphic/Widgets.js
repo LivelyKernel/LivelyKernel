@@ -466,6 +466,7 @@ Object.extend(lively.morphic.Image, {
         return new lively.morphic.Image(bounds, url, optBounds == undefined)
     },
 });
+
 lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 'properties', {
     connections: {
@@ -4863,12 +4864,10 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
         lively.bindings.connect(this, "textString", this.get("tree-view"), "searchFor", {});
     }
     }],
-    toggleIndicator: function toggleIndicator() {
-                
-            }
-})
+    toggleIndicator: function toggleIndicator() {}
+});
 
 }
 });
 
-}) // end of module
+}); // end of module

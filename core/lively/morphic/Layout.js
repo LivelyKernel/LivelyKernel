@@ -231,7 +231,7 @@ Object.subclass('lively.morphic.Layout.Layout',
             height = extent.y,
             minWidth = this.getMinWidth(container, submorphs),
             minHeight = this.getMinHeight(container, submorphs);
-        if (width < minWidth || height < minHeight) {
+        if (width !== minWidth || height !== minHeight) {
             var clipPolicy = lively.morphic.Layout.translateClipMode(container.getInheritedClipMode());
             width = lively.morphic.Layout.calcActualLength(width, minWidth, clipPolicy.x);
             height = lively.morphic.Layout.calcActualLength(height, minHeight, clipPolicy.y);
@@ -382,9 +382,8 @@ Object.extend(lively.morphic.Layout, {
         return ['hidden', 'scroll', 'auto'].include(string)
     },
     calcActualLength: function(length, minimumLength, clipPolicy) {
-        if (!lively.morphic.Layout.isHiddenClipMode(clipPolicy) && (length < minimumLength))
-            length = minimumLength;
-        return length;
+        return length < minimumLength && !lively.morphic.Layout.isHiddenClipMode(clipPolicy) ?
+            minimumLength : length;
     },
     widthClipHidden: function(morph) {
         var clipPolicy = lively.morphic.Layout.translateClipMode(morph.getInheritedClipMode());
@@ -399,10 +398,12 @@ Object.extend(lively.morphic.Layout, {
 
 lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
 'default category', {
+
     basicLayout: function(container, submorphs) {
         this.keepContainerAtMinimumSize(container, submorphs);
         this.resizeFlexibleChildren(submorphs, container.getExtent());
     },
+
     resizeFlexibleChildren: function(submorphs, containerExtent) {
         var spacing = this.getSpacing(),
             flexChildWidth = this.calcFlexChildSpace(submorphs, containerExtent),
@@ -423,11 +424,11 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
             return x + morph.getExtent().x + spacing;
         }, this.getBorderSize("left"));
     },
+
     getFlexibleChildren: function(submorphs) {
         return submorphs.select(function(e) {
             return e.doesResize('width'); });
     },
-
 
     getMinSpaceFor: function(morph) {
         return morph.getMinWidth();
@@ -440,34 +441,30 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
                 return e.doesResize('width') ? s : s + e.getExtent().x }, 0);
         return containerExtent.x - fixedChildrenWidth - spaceForSpacing - spaceForBorder;
     },
+
     getMinWidth: function(container, submorphs) {
         var borderSpace = this.horizontalBorderSpace(),
             spacingSpace = (submorphs.size()-1) * this.getSpacing(),
             submorphSpace = submorphs.reduce(function (s, e) {
-                if (e.doesResize('width')) {
-                    return s + e.getMinWidth();
-                } else {
-                    return s + e.getExtent().x;
-                }}, 0);
+                return e.doesResize('width') ?  s + e.getMinWidth() : s + e.getExtent().x;
+            }, 0);
         return borderSpace + spacingSpace + submorphSpace
     },
+
     getMinHeight: function(container, submorphs) {
         return this.verticalBorderSpace() +
             submorphs.reduce(function(h, morph) {
-                if (morph.getMinHeight() > h) {
-                    return morph.getMinHeight();
-                } else {
-                    return h;
-                }}, 0);
+                return morph.getMinHeight() > h ? morph.getMinHeight() : h; }, 0);
     },
-
 
     layoutOrder: function(aMorph) {
         return aMorph.getCenter().x;
     },
+
     displaysPlaceholders: function() {
         return true;
     },
+
     getEffectiveExtent: function(submorphs) {
         var v_submorphSpace = Math.max.apply(this, submorphs.collect(function (ea) {
                 return !ea.doesResize('height') ? ea.getExtent().y : 0})),
@@ -478,7 +475,6 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
                     return s + e.getExtent().x;}, 0);
         return pt(h_borderSpace + h_spacingSpace + h_submorphSpace, v_submorphSpace + v_borderSpace)
     }
-
 
 });
 

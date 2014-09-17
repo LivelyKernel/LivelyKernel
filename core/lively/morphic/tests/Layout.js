@@ -2,12 +2,15 @@ module('lively.morphic.tests.Layout').requires('lively.morphic.tests.Helper', 'l
 
 lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
 'running', {
+
     setUp: function($super) {
         $super();
         this.createWorld();
     }
+
 },
 'testing', {
+
     test01DropJournalLayoutOnMorph: function() {
         var container = new lively.morphic.Morph();
         container.setExtent(new lively.Point(200,200));
@@ -25,6 +28,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
 
         this.assertEquals(container.getExtent().y, 2*container.getLayouter().getBorderSize() + text.getExtent().y, "expected morph's extent to be 200");
     },
+
     test02ApplyHBoxLayout: function() {
         var container = new lively.morphic.Morph();
         container.setExtent(new lively.Point(200,200));
@@ -42,6 +46,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
 
         this.assertEquals(child.getExtent().x, container.getExtent().x - 2*container.getLayouter().getBorderSize(), "expected child to fit into container");
     },
+
     test04CalcActualLength: function() {
         var length = 100,
             minimumLength = 150,
@@ -55,6 +60,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
             150,
             'a morph with visible clip policy was resized under its minimum size')
     },
+
     test05GetInheritedClipMode: function() {
         var m = new lively.morphic.Morph(),
             n = m.copy(),
@@ -67,6 +73,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         n.setClipMode({x: 'visible', y: 'inherit'}),
         this.assertEquals(n.getInheritedClipMode().y,policy_complex.y, 'wrong complex inherited clip mode found')
     },
+
     test06Placeholder: function() {
         var m = new lively.morphic.Morph();
         m.setFill(Color.red);
@@ -77,22 +84,24 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         this.assertEquals(Color.gray, placeholder.getFill());
         this.assert(!placeholder.hasOwnProperty('foo'), 'placeholder is full copy');
     },
-test07PlaceholdersAreReplaced: function() {
-    debugger;
-    var m = new lively.morphic.Morph(),
-        t = new lively.morphic.Morph();
-    m.setExtent(lively.pt(120, 100));
-    t.setExtent(lively.pt(10, 10));
-    t.setLayouter(new lively.morphic.Layout.HorizontalLayout(t));
-    t.getLayouter().showPlaceholderFor(m, {hand: this.world.firstHand(), getPosition: function() { return lively.pt(5, 5); }, stop: Functions.Null});
-    var extent = t.getExtent();
-    this.assert(extent.x >= 120 && extent.y >= 100, "in order to show the placeholder, t should have grown");
-    var hand = $world.hand();
-    hand.addMorphWithShadow(m);
-    hand.dropContentsOn(t);
-    this.assertEquals(t.getExtent(), extent, "on dropping a morph onto a second, layoutet morph, that second morph should not resize")
-},
+
+    test07PlaceholdersAreReplaced: function() {
+        var m = new lively.morphic.Morph(),
+            t = new lively.morphic.Morph();
+        m.setExtent(lively.pt(120, 100));
+        t.setExtent(lively.pt(10, 10));
+        t.setLayouter(new lively.morphic.Layout.HorizontalLayout(t));
+        t.getLayouter().showPlaceholderFor(m, {hand: this.world.firstHand(), getPosition: function() { return lively.pt(5, 5); }, stop: Functions.Null});
+        var extent = t.getExtent();
+        this.assert(extent.x >= 120 && extent.y >= 100, "in order to show the placeholder, t should have grown");
+        var hand = $world.hand();
+        hand.addMorphWithShadow(m);
+        hand.dropContentsOn(t);
+        this.assertEquals(t.getExtent(), extent, "on dropping a morph onto a second, layoutet morph, that second morph should not resize");
+    }
+
 });
+
 lively.morphic.tests.LayoutTests.subclass('lively.morphic.tests.TileLayoutTest',
 'testing', {
     test01TileLayoutMovesFirstMorphToTopLeft: function() {

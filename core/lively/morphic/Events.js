@@ -1235,19 +1235,21 @@ handleOnCapture);
         var layouter = aMorph.getLayouter();
 
         if (placeholder) {
+            var placeHolderPos = placeholder.getPosition();
             this.noLayoutDuring(function() {
+                if (layouter) layouter.removeAllPlaceholders();
                 aMorph.addMorph(this);
                 this.onDropOn(aMorph);
-                this.setPosition(placeholder.getPosition().subPt(this.getOrigin()));
+                this.setPosition(placeHolderPos.subPt(this.getOrigin()));
             });
         } else {
+            if (layouter) layouter.removeAllPlaceholders();
             aMorph.addMorph(this);
             this.onDropOn(aMorph);
         }
         delete this.previousOwner;
         delete this.previousPosition;
         delete this.placeholder;
-        if (layouter) layouter.removeAllPlaceholders();
         aMorph.applyLayout();
     },
 

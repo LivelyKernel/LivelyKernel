@@ -132,6 +132,92 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
 });
 
+Object.extend(lively.ide.codeeditor.modes.Clojure, {
+
+
+    doEval: function(expr, options, thenDo) {
+        if (!thenDo) { thenDo = options; options = null; };
+        options = options || {};
+        var pp = options.prettyPrint;
+        var isJSON = options.resultIsJSON;
+
+        if (!module('lively.net.SessionTracker').isLoaded() || !lively.net.SessionTracker.isConnected()) {
+            thenDo(new Error('Lively2Lively not running, cannot connect to Clojure nREPL server!'));
+            return;
+        }
+
+        var sess = lively.net.SessionTracker.getSession();
+
+        if (pp) expr = Strings.format("(with-out-str (>pprint (do %s)))", expr);
+
+        sess.send('clojureEval', {code: expr}, function(answer) {
+            if (answer.data.error) thenDo && thenDo(answer.data.error, null);
+            else prepareRawResult(answer.data.result, thenDo); });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function prepareRawResult(rawResult, thenDo) {
+            if (!Object.isArray(rawResult) || !rawResult.length) return rawResult;
+            var errors = rawResult.pluck("ex").compact(),
+                isError = !!errors.length,
+                result = rawResult.pluck('value').concat(rawResult.pluck('out')).compact().join('\n'),
+                err = isError ? [errors, rawResult.pluck('root-ex'), rawResult.pluck('err')].flatten().compact().invoke('trim').uniq().join('\n') : null;
+
+            if (!isError && pp) try { result = eval(result); } catch (e) {}
+            if (!isError && isJSON) try { result = JSON.parse(eval(result)); } catch (e) {
+                err = e;
+                result = {error: e};
+            }
+            thenDo && thenDo(options.passError ? err : null, err || result);
+        }
+    }
+
+});
+
+var ClojureMode = lively.ide.ace.require('ace/mode/clojure').Mode;
+
+ClojureMode.addMethods({
+
+    commands: {
+    },
+
+    keybindings: {
+
+    keyhandler: null,
+
+    initKeyHandler: function() {
+        Properties.forEachOwn(this.keybindings, function(key, commandName) {
+            if (this.commands[commandName]) {
+                if (this.commands[commandName].bindKey) {
+                    var bound = this.commands[commandName].bindKey;
+                    if (!Object.isArray(bound)) bound = [bound];
+                    bound.push(key);
+                    this.commands[commandName].bindKey = bound;
+                } else this.commands[commandName].bindKey = key
+            }
+        }, this);
+        return this.keyhandler = lively.ide.ace.createKeyHandler({
+            keyBindings: this.keybindings,
+            commands: this.commands
+        });
+    },
+
+    attach: function(ed) {
+        this.initKeyHandler();
+        ed.keyBinding.addKeyboardHandler(this.keyhandler);
+    },
+
+    detach: function(ed) {
+        ed.keyBinding.removeKeyboardHandler(this.keyhandler);
+        this.keyhandler = null;
+    },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    doEval: function(codeEditor, insertResult) {
+        var sourceString = codeEditor.getSelectionOrLineString();
+        lively.ide.codeeditor.modes.Clojure.doEval(sourceString, {prettyPrint: true}, function(err, result) {
+            printResult(err, result)
+        });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -142,14 +228,9 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
             if (insertResult) codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
             else codeEditor.collapseSelection("end");
         }
+    }
+});
 
-        function prepareRawResult(rawResult) {
-            if (!Object.isArray(rawResult) || !rawResult.length) return rawResult;
-            var isError = !!rawResult[0].ex;
-            return isError ?
-                [rawResult.pluck('ex'), rawResult.pluck('root-ex'), rawResult.pluck('err')].flatten().compact().invoke('trim').uniq().join('\n') :
-                 rawResult.pluck('value').concat(rawResult.pluck('out')).compact().join('\n');
-        }
     }
 });
 

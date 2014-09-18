@@ -153,6 +153,8 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
     },
 
     tearDown: function() {
+        if (lively.IndexedDB.currentDB != undefined)
+            lively.IndexedDB.currentDB.close();
         lively.IndexedDB.currentDB = this.openedDB;
     }
 
@@ -242,7 +244,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         }.bind(this));
     },
 
-    xtest06OpenAltStore: function() {
+    test06OpenAltStore: function() {
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 
@@ -258,7 +260,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         }.bind(this));
     },
 
-    xtest07StoreValueInAltStore: function() {
+    test07StoreValueInAltStore: function() {
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 
@@ -281,7 +283,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         }.bind(this), this.altStore);
     },
 
-    xtest08CheckForKeyInAltStore: function() {
+    test08CheckForKeyInAltStore: function() {
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 
@@ -308,7 +310,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         }.bind(this), this.altStore);
     },
 
-    xtest09ClearStore: function() {
+    test09ClearStore: function() {
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 
@@ -331,7 +333,7 @@ AsyncTestCase.subclass('lively.tests.HelperTests.IndexedDBTests',
         }.bind(this), this.altStore);
     },
 
-    xtest10RemoveStore: function() {
+    test10RemoveStore: function() {
         if (!lively.IndexedDB.isAvailable())
             return this.assert(true) || this.done();
 

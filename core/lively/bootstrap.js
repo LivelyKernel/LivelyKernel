@@ -592,11 +592,11 @@
             },
 
         loadViaXHR: function(beSync, url, onLoadCb) {
-            this.getViaXHR(beSync, url, function(err, content) {
+            this.getViaXHR(beSync, url, function(err, content, headers) {
                 if (err) {
                     console.warn('cannot load %s: %s', url, err);
                 } else {
-                    JSLoader.evalJavaScriptFromURL(url, content, onLoadCb);
+                    JSLoader.evalJavaScriptFromURL(url, content, onLoadCb, headers);
                 }
             });
             return null;
@@ -871,9 +871,22 @@
             xhr.open("GET", url, !beSync);
             xhr.onload = function() {
                 if (xhr.readyState !== 4) return;
+                // FIXME: copied from NetRequest
+                var headerString = xhr.getAllResponseHeaders(),
+                    headerObj = {};
+                    headerString.split('\r\n').forEach(function(ea) {
+                        var splitter = ea.indexOf(':');
+                        if (splitter != -1) {
+                            headerObj[ea.slice(0, splitter)] = ea.slice(splitter + 1).trim();
+                            // as headers should be case-insensitiv, add lower case headers (for Safari)
+                            headerObj[ea.slice(0, splitter).toLowerCase()] = ea.slice(splitter + 1).trim();
+                        }
+                    });
                 callback(
                     xhr.status >= 400 ? xhr.statusText : null,
-                    xhr.responseText)
+                    xhr.responseText,
+                    headerObj
+                );
             };
             xhr.onerror = function(e) {
                 callback(xhr.statusText, null);

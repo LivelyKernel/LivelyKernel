@@ -40,7 +40,7 @@ lively.LocalStorage = {
 lively.IndexedDB = {
 
     directInterface: window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB,
-
+    defaultStoreName: 'default',
     currentDB: null,
 
     isAvailable: function() {
@@ -74,8 +74,11 @@ lively.IndexedDB = {
             var db = event.target.result;
             self.currentDB = db;
 
-            // create default store with auto increment
-            self.ensureObjectStore('default', { autoIncrement: true });
+            // create default store(s) with auto increment
+            var defaultStores = lively.Config.get('defaultIndexedDBStores') || [self.defaultStoreName];
+            defaultStores.forEach(function(storeName) {
+                self.ensureObjectStore(storeName, { autoIncrement: true });
+            });
 
             if (optUpgradeFunc instanceof Function)
                 optUpgradeFunc(db);
@@ -107,7 +110,7 @@ lively.IndexedDB = {
     set: function(key, value, callback, optStore) {
         if (!this.isAvailable()) return callback && callback(new Error('IndexedDB is not available.'));
 
-        optStore = optStore || 'default';
+        optStore = optStore || this.defaultStoreName;
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             this.ensureObjectStore.bind(this, optStore, null),
@@ -137,7 +140,7 @@ lively.IndexedDB = {
             throw new Error('You need to provide a callback to retrieve a value!');
         if (!this.isAvailable()) return callback(new Error('IndexedDB is not available.'));
 
-        optStore = optStore || 'default';
+        optStore = optStore || this.defaultStoreName;
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             this.ensureObjectStore.bind(this, optStore, null),
@@ -160,7 +163,7 @@ lively.IndexedDB = {
             throw new Error('You need to provide a callback to see if a key exists!');
         if (!this.isAvailable()) return callback(new Error('IndexedDB is not available.'));
 
-        optStore = optStore || 'default';
+        optStore = optStore || this.defaultStoreName;
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             this.ensureObjectStore.bind(this, optStore, null),
@@ -180,7 +183,7 @@ lively.IndexedDB = {
     remove: function(key, callback, optStore) {
         if (!this.isAvailable()) return callback && callback(new Error('IndexedDB is not available.'));
 
-        optStore = optStore || 'default';
+        optStore = optStore || this.defaultStoreName;
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             this.ensureObjectStore.bind(this, optStore, null),
@@ -214,7 +217,7 @@ lively.IndexedDB = {
     clear: function(callback, optStore) {
         if (!this.isAvailable()) return callback && callback(new Error('IndexedDB is not available.'));
 
-        optStore = optStore || 'default';
+        optStore = optStore || this.defaultStoreName;
         Functions.composeAsync(
             this.ensureDatabase.bind(this, undefined, undefined),
             function(next) {

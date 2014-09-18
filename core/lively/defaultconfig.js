@@ -6,7 +6,7 @@
  *  to be overridden.
  */
 
-;(function setupUserAgent(Global) {
+(function setupUserAgent(Global) {
 
 var webKitVersion = (function() {
     if (!Global.navigator) return 0;
@@ -427,6 +427,10 @@ Config.addOptions(
     ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."],
     ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."],
     ["removeDOMContentBeforeWorldLoad", true, "Whether to remove all the DOM child nodes of the DOM element that is used to display the World."]
+],
+
+'lively.Storage', [
+    ["defaultIndexedDBStores", ["default", "Debugging"], "The default stores created once IndexedDB is opened."]
 ],
 
 'lively.bindings', [

@@ -798,16 +798,16 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     test33SwitchStatement: function() {
-        var src = 'var a = 1, b; switch (a) { case 1: break; case b: a++; default: a--; }',
+        var src = 'var a = 1, b; switch (a) { case 1: break; case --b: a++; default: a--; }',
             ast = this.parser.parse(src),
             astCopy = Object.deepCopy(ast),
             result = this.rewrite(ast),
             expected = this.tryCatch(0, { 'a': 'undefined', 'b': 'undefined' },
                 '(' + this.postfixResult(this.setVar(0, 'a', '1')) + '), ' + this.pcAdvance() + ';\n' +
-                'switch (' + this.getVar(0, 'a') + ') {\n' +
+                'switch (' + this.prefixResult(this.getVar(0, 'a')) + ') {\n' +
                 'case 1:\n' +
                 'break;\n' +
-                'case ' + this.getVar(0, 'b') + ':\n' +
+                'case ' + this.prefixResult('--' + this.getVar(0, 'b')) + ':\n' +
                 this.prefixResult(this.getVar(0, 'a') + '++') + ';\n' +
                 'default:\n' +
                 this.prefixResult(this.getVar(0, 'a') + '--') + ';\n' +
@@ -1532,6 +1532,47 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
         var capturedAst = frame.getOriginalAst();
         this.assertEquals(frame.getPC().astIndex, capturedAst.body.body[1].astIndex, 'pc');
+    },
+
+    test21NestedFunctionBinding: function() {
+        function code() {
+            var createClosure = function(i) {
+                return function() { return i; };
+            };
+            var a = createClosure(2),
+                b = createClosure(3);
+            return a() + b();
+        }
+        var expected = {
+                isContinuation: false,
+                returnValue: 5
+            };
+
+        var runResult = lively.ast.StackReification.run(code);
+        this.assertEqualState(expected, runResult)
+    },
+
+    test22BreakInSwitchAndContinue: function() {
+        function code() {
+            var a = 1;
+            switch (a) {
+            case ++a:
+                a += 20;
+                break
+            case 1:
+                a++;
+                debugger;
+                a++;
+            default:
+                a += 10;
+            }
+            return a;
+        }
+
+        var continuation = lively.ast.StackReification.run(code, this.astRegistry);
+        this.assertEquals(3, continuation.currentFrame.getScope().get('a'), 'wrong value when at debugger');
+        var result = continuation.resume();
+        this.assertEquals(14, result, 'switch-case did not resume correctly');
     }
 
 });

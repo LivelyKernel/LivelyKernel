@@ -27,6 +27,10 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
             src: 'var x = 1; x;',
             target: function(ast) { return ast.body[1]; },
             expected: function(ast) { return ast.body[1]; },
+        }, {
+            src: 'switch (123) { case 123: debugger; }',
+            target: function(ast) { return ast.body[0].cases[0].consequent[0]; },
+            expected: function(ast) { return ast.body[0].cases[0].consequent[0]; },
         }]
 
         tests.forEach(function(test, i) {

@@ -1129,14 +1129,16 @@ Object.extend(lively.ast.acorn, {
         // let source be "var x = 1; x + 1;" and we are looking for the
         // Identifier "x" in "x+1;". The second statement is what will be found.
         if (!ast.astIndex) acorn.walk.addAstIndex(ast);
-        var found, targetReached = false, bodyNode, lastStatement;
+        var found, targetReached = false, bodyNodes, lastStatement;
         lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, _) {
             if (targetReached || node.astIndex < target.astIndex) return;
             if (node.type === "Program" || node.type === "BlockStatement") {
-                bodyNode = node;
+                bodyNodes = node.body;
+            } else if (node.type === "SwitchCase") {
+                bodyNodes = node.consequent;
             }
-            if (bodyNode) {
-                var nodeIdxInProgramNode = bodyNode.body.indexOf(node);
+            if (bodyNodes) {
+                var nodeIdxInProgramNode = bodyNodes.indexOf(node);
                 if (nodeIdxInProgramNode > -1) lastStatement = node;
             }
             if (!targetReached && (node === target || node.astIndex === target.astIndex)) {

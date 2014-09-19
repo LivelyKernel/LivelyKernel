@@ -1190,9 +1190,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     visitSwitchStatement: function(n, rewriter) {
         // discriminant is a node of type Expression
+        var discriminant = this.accept(n.discriminant, rewriter);
+        if (!rewriter.isStoredComputationResult(discriminant)) {
+            // definitely capture state because it can be changed in switch cases (resume in case)
+            discriminant = rewriter.storeComputationResult(discriminant,
+                n.discriminant.start, n.discriminant.end, n.discriminant.astIndex);
+        }
         return {
             start: n.start, end: n.end, type: 'SwitchStatement',
-            discriminant: this.accept(n.discriminant, rewriter),
+            discriminant: discriminant,
             cases: n.cases.map(function(node) {
                 // node is of type SwitchCase
                 return this.accept(node, rewriter);
@@ -1203,9 +1209,15 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     visitSwitchCase: function(n, rewriter) {
         // test is a node of type Expression
+        var test = this.accept(n.test, rewriter);
+        if (test != null && !rewriter.isStoredComputationResult(test) && test.type != 'Literal') {
+            // definitely capture state because it can be changed in cases' bodies (resume in case)
+            test = rewriter.storeComputationResult(test,
+                n.test.start, n.test.end, n.test.astIndex);
+        }
         return {
             start: n.start, end: n.end, type: 'SwitchCase',
-            test: this.accept(n.test, rewriter),
+            test: test,
             consequent: n.consequent.map(function(node) {
                 // node is of type Statement
                 return this.accept(node, rewriter);

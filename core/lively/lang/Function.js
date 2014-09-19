@@ -682,6 +682,7 @@ Global.Functions = {
     },
 
     once: function(func) {
+        if (!func) return undefined;
         var invoked = false, result;
         return function() {
             if (invoked) return result;

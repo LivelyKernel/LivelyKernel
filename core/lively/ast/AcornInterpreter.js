@@ -1079,7 +1079,7 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
 
         var ast = this.getAst();
         if (ast._parentEntry != null) {
-            source = __getClosure(ast._parentEntry).source;
+            source = __getClosure(ast.sourceFile || "[runtime]", ast._parentEntry).source;
         }
         if (!source && ast.sourceFile) {
             source = new WebResource(URL.root.withFilename(ast.sourceFile)).get().content;

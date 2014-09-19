@@ -340,8 +340,8 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     reset: function() {
         this.rootDirectory = null,
-        this.commandQueue && Properties.forEachOwn(this.commandQueue, function(group, cmds) {
-            cmds.invoke('kill'); })
+        this.commandQueue && Properties.forEachOwn(this.commandQueue,
+            function(group, cmds) { cmds.forEach(function(cmd) { cmd.kill(); }); });
         this.commandQueue = {};
     },
     getGroupCommandQueue: function(group) {

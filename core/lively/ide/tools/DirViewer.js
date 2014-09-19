@@ -955,7 +955,10 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         this.get('targetDir').textString = ''
         this.get('fileList').listItemContainer.removeAllMorphs();
         this.getWindow().setTitle('DirViewer');
-    }
+    },
+        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+            this.dirState = Object.extend({}, this.dirState);
+        }
     }],
     titleBar: "DirViewer"
 });

@@ -45,7 +45,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
         if (cmd) {
             Functions.waitFor(5000, function() {
                 return cmd.getStdout().include("nREPL server started");
-            }, function(err) { thenDo(null, cmd); });
+            }, function(err) { thenDo(err, cmd); });
         } else this.start(options, thenDo);
     },
 
@@ -92,7 +92,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
                 q[0].kill("SIGKILL", function(err, answer) { next(); });
             },
             function stopRunningServer(next) {
-                var cmdString = Strings.format("lsof -i tcp:%s -t | xargs kill; ", port);
+                var cmdString = Strings.format("lsof -i tcp:%s -t | xargs kill -9 ", port);
                 lively.shell.run(cmdString, {group: cmdQueueName}, function(cmd) { next(); });
             }
         )(thenDo);
@@ -168,32 +168,69 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         this.doEval("(doc " + expr + ")", {prettyPrint: true}, thenDo);
     },
 
-    doEval: function(expr, options, thenDo) {
-        if (!thenDo) { thenDo = options; options = null; };
-        options = options || {};
-        var pp = options.prettyPrint;
-        var isJSON = options.resultIsJSON;
+    evalQueue: [],
+
+    runEvalFromQueue: function() {
+        var clj = this;
+        var evalObject = clj.evalQueue[0];
+        if (!evalObject || evalObject.isRunning) return;
+        clj.runEval(evalObject, function(err, result) {
+            clj.evalQueue.remove(evalObject);
+            try { if (evalObject.callback) evalObject.callback(err, result); } catch (e) {
+                show("error in clj eval callback: %s", e);
+            }
+            clj.runEvalFromQueue.bind(clj).delay(0);
+        });
+    },
+
+    runEval: function(evalObject, thenDo) {
+        var options = evalObject.options;
+        var expr = evalObject.expr;
+        var pp = options.hasOwnProperty("prettyPrint") ? options.prettyPrint : false;
+        var isJSON = options.hasOwnProperty("resultIsJSON") ? options.resultIsJSON : false;
+        var catchError = options.hasOwnProperty("catchError") ? options.catchError : true;
 
         if (!module('lively.net.SessionTracker').isLoaded() || !lively.net.SessionTracker.isConnected()) {
             thenDo(new Error('Lively2Lively not running, cannot connect to Clojure nREPL server!'));
             return;
         }
-
         var sess = lively.net.SessionTracker.getSession();
 
         if (pp) expr = Strings.format("(with-out-str (>pprint (do %s)))", expr);
+        if (catchError) expr = Strings.format("(try %s (catch Exception e (clojure.repl/pst e)))", expr);
 
+        evalObject.isRunning = true;
+        var result;
         sess.send('clojureEval', {code: expr}, function(answer) {
-            if (answer.data.error) thenDo && thenDo(answer.data.error, null);
-            else prepareRawResult(answer.data.result, thenDo); });
+            result = Object.merge([result || {}, answer.data]);
+            if (answer.data['eval-id']) evalObject['eval-id'] = answer.data['eval-id'];
+            if (answer.expectMoreResponses) return;
+            evalObject.isRunning = false;
+            if (result.error) thenDo && thenDo(result.error, null);
+            else prepareRawResult(result.result, thenDo); });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function prepareRawResult(rawResult, thenDo) {
-            if (!Object.isArray(rawResult) || !rawResult.length) return rawResult;
-            var errors = rawResult.pluck("ex").compact(),
+
+            if (Object.isString(rawResult) && rawResult.match(/error/i))
+                rawResult = [{err: rawResult}];
+
+            if (!Object.isArray(rawResult) || !rawResult.length) {
+                console.warn("strange clj eval rawResult: %o", rawResult);
+                return;
+            };
+
+            var errors = rawResult.pluck("ex").compact().concat(rawResult.pluck("err").compact()),
                 isError = !!errors.length,
                 result = rawResult.pluck('value').concat(rawResult.pluck('out')).compact().join('\n'),
-                err = isError ? [errors, rawResult.pluck('root-ex'), rawResult.pluck('err')].flatten().compact().invoke('trim').uniq().join('\n') : null;
+                err;
+
+            if (isError) {
+                errors.unshift(rawResult.pluck("status").flatten().without("done"));
+                var cause = rawResult.pluck('root-ex').flatten().compact();
+                if (cause.length) errors.pushAll(["root-cause:"].concat(cause));
+                err = errors.flatten().compact().invoke('trim').join('\n');
+            }
 
             if (!isError && pp) try { result = eval(result); } catch (e) {}
             if (!isError && isJSON) try { result = JSON.parse(eval(result)); } catch (e) {
@@ -201,6 +238,36 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
                 result = {error: e};
             }
             thenDo && thenDo(options.passError ? err : null, err || result);
+        }
+    },
+
+    doEval: function(expr, options, thenDo) {
+        if (!thenDo) { thenDo = options; options = null; };
+        this.evalQueue.push({
+            expr: expr,
+            options: options || {},
+            isRunning: false,
+            "eval-id": null,
+            callback: thenDo});
+        this.runEvalFromQueue();
+    },
+
+    evalInterrupt: function(thenDo) {
+        var clj = this;
+        var evalObject = clj.evalQueue[0];
+        if (!evalObject) thenDo(new Error("no clj eval running"));
+        else if (!evalObject.isRunning || !evalObject['eval-id']) cleanup();
+        else {
+            var sess = lively.net.SessionTracker.getSession();
+            sess.send('clojureEvalInterrupt', {"eval-id": evalObject['eval-id']}, function(answer) {
+                cleanup();
+                thenDo(answer.error || answer.data.error, answer.data);
+            });
+        }
+        
+        function cleanup() {
+            clj.evalQueue.remove(evalObject);
+            clj.runEvalFromQueue.bind(clj).delay(0);
         }
     }
 
@@ -230,6 +297,15 @@ ClojureMode.addMethods({
                 });
             }
         },
+        
+        evalInterrupt: {
+            exec: function(ed) {
+                ed.$morph.setStatusMessage("Interrupting eval...");
+                lively.ide.codeeditor.modes.Clojure.evalInterrupt(function(err, answer) {
+                    ed.$morph.setStatusMessage(Objects.inspect(err || answer), err ? Color.red : null);
+                });
+            },
+        }
     },
 
     keybindings: {

@@ -120,16 +120,6 @@ Object.subclass("lively.store.ObjectRepository",
         }
     },
 
-    getASTRegistryIndex: function(idx) {
-        var res = this.getServerInterfaceURL().withQuery({getASTRegistryIndex: idx}).asWebResource(),
-            content = res.beSync().get().content;
-        if (!res.status.isSuccess())
-            throw new Error(content);
-        var json;
-        try { json = JSON.parse(content); } catch(e) { json = {error: e} }
-        return json;
-    },
-
     diff: function(querySpecA, querySpecB, options, thenDo)  {
         options = options || {};
         this.getServerInterfaceURL().withFilename('diff').withQuery({

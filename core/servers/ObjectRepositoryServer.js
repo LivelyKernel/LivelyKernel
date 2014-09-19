@@ -16,20 +16,6 @@ function withDBDo(doFunc) {
     doFunc(db ? null : new Error('Cannot access database'), db);
 }
 
-function handleGetASTRegistryIndex(query, thenDo) {
-    var idx = Number(query.getASTRegistryIndex);
-    if (isNaN(idx)) {
-        thenDo(new Error('Index to AST registry has to be a number!'), null);
-        return;
-    }
-    lively.repository.getRecords({
-        astIndex: idx,
-        attributes: ['path', 'version', 'ast', 'registry_id', 'registry_additions', 'additions_count'],
-        limit: 1,
-        rewritten: true
-    }, thenDo);
-}
-
 function withRecordsDo(queryString, thenDo) {
     var getRecordsQuery;
     try {
@@ -51,13 +37,8 @@ module.exports = function(route, app) {
                 if (err) res.status(400).json({error: String(err)});
                 else res.json(rows);
             });
-        } else if (query.getASTRegistryIndex) {
-            handleGetASTRegistryIndex(query, function(err, rows) {
-                if (err) res.status(400).json({error: String(err)});
-                else res.json(rows[0]);
-            });
         } else {
-            res.status(400).json({error: 'no getRecords/getASTRegistryIndex query found'});
+            res.status(400).json({error: 'no getRecords query found'});
         }
     });
 

@@ -359,9 +359,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
         var condVal = state.result;
         state.result = oldResult;
 
-        if (frame.isResuming() && this.wantsInterpretation(node.consequent, frame)) {
-            condVal = true; // resuming node inside true branch
-        }
         if (condVal) {
             this.accept(node.consequent, state);
         } else if (node.alternate) {

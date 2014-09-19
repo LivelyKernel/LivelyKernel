@@ -980,6 +980,40 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
         this.assertEquals(123, newFrame.getScope().get('arg'), 'argument "arg" was not stored by reset');
 
         this.assertEquals(123, interpreter.runFromPC(frame), 'did not finish resume');
+    },
+
+    test07SteppingInsideIf: function() {
+        var node = this.parse('function foo(a) { return x += a; } var x = 0; (false ? foo(1) : foo(5));'),
+            program = new lively.ast.AcornInterpreter.Function(node),
+            frame = lively.ast.AcornInterpreter.Frame.create(program),
+            interpreter = new lively.ast.AcornInterpreter.Interpreter(),
+            result;
+
+        result = interpreter.stepToNextStatement(frame);
+        result = interpreter.stepToNextStatement(frame);
+        this.assertEquals('Break', result && result.toString(), 'first two steps');
+        this.assertEquals(node.body[2], frame.getPC(), 'did not halt at initial position');
+
+        result = interpreter.stepToNextCallOrStatement(frame);
+        this.assertEquals('Break', result && result.toString(), 'third step');
+        var newFrame = result.unwindException.top;
+        while (newFrame && newFrame.isInternal()) {
+            newFrame = newFrame.getParentFrame();
+        }
+        this.assertEquals(node.body[0].body.body[0], newFrame && newFrame.getPC(),
+            'no new top frame returned');
+        this.assertEquals(5, newFrame.getScope().get('a'), 'did not go into else branch');
+
+        result = interpreter.stepToNextStatement(newFrame);
+        this.assertEquals(5, result, 'forth step');
+        this.assertEquals(5, frame.getScope().get('x'), 'did not execute addition');
+        this.assertEquals(null, newFrame.getPC(), 'did not finish function execution');
+        frame.alreadyComputed[frame.getPC().astIndex] = result;
+
+        result = interpreter.stepToNextStatement(frame);
+        this.assertEquals(5, result, 'fifth step');
+        this.assertEquals(5, frame.getScope().get('x'), 'did execute addition twice');
+        this.assertEquals(null, frame.getPC(), 'did not finish if statement');
     }
 
 });

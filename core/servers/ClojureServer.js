@@ -16,6 +16,7 @@ con.interrupt(undefined, function() { console.log(arguments); })
 con.address()
 con.end()
 
+delete require.cache[require.resolve("nrepl-client")]
 require("./ClojureServer").clientConnectionState.connection = null
 
 
@@ -96,26 +97,39 @@ function ensureNreplConnection(thenDo) {
     });
 }
 
-function doEval(code, thenDo) {
+function doEval(code, inform, thenDo) {
     debug && console.log("Clojure eval: ", code);
-    ensureNreplConnection(function(err, con) {
-        if (err) { thenDo(err, null); return; }
-        con.messageStream.on("error", function(err) { con.end(); thenDo(err, null); })
-        con.messageStream.once("messageSequence", function(messages) { thenDo(null, messages); })
-        var id = con.eval(code, function(err, result) {/*currently ignore*/});
-        console.log(id);
-    });
+    async.waterfall([
+        ensureNreplConnection,
+        function(con, next) {
+            con.messageStream.on("error", function(err) { con.end(); next(err, null); })
+            con.messageStream.once("messageSequence", function(messages) { next(null, messages); })
+            var id = con.eval(code, function(err, result) {/*currently ignored*/});
+            inform && inform({"eval-id": id});
+        }
+    ], thenDo);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function answer(conn, msg, more, data) {
+    conn.send({expectMoreResponses: more,
+        action: msg.action + 'Result',
+        inResponseTo: msg.messageId, data: data});
+}
 
-require("./LivelyServices").services.clojureEval = function (sessionServer, connection, msg) {
-    function answer(data) {
-        connection.send({action: msg.action + 'Result',
-            inResponseTo: msg.messageId, data: data});
-    }
-    doEval(msg.data.code, function(err, result) {
-        answer({result: err ? String(err) : result});
+require("./LivelyServices").services.clojureEval = function (sessionServer, c, msg) {
+    doEval(msg.data.code,
+        function(note) { answer(c, msg, true, note);  },
+        function(err, result) { answer(c, msg, false, {result: err ? String(err) : result}); });
+}
+
+require("./LivelyServices").services.clojureEvalInterrupt = function (sessionServer, c, msg) {
+    debug && console.log("Clojure interrupt: ", msg.data['eval-id']);
+    async.waterfall([
+        ensureNreplConnection,
+        function(con, next) { con.interrupt(msg.data['eval-id'], next); }
+    ], function(err, result) {
+         answer(c, msg, false, {result: err ? String(err) : result}); 
     });
 }
 

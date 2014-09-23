@@ -185,6 +185,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 "control", {
     start: function() {
         if (this._started) return this;
+
         this._started = true;
         var cmdInstructions = {
             command: this.getCommand(),
@@ -304,6 +305,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 cmd.onEnd(404);
             } else {
                 cmd._options.serverSession = sess;
+                cmd._started = false; // FIXME for re-entry
                 cmd.start();
             }
         })

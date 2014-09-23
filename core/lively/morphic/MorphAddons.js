@@ -138,7 +138,7 @@ Object.extend(lively.morphic, {
 
     edit: function(obj) {
         if (Global.lively && lively.morphic && lively.morphic.World.current())
-            return lively.morphic.World.current().openObjectEditorFor(obj);
+            lively.morphic.World.current().openObjectEditorFor(obj);
     },
 
     showCallStack: function() {

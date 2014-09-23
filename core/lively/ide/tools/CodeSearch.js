@@ -500,7 +500,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
                 var parts = candidate.match.split(':'),
                     path = parts[0], line = parts[1];
                 if (line) path += ':' + line;
-                return lively.ide.openFile(path);
+                lively.ide.openFile(path);
             }
 
             function openInSCB(candidate) {
@@ -520,8 +520,9 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         }
 
         if (find.type === 'script') {
-            var ed = $world.openObjectEditorFor(find.object);
-            ed.targetMorph.get('ObjectEditorScriptList').setSelection(find.selector);
+            $world.openObjectEditorFor(find.object, function(ed) {
+                ed.targetMorph.get('ObjectEditorScriptList').setSelection(find.selector);
+            });
             return;
         }
 

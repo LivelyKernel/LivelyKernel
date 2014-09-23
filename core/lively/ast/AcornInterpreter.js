@@ -1149,8 +1149,9 @@ Object.subclass('lively.ast.AcornInterpreter.Function',
         } else if (thisObject && lively.Class.isClass(thisObject) && fn.displayName) {
             $world.browseCode(thisObject.name, fn.displayName, (fn.sourceModule || thisObject.sourceModule).name());
         } else if (thisObject && thisObject.isMorph && this.node.type != 'Program') {
-            var ed = $world.openObjectEditorFor(thisObject);
-            ed.targetMorph.get('ObjectEditorScriptList').setSelection(fn.methodName || this.name());
+            $world.openObjectEditorFor(thisObject, function(ed) {
+                ed.targetMorph.get('ObjectEditorScriptList').setSelection(fn.methodName || this.name());
+            });
         } else
             //TODO: Add browse implementation for other functions
             throw new Error('Cannot browse anonymous function ' + this);

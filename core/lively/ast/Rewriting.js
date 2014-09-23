@@ -44,14 +44,14 @@ Object.extend(lively.ast.Rewriting, {
                     "core/lib/acorn/acorn-loose.js",
                     "core/lively/ast/DebugExamples.js"]);
 
-        module('lively.ast.SourceMap').load(true);
-
-        removeExistingDebugFiles(function() {
-            modules.forEachShowingProgress({
-                iterator: createRewrittenModule,
-                whenDone: createDebuggingBootstrap
+        lively.require('lively.ast.SourceMap').toRun(function() {
+            removeExistingDebugFiles(function() {
+                modules.forEachShowingProgress({
+                    iterator: createRewrittenModule,
+                    whenDone: createDebuggingBootstrap
+                });
             });
-        });
+        })
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // helper
@@ -136,44 +136,45 @@ Object.extend(lively.ast.Rewriting, {
     },
 
     recreateServerSideCode: function() {
-        module('lively.store.SQLiteInterface').load(true);
-
-        // 1. clear rewritten_objects table
-        lively.store.SQLiteInterface.ensureDB('ObjectRepository', 'objects.sqlite', function() {
-            lively.store.SQLiteInterface.query('ObjectRepository', ['DELETE FROM rewritten_objects;'],
-            function(err, res) {
-                requestBootstrapFiles();
+        lively.require('lively.store.SQLiteInterface').toRun(function() {
+            // 1. clear rewritten_objects table
+            lively.store.SQLiteInterface.ensureDB('ObjectRepository', 'objects.sqlite', function() {
+                lively.store.SQLiteInterface.query('ObjectRepository', ['DELETE FROM rewritten_objects;'],
+                function(err, res) {
+                    requestBootstrapFiles();
+                });
             });
+
+            // 2. request all the files that need to be rewritten in advance
+            function requestBootstrapFiles() {
+                // list of files taken from life_star config
+                var bootstrapRewriteFiles = [ // 'core/lib/lively-libs-debug.js',
+                    'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
+                    'core/lively/lang/Function.js', 'core/lively/lang/String.js',
+                    'core/lively/lang/Array.js', 'core/lively/lang/Number.js', 'core/lively/lang/Date.js',
+                    'core/lively/lang/Worker.js', 'core/lively/lang/LocalStorage.js',
+                    'core/lively/defaultconfig.js', 'core/lively/Base.js', 'core/lively/ModuleSystem.js',
+                    'core/lively/Traits.js', 'core/lively/DOMAbstraction.js', 'core/lively/IPad.js',
+                    'core/lively/LogHelper.js', 'core/lively/localconfig.js',
+                    // bootstrap.js
+                    'core/lively/lang/Closure.js',
+                    'core/lively/bindings.js', 'core/lively/bindings/Core.js',
+                    'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
+                    // directly necessary for debugging BUT excluded for now:
+                    // 'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
+                    // 'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
+                    // 'core/lively/ast/acorn.js', 'core/lively/ast/StackReification.js'
+                ];
+
+                bootstrapRewriteFiles.forEachShowingProgress({
+                    iterator: function(filename) {
+                        var file = URL.root.withFilename(filename);
+                        file = file.withFilename('DBG_' + file.filename());
+                        new WebResource(file).get(); // could be async but we have the progress bar
+                    }
+                });
+            }
         });
-
-        // 2. request all the files that need to be rewritten in advance
-        function requestBootstrapFiles() {
-            // list of files taken from life_star config
-            var bootstrapRewriteFiles = [ // 'core/lib/lively-libs-debug.js',
-                'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
-                'core/lively/lang/Function.js', 'core/lively/lang/String.js', 'core/lively/lang/Array.js',
-                'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
-                'core/lively/lang/LocalStorage.js','core/lively/defaultconfig.js', 'core/lively/Base.js',
-                'core/lively/ModuleSystem.js', 'core/lively/Traits.js', 'core/lively/DOMAbstraction.js',
-                'core/lively/IPad.js', 'core/lively/LogHelper.js', 'core/lively/localconfig.js',
-                // bootstrap.js
-                'core/lively/lang/Closure.js',
-                'core/lively/bindings.js', 'core/lively/bindings/Core.js',
-                'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
-                // directly necessary for debugging BUT excluded for now:
-                // 'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
-                // 'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
-                // 'core/lively/ast/acorn.js', 'core/lively/ast/StackReification.js'
-            ];
-
-            bootstrapRewriteFiles.forEachShowingProgress({
-                iterator: function(filename) {
-                    var file = URL.root.withFilename(filename);
-                    file = file.withFilename('DBG_' + file.filename());
-                    new WebResource(file).get(); // could be async but we have the progress bar
-                }
-            });
-        }
     }
 
 });

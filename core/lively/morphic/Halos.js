@@ -725,7 +725,7 @@ lively.morphic.Halo.subclass('lively.morphic.StyleHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
-        lively.morphic.World.current().openStyleEditorFor(this.targetMorph, evt);
+        lively.morphic.World.current().openStyleEditorFor(this.targetMorph);
     },
 });
 
@@ -758,7 +758,7 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
-        $world.openObjectEditorFor(this.targetMorph, evt);
+        $world.openObjectEditorFor(this.targetMorph);
     },
 
 });
@@ -778,7 +778,7 @@ lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
             this.targetMorph.openFRPInspector();
             return;
         }
-        $world.openInspectorFor(this.targetMorph, evt)
+        $world.openInspectorFor(this.targetMorph)
     },
 });
 

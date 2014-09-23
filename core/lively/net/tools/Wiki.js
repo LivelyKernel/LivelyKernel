@@ -681,13 +681,14 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         getVersions: function getVersions() {
         var p = this.getPath();
         if (!p) return;
-        module('lively.store.Interface').load(true);
         var self = this;
-        new lively.store.ObjectRepository().getRecords({
-            paths: [p],
-            attributes: ['path', 'date', 'author', 'change', 'version']
-        }, function(err, rows) {
-            self.showResult(err, rows);
+        lively.require('lively.store.Interface').toRun(function() {
+            new lively.store.ObjectRepository().getRecords({
+                paths: [p],
+                attributes: ['path', 'date', 'author', 'change', 'version']
+            }, function(err, rows) {
+                self.showResult(err, rows);
+            });
         });
     },
         onLoad: function onLoad() {
@@ -738,7 +739,8 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             path = url.relativePathFrom(URL.root);
         } catch (e) {}
         this.get('pathText').textString = path;
-        this._path = path; this.getVersions();
+        this._path = path;
+        this.getVersions();
     },
         setAndSelectPath: function setAndSelectPath(path) {
             this.setPath(path);

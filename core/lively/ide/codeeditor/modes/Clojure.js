@@ -59,9 +59,16 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
     start: function(options, thenDo) {
         if (!thenDo) { thenDo = options; options = {}; }
-        var port = options.port || "7888",
+        var port = options.env ? options.env.port : "7888",
+            host = options.env ? options.env.host : "127.0.0.1",
             self = this,
             cmdQueueName = "lively.clojure.replServer";
+
+        // FIXME
+        if (!["127.0.0.1", "0.0.0.0", "localhost"].include(host)) {
+            thenDo(new Error("Cannot start clj server " + host + ":" + port));
+            return;
+        }
 
         Functions.composeAsync(
             function(next) { lively.require("lively.ide.CommandLineInterface").toRun(function() { next(); }); },
@@ -71,7 +78,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
                 var cmdString = Strings.format(
                     "lein with-profile +lively repl :headless :port %s", port);
                 var cmd = lively.shell.run(cmdString, {group: cmdQueueName});
-                next(null,cmd); 
+                next(null,cmd);
             },
             function waitForServerStart(cmd, next) {
                 Functions.waitFor(5000, function() {
@@ -83,6 +90,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
     stop: function(port, thenDo) {
         port = port || "7888";
+        var port = env ? env.port : "7888";
         var cmdQueueName = "lively.clojure.replServer";
         Functions.composeAsync(
             function clearLivelyClojureCommands(next) {
@@ -134,6 +142,14 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
 Object.extend(lively.ide.codeeditor.modes.Clojure, {
 
+    currentEnv: function() {
+        return $morph('clojureEnv') ? $morph('clojureEnv').getCurrentEnv() : {
+            port: 7888,
+            host: "0.0.0.0",
+            session: null
+        }
+    },
+
     prettyPrint: function(code, thenDo) {
         // this is WORK IN PROGRESS!
         var prettify = Strings.format(
@@ -184,6 +200,8 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
     },
 
     runEval: function(evalObject, thenDo) {
+        var clj = lively.ide.codeeditor.modes.Clojure;
+        var env = evalObject.env;
         var options = evalObject.options;
         var expr = evalObject.expr;
         var pp = options.hasOwnProperty("prettyPrint") ? options.prettyPrint : false;
@@ -195,39 +213,55 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
             return;
         }
         var sess = lively.net.SessionTracker.getSession();
+        var cljSession = env.session;
 
         if (pp) expr = Strings.format("(with-out-str (>pprint (do %s)))", expr);
         if (catchError) expr = Strings.format("(try %s (catch Exception e (clojure.repl/pst e)))", expr);
 
         evalObject.isRunning = true;
-        var result;
-        sess.send('clojureEval', {code: expr}, function(answer) {
-            result = Object.merge([result || {}, answer.data]);
-            if (answer.data['eval-id']) evalObject['eval-id'] = answer.data['eval-id'];
+        var nreplOptions = {port: env.port || 7888, host: env.host || "127.0.0.1"};
+        var nreplMessages = [];
+
+        sess.send('clojureEval', {nreplOptions: nreplOptions, session: cljSession, code: expr}, function(answer) {
+            if (Object.isArray(answer.data)) {
+                nreplMessages.pushAll(answer.data);
+            } else nreplMessages.push(answer.data);
+
+            if (answer.data['eval-id']) {
+                evalObject['eval-id'] = answer.data['eval-id'];
+                cljSession = evalObject.env.session = answer.data.session;
+            }
+
             if (answer.expectMoreResponses) return;
             evalObject.isRunning = false;
-            if (result.error) thenDo && thenDo(result.error, null);
-            else prepareRawResult(result.result, thenDo); });
+
+            if (answer.data.error) thenDo && thenDo(answer.data.error, null);
+            else prepareRawResult(nreplMessages, thenDo); });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        function prepareRawResult(rawResult, thenDo) {
 
-            if (Object.isString(rawResult) && rawResult.match(/error/i))
-                rawResult = [{err: rawResult}];
+        function prepareRawResult(messages, thenDo) {
+            if (Object.isString(messages) && messages.match(/error/i))
+                messages = [{err: messages}];
 
-            if (!Object.isArray(rawResult) || !rawResult.length) {
-                console.warn("strange clj eval rawResult: %o", rawResult);
+            if (!Object.isArray(messages) || !messages.length) {
+                console.warn("strange clj eval messages: %o", messages);
                 return;
             };
 
-            var errors = rawResult.pluck("ex").compact().concat(rawResult.pluck("err").compact()),
+            var status = messages.pluck("status").compact().flatten(),
+                errors = messages.pluck("error").compact()
+                    .concat(messages.pluck("err").compact())
+                    .concat(messages.pluck("ex").compact()),
                 isError = !!errors.length,
-                result = rawResult.pluck('value').concat(rawResult.pluck('out')).compact().join('\n'),
+                result = messages.pluck('value').concat(messages.pluck('out')).compact().join('\n'),
                 err;
 
+            if (status.include("interrupted")) result = result + "[interrupted eval]";
+
             if (isError) {
-                errors.unshift(rawResult.pluck("status").flatten().without("done"));
-                var cause = rawResult.pluck('root-ex').flatten().compact();
+                errors.unshift(status.without("done"));
+                var cause = messages.pluck('root-ex').flatten().compact();
                 if (cause.length) errors.pushAll(["root-cause:"].concat(cause));
                 err = errors.flatten().compact().invoke('trim').join('\n');
             }
@@ -244,6 +278,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
     doEval: function(expr, options, thenDo) {
         if (!thenDo) { thenDo = options; options = null; };
         this.evalQueue.push({
+            env: lively.ide.codeeditor.modes.Clojure.currentEnv(),
             expr: expr,
             options: options || {},
             isRunning: false,
@@ -255,16 +290,22 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
     evalInterrupt: function(thenDo) {
         var clj = this;
         var evalObject = clj.evalQueue[0];
+        var env = evalObject.env || {};
+        var nreplOptions = {port: env.port || 7888, host: env.host || "127.0.0.1"};
+
         if (!evalObject) thenDo(new Error("no clj eval running"));
         else if (!evalObject.isRunning || !evalObject['eval-id']) cleanup();
         else {
             var sess = lively.net.SessionTracker.getSession();
-            sess.send('clojureEvalInterrupt', {"eval-id": evalObject['eval-id']}, function(answer) {
-                cleanup();
-                thenDo(answer.error || answer.data.error, answer.data);
-            });
+            sess.send('clojureEvalInterrupt',
+                {nreplOptions: nreplOptions, session: evalObject.env.session,
+                 "eval-id": evalObject['eval-id']},
+                function(answer) {
+                    cleanup();
+                    thenDo(answer.error || answer.data.error, answer.data);
+                });
         }
-        
+
         function cleanup() {
             clj.evalQueue.remove(evalObject);
             clj.runEvalFromQueue.bind(clj).delay(0);

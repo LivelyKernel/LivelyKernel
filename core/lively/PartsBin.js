@@ -166,6 +166,7 @@ Object.subclass('lively.PartsBin.PartItem',
 },
 'upload and download', {
     load: function(isAsync, rev) {
+
         if(!isAsync){
             var webR = new WebResource(this.getFileURL()).noProxy().forceUncached();
             if (isAsync) webR.beAsync();
@@ -178,11 +179,12 @@ Object.subclass('lively.PartsBin.PartItem',
             webR.get();
             return this;
         }
-        
-        var self = this,
-            path = this.getFileURL().relativePathFrom(URL.root),
-            query = !!rev || rev === 0 ?
-                {
+
+        var url = this.getFileURL(),
+            root = url.withPath("/"),
+            path = url.relativePathFrom(root),
+            self = this,
+            query = !!rev || rev === 0 ? {
                     paths: [path],
                     attributes: ['content'],
                     version: rev,
@@ -194,13 +196,9 @@ Object.subclass('lively.PartsBin.PartItem',
                     limit: 1
                 };
 
-        new lively.store.ObjectRepository().getRecords(query, function(err, rows) {
-            if (err) {
-                show(err);
-                self.json = null
-            } else {
-                self.json = rows[0].content;
-            }
+        new lively.store.ObjectRepository(root).getRecords(query, function(err, rows) {
+            if (err) { show(err); self.json = null; return; }
+            self.json = rows[0].content;
         });
         return this;
     },
@@ -252,59 +250,58 @@ Object.subclass('lively.PartsBin.PartItem',
 
     loadPartVersions: function(isAsync) {
         module('lively.store.Interface').load(true);
-        var self = this,
-            path = this.getFileURL().relativePathFrom(URL.root)
-        new lively.store.ObjectRepository().getRecords({
+        // FIXME, what if PartsBin is not at root?
+        var url = this.getFileURL(),
+            root = url.withPath("/"),
+            path = url.relativePathFrom(root),
+            self = this;
+        new lively.store.ObjectRepository(root).getRecords({
             paths: [path],
             attributes: ['path', 'date', 'author', 'change', 'version']
         }, function(err, rows) {
-            if (err) {
-                show(err);
-            } else {
-                self.partVersions = rows;
-            }
+            if (err) show(err);
+            else self.partVersions = rows;
         });
         return this;
     },
 
     loadPartMetaInfo: function(isAsync, rev) {
+
         if (!isAsync) {
             var webR = new WebResource(this.getMetaInfoURL());
             if (isAsync) webR.beAsync();
-            connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
+            lively.bindings.connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
                 if (!this.sourceObj.status.isSuccess()) return $upd(null);
                 if (!this.sourceObj.status.isDone()) return;
                 var metaInfo = lively.persistence.Serializer.deserialize(json);
-                metaInfo.lastModifiedDate = source.lastModified;
+                metaInfo.lastModifiedDate = this.sourceObj.lastModified;
                 $upd(metaInfo);
             }});
             webR.forceUncached().get();
             return this;
         }
-        var self = this,
-            path = this.getMetaInfoURL().relativePathFrom(URL.root),
-            query = !!rev ?
-                {
-                    paths: [path],
-                    attributes: ['content', 'date'],
-                    version: rev,
-                    limit: 1
-                } : {
-                    paths: [path],
-                    attributes: ['content', 'date'],
-                    newest: true,
-                    limit: 1
-                };
 
-        new lively.store.ObjectRepository().getRecords(query, function(err, rows) {
-            if (err) {
-                show(err);
-                self.loadedMetaInfo = null
-            } else {
-                var metaInfo = lively.persistence.Serializer.deserialize(rows[0].content)
-                metaInfo.lastModifiedDate = new Date(rows[0].date);
-                self.loadedMetaInfo = metaInfo;
-            }
+        var url = this.getMetaInfoURL(),
+            root = url.withPath("/"),
+            path = url.relativePathFrom(root),
+            self = this,
+            query = !!rev ? {
+                paths: [path],
+                attributes: ['content', 'date'],
+                version: rev,
+                limit: 1
+            } : {
+                paths: [path],
+                attributes: ['content', 'date'],
+                newest: true,
+                limit: 1
+            };
+
+        new lively.store.ObjectRepository(root).getRecords(query, function(err, rows) {
+            if (err) { show(err); self.loadedMetaInfo = null; return; }
+            var metaInfo = lively.persistence.Serializer.deserialize(rows[0].content)
+            metaInfo.lastModifiedDate = new Date(rows[0].date);
+            self.loadedMetaInfo = metaInfo;
         });
     },
 

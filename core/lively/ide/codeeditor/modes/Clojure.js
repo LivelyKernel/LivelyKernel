@@ -88,8 +88,14 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
         )(thenDo);
     },
 
-    stop: function(port, thenDo) {
-        port = port || "7888";
+    stop: function(env, thenDo) {
+        env = env || {};
+        // FIXME
+        if (env.host && !["127.0.0.1", "0.0.0.0", "localhost"].include(env.host)) {
+            thenDo(new Error("Cannot stop clj server " + env.host + ":" + port));
+            return;
+        }
+
         var port = env ? env.port : "7888";
         var cmdQueueName = "lively.clojure.replServer";
         Functions.composeAsync(
@@ -100,7 +106,8 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
                 q[0].kill("SIGKILL", function(err, answer) { next(); });
             },
             function stopRunningServer(next) {
-                var cmdString = Strings.format("lsof -i tcp:%s -t | xargs kill -9 ", port);
+                var cmdString = Strings.format(
+                    "lsof -i tcp:%s -a -c ^node -a -c ^Google -t | xargs kill -9 ", port);
                 lively.shell.run(cmdString, {group: cmdQueueName}, function(cmd) { next(); });
             }
         )(thenDo);
@@ -271,8 +278,14 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
                 err = e;
                 result = {error: e};
             }
+
+            if (isError && String(result).include("ECONNREFUSED")) {
+                result = "No clojure server listening?" + result;
+            }
+
             thenDo && thenDo(options.passError ? err : null, err || result);
         }
+
     },
 
     doEval: function(expr, options, thenDo) {

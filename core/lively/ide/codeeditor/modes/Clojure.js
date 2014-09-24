@@ -326,11 +326,12 @@ ClojureMode.addMethods({
                     ed.insert(string);
                     // ed.$morph.printObject(ed, err ? err : string);
                 });
-                
+
             }
         },
 
         printDoc: {
+            bindKey: 'Command-Shift-/',
             exec: function(ed) {
                 var string = ed.$morph.getSelectionOrLineString();
                 lively.ide.codeeditor.modes.Clojure.fetchDoc(string, function(err, docString) {
@@ -338,39 +339,31 @@ ClojureMode.addMethods({
                 });
             }
         },
-        
+
         evalInterrupt: {
+            bindKey: 'Command-.',
             exec: function(ed) {
                 ed.$morph.setStatusMessage("Interrupting eval...");
                 lively.ide.codeeditor.modes.Clojure.evalInterrupt(function(err, answer) {
-                    ed.$morph.setStatusMessage(Objects.inspect(err || answer), err ? Color.red : null);
+                    console.log("Clojure eval interrupt: ", Objects.inspect(err || answer));
+                    // ed.$morph.setStatusMessage(Objects.inspect(err || answer), err ? Color.red : null);
                 });
-            },
+            }
         }
     },
 
     keybindings: {
         "Command-Shift-/": "printDoc",
-        "Tab": "prettyPrint"
+        "Tab": "prettyPrint",
+        "Command-.": "evalInterrupt"
     },
 
     keyhandler: null,
 
     initKeyHandler: function() {
-        Properties.forEachOwn(this.keybindings, function(key, commandName) {
-            if (this.commands[commandName]) {
-                if (this.commands[commandName].bindKey) {
-                    var bound = this.commands[commandName].bindKey;
-                    if (!Object.isArray(bound)) bound = [bound];
-                    bound.push(key);
-                    this.commands[commandName].bindKey = bound;
-                } else this.commands[commandName].bindKey = key
-            }
-        }, this);
-        return this.keyhandler = lively.ide.ace.createKeyHandler({
-            keyBindings: this.keybindings,
-            commands: this.commands
-        });
+        this.keyhandler = new (lively.ide.ace.require("ace/keyboard/hash_handler")).HashHandler();
+        this.keyhandler.addCommands(this.commands);
+        return this.keyhandler;
     },
 
     attach: function(ed) {
@@ -387,7 +380,8 @@ ClojureMode.addMethods({
 
     doEval: function(codeEditor, insertResult) {
         var sourceString = codeEditor.getSelectionOrLineString();
-        lively.ide.codeeditor.modes.Clojure.doEval(sourceString, {prettyPrint: true}, function(err, result) {
+        var options = {prettyPrint: false, catchError: false};
+        lively.ide.codeeditor.modes.Clojure.doEval(sourceString, options, function(err, result) {
             printResult(err, result)
         });
 

@@ -79,11 +79,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 },
 'shortcuts', {
     setupEvalBindings: function(kbd) {
-        function doEval(ed, insertResult) {
-            var mode = ed.session.getMode();
-            if (!mode.doEval) ed.$morph.doit(insertResult);
-            else mode.doEval(ed.$morph, insertResult)
-        }
+
         this.addCommands(kbd, [{
                 name: 'evalAll',
                 exec: function(ed, args) {
@@ -92,7 +88,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     }
                     ed.$morph.saveExcursion(function(whenDone) {
                         ed.$morph.selectAll();
-                        doEval(ed, false);
+                        maybeUseModeFunction(ed, "doEval", "doit", [false]);
                         whenDone();
                     });
                 },
@@ -101,7 +97,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: 'doit',
                 bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
-                exec: function(ed) { doEval(ed, false); },
+                exec: function(ed) { maybeUseModeFunction(ed, "doEval", "doit", [false]); },
                 multiSelectAction: "forEach",
                 readOnly: true // false if this command should not apply in readOnly mode
             }, {
@@ -113,7 +109,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-                exec: function(ed) { doEval(ed, true); },
+                exec: function(ed) { maybeUseModeFunction(ed, "doEval", "doit", [true]);; },
                 multiSelectAction: "forEach",
                 readOnly: false
             }, {
@@ -132,7 +128,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: 'printInspect',
                 bindKey: {win: 'Ctrl-I',  mac: 'Command-I'},
                 exec: function(ed, args) {
-                    ed.$morph.printInspect({depth: args && args.count});
+                    maybeUseModeFunction(ed, "printInspect", "printInspect", [{depth: args && args.count}]);
                 },
                 multiSelectAction: "forEach",
                 handlesCount: true,
@@ -167,6 +163,15 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }]);
             // FIXME for some reason this does not work with bindKeys?!
             kbd.bindKey("»", 'runShellCommandOnRegion');
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function maybeUseModeFunction(ed, featureName, morphMethodName, args) {
+            var mode = ed.session.getMode();
+            var morph = ed.$morph;
+            if (!mode[featureName]) morph.doit.apply(morph, args);
+            else mode[featureName].apply(mode, [morph].concat(args));
+        }
     },
 
     setupTextManipulationBindings: function(kbd) {

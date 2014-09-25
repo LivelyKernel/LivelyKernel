@@ -501,9 +501,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             this.addExternalCategory(categoryName, url, true);
         } else {
             this.categories[categoryName] = {isSpecialCategory: true};
-            if (!doNotUpdate) {
-                this.updateCategoryList(categoryName);
-            }
+            this.updateCategoryList(categoryName, doNotUpdate);
         }
     },
         addCategoryInteractively: function addCategoryInteractively() {
@@ -522,7 +520,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (createPath) {
             this.getPartsSpaceForCategory(categoryName).ensureExistance();
         }
-        this.updateCategoryList(categoryName)
+        this.updateCategoryList(categoryName);
     },
         addMorphsForPartItems: function addMorphsForPartItems(partItems, doNotSort) {
         this.removeParts();
@@ -925,6 +923,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         }
     },
         updateCategoriesDictFromPartsBin: function updateCategoriesDictFromPartsBin(thenDo) {
+        delete this.categories;
         this.ensureCategories();
         var webR = new WebResource(this.partsBinURL()).noProxy().beAsync().getSubElements();
     
@@ -948,10 +947,11 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             }
         });
     },
-        updateCategoryList: function updateCategoryList(optCategoryName) {
+        updateCategoryList: function updateCategoryList(optCategoryName, doNotUpdate) {
         this.get('categoryList').updateList(
         Properties.own(this.categories).sortBy(function(name) { return name.toLowerCase()}));
-        this.get('categoryList').setSelection(optCategoryName)
+        if (!doNotUpdate)
+            this.get('categoryList').setSelection(optCategoryName)
     },
         updatePartsBinURLChooser: function updatePartsBinURLChooser() {
         // this.updatePartsBinURLChooser();

@@ -381,17 +381,17 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
         var url = this.get('PartsBinURLChooser').selection,
             name = this.get('NameText').textString,
             info = morph.getPartsBinMetaInfo(),
-            categoryName = this.get('CategoryText').textString.
-            categoryName = this.get('CategoryText').textString
+            categoryName = this.get('CategoryText').textString;
         morph.setName(name);
-        
+
         info.partsSpaceName = lively.PartsBin.getLocalPartsBinURL().eq(url) ?
-            categoryName : String(url.withFilename('../' + categoryName).withRelativePartsResolved());
+            categoryName :
+            String(url.withFilename('../' + categoryName).withRelativePartsResolved());
         info.comment = this.get('CommentText').textString;
         if (!info.changes) info.changes = [];
-        var change = { 
-            date: new Date(), 
-            author: this.world().getUserName(), 
+        var change = {
+            date: new Date(),
+            author: this.world().getUserName(),
             message: this.get('CommitMessageText').textString,
             id: Strings.newUUID()
         }
@@ -414,23 +414,31 @@ lively.BuildSpec('lively.morphic.tools.PublishPartDialog', {
         $world.publishPartDialog && $world.publishPartDialog.remove()
     },
         reset: function reset() {
-        this.setTarget(null)
-       
+        this.setTarget(null);
     },
         setTarget: function setTarget(morph) {
-        this.target = morph 
+        this.target = morph;
         if (!morph) {
             this.get('NameText').textString = 'Anonymous';
             this.get('CategoryText').textString = 'Default';
-            this.get('CommentText').textString = 'no comment';        
-            this.get('CommitMessageText').textString = 'no comment'      
-            return
+            this.get('CommentText').textString = 'no comment';
+            this.get('CommitMessageText').textString = 'no comment';
+            return;
         }
         var info = this.target.getPartsBinMetaInfo();
         this.get('NameText').textString = info.partName || morph.getName();
-        if (info.partsSpaceName) this.get('CategoryText').textString = info.partsSpaceName;
-        if (info.comment) this.get('CommentText').textString = info.comment;        
-    
+        if (info.partsSpaceName) {
+            var partsSpace = lively.PartsBin.partsSpaceNamed(info.partsSpaceName),
+                partsBinURL = this.get('PartsBinURLChooser').getList().find(function(pbURL) {
+                    return !partsSpace.getURL().relativePathFrom(pbURL).startsWith('../');
+                });
+            if (partsBinURL) {
+                this.get('PartsBinURLChooser').setSelectionMatching(partsBinURL);
+                this.get('CategoryText').textString = 'PartsBin/' + partsSpace.getURL().relativePathFrom(partsBinURL);
+            } else
+                this.get('CategoryText').textString = info.partsSpaceName;
+        }
+        if (info.comment) this.get('CommentText').textString = info.comment;
     },
         showDiff: function showDiff() {
         if (this.target) {

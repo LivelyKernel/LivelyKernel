@@ -349,8 +349,9 @@ Object.subclass('lively.PartsBin.PartItem',
         var name = this.part.name,
             serialized = this.serializePart(this.part);
 
-        // 2. start the upload...
-        var webR = new WebResource(this.getFileURL())
+        // 2. start the upload... but first make sure the directory exists
+        var webR = new WebResource(this.getFileURL().getDirectory()).beSync().ensureExistance();
+        webR = new WebResource(this.getFileURL())
             [isSync ? 'beSync' : 'beAsync']()
             .createProgressBar('Uploading ' + name);
 
@@ -642,10 +643,9 @@ Object.extend(lively.PartsBin, {
             world = lively.morphic.World.currentWorld;
 
         if (world && world.getUserName(true)) {
-            var userUrl = new URL(world.getUserDir() + "/PartsBin");
-            if (userUrl.asWebResource().exists()) {
+            var userUrl = new URL(world.getUserDir().withFilename('PartsBin/'));
+            if (userUrl.asWebResource().exists())
                 additionalURLs.push(userUrl);
-            }
         }
         return [localURL].concat(additionalURLs);
     },

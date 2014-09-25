@@ -1,5 +1,53 @@
 module('lively.ide.codeeditor.modes.Clojure').requires('lively.ide.codeeditor.ace').toRun(function() {
 
+
+lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment = {};
+
+Object.extend(lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment, {
+
+    currentEnv: function(codeEditor) {
+        var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+        if (codeEditor) {
+            var st = runtime.ensureClojureStateInEditor(codeEditor);
+            if (st.env) return st.env;
+        }
+
+        var env = $morph('clojureEnv') && $morph('clojureEnv').getCurrentEnv()
+        if (env) return env;
+
+        return {
+            port: 7888,
+            host: "0.0.0.0",
+            session: null
+        }
+    },
+
+    readEnv: function(inputString) {
+        if (!Object.isString(inputString)) return null;
+        var match = inputString.match(/^([^:]+):([0-9]+)$/);
+        var host = match[1].trim(), port = parseInt(match[2]);
+        return !host || !port ? null : {host: host, port: port};
+    },
+
+    printEnv: function(env) {
+        return Strings.format("%s:%s%s",
+            env.host, env.port,
+            env.session ? "(session: " + env.session + ")" : "");
+    },
+
+    ensureClojureStateInEditor: function(editorMorph) {
+        var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment,
+            sess = editorMorph.getSession();
+        return sess.$livelyClojureState || (sess.$livelyClojureState = {env: null});
+    },
+    
+    changeInEditor: function(editorMorph, newEnv) {
+        var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+        return runtime.ensureClojureStateInEditor(editorMorph).env = newEnv;
+    }
+
+});
+
 lively.ide.codeeditor.modes.Clojure.ReplServer = {};
 
 Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
@@ -149,15 +197,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
 
 Object.extend(lively.ide.codeeditor.modes.Clojure, {
 
-    currentEnv: function() {
-        return $morph('clojureEnv') ? $morph('clojureEnv').getCurrentEnv() : {
-            port: 7888,
-            host: "0.0.0.0",
-            session: null
-        }
-    },
-
-    prettyPrint: function(code, thenDo) {
+    prettyPrint: function(runtimeEnv, code, thenDo) {
         // this is WORK IN PROGRESS!
         var prettify = Strings.format(
             "(require '(rewrite-clj parser printer))\n"
@@ -172,7 +212,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         //     code);
 
         lively.ide.codeeditor.modes.Clojure.doEval(
-            prettify, {passError: true, resultIsJSON: false},
+            prettify, {env: runtimeEnv, passError: true, resultIsJSON: false},
             function(err, prettified) {
                 if (err) show(err);
                 if (err) prettified = code;
@@ -187,8 +227,8 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
             });
     },
 
-    fetchDoc: function(expr, thenDo) {
-        this.doEval("(doc " + expr + ")", {prettyPrint: true}, thenDo);
+    fetchDoc: function(runtimeEnv, expr, thenDo) {
+        this.doEval("(doc " + expr + ")", {env: runtimeEnv, prettyPrint: true}, thenDo);
     },
 
     evalQueue: [],
@@ -212,6 +252,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         var options = evalObject.options;
         var expr = evalObject.expr;
         var pp = options.hasOwnProperty("prettyPrint") ? options.prettyPrint : false;
+        var ppLevel = options.hasOwnProperty("prettyPrintLevel") ? options.prettyPrintLevel : null;
         var isJSON = options.hasOwnProperty("resultIsJSON") ? options.resultIsJSON : false;
         var catchError = options.hasOwnProperty("catchError") ? options.catchError : true;
 
@@ -222,7 +263,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         var sess = lively.net.SessionTracker.getSession();
         var cljSession = env.session;
 
-        if (pp) expr = Strings.format("(with-out-str (>pprint (do %s)))", expr);
+        if (pp) expr = Strings.format("(with-out-str (clojure.pprint/write (do %s) %s))", expr, ppLevel ? ":level " + ppLevel : "");
         if (catchError) expr = Strings.format("(try %s (catch Exception e (clojure.repl/pst e)))", expr);
 
         evalObject.isRunning = true;
@@ -291,7 +332,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
     doEval: function(expr, options, thenDo) {
         if (!thenDo) { thenDo = options; options = null; };
         this.evalQueue.push({
-            env: lively.ide.codeeditor.modes.Clojure.currentEnv(),
+            env: options.env || lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment.currentEnv(),
             expr: expr,
             options: options || {},
             isRunning: false,
@@ -300,7 +341,8 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         this.runEvalFromQueue();
     },
 
-    evalInterrupt: function(thenDo) {
+    evalInterrupt: function(env, thenDo) {
+        // FIXME ... eval queue, eval objects should belong to a Clojure runtime env...!
         var clj = this;
         var evalObject = clj.evalQueue[0];
         var env = evalObject.env || {};
@@ -335,7 +377,9 @@ ClojureMode.addMethods({
         prettyPrint: {
             exec: function(ed) {
                 var string = ed.$morph.getSelectionOrLineString();
-                lively.ide.codeeditor.modes.Clojure.prettyPrint(string, function(err, string) {
+                var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+                var env = runtime.currentEnv(ed.$morph);
+                lively.ide.codeeditor.modes.Clojure.prettyPrint(env, string, function(err, string) {
                     ed.insert(string);
                     // ed.$morph.printObject(ed, err ? err : string);
                 });
@@ -347,7 +391,9 @@ ClojureMode.addMethods({
             bindKey: 'Command-Shift-/',
             exec: function(ed) {
                 var string = ed.$morph.getSelectionOrLineString();
-                lively.ide.codeeditor.modes.Clojure.fetchDoc(string, function(err, docString) {
+                var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+                var env = runtime.currentEnv(ed.$morph);
+                lively.ide.codeeditor.modes.Clojure.fetchDoc(env, string, function(err, docString) {
                     ed.$morph.printObject(ed, err ? err : docString);
                 });
             }
@@ -357,10 +403,25 @@ ClojureMode.addMethods({
             bindKey: 'Command-.',
             exec: function(ed) {
                 ed.$morph.setStatusMessage("Interrupting eval...");
-                lively.ide.codeeditor.modes.Clojure.evalInterrupt(function(err, answer) {
+                var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+                var env = runtime.currentEnv(ed.$morph);
+                lively.ide.codeeditor.modes.Clojure.evalInterrupt(env, function(err, answer) {
                     console.log("Clojure eval interrupt: ", Objects.inspect(err || answer));
                     // ed.$morph.setStatusMessage(Objects.inspect(err || answer), err ? Color.red : null);
                 });
+            }
+        },
+
+        changeClojureEnv: {
+            bindKey: 'Command-e',
+            exec: function(ed) {
+                var runtime = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment;
+                var env = runtime.currentEnv(ed.$morph);
+                $world.prompt("Change clojure runtime environment:", function(input) {
+                    var env = runtime.readEnv(input);
+                    if (!env) show("not a valid host/port combo: " + input);
+                    else runtime.changeInEditor(ed.$morph, env);
+                }, {input: runtime.printEnv(env)})
             }
         }
     },
@@ -382,6 +443,7 @@ ClojureMode.addMethods({
     attach: function(ed) {
         this.initKeyHandler();
         ed.keyBinding.addKeyboardHandler(this.keyhandler);
+        lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment.ensureClojureStateInEditor(ed.$morph);
     },
 
     detach: function(ed) {
@@ -389,17 +451,25 @@ ClojureMode.addMethods({
         this.keyhandler = null;
     },
 
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    morphMenuItems: function(items, editor) {
+        var mode = this;
+        items.push(['Clojure',[
+            ['change Clojure runtime environment (Alt-e)', function() { mode.commands.changeClojureEnv.exec(editor.aceEditor); }],
+            ['interrupt eval (Command-.)', function() { mode.commands.evalInterrupt.exec(editor.aceEditor); }],
+            ['pretty print code (Tab)', function() { mode.commands.prettyPrint.exec(editor.aceEditor); }],
+            ['print doc for selected expression (Command-?)', function() { mode.commands.printDoc.exec(editor.aceEditor); }]
+        ]]);
+    
+        return items;
+    },
 
-    doEval: function(codeEditor, insertResult) {
-        var sourceString = codeEditor.getSelectionOrLineString();
-        var options = {prettyPrint: false, catchError: false};
-        lively.ide.codeeditor.modes.Clojure.doEval(sourceString, options, function(err, result) {
-            printResult(err, result)
-        });
+    evalAndPrint: function(codeEditor, insertResult, prettyPrint, prettyPrintLevel) {
+        var sourceString = codeEditor.getSelectionOrLineString(),
+            env = lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment.currentEnv(codeEditor),
+            options = {env: env, prettyPrint: prettyPrint, prettyPrintLevel: prettyPrintLevel, catchError: false};
+        lively.ide.codeeditor.modes.Clojure.doEval(sourceString, options, printResult);
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
         function printResult(err, result) {
             if (err && !Object.isString(err)) err = Objects.inspect(err, {maxDepth: 3});
             if (!insertResult && err) { codeEditor.world().alert(err); return;}
@@ -407,6 +477,14 @@ ClojureMode.addMethods({
             if (insertResult) codeEditor.printObject(codeEditor.aceEditor, err ? err : result);
             else codeEditor.collapseSelection("end");
         }
+    },
+
+    doEval: function(codeEditor, insertResult) {
+        return this.evalAndPrint(codeEditor, insertResult, true);
+    },
+    
+    printInspect: function(codeEditor, options) {
+        return this.evalAndPrint(codeEditor, true, true, options.depth || 4);
     }
 });
 

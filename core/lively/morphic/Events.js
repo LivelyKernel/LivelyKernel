@@ -935,8 +935,8 @@ handleOnCapture);
         // delayed so that the event onMouseUp event handlers that
         // are invoked after this point still have access
         (function removeClickedOnMorph() {
-            if (evt.world.clickedOnMoprh == evt.hand.clickedOnMorph) {
-                evt.world.clickedOnMoprh = null
+            if (evt.world.clickedOnMorph == evt.hand.clickedOnMorph) {
+                evt.world.clickedOnMorph = null
             }
             evt.hand.clickedOnMorph = null;
             evt.hand.eventStartPos = null;

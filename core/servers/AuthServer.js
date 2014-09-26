@@ -102,7 +102,7 @@ function doesResourceExist(userDB, userName, resourcePath, thenDo) {
 
 module.exports = function(route, app) {
 
-    app.get(route + "user-db", function(req, res) {
+    app.get(route + "admin/settings", function(req, res) {
         var userDB = lively.server.lifeStar.authHandler.userDB;
         userDB.exportSettings(function(err, settings) {
             if (err) res.status(500).json({error: String(err)})
@@ -110,16 +110,23 @@ module.exports = function(route, app) {
         });
     });
 
-    app.post(route + "user-db/access-rules", function(req, res) {
+    app.post(route + "admin/access-rules", function(req, res) {
         var userDB = lively.server.lifeStar.authHandler.userDB;
         var rules = req.body;
-        userDB.setAccessRules(rules, function(err) {
-            if (err) res.status(400).json({error: String(err)})
-            else res.json({message: "access rules saved"})
-        })
+        if (userDB.userFile) {
+            userDB.setAccessRules(rules, function(err) {
+                if (err) res.status(400).json({error: String(err)})
+                else res.json({message: "access rules saved"})
+            });
+        } else {
+            userDB.setAccessRules(rules, function(err) {
+                if (err) res.status(400).json({error: String(err)})
+                else res.json({message: "access rules saved"})
+            });
+        }
     });
 
-    app.post(route + "user-db/user", function(req, res) {
+    app.post(route + "admin/user", function(req, res) {
         var userDB = lively.server.lifeStar.authHandler.userDB;
         var user = req.body;
         userDB.addUser(user, function(err) {
@@ -128,7 +135,7 @@ module.exports = function(route, app) {
         });
     });
 
-    app.post(route + "user-db/user-delete", function(req, res) {
+    app.post(route + "admin/user-delete", function(req, res) {
         var userDB = lively.server.lifeStar.authHandler.userDB;
         var userName = req.body.name;
         userDB.removeUserNamed(userName, function(err) {
@@ -137,7 +144,7 @@ module.exports = function(route, app) {
         });
     });
 
-    app.get(route + "user-db/user-resources/:userName", function(req, res) {
+    app.get(route + "users/resources-of/:userName", function(req, res) {
         var userName = req.param("userName");
         var userDB = lively.server.lifeStar.authHandler.userDB;
         getResourcesOfAuthors([userName], function(err, resourcePaths) {
@@ -146,7 +153,7 @@ module.exports = function(route, app) {
         });
     });
 
-    app.get(route + "user-db/groups/:user", function(req, res) {
+    app.get(route + "groups/of-user/:user", function(req, res) {
         var userName = req.param("user") || req.livelySession.username;
         var userDB = lively.server.lifeStar.authHandler.userDB;
         getGroupsOfUser(userDB, userName, function(err, groups) {
@@ -155,7 +162,7 @@ module.exports = function(route, app) {
         });
     });
 
-    app.get(route + "user-db/group-resources/:groupName", function(req, res) {
+    app.get(route + "groups/resources-of/:groupName", function(req, res) {
         var groupName = req.param("groupName");
         var userDB = lively.server.lifeStar.authHandler.userDB;
         getResourcesOfGroup(userDB, groupName, function(err, resourcePaths) {
@@ -164,7 +171,7 @@ module.exports = function(route, app) {
         });
     });
     
-    app.get(route + "user-db/group-members/:groupName", function(req, res) {
+    app.get(route + "groups/members-of/:groupName", function(req, res) {
         var groupName = req.param("groupName");
         var userDB = lively.server.lifeStar.authHandler.userDB;
         getGroups(userDB, function(err, groups) {
@@ -173,7 +180,7 @@ module.exports = function(route, app) {
         });
     });
 
-    app.post(route + "user-db/hash", function(req, res) {
+    app.post(route + "helper/hash", function(req, res) {
         var string = req.body.string;
         var bcrypt = require("life_star/node_modules/life_star-auth/node_modules/bcrypt")
         var salt = bcrypt.genSaltSync(10);
@@ -215,7 +222,7 @@ auth.getGroups(userDB, function(err, rows) { console.dir(err || rows); })
 auth.getAuthorsOfResource("welcome.html", function(err, rows) { console.dir(rows[0]); })
 auth.getAuthorsOfResource("blank.html", function(err, rows) { console.dir(rows[0]); })
 auth.getAuthorsOfResource("admin/user-settings.html", function(err, rows) { console.dir(rows[0]); })
-auth.getResourcesOfAuthors(["robertkrahn", "test-user"], function(err, rows) { console.dir(rows); })
+auth.getResourcesOfAuthors(["yyy"], function(err, rows) { console.dir(rows); })
 
 auth.getGroupsOfUser(userDB, "robertkrahn", function(err, groups) { console.log(groups); });
 auth.getCommonGroups(userDB, "robertkrahn", "mroeder", function(err, answer) { console.log(err || answer); });

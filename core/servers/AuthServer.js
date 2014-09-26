@@ -1,5 +1,7 @@
 var async = require("async");
 var util = require("util");
+var path = require("path");
+var fs = require("fs");
 var repoServer = require("./ObjectRepositoryServer");
 
 function getGroups(userDB, cb) {
@@ -18,12 +20,13 @@ function getGroupsOfUser(userDB, userName, cb) {
 }
 
 function getAuthorsOfResource(path, thenDo) {
+    if (path[0] == '/') path = path.substr(1);
     var query = "SELECT distinct(author)\n"
               + "FROM versioned_objects\n"
-              + "WHERE path = ? and version > ifnull((\n"
-              + "    SELECT max(version)\n"
+              + "WHERE path = ? and date > ifnull((\n"
+              + "    SELECT max(date)\n"
               + "        FROM versioned_objects\n"
-              + "        WHERE path = ? AND change = 'deletion'), -1)";
+              + "        WHERE path = ? AND change = 'deletion'), datetime(0, 'unixepoch'));";
 
     repoServer.withDBDo(function(err, db) {
         if (err) thenDo(err, []);
@@ -39,7 +42,7 @@ function getResourcesOfAuthors(authors, thenDo) {
               + "FROM versioned_objects "
               + "WHERE "
               + authors.map(function(ea) { return "author = '" + ea + "'"}).join(" OR ")
-              + " GROUP BY path HAVING max(version) AND change != 'deletion'";
+              + " GROUP BY path HAVING max(date) AND change != 'deletion'";
     repoServer.withDBDo(function(err, db) {
         if (err) thenDo(err, []);
         else db.all(query, function(err, rows) {
@@ -71,9 +74,9 @@ function isResourceGroupOwnedByUser(userDB, userName, resourcePath, thenDo) {
             else {
                 async.detect(authors, function(author, next) {
                     getCommonGroups(userDB, author, userName, function(err, groups) {
-                        next(null, groups && groups.length);
+                        next(groups && groups.length);
                     })
-                }, next);
+                }, function(found) { next(null, found); });
             }
         }
     ], thenDo);
@@ -96,6 +99,7 @@ function doesResourceExist(userDB, userName, resourcePath, thenDo) {
         thenDo(null, exists);
     });
 }
+
 module.exports = function(route, app) {
 
     app.get(route + "user-db", function(req, res) {

@@ -2134,6 +2134,29 @@ lively.morphic.World.addMethods(
         progressBar.ignoreEvents();
         return progressBar
     },
+
+    addLoadingIndicator: function(labelText, thenDo) {
+        var container = lively.newMorph({extent: pt(100,50), style: {fill: Color.white, borderWidth: 1, borderColor: Color.gray}});
+        container.setLayouter({type: 'vertical'});
+        var spinningWheel = $world.loadPartItem("ProgressIndicator", "PartsBin/Widgets");
+        spinningWheel.applyStyle({centeredHorizontal: true});
+        var label = new lively.morphic.Text(lively.rect(0,0,5,5), labelText);
+        label.applyStyle({align: 'center', whiteSpaceHandling: 'pre', fixedHeight: false, fixedWidth: false, fill: null, borderWidth: 0})
+
+        container.addMorph(spinningWheel);
+        container.addMorph(label);
+        container.openInWorldCenter();
+        container.setVisible(false);
+
+        label.fitThenDo(function() {
+            container.setExtent(container.bounds().extent().addXY(0, 0));
+            container.openInWorldCenter();
+            container.setVisible(true);
+            container.applyLayout()
+        });
+
+        thenDo && thenDo(null, container);
+    },
 },
 'morph selection', {
     withSelectedMorphsDo: function(func, context) {

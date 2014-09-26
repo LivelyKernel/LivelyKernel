@@ -3713,8 +3713,9 @@ Trait('SelectionMorphTrait',
     resetSelection: function() {
         if (!this.selectionMorph || !this.selectionMorph.isSelection)
             this.selectionMorph = new lively.morphic.Selection(new lively.Rectangle(0,0,0,0))
+        else this.selectionMorph.removeOnlyIt();
         this.selectionMorph.reset();
-    },
+    }
 })
 .applyTo(lively.morphic.World, {override: ['onDrag', 'onDragStart', 'onDragEnd']});
 

@@ -17,7 +17,7 @@ before_script:
 script: "DISPLAY=:1 npm test"
 
 notifications:
-  slack: cdglabs:fj0nHZpCLeBhCAPbHuVggkgx
+  slack: cdglabs:E0fa310LnYWFdOLQ8IxQRZfX
   email:
     - astrid.thomschke@gmail.com
     - cschuster@ucdavis.edu

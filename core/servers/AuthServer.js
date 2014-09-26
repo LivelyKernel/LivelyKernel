@@ -90,6 +90,12 @@ function getResourcesOfGroup(userDB, group, thenDo) {
     ], thenDo);
 }
 
+function doesResourceExist(userDB, userName, resourcePath, thenDo) {
+    var resAbsolute = path.join(process.env.WORKSPACE_LK, resourcePath);
+    fs.exists(resAbsolute, function(exists) {
+        thenDo(null, exists);
+    });
+}
 module.exports = function(route, app) {
 
     app.get(route + "user-db", function(req, res) {
@@ -182,6 +188,7 @@ module.exports.getGroupsOfUser = getGroupsOfUser;
 module.exports.getAuthorsOfResource = getAuthorsOfResource;
 module.exports.getCommonGroups = getCommonGroups;
 module.exports.isResourceGroupOwnedByUser = isResourceGroupOwnedByUser;
+module.exports.doesResourceExist = doesResourceExist;
 module.exports.getResourcesOfAuthors = getResourcesOfAuthors;
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

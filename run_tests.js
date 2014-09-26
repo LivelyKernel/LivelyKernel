@@ -78,12 +78,12 @@ var baseTests = [
 
 var browserTests = [
     // core
-    'lively.tests.BootstrapTests',
-    'lively.tests.CoreTests',
+    "lively.tests.BootstrapTests",
+    "lively.tests.CoreTests",
     "lively.tests.HelperTests",
 
     // network
-    'lively.net.tests.SessionTracker',
+    "lively.net.tests.SessionTracker",
 
     // lang support
     "lively.lang.tests.ExtensionTests",
@@ -97,7 +97,7 @@ var browserTests = [
     "lively.presentation.tests.Builds",
 
     // data import/export
-    'lively.data.tests.ODFImport',
+    "lively.data.tests.ODFImport",
 
     //bindings
     "lively.bindings.tests.FRPCoreTests",
@@ -105,21 +105,24 @@ var browserTests = [
     "lively.bindings.tests.GeometryBindingTests",
 
     // serialization / storage
-    'lively.persistence.tests.MassMorphCreation',
-    'lively.persistence.tests.TraitPersistenceTests',
-    'lively.store.tests.Interface',
+    "lively.persistence.tests.MassMorphCreation",
+    "lively.persistence.tests.TraitPersistenceTests",
+    "lively.store.tests.Interface",
 
     // ide / SCB
     "lively.ide.tests.ASTEditingSupport",
     "lively.ide.tests.CodeEditor",
-    'lively.ide.codeeditor.tests.JumpChar',
-    'lively.ide.codeeditor.tests.TextOverlays',
+    "lively.ide.codeeditor.tests.JumpChar",
+    "lively.ide.codeeditor.tests.TextOverlays",
     "lively.ide.tests.FileParserTests",
     "lively.ide.tests.ModuleLookup",
-    'lively.ide.tests.SCBTests',
+    "lively.ide.tests.SCBTests",
     "lively.ide.tests.SyntaxHighlighting",
     "lively.ide.tests.WindowNavigation",
-    'lively.ide.tools.tests.CommandLine',
+    "lively.ide.tools.tests.CommandLine",
+
+    // PartsBin
+    "lively.tests.PartsBinTests",
 
     // morphic
     "lively.morphic.tests.Canvas",
@@ -129,15 +132,15 @@ var browserTests = [
     "lively.morphic.tests.DiffMerge",
     "lively.morphic.tests.EventTests",
     "lively.morphic.tests.Graphics",
-    'lively.morphic.tests.HTML',
-    'lively.morphic.tests.HTMLText',
+    "lively.morphic.tests.HTML",
+    "lively.morphic.tests.HTMLText",
     "lively.morphic.tests.Layout",
     "lively.morphic.tests.Lists",
     "lively.morphic.tests.Morphic",
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.MorphAddons",
     "lively.morphic.tests.PathTests",
-    'lively.morphic.tests.Serialization',
+    "lively.morphic.tests.Serialization",
     "lively.morphic.tests.ShapeTests",
     "lively.morphic.tests.StyleSheets",
     "lively.morphic.tests.StyleSheetsHTML",

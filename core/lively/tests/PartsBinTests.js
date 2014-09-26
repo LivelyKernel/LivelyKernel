@@ -2,15 +2,51 @@ module('lively.tests.PartsBinTests').requires('lively.TestFramework', 'lively.Pa
 
 TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 'running', {
-	deleteURLAfterTest: function(url) {
-		if (!this.urlsForDeletion) this.urlsForDeletion = [];
-		this.urlsForDeletion.push(url);
-	},
+    setUp: function($super) {
+        $super();
+
+        var part = new lively.morphic.Box(lively.rect(0,0,262,239));
+        part.setFill(Color.rgb(0,0,204));
+        part.setBorderWidth(0);
+        part.setName('TestObject');
+
+        var ellipse = new lively.morphic.Morph(
+            new lively.morphic.Shapes.Ellipse(lively.rect(0,0,100,100))
+        );
+        part.addMorph(ellipse);
+        ellipse.setFill(Color.rgb(158,0,0));
+        ellipse.setPosition(lively.pt(28.0,17.0));
+        ellipse.setName('Ellipse');
+
+        ellipse = ellipse.copy();
+        part.addMorph(ellipse);
+        ellipse.setFill(Color.rgb(0,204,0));
+        ellipse.setPosition(lively.pt(80.0,61.0));
+        ellipse.setName('Ellipse1');
+
+        ellipse = ellipse.copy();
+        part.addMorph(ellipse);
+        ellipse.setFill(Color.rgb(255,215,102));
+        ellipse.setPosition(lively.pt(127.0,110.0));
+        ellipse.setName('Ellipse2');
+
+        this.testPartItem = part.getPartItem();
+        this.testPartItem.uploadPart(false, true); // FIXME: should not be uploaded
+    },
 	tearDown: function($super) {
 		$super();
+
+        this.testPartItem.del();
+
 		lively.PartsBin.partsSpaceNamed('PartsBin').clearCache();
 		if (this.urlsForDeletion)
 			this.urlsForDeletion.forEach(function(url) { new WebResource(url).del() })
+	}
+},
+'helper', {
+	deleteURLAfterTest: function(url) {
+		if (!this.urlsForDeletion) this.urlsForDeletion = [];
+		this.urlsForDeletion.push(url);
 	}
 },
 'testing', {
@@ -85,8 +121,7 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		this.deleteURLAfterTest(url)
 		partsSpaceTo.ensureExistance();
 
-		var item = lively.PartsBin.getPartItem('TestObject');
-		item.copyToPartsSpace(partsSpaceTo);
+		this.testPartItem.copyToPartsSpace(partsSpaceTo);
 		partsSpaceTo.load();
 		var copiedItem = partsSpaceTo.getPartItemNamed('TestObject')
 		this.assert(copiedItem, 'part item not copied!');
@@ -115,10 +150,9 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 		this.deleteURLAfterTest(url)
 		partsSpace2.ensureExistance();
 
-		var item = lively.PartsBin.getPartItem('TestObject');
-		item.copyToPartsSpace(partsSpace1);
+		this.testPartItem.copyToPartsSpace(partsSpace1);
 
-		var item2 = partsSpace1.getPartItemNamed(item.name).loadPart();
+		var item2 = partsSpace1.getPartItemNamed(this.testPartItem).loadPart();
 
 		item2.moveToPartsSpace(partsSpace2);
 

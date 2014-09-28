@@ -68,12 +68,76 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
 
         installConsoleWrapper: function installConsoleWrapper(console) {
             var c = console || Global.console;
+            if (!c.addConsumer) this.prepareConsole(c);
 
             this.warn = this.wrapperFunc('warn');
             this.error = this.wrapperFunc('error');
             this.log = this.wrapperFunc('log');
 
             if (c.consumers && !c.consumers.include(this)) c.addConsumer(this);
+        },
+
+        prepareConsole: function prepareConsole(platformConsole) {
+            var required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'];
+            function emptyFunc() {}
+
+            for (var i = 0; i < required.length; i++) {
+                if (!platformConsole[required[i]]) platformConsole[required[i]] = emptyFunc;
+            }
+
+            var consumers = platformConsole.consumers = [];
+            platformConsole.wasWrapped = false;
+
+            function addWrappers() {
+                if (platformConsole.wasWrapped) return;
+
+                var props = [];
+                for (var name in platformConsole) props.push(name);
+
+                for (var i = 0; i < props.length; i++) {
+                    (function(name) {
+                        var func = platformConsole[name];
+                        platformConsole['$' + name] = func;
+                        if (typeof func !== 'function') return;
+                        platformConsole[name] = function(/*arguments*/) {
+                            func.apply(platformConsole, arguments);
+                            for (var i = 0; i < consumers.length; i++) {
+                                var consumerFunc = consumers[i][name];
+                                if (consumerFunc) {
+                                    consumerFunc.apply(consumers[i], arguments);
+                                }
+                            }
+                        };
+                    })(props[i]);
+                }
+                platformConsole.wasWrapped = true;
+            }
+
+            function removeWrappers() {
+                for (var name in platformConsole) {
+                    if (name[0] !== '$') continue;
+                    var realName = name.substring(1, name.length);
+                    platformConsole[realName] = platformConsole[name];
+                    delete platformConsole[name];
+                }
+            }
+
+            platformConsole.removeWrappers = removeWrappers;
+            platformConsole.addWrappers = addWrappers;
+
+            platformConsole.addConsumer = function(c) {
+                if (consumers.indexOf(c === -1)) {
+                    addWrappers();
+                    consumers.push(c);
+                }
+            };
+
+            platformConsole.removeConsumer = function(c) {
+                var idx = consumers.indexOf(c);
+                if (idx >= 0) consumers.splice(idx, 1);
+                if (consumers.length === 0) removeWrappers();
+            };
+
         },
 
         installErrorCapture: function installErrorCapture(_window) {

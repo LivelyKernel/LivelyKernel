@@ -1772,7 +1772,9 @@ lively.morphic.World.addMethods(
     },
 
     openSubserverViewer: function(doFunc) {
-        require('lively.ide.tools.SubserverViewer').toRun(function() {
+        // usage:
+        //   $world.openSubserverViewer(function(err, viewer) { viewer.targetMorph.selectServer("ClojureServer"); });
+        lively.require('lively.ide.tools.SubserverViewer').toRun(function() {
             var subserver = lively.BuildSpec('lively.ide.tools.SubserverViewer').createMorph().openInWorldCenter().comeForward();
             Object.isFunction(doFunc) && doFunc(null, subserver);
         });

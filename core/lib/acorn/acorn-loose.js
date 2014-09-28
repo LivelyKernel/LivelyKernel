@@ -86,7 +86,7 @@
         // Try to skip some text, based on the error message, and then continue
         var msg = e.message, pos = e.raisedAt, replace = true;
         if (/unterminated/i.test(msg)) {
-          pos = lineEnd(e.pos);
+          pos = lineEnd(e.pos + 1);
           if (/string/.test(msg)) {
             replace = {start: e.pos, end: pos, type: tt.string, value: input.slice(e.pos + 1, pos)};
           } else if (/regular expr/i.test(msg)) {
@@ -125,28 +125,23 @@
   }
 
   function resetTo(pos) {
-    var ch = input.charAt(pos - 1);
-    var reAllowed = !ch || /[\[\{\(,;:?\/*=+\-~!|&%^<>]/.test(ch) ||
-      /[enwfd]/.test(ch) && /\b(keywords|case|else|return|throw|new|in|(instance|type)of|delete|void)$/.test(input.slice(pos - 10, pos));
-    fetchToken.jumpTo(pos, reAllowed);
-  }
-
-  function copyToken(token) {
-    var copy = {start: token.start, end: token.end, type: token.type, value: token.value};
-    if (options.locations) {
-      copy.startLoc = token.startLoc;
-      copy.endLoc = token.endLoc;
+    for (;;) {
+      try {
+        var ch = input.charAt(pos - 1);
+        var reAllowed = !ch || /[\[\{\(,;:?\/*=+\-~!|&%^<>]/.test(ch) ||
+          /[enwfd]/.test(ch) && /\b(keywords|case|else|return|throw|new|in|(instance|type)of|delete|void)$/.test(input.slice(pos - 10, pos));
+        return fetchToken.jumpTo(pos, reAllowed);
+      } catch(e) {
+        if (!(e instanceof SyntaxError && /unterminated comment/i.test(e.message))) throw e;
+        pos = lineEnd(e.pos + 1);
+        if (pos >= input.length) return;
+      }
     }
-    return copy;
   }
 
   function lookAhead(n) {
-    // Copy token objects, because fetchToken will overwrite the one
-    // it returns, and in this case we still need it
-    if (!ahead.length)
-      token = copyToken(token);
     while (n > ahead.length)
-      ahead.push(copyToken(readToken()));
+      ahead.push(readToken());
     return ahead[n-1];
   }
 
@@ -701,28 +696,27 @@
     var node = startNode();
     node.properties = [];
     pushCx();
+    var indent = curIndent + 1, line = curLineStart;
     next();
-    var propIndent = curIndent, line = curLineStart;
-    while (!closes(tt.braceR, propIndent, line)) {
+    if (curIndent + 1 < indent) { indent = curIndent; line = curLineStart; }
+    while (!closes(tt.braceR, indent, line)) {
       var name = parsePropertyName();
       if (!name) { if (isDummy(parseExpression(true))) next(); eat(tt.comma); continue; }
-      var prop = {key: name}, isGetSet = false, kind;
+      var prop = startNode();
+      prop.key = name;
       if (eat(tt.colon)) {
         prop.value = parseExpression(true);
-        kind = prop.kind = "init";
+        prop.kind = "init";
       } else if (options.ecmaVersion >= 5 && prop.key.type === "Identifier" &&
                  (prop.key.name === "get" || prop.key.name === "set")) {
-        isGetSet = true;
-        kind = prop.kind = prop.key.name;
+        prop.kind = prop.key.name;
         prop.key = parsePropertyName() || dummyIdent();
         prop.value = parseFunction(startNode(), false);
       } else {
-        next();
-        eat(tt.comma);
-        continue;
+        prop.value = dummyIdent();
       }
 
-      node.properties.push(prop);
+      node.properties.push(finishNode(prop, "Property"));
       eat(tt.comma);
     }
     popCx();

@@ -438,6 +438,36 @@ Object.subclass("lively.ast.MozillaAST.BaseVisitor",
         return retVal;
     },
 
+    visitArrowFunctionExpression: function(node, depth, state, path) {
+        var retVal;
+        node.params.forEach(function(ea, i) {
+            // ea is of type Pattern
+            retVal = this.accept(ea, depth, state, path.concat(["params", i]));
+        }, this);
+
+        if (node.defaults) {
+            node.defaults.forEach(function(ea, i) {
+                // ea is of type Expression
+                retVal = this.accept(ea, depth, state, path.concat(["defaults", i]));
+            }, this);
+        }
+
+        if (node.rest) {
+            // rest is a node of type Identifier
+            retVal = this.accept(node.rest, depth, state, path.concat(["rest"]));
+        }
+
+        // body is a node of type BlockStatement
+        retVal = this.accept(node.body, depth, state, path.concat(["body"]));
+
+        // node.generator has a specific type that is boolean
+        if (node.generator) {/*do stuff*/}
+
+        // node.expression has a specific type that is boolean
+        if (node.expression) {/*do stuff*/}
+        return retVal;
+    },
+
     visitSequenceExpression: function(node, depth, state, path) {
         var retVal;
         node.expressions.forEach(function(ea, i) {
@@ -881,11 +911,9 @@ lively.ast.MozillaAST.BaseVisitor.subclass("lively.ast.ScopeVisitor",
     accept: function (node, depth, scope, path) {
         path = path || [];
         try {
-        return this['visit' + node.type](node, depth, scope, path);
-
-        } catch (e) {
-            show(e.stack)
-        }
+            if (!this['visit' + node.type]) throw new Error("No AST visit handler for type " + node.type);
+            return this['visit' + node.type](node, depth, scope, path);
+        } catch (e) { show(e.stack) }
     },
 
     visitVariableDeclaration: function ($super, node, depth, scope, path) {

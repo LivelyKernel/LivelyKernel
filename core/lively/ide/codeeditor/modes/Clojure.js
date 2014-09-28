@@ -109,6 +109,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
         if (!thenDo) { thenDo = options; options = {}; }
         var port = options.env ? options.env.port : "7888",
             host = options.env ? options.env.host : "127.0.0.1",
+            cwd = options.cwd,
             self = this,
             cmdQueueName = "lively.clojure.replServer";
 
@@ -125,7 +126,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
             function startServer(next) {
                 var cmdString = Strings.format(
                     "lein with-profile +lively repl :headless :port %s", port);
-                var cmd = lively.shell.run(cmdString, {group: cmdQueueName});
+                var cmd = lively.shell.run(cmdString, {cwd: cwd, group: cmdQueueName});
                 next(null,cmd);
             },
             function waitForServerStart(cmd, next) {
@@ -270,7 +271,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         var nreplOptions = {port: env.port || 7888, host: env.host || "127.0.0.1"};
         var nreplMessages = [];
 
-        sess.send('clojureEval', {nreplOptions: nreplOptions, session: cljSession, code: expr}, function(answer) {
+        sess.send('clojureEval', {nreplOptions: nreplOptions, session: cljSession, ignoreMissingSession: true, code: expr}, function(answer) {
             if (Object.isArray(answer.data)) {
                 nreplMessages.pushAll(answer.data);
             } else nreplMessages.push(answer.data);
@@ -454,7 +455,7 @@ ClojureMode.addMethods({
     morphMenuItems: function(items, editor) {
         var mode = this;
         items.push(['Clojure',[
-            ['change Clojure runtime environment (Alt-e)', function() { mode.commands.changeClojureEnv.exec(editor.aceEditor); }],
+            ['change Clojure runtime environment (Command-e)', function() { mode.commands.changeClojureEnv.exec(editor.aceEditor); }],
             ['interrupt eval (Command-.)', function() { mode.commands.evalInterrupt.exec(editor.aceEditor); }],
             ['pretty print code (Tab)', function() { mode.commands.prettyPrint.exec(editor.aceEditor); }],
             ['print doc for selected expression (Command-?)', function() { mode.commands.printDoc.exec(editor.aceEditor); }]
@@ -480,7 +481,7 @@ ClojureMode.addMethods({
     },
 
     doEval: function(codeEditor, insertResult) {
-        return this.evalAndPrint(codeEditor, insertResult, true);
+        return this.evalAndPrint(codeEditor, insertResult, false);
     },
     
     printInspect: function(codeEditor, options) {

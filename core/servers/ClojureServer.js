@@ -141,6 +141,7 @@ util._extend(require("./LivelyServices").services, {
     clojureEval: function(sessionServer, c, msg) {
         var code = msg.data.code;
         var session = msg.data.session;
+        var ignoreMissingSession = msg.data.ignoreMissingSession;
         var sendResult, nreplCon;
         debug && console.log("Clojure eval: ", code);
 
@@ -160,6 +161,7 @@ util._extend(require("./LivelyServices").services, {
             },
             function testIfSessionIsAvailable(sessions, next) {
                 if (!session || sessions.indexOf(session) > -1) next(null);
+                else if (ignoreMissingSession) { session = null; next(null); }
                 else next(new Error("No session " + session));
             },
 

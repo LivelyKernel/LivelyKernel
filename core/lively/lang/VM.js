@@ -30,7 +30,7 @@ Object.extend(lively.lang.VM, {
         try {
             var ast = lively.ast.acorn.fuzzyParse(code);
             if (ast.body.length === 1 &&
-               (ast.body[0].type === 'FunctionDeclaration' 
+               (ast.body[0].type === 'FunctionDeclaration'
              || ast.body[0].type === 'BlockStatement')) {
                 code = '(' + code.replace(/;\s*$/, '') + ')';
             }
@@ -38,6 +38,17 @@ Object.extend(lively.lang.VM, {
             if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
             else console.error("Eval preprocess error: %s", e.stack || e);
         }
+        return code;
+    },
+
+    evalCodeTransform: function(code, options) {
+        var vm = lively.lang.VM,
+            recorder = options.topLevelVarRecorder,
+            varRecorderName = options.varRecorderName || '__lvVarRecorder';
+
+        if (recorder) code = vm.transformForVarRecord(
+            code, recorder, varRecorderName, options.dontTransform);
+        code = vm.transformSingleExpression(code);
         return code;
     },
 
@@ -54,15 +65,11 @@ Object.extend(lively.lang.VM, {
         if (typeof options === 'function' && arguments.length === 2) {
             thenDo = options; options = {};
         } else if (!options) options = {};
-        
+
         var vm = lively.lang.VM, result, err,
             context = options.context || vm.getGlobal(),
-            recorder = options.topLevelVarRecorder,
-            varRecorderName = options.varRecorderName || '__lvVarRecorder';
-
-        if (recorder) code = vm.transformForVarRecord(
-            code, recorder, varRecorderName, options.dontTransform);
-        code = vm.transformSingleExpression(code);
+            recorder = options.topLevelVarRecorder;
+          code = vm.evalCodeTransform(code, options);
 
         $morph('log') && ($morph('log').textString = code);
 

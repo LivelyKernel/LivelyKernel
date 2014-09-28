@@ -169,7 +169,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         function maybeUseModeFunction(ed, featureName, morphMethodName, args) {
             var mode = ed.session.getMode();
             var morph = ed.$morph;
-            if (!mode[featureName]) morph.doit.apply(morph, args);
+            if (!mode[featureName]) morph[morphMethodName].apply(morph, args);
             else mode[featureName].apply(mode, [morph].concat(args));
         }
     },

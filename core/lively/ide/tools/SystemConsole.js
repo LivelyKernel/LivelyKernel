@@ -61,13 +61,13 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
             });
         },
 
-        install: function install() {
-            this.installConsoleWrapper();
-            this.installErrorCapture();
+        install: function install(_console, _window) {
+            this.installConsoleWrapper(_console);
+            this.installErrorCapture(_window);
         },
 
-        installConsoleWrapper: function installConsoleWrapper() {
-            var c = Global.console;
+        installConsoleWrapper: function installConsoleWrapper(console) {
+            var c = console || Global.console;
 
             this.warn = this.wrapperFunc('warn');
             this.error = this.wrapperFunc('error');
@@ -76,7 +76,8 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
             if (c.consumers && !c.consumers.include(this)) c.addConsumer(this);
         },
 
-        installErrorCapture: function installErrorCapture() {
+        installErrorCapture: function installErrorCapture(_window) {
+            if (!_window) _window = window;
             // window.removeEventListener('error', errorHandler)
 
             if (this._errorHandler) return;
@@ -91,7 +92,7 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
                 } else console.error("%s  %s:%s", err, url, lineNumber);
             }).bind(this);
 
-            window.addEventListener('error', this._errorHandler);
+            _window.addEventListener('error', this._errorHandler);
         },
 
         morphMenuItems: function morphMenuItems() {
@@ -133,7 +134,7 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
 
         onLoad: function onLoad() {
             this.clear();
-            this.installConsoleWrapper();
+            this.install();
         },
 
         onLoadFromPartsBin: function onLoadFromPartsBin() {
@@ -256,6 +257,15 @@ lively.BuildSpec('lively.ide.tools.SystemConsole', {
 
 
 Object.extend(lively.ide.tools.SystemConsole, {
+
+    openInContext: function(globalContext) {
+        var win = lively.BuildSpec('lively.ide.tools.SystemConsole')
+            .createMorph().openInWorld($world.positionForNewMorph()).comeForward();
+        win.targetMorph.reset();
+        win.targetMorph.install(globalContext.console, globalContext);
+        return win;
+    },
+
     open: function() {
         return lively.BuildSpec('lively.ide.tools.SystemConsole')
             .createMorph().openInWorld($world.positionForNewMorph()).comeForward();

@@ -370,6 +370,15 @@ Object.extend(lively.morphic.World, {
             return this.getIFrame().src = this.url = url;
         });
 
+        morph.addScript(function attachSystemConsole() {
+            var c = this.get("SystemConsole");
+            if (!c) return;
+            c.targetMorph.reset();
+            var iframeGlobal = this.getGlobal();
+            c.targetMorph.install(iframeGlobal.console, iframeGlobal);
+            c.targetMorph.installConsoleWrapper(iframeGlobal.console);
+        });
+
         morph.addScript(function makeEditorEvalInIframe(editor) {
             editor.iframe = this;
             editor.addScript(function boundEval(__evalStatement) {
@@ -394,6 +403,10 @@ Object.extend(lively.morphic.World, {
                 ['Open workspace', function() {
                     var workspace = $world.addCodeEditor({title: String(target.url)});
                     target.makeEditorEvalInIframe(workspace);
+                }],
+                ['Open console', function() {
+                  lively.require("lively.ide.tools.SystemConsole")
+                  lively.ide.tools.SystemConsole.openInContext(target.getGlobal());
                 }],
                 ['Edit page', function() {
                     module('lively.ide.tools.TextEditor').load(true);

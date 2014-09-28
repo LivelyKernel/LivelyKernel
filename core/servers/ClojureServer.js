@@ -56,8 +56,8 @@ function installNREPLModule(thenDo) {
     var path = require('path'),
         fs = require('fs'),
         node_modules = path.join(process.env.WORKSPACE_LK, 'node_modules');
-    exec("if [[ -d nrepl-client ]] then; cd nrepl-client; git pull; else git clone https://github.com/rksm/node-nrepl-client nrepl-client; fi; cd nrepl-client; npm install;",
-        {cwd: path.join(process.env.WORKSPACE_LK, 'node_modules')},
+    exec("if [[ -d nrepl-client ]]; then cd nrepl-client; git pull; npm install; else git clone https://github.com/rksm/node-nrepl-client nrepl-client; cd nrepl-client; npm install; fi",
+        {cwd: node_modulesd},
         function(code, out, err) {
             try { var nreplClient = require("nrepl-client"); } catch (e) { thenDo(e, null); return; }
             console.log("nrepl-client installed");

@@ -373,9 +373,15 @@ Object.extend(lively.morphic.World, {
         morph.addScript(function makeEditorEvalInIframe(editor) {
             editor.iframe = this;
             editor.addScript(function boundEval(__evalStatement) {
-                var ctx = this.getDoitContext() || this,
-                    __evalStatement = lively.ast.transform.returnLastStatement(__evalStatement),
-                    interactiveEval = new Function(__evalStatement);
+                var ctx = this.getDoitContext() || this;
+                var vm = lively.lang.VM;
+                __evalStatement = vm.evalCodeTransform(__evalStatement, {
+                  context: ctx,
+                  topLevelVarRecorder: Global,
+                  varRecorderName: "window"
+                })
+                __evalStatement = lively.ast.transform.returnLastStatement(__evalStatement);
+                var interactiveEval = new Function(__evalStatement);
                 return this.iframe.run(interactiveEval);
             });
             editor.addScript(function getDoitContext() { return this.iframe.getGlobal(); });

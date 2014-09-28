@@ -2,7 +2,7 @@ module('lively.ide.tools.DirViewer').requires('lively.persistence.BuildSpec').to
 
 lively.BuildSpec('lively.ide.tools.DirViewer', {
     _BorderColor: Color.rgb(204,0,0),
-    _Extent: lively.pt(498.8,476.0),
+    _Extent: lively.pt(500,476.0),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(3.0,22.0),
     draggingEnabled: true,
@@ -11,7 +11,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     name: "DirViewer",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _Extent: lively.pt(492.8,451.0),
+        _Extent: lively.pt(495,451.0),
         _Fill: Color.rgb(245,245,245),
         _Position: lively.pt(3.0,22.0),
         _StyleSheet: ".list-item {\n\
@@ -123,7 +123,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 this.clearOnInput && this.clear();
             },
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "textString", this, "inputChanged", {converter: 
+            lively.bindings.connect(this, "textString", this, "inputChanged", {converter:
         function (string) { return this.sourceObj.getInput(); }});
             lively.bindings.connect(this, "input", this.get("DirViewer"), "goto", {});
         },
@@ -170,12 +170,12 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                     }
                     return column;
                 }
-        
+
                 ed.selection.moveCursorTo = ed.selection.moveCursorTo.wrap(function(proceed, row, column, keepDesiredColumn) {
                     column = offsetColumnForLabel(this.session, row, column);
                     return proceed(row, column, keepDesiredColumn);
                 });
-        
+
                 ed.selection.setSelectionAnchor = ed.selection.setSelectionAnchor.wrap(function(proceed,row, column) {
                     column = offsetColumnForLabel(this.session, row,column);
                     return proceed(row, column);
@@ -202,7 +202,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                     case 'Alt-H': this.browseHistory(); evt.stop(); return true;
                     case 'Esc':
                     case 'Control-G': this.clear(); evt.stop(); return true;
-                    default: return $super(evt);        
+                    default: return $super(evt);
                 }
             },
             onLoad: function onLoad() {
@@ -317,17 +317,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             },
             name: "fileList",
             sourceModule: "lively.morphic.Lists",
-            submorphs: [{
-                _BorderColor: Color.rgb(204,0,0),
-                _Extent: lively.pt(462.0,5286.0),
-                className: "lively.morphic.Box",
-                doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
-                droppingEnabled: true,
-                layout: {
-                    adjustForNewBounds: true,
-                    resizeWidth: true
-                }
-            }],
+            submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "listItemDoubleClicked", this.get("DirViewer"), "listItemDoubleClicked", {});
         },
@@ -355,7 +345,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                         text.setHandStyle("default");
         // var cssClasses = ["Morph","Text","list-item"];
         // text.setStyleClassNames(cssClasses);
-        
+
                     });
                     itemMorphs = itemMorphs.slice(0,requiredLength);
                 });
@@ -487,7 +477,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 this.clearOnInput && this.clear();
             },
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "textString", this, "inputChanged", {converter: 
+            lively.bindings.connect(this, "textString", this, "inputChanged", {converter:
         function (string) { return this.sourceObj.getInput(); }});
             lively.bindings.connect(this, "textChange", this.get("DirViewer"), "applyFilter", {});
         },
@@ -534,12 +524,12 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                     }
                     return column;
                 }
-        
+
                 ed.selection.moveCursorTo = ed.selection.moveCursorTo.wrap(function(proceed, row, column, keepDesiredColumn) {
                     column = offsetColumnForLabel(this.session, row, column);
                     return proceed(row, column, keepDesiredColumn);
                 });
-        
+
                 ed.selection.setSelectionAnchor = ed.selection.setSelectionAnchor.wrap(function(proceed,row, column) {
                     column = offsetColumnForLabel(this.session, row,column);
                     return proceed(row, column);
@@ -566,7 +556,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                     case 'Alt-H': this.browseHistory(); evt.stop(); return true;
                     case 'Esc':
                     case 'Control-G': this.clear(); evt.stop(); return true;
-                    default: return $super(evt);        
+                    default: return $super(evt);
                 }
             },
             onLoad: function onLoad() {
@@ -667,11 +657,11 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         deleteSelectedFileInteractively: function deleteSelectedFileInteractively() {
         var sel = this.get("fileList").selection;
         if (!sel) { show("nothing selected"); return; }
-    
+
         var base = this.dirState.path,
             self = this;
         var path = base + (base.endsWith("/") ? "" : "/") + sel.fileName;
-    
+
         $world.confirm("Really delete " + path + "?", function(input) {
             if (!input) return;
             lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(cmd) {
@@ -791,12 +781,26 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         return items.map(function(ea) {
             return {
                 isListItem: true,
-                string: ea.path || ea.fileName,
+                string: stringify(ea),
                 value: ea,
                 cssClasses: [ea.isDirectory ? 'directory' : 'file']
             }
         });
+
+        function stringify(item) {
+            var size = Global.Numbers.humanReadableByteSize(item.size);
+            return Strings.format("%s %s %s",
+                pad(printDate(item.lastModified), 20),
+                pad(size, 9),
+                item.path || item.fileName);
+        }
+
+        function pad(string, entireLength) { return Strings.pad(string, entireLength-string.length, true); }
+
+        function printDate(d) { return d && d.format ? d.format("yyyy-mm-dd HH:MM:ss") : "no date"; }
+
     },
+
         itemsSort: function itemsSort(sortKey, items) {
         return items.sortBy(function(item) {
             if (sortKey === 'name') {

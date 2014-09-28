@@ -80,13 +80,14 @@ function propertyExtract(excludes, obj, extractor) {
 
 function getMethodsOf(excludes, obj) {
     return propertyExtract(excludes, obj, function(key) {
-        if (obj.__lookupGetter__(key) || typeof obj[key] !== 'function') return null;
+
+        if ((obj.__lookupGetter__ && obj.__lookupGetter__(key)) || typeof obj[key] !== 'function') return null;
         return {name: key, completion: signatureOf(key, obj[key])}; })
 }
 
 function getAttributesOf(excludes, obj) {
     return propertyExtract(excludes, obj, function(key) {
-        if (!obj.__lookupGetter__(key) && typeof obj[key] === 'function') return null;
+        if ((obj.__lookupGetter__ && !obj.__lookupGetter__(key)) && typeof obj[key] === 'function') return null;
         return {name: key, completion: key}; })
 }
 
@@ -102,9 +103,12 @@ function getDescriptorOf(originalObj, proto) {
         return s.replace(/\n/g, '').replace(/\s+/g, ' ');
     }
 
+    var stringified;
+    try { stringified = String(originalObj); } catch (e) { stringified = "{/*...*/}"; }
+
     if (originalObj === proto) {
-        if (typeof originalObj !== 'function') return shorten(originalObj.toString(), 50);
-        var funcString = originalObj.toString(),
+        if (typeof originalObj !== 'function') return shorten(stringified, 50);
+        var funcString = stringified,
             body = shorten(funcString.slice(funcString.indexOf('{')+1, funcString.lastIndexOf('}')), 50);
         return signatureOf(originalObj.displayName || originalObj.name || 'function', originalObj) + ' {' + body + '}';
     }
@@ -251,7 +255,7 @@ function getCompletions(evalFunc, string, thenDo) {
 
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// completions based on ace completer objects 
+// completions based on ace completer objects
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 Object.extend(lively.ide.codeeditor.Completions, {
@@ -298,7 +302,7 @@ Object.extend(lively.ide.codeeditor.Completions, {
             langTools.addCompleter(lively.ide.WordCompleter);
             next();
         }
-    
+
         function done(next) { alertOK('Word completion installed!'); next(); }
     }
 });

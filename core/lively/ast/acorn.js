@@ -829,7 +829,10 @@ Object.extend(lively.ast.acorn, {
         //   locations: BOOL -- Default is false
         // }
 
-        if (options && options.withComments) {
+        options = options || {};
+        options.ecmaVersion = 6;
+
+        if (options.withComments) {
             delete options.withComments;
             var comments = [];
             options.onComment = function(isBlock, text, start, end, line, column) {
@@ -842,7 +845,7 @@ Object.extend(lively.ast.acorn, {
             };
         }
 
-        var ast = options && options.addSource ?
+        var ast = options.addSource ?
             acorn.walk.addSource(source, options) : // FIXME
             acorn.parse(source, options);
 
@@ -863,6 +866,7 @@ Object.extend(lively.ast.acorn, {
 
     parseFunction: function(source, options) {
         options = options || {};
+        options.ecmaVersion = 6;
         var src = '(' + source + ')',
             ast = acorn.parse(src);
         /*if (options.addSource) */acorn.walk.addSource(ast, src);
@@ -910,6 +914,7 @@ Object.extend(lively.ast.acorn, {
     fuzzyParse: function(source, options) {
         // options: verbose, addSource, type
         options = options || {};
+        options.ecmaVersion = 6;
         var ast, safeSource, err;
         if (options.type === 'LabeledStatement') { safeSource = '$={' + source + '}'; }
         try {

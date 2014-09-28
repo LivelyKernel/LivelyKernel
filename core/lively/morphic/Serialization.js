@@ -425,6 +425,19 @@ Object.extend(lively.morphic.World, {
             return this.getGlobal().eval('(' + func + ')();');
         });
 
+        morph.addScript(function onLoad(func) {
+            var self = this;
+            this.getIFrame().onload = function(evt) {
+                self.onIFrameLoad.call(self, evt);
+            };
+        });
+
+        morph.addScript(function onIFrameLoad(func) {
+            this.attachSystemConsole();
+        });
+
+        morph.onLoad();
+
         return morph;
     },
 

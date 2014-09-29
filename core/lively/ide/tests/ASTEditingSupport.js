@@ -1,4 +1,4 @@
-module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ide.codeeditor.JS").toRun(function() {
+module('lively.ide.tests.ASTEditingSupport').requires("lively.ide.tests.CodeEditor", "lively.ide.codeeditor.modes.JavaScript").toRun(function() {
 
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
 'testing', {
@@ -40,7 +40,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 'running', {
     setUp: function() {
-        this.sut = new lively.ide.codeeditor.JS.Navigator();
+        this.sut = new lively.ide.codeeditor.modes.JavaScript.Navigator();
     }
 },
 'testing', {
@@ -103,7 +103,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 'running', {
     setUp: function() {
-        this.sut = new lively.ide.codeeditor.JS.RangeExpander();
+        this.sut = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
     }
 },
 'testing', {

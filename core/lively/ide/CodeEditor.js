@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.JS', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes', 'lively.lang.VM').toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes', 'lively.lang.VM').toRun(function() {
 
 lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 'settings', {

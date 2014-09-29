@@ -813,7 +813,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             var sel = codeEditor.getSelection(),
                 pos = sel.lead,
                 idx = codeEditor.positionToIndex(pos),
-                nav = new lively.ide.codeeditor.JS.Navigator(),
+                nav = new lively.ide.codeeditor.modes.JavaScript.Navigator(),
                 newIdx = nav[selector](codeEditor.textString, idx),
                 newPos = codeEditor.indexToPosition(newIdx),
                 isBackward = sel.isBackwards(),
@@ -824,7 +824,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         }
 
         function select(selector, codeEditor) {
-            var nav = new lively.ide.codeeditor.JS.Navigator(),
+            var nav = new lively.ide.codeeditor.modes.JavaScript.Navigator(),
                 newRangeIndices = nav[selector](codeEditor.textString, codeEditor.getSelectionRange());
             if (newRangeIndices) codeEditor.setSelectionRange(newRangeIndices[0], newRangeIndices[1]);
         }
@@ -878,7 +878,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             exec: function(ed) {
                 ed.$morph.withASTDo(function(ast) {
                     var state = ed.$expandRegionState || (ed.$expandRegionState = {range: ed.$morph.getSelectionRange()});
-                    var nav = new lively.ide.codeeditor.JS.RangeExpander();
+                    var nav = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
                     var newState = nav.expandRegion(ed.$morph.textString, ast, state);
                     if (newState && newState.range) {
                         ed.$morph.setSelectionRange(newState.range[0], newState.range[1]);
@@ -896,7 +896,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 ed.$morph.withASTDo(function(ast) {
                     var state = ed.$expandRegionState;
                     if (!state) return;
-                    var nav = new lively.ide.codeeditor.JS.RangeExpander();
+                    var nav = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
                     var newState = nav.contractRegion(ed.$morph.textString, ast, state);
                     if (newState && newState.range) {
                         ed.$morph.setSelectionRange(newState.range[0], newState.range[1]);

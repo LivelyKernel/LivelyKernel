@@ -1,4 +1,4 @@
-module('lively.PartsBin').requires('lively.Traits').toRun(function() {
+module('lively.PartsBin').requires('lively.Traits', 'lively.store.Interface').toRun(function() {
 
 Object.subclass('lively.PartsBin.PartItem',
 'initializing', {
@@ -249,19 +249,23 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     loadPartVersions: function(isAsync) {
-        module('lively.store.Interface').load(true);
         // FIXME, what if PartsBin is not at root?
         var url = this.getFileURL(),
             root = url.withPath("/"),
             path = url.relativePathFrom(root),
             self = this;
-        new lively.store.ObjectRepository(root).getRecords({
-            paths: [path],
-            attributes: ['path', 'date', 'author', 'change', 'version']
-        }, function(err, rows) {
+
+        function processVersions(err, rows) {
             if (err) show(err);
             else self.partVersions = rows;
-        });
+        }
+
+        var result = new lively.store.ObjectRepository(root).getRecords({
+                paths: [path],
+                attributes: ['path', 'date', 'author', 'change', 'version']
+            }, isAsync ? processVersions : null);
+        if (!isAsync) processVersions(result.error ? result.error : null, result);
+
         return this;
     },
 

@@ -198,8 +198,8 @@ AsyncTestCase.subclass('lively.tests.PartsBinTests.AsyncOnlinePartsBinTest', {
 		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
 			item = partsSpace.getPartItemNamed('TestObject');
 		connect(item, "partVersions", {cb : function() {
-            var rev = item.loadPartVersions().partVersions.last().rev;
-            var obj = item.loadRevision(rev);
+            var rev = item.partVersions.last().rev,
+                obj = item.loadRevision(rev);
             this.assertEquals(obj.name , 'TestObject');
             this.done();
 		}.bind(this)}, "cb", {removeAfterUpdate: true})

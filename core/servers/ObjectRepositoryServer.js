@@ -50,7 +50,6 @@ module.exports = function(route, app) {
         } else if (!query.getRecordsB) {
             res.status(400).json({error: 'Need query.getRecordsB!'});
         } else {
-
             var isJSON = query.isJSON === 'true';
             var isLivelyWorld = query.isLivelyWorld === 'true';
 

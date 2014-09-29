@@ -631,25 +631,24 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
 },
 'event handling', {
-    /* Deprecated since we are using pointerevents and pointerevents.js captures all mouseups.
-    ** Keeping the method in case future versions of ace editor register pointerevents, too. */
-    // onMouseDownEntry: function($super, evt) {
-    //     // ace installs a mouseup event handler on the document level and
-    //     // stops the event so it never reaches our Morphic event handlers. To
-    //     // still dispatch the event properly we install an additional mouseup
-    //     // handler that is removed immediately thereafter
-    //     var self = this;
-    //     function upHandler(evt) {
-    //         document.removeEventListener("mouseup", upHandler, true);
-    //         lively.morphic.EventHandler.prototype.patchEvent(evt);
-    //         evt.hand.clickedOnMorph = evt.getTargetMorph();
-    //         [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
-    //             ea.onMouseUpEntry(evt); });
-    //     }
-    //     document.addEventListener("mouseup", upHandler, true);
-    //     evt.hand.clickedOnMorph = this;
-    //     return $super(evt);
-    // },
+
+    onMouseDownEntry: function($super, evt) {
+        // ace installs a pointerup event handler on the document level and
+        // stops the event so it never reaches our Morphic event handlers. To
+        // still dispatch the event properly we install an additional pointerup
+        // handler that is removed immediately thereafter
+        var self = this;
+        function upHandler(evt) {
+            document.removeEventListener("pointerup", upHandler, true);
+            lively.morphic.EventHandler.prototype.patchEvent(evt);
+            evt.hand.clickedOnMorph = evt.getTargetMorph();
+            [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
+                ea.onMouseUpEntry(evt); });
+        }
+        document.addEventListener("pointerup", upHandler, true);
+        evt.hand.clickedOnMorph = this;
+        return $super(evt);
+    },
 
     isScrollable: function() { return true; },
 

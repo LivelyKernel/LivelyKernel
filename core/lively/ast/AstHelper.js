@@ -1571,19 +1571,35 @@ Object.extend(lively.ast.transform, {
         return lively.ast.transform.helper.replaceNodes(targetsAndReplacements, source);
     },
 
-    returnLastStatement: function(source) {
-        // lively.ast.transformReturnLastStatement('foo + 3;\n this.baz(99 * 3) + 4;')
-        // source = that.getTextRange()
-        var ast = lively.ast.acorn.parse(source),
+    returnLastStatement: function(source, opts) {
+        opts = opts || {};
+        var parse = lively.ast.acorn.parse,
+            ast = parse(source, {ecmaVersion: 6}),
             last = ast.body.pop(),
-            newLastsource = 'return ' + source.slice(last.start, last.end),
-            newLast = lively.ast.acorn.fuzzyParse(newLastsource).body.last(),
-            newSource = source.slice(0, last.start) + 'return ' + source.slice(last.start)
+            newLastsource = 'return ' + source.slice(last.start, last.end);
+        if (!opts.asAST) return source.slice(0, last.start) + newLastsource;
+        
+        var newLast = parse(newLastsource, {allowReturnOutsideFunction: true, ecmaVersion: 6}).body.slice(-1)[0];
         ast.body.push(newLast);
-        ast.end += 'return '.length
-        return newSource.slice(ast.start, ast.end);
-    }
+        ast.end += 'return '.length;
+        return ast;
+    },
 
+    wrapInFunction: function(code, opts) {
+        opts = opts || {};
+        var transformed = lively.ast.transform.returnLastStatement(code, opts);
+        return opts.asAST ?  {
+          type: "Program",
+          body: [{
+            type: "ExpressionStatement",
+            expression: {
+              body: {body: transformed.body, type: "BlockStatement"},
+              params: [],
+              type: "FunctionExpression"
+            },
+          }]
+        } : "function() {\n" + transformed + "\n}";
+    }
 });
 
 }) // end of module

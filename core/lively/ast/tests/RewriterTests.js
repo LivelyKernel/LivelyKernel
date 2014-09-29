@@ -464,10 +464,14 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         // test if the "return g();" is translated to "return _0.g.call();"
         var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
-        acorn.walk.simple(func.asRewrittenClosure().ast, {ReturnStatement: function(n) { returnStmt = n; }})
+        var returns = [];
+        lively.ast.acorn.withMozillaAstDo(func.asRewrittenClosure().ast, returns, function(next, node, state) {
+            if (node.type === 'ReturnStatement') state.push(node); return next();
+        });
+        this.assertEquals(1, returns.length, "not just one return?")
         var expected = 'return ' + this.prefixResult(
                 this.getVar(0, 'g') + '.call(Global)') + ';';
-        this.assertASTMatchesCode(returnStmt, expected);
+        this.assertASTMatchesCode(returns[0], expected);
     },
 
     test22bGlobalFunctionCall: function() {

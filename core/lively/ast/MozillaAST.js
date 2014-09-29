@@ -174,13 +174,15 @@ lively.ast.MozillaAST.Cache = {
         "interface ArrayExpression <: Expression {\n"
       + "    type: \"ArrayExpression\";\n"
       + "    elements: [ Expression | null ];\n"
-      + "}",  "interface ObjectExpression <: Expression {\n"
-        + "    type: \"ObjectExpression\";\n"
+      + "}",
+        "interface ObjectExpression <: Expression {\n"
+      + "    type: \"ObjectExpression\";\n"
       + "    properties: [ { key: Literal | Identifier,\n"
       + "                    value: Expression,\n"
       + "                    kind: \"init\" | \"get\" | \"set\" } ];\n"
-      + "}",  "interface FunctionExpression <: Function, Expression {\n"
-        + "    type: \"FunctionExpression\";\n"
+      + "}",
+        "interface FunctionExpression <: Function, Expression {\n"
+      + "    type: \"FunctionExpression\";\n"
       + "    id: Identifier | null;\n"
       + "    params: [ Pattern ];\n"
       + "    defaults: [ Expression ] | null;\n"
@@ -378,6 +380,26 @@ lively.ast.MozillaAST.Cache = {
       + "    type: \"XMLProcessingInstruction\";\n"
       + "    target: string;\n"
       + "    contents: string | null;\n"
+      + "}",
+
+      // rk 2014-09-28 adding preliminary es6 class interfaces
+        "interface ClassDeclaration <: Declaration {\n"
+      + "  type: \"ClassDeclaration\";\n"
+      + "  id: Identifier;\n"
+      + "  superClass: Identifier | null;\n"
+      + "  body: ClassBody;\n"
+      + "}",
+        "interface ClassBody <: Node {\n"
+      + "  type: \"ClassBody\";\n"
+      + "  body: [ MethodDefinition ];\n"
+      + "}",
+        "interface MethodDefinition <: Node {\n"
+      + "  type: \"MethodDefinition\";\n"
+      + "  static: boolean;\n"
+      + "  computed: boolean;\n"
+      + "  kind: \"\";\n"
+      + "  key: Identifier;\n"
+      + "  value: FunctionExpression;\n"
       + "}"]
 
 }
@@ -423,7 +445,7 @@ lively.ast.MozillaAST.SpiderMonkeyParserAPI = {
         + "    memberEnd = spaces ';' spaces,\n"
         + "    memberValue = listOf(#plainMember, '|'):cs,\n"
         + "    plainMember = spaces (nullMember | stringConstant | specificTypeMember | objectMember | arrayMember | nodeMember):m spaces -> m,\n"
-        + "    stringConstant = '\"' name:n '\"' -> {type: 'string', value: n},\n"
+        + "    stringConstant = '\"' ( name:n | empty ) '\"' -> {type: 'string', value: n || \"\"},\n"
         + "    specificTypeMember = lower+:n  -> {type: 'specificType', value: n.join('')},\n"
         + "    objectMember = '{' listOf(#objectMemberMember, ','):ms '}' -> {type: 'object', fields: ms},\n"
         + "    objectMemberMember = name:k ':' memberValue:v -> {key: k, value: v},\n"

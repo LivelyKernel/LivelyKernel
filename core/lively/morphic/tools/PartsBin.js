@@ -668,7 +668,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         loadAndOpenSelectedPartItem: function loadAndOpenSelectedPartItem(partMorph) {
         var item = this.selectedPartItem;
         if (!item) return;
-        connect(item, 'part', this, 'openPart');
+        connect(item, 'part', this, 'openPart', {removeAfterUpdate: true});
         var selectedVersion = this.get('selectedPartVersions').selection,
             rev = selectedVersion ? selectedVersion.version : null;
         item.loadPart(true, null, rev);

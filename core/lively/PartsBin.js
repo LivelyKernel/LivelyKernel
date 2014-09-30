@@ -208,7 +208,7 @@ Object.subclass('lively.PartsBin.PartItem',
 
         // a revisionOnLoad should always be set! If no PartsBinMetaInfo can
         // be found, the revisionOnLoad is computed via the webresource
-        if (rev) {
+        if (rev != null) {
             this.rev = rev;
         } else if (this.loadPartVersions && this.loadPartVersions().partVersions && this.loadPartVersions().partVersions.length > 0) {
             this.rev = this.loadPartVersions().partVersions.first().rev;

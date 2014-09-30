@@ -270,10 +270,8 @@ Object.subclass('lively.PartsBin.PartItem',
     },
 
     loadPartMetaInfo: function(isAsync, rev) {
-
         if (!isAsync) {
-            var webR = new WebResource(this.getMetaInfoURL());
-            if (isAsync) webR.beAsync();
+            var webR = new WebResource(this.getMetaInfoURL()).beSync();
             lively.bindings.connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
                 if (!this.sourceObj.status.isSuccess()) return $upd(null);
                 if (!this.sourceObj.status.isDone()) return;

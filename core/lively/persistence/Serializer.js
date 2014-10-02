@@ -1294,7 +1294,7 @@ Object.extend(lively.persistence.Serializer, {
 Object.subclass('lively.persistence.HTMLDocBuilder',
 'initializing', {
     initialize: function() {
-        this.doc = document.implementation.createHTMLDocument();
+        this.doc = document.implementation.createHTMLDocument("Argument not optional. Thanks IE.");
         this.$doc = lively.$(this.doc);
         this.head = this.$doc.find('head');
         if (this.head.length === 0) {

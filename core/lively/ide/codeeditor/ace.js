@@ -148,8 +148,8 @@ Object.extend(lively.ide, {
     Object.extend(LivelyCstyleBehaviour, CstyleBehaviour);
     oop.inherits(LivelyCstyleBehaviour, CstyleBehaviour);
     lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour = LivelyCstyleBehaviour;
-    
-    if (UserAgent.fireFoxVersion /* UserAgent.isMozilla is also true for Chrome */) {
+
+    if (UserAgent.isMozilla) {
         var cssOverrides = document.createElement("style");
         cssOverrides.textContent = "\n/* ACE CSS Workarounds for Firefox */" +
                 ["div.ace_scrollbar",

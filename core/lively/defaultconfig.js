@@ -630,7 +630,7 @@ Config.addOptions(
         if (UserAgent.isOpera) return 'o';
         if (UserAgent.webKitVersion) return 'webkit';
         return '';
-    })(), browserPrefixDash = '-' + browserPrefix + '-';
+    })(), browserPrefixDash = browserPrefix ? '-' + browserPrefix + '-' : '';
 
     Config.addOptions(
         "lively.morphic.Rendering", [

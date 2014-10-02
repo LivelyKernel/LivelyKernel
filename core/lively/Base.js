@@ -32,12 +32,17 @@
 
 if (Function.prototype.name === undefined) {
     Function.prototype.__defineGetter__("name", function () {
-	var md = (this + "").match(/function\s+(.*)\s*\(\s*/);
-	if (md) {
-	    return md[1];
-	} else {
-	    return "Empty";
-	}
+        // TODO: find a better method, this is just a heuristic
+        if (this.displayName) {
+            var splitted = this.displayName.split(".");
+            return splitted[splitted.length - 1];
+        }
+        var md = (this + "").match(/function\s+(.*)\s*\(\s*/);
+        if (md) {
+            return md[1];
+        } else {
+            return "Empty";
+        }
     });
 }
 

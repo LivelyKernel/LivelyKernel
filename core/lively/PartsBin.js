@@ -272,14 +272,12 @@ Object.subclass('lively.PartsBin.PartItem',
     loadPartMetaInfo: function(isAsync, rev) {
         if (!isAsync) {
             var webR = new WebResource(this.getMetaInfoURL()).beSync();
-            lively.bindings.connect(webR, 'content', this, 'loadedMetaInfo', {updater: function($upd, json) {
-                if (!this.sourceObj.status.isSuccess()) return $upd(null);
-                if (!this.sourceObj.status.isDone()) return;
-                var metaInfo = lively.persistence.Serializer.deserialize(json);
-                metaInfo.lastModifiedDate = this.sourceObj.lastModified;
-                $upd(metaInfo);
-            }});
             webR.forceUncached().get();
+            if (webR.status.isSuccess()) {
+                var metaInfo = lively.persistence.Serializer.deserialize(webR.content);
+                metaInfo.lastModifiedDate = webR.lastModified;
+                this.loadedMetaInfo = metaInfo;
+            }
             return this;
         }
 
@@ -370,8 +368,8 @@ Object.subclass('lively.PartsBin.PartItem',
         var partItem = this, uploadHelper = {
             uploadMetaDataAndPreview: function(putStatus) {
                 if (!putStatus.isSuccess()) return;
-                new WebResource(partItem.getHTMLLogoURL()).beAsync().put(serialized.htmlLogo);
-                new WebResource(partItem.getMetaInfoURL()).beAsync().put(serialized.metaInfo);
+                new WebResource(partItem.getHTMLLogoURL())[isSync ? 'beSync' : 'beAsync']().put(serialized.htmlLogo);
+                new WebResource(partItem.getMetaInfoURL())[isSync ? 'beSync' : 'beAsync']().put(serialized.metaInfo);
             }
         }
         connect(webR, 'status', uploadHelper, 'uploadMetaDataAndPreview');

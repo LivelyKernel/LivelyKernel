@@ -203,14 +203,14 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         lively.bindings.connect(this.get("toggleVarsButton"), 'fire', this, 'toggleVarArea');
     },
         resetState: function resetState() {
-                this.owner.targetMorph = this;
-                this.state = {
-                depth: 1,
-                doNotSerialize: ["workspaceVars"],
-                workspaceVars: {}
-            }
-            this.showVars();
-        },
+        this.owner.targetMorph = this;
+        this.state = {
+            depth: 1,
+            doNotSerialize: ["workspaceVars"],
+            workspaceVars: {}
+        }
+        this.showVars();
+    },
         showVariableArea: function showVariableArea() {
         var border = 2,
             varAreaWidth = 220,
@@ -218,15 +218,14 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             newEditorBounds = rect(
                 pt(3,22),
                 varList.bounds().bottomRight().addXY(-3 - varAreaWidth - border, 0));
-
+    
         varList.setExtent(varList.getExtent().withX(varAreaWidth));
         varList.align(varList.bounds().topRight(), this.getWindow().innerBounds().topRight().addXY(-3,22));
-
+    
         this.updateToggleVarsButton(newEditorBounds);
-
+    
         this.animatedSetBounds(this, newEditorBounds);
         this.startStepping(1000, "showVars");
-
     },
         showVars: function showVars() {
             // this.startStepping(1000, 'showVars')

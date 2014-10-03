@@ -405,8 +405,9 @@ Object.extend(lively.morphic.World, {
                     target.makeEditorEvalInIframe(workspace);
                 }],
                 ['Open console', function() {
-                  lively.require("lively.ide.tools.SystemConsole")
-                  lively.ide.tools.SystemConsole.openInContext(target.getGlobal());
+                  lively.require("lively.ide.tools.SystemConsole").toRun(function() {
+                    lively.ide.tools.SystemConsole.openInContext(target.getGlobal());
+                  });
                 }],
                 ['Edit page', function() {
                     module('lively.ide.tools.TextEditor').load(true);

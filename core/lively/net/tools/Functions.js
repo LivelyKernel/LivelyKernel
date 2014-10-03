@@ -80,7 +80,6 @@ Object.extend(lively.net.tools.Functions, {
         var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
         workspace.openInWorldCenter().comeForward();
         (function() {
-            workspace.targetMorph.showNameInput();
             (function() {
                 var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
                     return item.value.id === session.id;

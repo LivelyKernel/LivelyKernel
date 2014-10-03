@@ -230,8 +230,8 @@ TestCase.subclass("lively.morphic.tests.TextUndoTests.StyleDOMAttributeMutationT
             target: this.target
         }
         this.mutations = [
-            Object.protoCopy(baseStyleMutation),
-            Object.protoCopy(baseStyleMutation)];
+            Object.inherit(baseStyleMutation),
+            Object.inherit(baseStyleMutation)];
     }
 },
 'testing', {
@@ -346,7 +346,7 @@ TestCase.subclass("lively.morphic.tests.TextUndoTests.AtomicDOMChangeTest",
             };
         this.target = target;
         Array.range(1, n).forEach(function(i) {
-            childNodes.push(Object.extend(Object.protoCopy(nodeProto), {n: i}));
+            childNodes.push(Object.extend(Object.inherit(nodeProto), {n: i}));
             this['childNode' + i] = childNodes.last();
         }, this);
     }
@@ -381,7 +381,7 @@ TestCase.subclass("lively.morphic.tests.TextUndoTests.AtomicDOMChangeTest",
     },
 
     assertReplace: function(spec) {
-        this.assertInserts(Object.extend(Object.protoCopy(spec), {
+        this.assertInserts(Object.extend(Object.inherit(spec), {
             action: function(test) { this.assertRemoves(spec); }
         }));
     },

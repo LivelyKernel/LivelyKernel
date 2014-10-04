@@ -4073,11 +4073,11 @@ lively.morphic.Box.subclass('lively.morphic.Slider',
 
         if (this.vertical()) { // more vertical...
             var elevPix = Math.max(ext*bnds.height, this.mss), // thickness of elevator in pixels
-                topLeft = pt(0, (bnds.height - elevPix)*val),
+                topLeft = pt(0, Math.round((bnds.height - elevPix)*val)),  // ael: round to prevent artifacts
                 sliderExt = pt(bnds.width, elevPix);
         } else { // more horizontal...
             var elevPix = Math.max(ext*bnds.width, this.mss), // thickness of elevator in pixels
-                topLeft = pt((bnds.width - elevPix)*val, 0),
+                topLeft = pt(Math.round((bnds.width - elevPix)*val), 0),  // ael: as above
                 sliderExt = pt(elevPix, bnds.height);
         }
         this.sliderKnob.setBounds(bnds.topLeft().addPt(topLeft).extent(sliderExt));

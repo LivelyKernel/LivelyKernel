@@ -1184,6 +1184,7 @@ Object.extend(lively.ide.commands.byName, {
             require('lively.ide.tools.DirViewer').toRun(function() {
                 lively.ide.tools.DirViewer.on(path);
             });
+            return true;
         }
     },
 

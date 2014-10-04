@@ -170,7 +170,7 @@
 	border-radius: 5px;
 	background-image: -webkit-linear-gradient(top, #EEE, #CCC);
 	background-image: -moz-linear-gradient(top, #EEE, #CCC);
-	background: linear-gradient(bottom, #EEE, #CCC);
+	background: linear-gradient(to bottom, #EEE, #CCC);
 }
 
 .AccordionHeader {
@@ -185,6 +185,7 @@
 .AccordionHeader.active {
 	background-image: -webkit-linear-gradient(top, #fff, #eee);
 	background-image: -moz-linear-gradient(top, #fff, #eee);
+	background-image: linear-gradient(to top, #fff, #eee);	
 }
 
 /* -=-=-=-=-=-=-=-=-=-=-=

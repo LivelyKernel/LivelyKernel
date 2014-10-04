@@ -158,7 +158,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             this.setSVGFillOrStrokePaint(node, 'fill', fill);
         }
         if (!fill) {
-            node.style.background = null;
+            node.style.background = "";
         } else if (this.isHTML(node)) {
             if (fill.isGradient) { this.setHTMLGradient(node, fill, shapeBounds); return };
             if (fill.isCSSFill) { fill.applyToNode(node); return };

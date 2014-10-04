@@ -43,9 +43,9 @@ Trait('LinearGradientCSSTrait',
         str += ')';
         return str;
     },
-    toCSSStringUnknown: function() {
-        console.warn('Trying to detect how CSS gradients are rendered but wasn\'t able to recognize browser');
-        return '';
+    toCSSStringUnknown: function(bounds) {
+        console.warn('Trying to detect how CSS gradients are rendered, assuming standards compliant browser');
+        return this.toCSSStringFirefoxAndOpera(bounds, "");
     }
 })
 .applyTo(lively.morphic.LinearGradient, {
@@ -60,7 +60,7 @@ Trait('LinearGradientCSSTrait',
 Trait('RadialGradientCSSTrait',
 'HTML rendering', {
     toCSSStringFirefoxAndOpera: function(bounds, cssPrefix) {
-        var str = Strings.format('-moz-radial-gradient(50% 50%, circle cover');
+        var str = Strings.format('%sradial-gradient(50% 50%, circle cover');
         for (var i = 0; i < this.stops.length; i++)
             str += ', ' + this.stops[i].color + ' ' + (this.stops[i].offset*100) + '%'
         str += ')';
@@ -96,9 +96,9 @@ Trait('RadialGradientCSSTrait',
         str += ')';
         return str;
     },
-    toCSSStringUnknown: function() {
-        console.warn('Trying to detect how CSS gradients are rendered but wasn\'t able to recognize browser');
-        return '';
+    toCSSStringUnknown: function(bounds) {
+        console.warn('Trying to detect how CSS gradients are rendered, assuming standards compliant browser');
+        return this.toCSSStringFirefoxAndOpera(bounds, "");
     },
 })
 .applyTo(lively.morphic.RadialGradient, {
@@ -525,20 +525,20 @@ lively.morphic.Text.addMethods(
         if (ctx.textNode) ctx.textNode.style.fontSize = size + 'pt'
     },
     setFontFamilyHTML: function(ctx, fontName) {
-        if (ctx.textNode) ctx.textNode.style.fontFamily = fontName;
+        if (ctx.textNode) ctx.textNode.style.fontFamily = fontName || "";
     },
     setTextColorHTML: function(ctx, color) {
         if (ctx.textNode) {
             if (color && color.toCSSString) color = color.toCSSString();
-            ctx.textNode.style.color = color
+            ctx.textNode.style.color = color || ""
         }
     },
 
     setFontWeightHTML: function(ctx, value) {
-        if (ctx.textNode) ctx.textNode.style.fontWeight = value;
+        if (ctx.textNode) ctx.textNode.style.fontWeight = value || "";
     },
     setFontStyleHTML: function(ctx, value) {
-        if (ctx.textNode) ctx.textNode.style.fontStyle = value;
+        if (ctx.textNode) ctx.textNode.style.fontStyle = value || "";
     },
     setTextDecorationHTML: function(ctx, value) {
         if (ctx.textNode) ctx.textNode.style.textDecoration = value;
@@ -550,7 +550,7 @@ lively.morphic.Text.addMethods(
     },
     setAlignHTML: function(ctx, alignMode) {
         if (!ctx.textNode) return;
-        ctx.textNode.style.textAlign = alignMode;
+        ctx.textNode.style.textAlign = alignMode || "";
         this.setWhiteSpaceHandling(alignMode === 'justify' ? 'pre-line' : this.getWhiteSpaceHandling());
     },
     setVerticalAlignHTML: function(ctx, valignMode) {
@@ -563,7 +563,7 @@ lively.morphic.Text.addMethods(
     },
     setDisplayHTML: function(ctx, mode) {
         if (ctx.textNode)
-            ctx.textNode.style.display = mode;
+            ctx.textNode.style.display = mode || "";
     },
     setWhiteSpaceHandlingHTML: function(ctx, modeString) {
         if (ctx.textNode)

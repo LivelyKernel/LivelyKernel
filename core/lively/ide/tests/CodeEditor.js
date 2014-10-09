@@ -294,6 +294,25 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         this.done();
     },
 
+    testPrintItAsComment: function() {
+        var e = this.editor,
+            Range = ace.require("ace/range").Range;
+        e.setPrintItAsComment(true);
+        e.focus();
+        // 1. single line
+        e.textString = "23";
+        e.aceEditor.execCommand('printit');
+        this.assertHasText(e, "23 // => 23");
+        this.assertEquals(e.getTextRange(), " // => 23");
+        
+        // 2. multiline
+        e.textString = "var foo = {x: 23, y: 24}; foo";
+        e.aceEditor.execCommand('printit');
+        this.assertHasText(e, "var foo = {x: 23, y: 24}; foo // => {\n//   x: 23,\n//   y: 24\n// }");
+        this.assertEquals(e.getTextRange(), " // => {\n//   x: 23,\n//   y: 24\n// }");
+        this.done();
+    },
+
     testFitTextToColumn: function() {
         var test = this, e = this.editor,
             testData = [{

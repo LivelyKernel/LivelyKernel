@@ -795,32 +795,48 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
-    printObject: function(editor, obj, suppressSelection) {
+    printObject: function(editor, obj, suppressSelection, asComment) {
         // inserts a stringified representation of object into editor
         // the current selection is cleared and the stringified representation
         // is inserted at the end (in terms of document position) of the current
         // selection (or at the cursor pos if no sel is active)
+        var self = this;
+        if (editor) insert(editor); else this.withAceDo(insert);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
         function printError(err) {
             var string = String(err.stack || err);
             return string.include(err) ? string : err + '\n' + string;
         }
+
         function insert(ed) {
             self.collapseSelection('end');
             var string;
             try {
                 string = obj instanceof Error ? printError(obj) : String(obj);
             } catch (e) { string = printError(e); }
+            if (asComment) string = commentify(string, ed.session.getMode().lineCommentStart);
             ed.onPaste(string);
             if (!suppressSelection) self.extendSelectionRange(-string.length);
         }
-        var self = this;
-        if (editor) insert(editor); else this.withAceDo(insert);
+
+        function commentify(string, lineCommentStart) {
+          return " " + lineCommentStart + Strings.lines(string)
+            .join('\n' + lineCommentStart + " ")
+        }
     },
 
     doit: function(printResult, editor) {
         var text = this.getSelectionMaybeInComment(),
             result = this.tryBoundEval(text);
-        if (printResult) { this.printObject(editor, result); return; }
+        if (printResult) {
+          if (this.getPrintItAsComment()) {
+            result = " => " + Objects.inspect(result, {maxDepth: 4});
+          }
+          this.printObject(editor, result, false, this.getPrintItAsComment());
+          return;
+        }
         if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
             this.world().alert(String(result));
         }
@@ -1357,6 +1373,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.hasOwnProperty("_ShowErrors") ? this._ShowErrors : true
     },
 
+    setPrintItAsComment: function(bool) { return this._PrintItAsComment = bool; },
+    getPrintItAsComment: function() {
+        return this.hasOwnProperty("_PrintItAsComment") ? this._PrintItAsComment : false;
+    },
+
     getNewLineMode: function() {
         return this.withAceDo(function(ed) { return ed.session.getNewLineMode(); });
     },
@@ -1484,6 +1505,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
+        boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
         items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;

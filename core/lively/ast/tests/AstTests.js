@@ -99,20 +99,27 @@ TestCase.subclass('lively.ast.tests.AstTests.Acorn',
     },
 
     testParseWithComments: function() {
-        var src = 'var x = 3; // comment1\n// comment1\nfunction foo() { var y = 3; /*comment2*/ return y }; x + foo();',
+        var src = '// comment1\n\n//comment2\nvar x = 3; // comment3\n// comment3\nfunction foo() { var y = 3; /*comment4*/ return y }; x + foo();',
             ast = lively.ast.acorn.parse(src, {withComments: true}),
             comments = ast.comments,
             expectedTopLevelComments = [{
-              start: 11, end: 22,
-              isBlock: false, text: " comment1"
+              column: false, isBlock: false, line: false,
+              start: 0, end: 11,
+              node: null, text: " comment1"
             },{
-              start: 23, end: 34,
-              isBlock: false, text: " comment1"
+              column: false, isBlock: false, line: false,
+              start: 13, end: 23,
+              node: null, text: "comment2"
+            },{
+              column: false, isBlock: false, line: false,
+              start: 35, end: 58,
+              node: null, text: " comment3\n comment3"
             }],
             expectedScopedComments = [{
-              start: 63, end: 75,
-              isBlock: true, text: "comment2"
+              start: 87, end: 99,
+              isBlock: true, text: "comment4"
             }];
+
         this.assertMatches(expectedTopLevelComments, ast.comments, 'topLevel');
         this.assertMatches(expectedScopedComments, ast.body[1].body.comments, 'scoped');
     }

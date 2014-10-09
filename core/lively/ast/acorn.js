@@ -833,6 +833,7 @@ Object.extend(lively.ast.acorn, {
         options.ecmaVersion = 6;
 
         if (options.withComments) {
+            // record comments
             delete options.withComments;
             var comments = [];
             options.onComment = function(isBlock, text, start, end, line, column) {
@@ -849,19 +850,72 @@ Object.extend(lively.ast.acorn, {
             acorn.walk.addSource(source, options) : // FIXME
             acorn.parse(source, options);
 
-        if (ast && comments) { // adding nodes to comments
-            ast.allComments = comments;
-            comments.forEach(function(comment) { 
-                var node = lively.ast.acorn.nodesAt(comment.start, ast)
-                        .reverse().detect(function(node) {
-                            return node.type === 'BlockStatement' || node.type === 'Program'; })
-                if (!node) node = ast;
-                if (!node.comments) node.comments = [];
-                node.comments.push(comment);
-            });
-        }
+        if (ast && comments) attachCommentsToAST({ast: ast, comments: comments, nodesWithComments: []});
 
         return ast;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function attachCommentsToAST(commentData) {
+            // for each comment: assign the comment to a block-level AST node
+            commentData = mergeComments(assignCommentsToBlockNodes(commentData));
+            ast.allComments = commentData.comments;
+        }
+
+        function assignCommentsToBlockNodes(commentData) {
+            comments.forEach(function(comment) { 
+              var node = lively.ast.acorn.nodesAt(comment.start, ast)
+                      .reverse().detect(function(node) {
+                          return node.type === 'BlockStatement' || node.type === 'Program'; })
+              if (!node) node = ast;
+              if (!node.comments) node.comments = [];
+              node.comments.push(comment);
+              commentData.nodesWithComments.push(node);
+            });
+            return commentData;
+        }
+
+        function mergeComments(commentData) {
+            // coalesce non-block comments (multiple following lines of "// ...") into one comment.
+            // This only happens if line comments aren't seperated by newlines
+            commentData.nodesWithComments.forEach(function(blockNode) {
+                blockNode.comments.clone().reduce(function(coalesceData, comment) {
+                    if (comment.isBlock) {
+                        coalesceData.lastComment = null;
+                        return coalesceData;
+                    }
+
+                    if (!coalesceData.lastComment) {
+                        coalesceData.lastComment = comment;
+                        return coalesceData;
+                    }
+            
+                    // if the comments are seperated by a statement, don't merge
+                    var last = coalesceData.lastComment;
+                    var nodeInbetween = blockNode.body.detect(function(node) { return node.start >= last.end && node.end <= comment.start; });
+                    if (nodeInbetween) {
+                        coalesceData.lastComment = comment;
+                        return coalesceData;
+                    }
+                    
+                    // if the comments are seperated by a newline, don't merge
+                    var codeInBetween = source.slice(last.end, comment.start);
+                    if (/[\n\r][\n\r]+/.test(codeInBetween)) {
+                        coalesceData.lastComment = comment;
+                        return coalesceData; 
+                    }
+            
+                    // merge comments into one
+                    last.text += "\n" + comment.text;
+                    last.end = comment.end;
+                    blockNode.comments.remove(comment);
+                    commentData.comments.remove(comment);
+                    return coalesceData;
+                }, {lastComment: null});
+            });
+            return commentData;
+        }
+
     },
 
     parseFunction: function(source, options) {

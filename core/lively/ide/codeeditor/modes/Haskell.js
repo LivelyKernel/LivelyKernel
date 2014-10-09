@@ -319,6 +319,71 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
 
     doHoogleSearchWithNarrower: function(codeEditor) {
         var currentHoogleCommand, currentHoogleCommandKillInitialized;
+        var string = codeEditor.getSelectionOrLineString();
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        var hoogler = Functions.debounce(500, function(input, callback) {
+            runHoogle(input, ["search", /*"--info"*/], function(err, result) {
+                if (err) show(err);
+                var lines = Strings.lines(result || "");
+                var candidates = lines.map(function(line) {
+                    return line.trim() === '' ? null : {
+                        isListItem: true,
+                        string: line,
+                        value: line
+                    };
+                }).compact();
+                if (candidates.length === 0) candidates = ['nothing found'];
+                callback(candidates);
+            });
+        });
+
+        function candidateBuilder(input, callback) {
+          callback(['searching...']);
+          hoogler(input, callback);
+        };
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        
+        var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: '__lively.ide.codeeditor.modes.HaskellHoogle.NarrowingList',
+            // reactivateWithoutInit: true,
+            spec: {
+                prompt: 'search for: ',
+                candidatesUpdaterMinLength: 3,
+                candidates: [],
+                maxItems: 25,
+                candidatesUpdater: candidateBuilder,
+                input: string,
+                // keepInputOnReactivate: true,
+                actions: [{
+                    name: 'open',
+                    exec: function(candidate) {
+                        codeEditor.printObject(null, candidate, false);
+                    }
+                }, {
+                    name: "show info",
+                    exec: function(candidate) {
+                        var input = candidate.split(" ")[1] || candidate;
+                        runHoogle(input, ["search", "--info"], function(err, result) {
+                            var content = err ? err + "\n" + result : result,
+                                title = 'info for: ' + candidate;
+                            $world.addCodeEditor({title: title, content: content, textMode: 'text', lineWrapping: true}).getWindow().comeForward();
+                        });
+                    }
+                }, {
+                    name: "open search results in workspace",
+                    exec: function() {
+                        var state = narrower.state,
+                            content = narrower.getFilteredCandidates(state.originalState || state).pluck('match').join('\n'),
+                            title = 'search for: ' + narrower.getInput();
+                        $world.addCodeEditor({title: title, content: content, textMode: 'text'}).getWindow().comeForward();
+                    }
+                }]
+            }
+        });
+
         function runHoogle(input, flags, thenDo) {
             if (currentHoogleCommand) {
                 if (!currentHoogleCommandKillInitialized) {
@@ -328,7 +393,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
                 runHoogle.curry(input, flags, thenDo).delay(0.1);
                 return;
             }
-            currentHoogleCommand = lively.shell.exec('cd $HOME; hoogle ' + flags.join(' ') + ' "' + input + '"', function(cmd) {
+            currentHoogleCommand = lively.shell.run('cd $HOME; hoogle ' + flags.join(' ') + ' "' + input + '"', {}, function(cmd) {
                 currentHoogleCommand = null;
                 if (currentHoogleCommandKillInitialized) {
                     currentHoogleCommandKillInitialized = false;
@@ -424,7 +489,7 @@ HaskellMode.addMethods({
         },
 
         haskellInfoForThingAtPoint: {
-            exec: function(ed) {
+            exec: function(ed, thenDo) {
                 var haskell = lively.ide.codeeditor.modes.Haskell.Interface
                 var editor = ed.$morph;
                 var token = ed.selection.isEmpty() ?
@@ -433,19 +498,30 @@ HaskellMode.addMethods({
                       value: ed.$morph.getTextRange()
                     };
                 haskell.tokenInfo(token, function(err, tokenInfo) {
-                    tokenInfo && editor.setStatusMessage(tokenInfo, Color.black);
+                    if (thenDo) thenDo(err, tokenInfo);
+                    else tokenInfo && editor.setStatusMessage(tokenInfo, Color.black);
+                });
+            }
+        },
+
+        printHaskellInfoForThingAtPoint: {
+            exec: function(ed) {
+                var HaskellMode = lively.ide.ace.require('ace/mode/haskell').Mode;
+                var printCmd = HaskellMode.prototype.commands.haskellInfoForThingAtPoint
+                printCmd.exec(ed, function(err, info) {
+                    ed.$morph.printObject(null, info, false)
                 });
             }
         }
     },
 
     keybindings: {
-        "Alt-h": "doHoogleSearch",
-        "Alt-c": "checkHaskellCode",
-        "Alt-l": "loadHaskellModule",
-        "Alt-r": "reloadHaskellModule",
-        "Alt-i": "haskellInfoForThingAtPoint",
-        "Alt-y": "haskellInfoForThingAtPoint"
+        "Command-Shift-h": "doHoogleSearch",
+        "Command-Shift-c": "checkHaskellCode",
+        "Command-Shift-l": "loadHaskellModule",
+        "Command-Shift-r": "reloadHaskellModule",
+        "Command-Shift-i": "printHaskellInfoForThingAtPoint",
+        "Command-Shift-y": "haskellInfoForThingAtPoint"
     },
 
     keyhandler: null,

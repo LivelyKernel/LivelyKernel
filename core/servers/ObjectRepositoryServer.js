@@ -44,7 +44,7 @@ module.exports = function(route, app) {
 
     app.get(route + 'diff', function(req, res) {
         // a prototypical diff implementation. Needs cleanup and extraction
-        var err, query = req.query;
+        var err, query = url.parse(req.url, true).query;
         if (!query.getRecordsA) {
             res.status(400).json({error: 'Need query.getRecordsA!'});
         } else if (!query.getRecordsB) {

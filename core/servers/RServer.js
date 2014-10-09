@@ -219,10 +219,10 @@ module.exports = domain.bind(function(route, app, subserver) {
     });
 
     app.get(route + 'evalAsync', function(req,res) {
-
-        var id = req.query.id,
-            timeout = req.query.timeout,
-            merge = req.query.merge==='true';
+        var query = require('url').parse(req.url, true).query;  // var query = req.query;
+        var id = query.id,
+            timeout = query.timeout,
+            merge = query.merge==='true';
 
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;
@@ -236,8 +236,9 @@ module.exports = domain.bind(function(route, app, subserver) {
     });
 
     app.del(route + 'evalAsync', function(req,res) {
-        var id = req.query.id,
-            timeout = req.query.timeout;
+        var query = require('url').parse(req.url, true).query;
+        var id = query.id,
+            timeout = query.timeout;
         if (!id) {
             res.status(400); res.json({error: 'error', message: 'No id'}); return;
         }

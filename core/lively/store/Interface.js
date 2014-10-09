@@ -125,8 +125,8 @@ Object.subclass("lively.store.ObjectRepository",
     diff: function(querySpecA, querySpecB, options, thenDo)  {
         options = options || {};
         this.getServerInterfaceURL().withFilename('diff').withQuery({
-            getRecordsA: encodeURIComponent(JSON.stringify(querySpecA)),
-            getRecordsB: encodeURIComponent(JSON.stringify(querySpecB)),
+            getRecordsA: JSON.stringify(querySpecA),
+            getRecordsB: JSON.stringify(querySpecB),
             isJSON: !!options.isJSON,
             isLivelyWorld: !!options.isLivelyWorld
         }).asWebResource().withJSONWhenDone(function(json, status) {

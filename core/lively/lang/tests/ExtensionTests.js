@@ -1113,7 +1113,26 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.assertEquals(1, c);
         this.assertEquals(23, once());
         this.done();
-    }
+    },
+
+    testExtractBody: function() {
+        var code = Functions.extractBody(function code() {
+            var obj = {
+                foo: function(arg1, arg2) {
+                    // This is a comment!
+                    return 123
+                }
+            }
+        });
+        var expected = "var obj = {\n"
+                     + "    foo: function(arg1, arg2) {\n"
+                     + "        // This is a comment!\n"
+                     + "        return 123\n"
+                     + "    }\n"
+                     + "}";
+        this.assertEquals(expected, code);
+        this.done();
+    },
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.NumbersTest',

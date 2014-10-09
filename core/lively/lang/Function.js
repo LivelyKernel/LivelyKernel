@@ -689,6 +689,19 @@ Global.Functions = {
             invoked = true;
             return result = func.apply(this, arguments);
         }
-    }
+    },
 
+    extractBody: function(func) {
+        // returns the body of func as string, removing outer function code and
+        // superflous indent
+        var codeString = String(func)
+            .replace(/^function[^\{]+\{\s*/, '')
+            .replace(/\}$/, '')
+            .trim();
+        var indent = codeString.split(/\n|\r/)
+            .invoke('match', /^\s*/)
+            .pluck(0)
+            .compact().min(function(ea) { return ea.length; });
+        return codeString.replace(new RegExp("^" + indent, 'gm'), '')
+    }
 };

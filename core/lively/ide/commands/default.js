@@ -1191,7 +1191,6 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.findFile': {
         'description': 'find file',
         exec: function() {
-
             // This is the emacs "find-file" equivalent.
             // Lists all the files at the current dir defined by
             // lively.ide.CommandLineInterface.cwd().
@@ -1200,6 +1199,29 @@ Object.extend(lively.ide.commands.byName, {
             // The input after the last "/" is used to filter the file list. If enter is
             // pressed and the input after the "/" does not match a file or dir a text editor
             // is opened on that (non-existing) path, allowing to create a file on demand.
+
+            var open = {
+                name: 'open file item',
+                exec: function(candidate) {
+                    if (!candidate.isDirectory) {
+                        lively.ide.commands.byName['lively.ide.openTextEditor'].exec(candidate.path);
+                    } else if (candidate.isDirectory) {
+                        lively.ide.commands.byName['lively.ide.openDirViewer'].exec(candidate.path);
+                    }
+                }
+            }
+            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                        'choose directory: ',
+                        null,
+                        function(files) { return files.filterByKey('isDirectory'); },
+                        'lively.ide.findFile.Narrower2',
+                        [open]);
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            // FIXME As a test to how well #interactivelyChooseFileSystemItem
+            // works let's use the above solution for now
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            return true;
 
             var candidates, narrower, dir, searchDir, slash = '/';
 
@@ -1261,7 +1283,7 @@ Object.extend(lively.ide.commands.byName, {
                         return (splitted.dir ? splitted.dir + slash : '') + candidate.string;
                     },
                     actions: [{
-                        name: 'do something',
+                        name: 'open file item',
                         exec: function(candidate) {
                             var fullpath = searchDir + slash + candidate.fileName;
                             if (!candidate.isDirectory) {

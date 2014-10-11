@@ -528,7 +528,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     readFile: function(path, options, thenDo) {
         options = options || {};
         path = '"' + path + '"';
-        var cmd = this.run('cat ' + path);
+        var cmd = this.run('cat ' + path, options);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
@@ -827,8 +827,8 @@ Object.extend(lively.ide.CommandLineSearch, {
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-        //     'directory: '
-        //     lively.shell.exec('pwd', {sync:true}).resultString(),
+        //     'choose directory: '
+        //     lively.shell.exec("pwd", {sync: true}).getStdout().trim(),
         //     function(files) { return files.filterByKey('isDirectory'); },
         //     null,
         //     [function(candidate) { show(candidate); }])
@@ -840,12 +840,73 @@ Object.extend(lively.ide.CommandLineSearch, {
         // Example: input = "/foo/bar": match all subdirectories of
         // /foo/ that match "bar*".
         // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
-        function filesToListItems(files) {
-            return files.map(function(file) {
-                if  (Object.isString(file)) file = {path: file, toString: function() { return this.path; }}
-                return {isListItem: true, string: file.path, value: file};
-            });
+
+        if (!rootDir) rootDir = lively.shell.exec("pwd", {sync: true}).getStdout().trim();
+        if (rootDir) rootDir = rootDir.replace(/\/?$/, "/");
+        var lastSearch;
+        var initialCandidates = rootDir ? [rootDir] : [];
+        var searchForMatching = Functions.debounce(300, function(input, callback) {
+            // var candidates = [input].compact(),
+            var candidates = [],
+                patternAndDir = extractDirAndPatternFromInput(input);
+            if (patternAndDir) doSearch(input, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
+            else callback(candidates.map(fileToListItem));
+        });
+
+        lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
+            spec: {
+                candidates: initialCandidates,
+                prompt: prompt,
+                input: initialCandidates[0] || undefined,
+                candidatesUpdater: candidateBuilder,
+                maxItems: 25,
+                keepInputOnReactivate: true,
+                completeInputOnRightArrow: true,
+                completeOnEnterWithMultipleChoices: true,
+                actions: actions || [show]
+            }
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function candidateBuilder(input, callback) { callback(['searching...']); searchForMatching(input, callback); };
+
+        function doSearch(input, pattern, dir, filterFunc, thenDo) {
+            if (lastSearch) { lastSearch.kill(); lastSearch = null; }
+            var timeoutDelay = 5/*secs*/;
+            var continueAction = Functions.either(
+                // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
+                function timeout() { thenDo([]); },
+                function filesFound(files) {
+                    thenDo((filterFunc || Functions.K)(files)
+                        .uniqBy(filesAreEqual)
+                        .sort(sortFiles.curry(input))
+                        .map(fileToListItem)
+                        .compact()); });
+
+            continueAction[0].delay(timeoutDelay); // in case findFiles crashes
+            lastSearch = lively.ide.CommandLineSearch.findFiles(
+                pattern, {rootDirectory: dir, depth: 1}, continueAction[1]);
         }
+
+        function ignoreInvalidFiles(file) { return file.path !== "/"; }
+
+        function ensureFile(f) {
+            return Object.isString(f) ?
+                {path: f, isDirectory: true, toString: function() { return this.path; }} : f;
+        }
+
+        function fileToListItem(file) {
+            var path = String(file.path);
+            if (!path.length) return null;
+            if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
+            return {
+                isListItem: true,
+                string: path,
+                value: file}
+        }
+
         function extractDirAndPatternFromInput(input) {
             var result = {}, lastSlash = input.lastIndexOf('/');
             if (!lastSlash) return null; // don't do search
@@ -855,42 +916,20 @@ Object.extend(lively.ide.CommandLineSearch, {
             result.pattern = pattern += '*';
             return result;
         }
-        var lastSearch;
-        function doSearch(fileListSoFar, pattern, dir, filterFunc, thenDo) {
-            if (lastSearch) { lastSearch.kill(); lastSearch = null; }
-            var continued = false, timeoutDelay = 5/*secs*/;
-            // in case findFiles crashes
-            (function() {
-                if (continued) return;
-                continued = true; thenDo(filesToListItems(fileListSoFar));
-            }).delay(timeoutDelay);
-            lastSearch = lively.ide.CommandLineSearch.findFiles(pattern, {rootDirectory: dir, depth: 1}, function(files) {
-                if (continued) return; continued = true;
-                filterFunc = filterFunc || Functions.K;
-                fileListSoFar = fileListSoFar.concat(filterFunc(files).pluck('path')).uniq();
-                thenDo(filesToListItems(fileListSoFar));
-            });
+
+        function filesAreEqual(fileA, fileB) {
+            return fileA.path.replace(/\/$/, '') == fileB.path.replace(/\/$/, '');
         }
-        var searchForMatching = Functions.debounce(300, function(input, callback) {
-            var candidates = [input], patternAndDir = extractDirAndPatternFromInput(input);
-            if (patternAndDir) doSearch(candidates, patternAndDir.pattern, patternAndDir.dir, fileFilter, callback);
-            else callback(filesToListItems(candidates));
-        });
-        function candidateBuilder(input, callback) { callback(['searching...']); searchForMatching(input, callback); };
-        var initialCandidates = [rootDir];
-        lively.ide.tools.SelectionNarrowing.getNarrower({
-            name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
-            spec: {
-                candidates: initialCandidates,
-                prompt: prompt,
-                input: initialCandidates[0].toString(),
-                candidatesUpdater: candidateBuilder,
-                maxItems: 25,
-                keepInputOnReactivate: true,
-                completeInputOnRightArrow: true,
-                actions: actions || [show]
-            }
-        });
+
+        function sortFiles(input, fileA, fileB) {
+            if (input === fileA.path) return -2;
+            if (input === fileB.path) return 2;
+            if (fileA.isDirectory && !fileB.isDirectory) return -1;
+            if (!fileA.isDirectory && fileB.isDirectory) return 1;
+            if (fileA.path.toLowerCase() < fileB.path.toLowerCase()) return -1;
+            if (fileA.path.toLowerCase() > fileB.path.toLowerCase()) return 1;
+            return 0;
+        }
     }
 
 });

@@ -233,3 +233,8 @@ snippet requ
 guard ^\s*
 	var ${1/.*\/(.)/\u$1/} = require("${1}").${1/.*\/(.)/\u$1/};
 	$0
+# Functions.composeAsync
+snippet async
+	Functions.composeAsync(
+		function(${1}next) { ${0:next(null);} }
+	)(${1}function(err) { if (err) show(err); });

@@ -58,6 +58,19 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         this.assertEqualState(expected, comments);
     },
 
+    testExtractCommentFromVarDeclaration: function() {
+        var code = Functions.extractBody(function() {
+            // test-test
+            var Group = exports.GroupExport = function GroupFunc() {}
+        });
+
+        var comments = lively.ast.Comments.extractComments(code);
+        var expected = [{
+            comment: " test-test",
+            type: "var", name: "Group"}]
+        this.assertEqualState(expected, comments);
+    },
+
     testExtractCommentFromObjectExtension: function() {
         var code = Functions.extractBody(function() {
             Object.extend(Foo.prototype, {
@@ -79,6 +92,43 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
 
         var comments = lively.ast.Comments.extractComments(code);
         var expected = [{comment: "some comment",type: "method", name: "m", objectName: "exports.foo",args: []}]
+        this.assertEqualState(expected, comments);
+    },
+
+    testExtractCommentFromAssignedFunction: function() {
+        var code = Functions.extractBody(function() {
+            Group.foo = function(test) {
+                // hello
+            };
+        });
+        var comments = lively.ast.Comments.extractComments(code);
+        var expected = [{comment: " hello",type: "method", name: "foo", objectName: "Group", args: ["test"]}]
+        this.assertEqualState(expected, comments);
+
+        var code = Functions.extractBody(function() {
+            Group.bar.foo = function(test) {
+                // hello
+            };
+        });
+        var comments = lively.ast.Comments.extractComments(code);
+        var expected = [{comment: " hello",type: "method", name: "foo", objectName: "Group.bar", args: ["test"]}]
+        this.assertEqualState(expected, comments);
+    },
+
+    testExtractFromAppliedFunction: function() {
+        var code = Functions.extractBody(function() {
+            var foo = {
+              func: (function() {
+                // test comment
+                return function() { return 23; }
+              })()
+            }
+        });
+
+        var comments = lively.ast.Comments.extractComments(code);
+        var expected = [{
+          comment: " test comment",
+          type: "method", name: "func", objectName: "foo", args: []}]
         this.assertEqualState(expected, comments);
     },
 
@@ -109,6 +159,22 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
                  + " jsext.string.format(\"Hello %s!\", \"Lively User\"); // => \"Hello Lively User!\"\n"
                  + " ```",
           type: "method", name: "format", objectName: "string", args: []}]
+        this.assertEqualState(expected, comments);
+    },
+
+    testExtractCommentBug2: function() {
+        var code = Functions.extractBody(function() {
+            // test-test
+            var Group = exports.GroupExport = function GroupFunc() {}
+            Group.foo = function(test) {
+                // hello
+            };
+        });
+
+        var comments = lively.ast.Comments.extractComments(code);
+        var expected = [
+            {comment: " test-test",type: "var", name: "Group"},
+            {comment: " hello",type: "method", name: "foo", objectName: "Group", args: ["test"]}]
         this.assertEqualState(expected, comments);
     }
 });

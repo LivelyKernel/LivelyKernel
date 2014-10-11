@@ -3,26 +3,38 @@ module('lively.ast.Comments').requires('lively.ast.AstHelper').toRun(function() 
 Object.extend(lively.ast.Comments, {
     extractComments: function(code) {
         var ast = lively.ast.acorn.parse(code, {withComments: true})
-        var parsedComments = commentsWithPaths(ast);
-        return parsedComments.map(function(c, i) {
+        var parsedComments = commentsWithPaths(ast).sortBy(function(c) { return c.comment.start; });
+        return parsedComments
+          .map(function(c, i) {
 
             // 1. a method comment like "x: function() {\n//foo\n ...}"?
-            if (isInMethod(c)) {
-                return Object.merge([{
-                    type: 'method',
-                    comment: c.comment.text
-                }, methodAttributesOf(c)]);
+            if (isInObjectMethod(c)) {
+                return Object.merge([
+                  {type: 'method', comment: c.comment.text},
+                  methodAttributesOf(c)]);
+            }
+
+            if (isInComputedMethod(c)) {
+                return Object.merge([
+                  {type: 'method', comment: c.comment.text},
+                  computedMethodAttributesOf(c)]);
             }
 
             // 2. function statement comment like "function foo() {\n//foo\n ...}"?
             if (isInFunctionStatement(c)) {
-                return Object.merge([{
-                    type: 'function',
-                    comment: c.comment.text
-                }, functionAttributesOf(c)]);
+                return Object.merge([
+                  {type: 'function', comment: c.comment.text},
+                  functionAttributesOf(c)]);
             }
 
-            // 2. comment preceding another node?
+            // 3. assigned method like "foo.bar = function(x) {/*comment*/};"
+            if (isInAssignedMethod(c)) {
+                return Object.merge([
+                  {type: 'method', comment: c.comment.text},
+                  methodAttributesOfAssignment(c)]);
+            }
+
+            // 4. comment preceding another node?
             var followingNode = followingNodeOf(c);
             if (!followingNode) return null;
 
@@ -31,11 +43,17 @@ Object.extend(lively.ast.Comments, {
             if (followingComment && followingComment.comment.start <= followingNode.start) return null;
 
             // 3. an obj var comment like "// foo\nvar obj = {...}"?
-            if (isObjVarDeclaration(followingNode)) {
-                return Object.merge([{
-                    type: 'object',
-                    comment: c.comment.text
-                }, objAttributesOf(followingNode)])
+            if (isSingleObjVarDeclaration(followingNode)) {
+                return Object.merge([
+                  {type: 'object',comment: c.comment.text},
+                  objAttributesOf(followingNode)])
+            }
+
+            // 4. Is it a simple var declaration like "// foo\nvar obj = 23"?
+            if (isSingleVarDeclaration(followingNode)) {
+                return Object.merge([
+                  {type: 'var',comment: c.comment.text},
+                  objAttributesOf(followingNode)])
             }
             
             return null;
@@ -76,8 +94,12 @@ Object.extend(lively.ast.Comments, {
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-        function isInMethod(comment) {
-            return comment.path.slice(-2).equals(["value", "body"]);
+        function isInObjectMethod(comment) {
+            return comment.path.slice(-2).equals(["value", "body"]) // obj expr
+        }
+
+        function isInAssignedMethod(comment) {
+            return comment.path.slice(-2).equals(["right", "body"]); // asignment
         }
 
         function methodAttributesOf(comment) {
@@ -115,16 +137,104 @@ Object.extend(lively.ast.Comments, {
             return {name: name, args: methodNode.value.params.pluck("name"), objectName: objectName}
         }
 
+        function methodAttributesOfAssignment(comment) {
+            var node = lively.PropertyPath(comment.path.slice(0,-1)).get(ast)
+            if (node.type !== "FunctionExpression"
+             && node.type !== "FunctionDeclaration") return {};
+
+            var statement = acorn.walk.findStatementOfNode(ast, node);
+            if (statement.type !== "ExpressionStatement"
+             || statement.expression.type !== "AssignmentExpression") return {};
+
+            var objName = code.slice(
+                statement.expression.left.object.start,
+                statement.expression.left.object.end);
+
+            var methodName = code.slice(
+                statement.expression.left.property.start,
+                statement.expression.left.property.end);
+            
+            return {name: methodName, objectName: objName, args: node.params.pluck("name")};
+        }
+
+        function isInComputedMethod(comment) {
+            var path = comment.path.slice(-5);
+            path.removeAt(1);
+            return path.equals(["properties","value","callee","body"]);
+        }
+
+        function computedMethodAttributesOf(comment) {
+            var name, args, pathToProp;
+            
+            pathToProp = comment.path.slice(0, -3);
+            var propertyNode = lively.PropertyPath(pathToProp).get(ast);
+            if (propertyNode && propertyNode.type === "Property") {
+              // if it is a function immediatelly called
+              args = propertyNode.value.callee.params.pluck("name");
+              name = propertyNode.key ? propertyNode.key.name : "<error: no name for method>";
+            }
+            
+            if (!name) {
+              // if it is an object member function
+              pathToProp = comment.path.slice(0, -2);
+              propertyNode = lively.PropertyPath(pathToProp).get(ast);
+              if (propertyNode && propertyNode.type === "Property") {
+                args = propertyNode.value.params.pluck("name");
+                name = propertyNode.key ? propertyNode.key.name : "<error: no name for method>";
+              }
+            }
+
+            if (!name) {
+              name = "<error: no name for method>";
+              args = [];
+              pathToProp = comment.path
+            }
+
+            // if it's someting like "var obj = {foo: function() {...}};"
+            var path = pathToProp.clone();
+            var objectName = "<error: no object found for method>";
+
+            while (path.length && path.last() !== 'init') path.pop();
+            if (path.length) {
+                objectName = lively.PropertyPath(path.slice(0, -1).concat(["id", "name"])).get(ast);
+            }
+
+            // if it's someting like "exports.obj = {foo: function() {...}};"
+            if (objectName.startsWith("<error")) {
+                var path = pathToProp.clone();
+                while (path.length && path.last() !== 'right') path.pop();
+                if (path.length) {
+                    var assignNode = lively.PropertyPath(path.slice(0, -1).concat(["left"])).get(ast);
+                    objectName = code.slice(assignNode.start, assignNode.end);
+                }
+            }
+
+            // if it's someting like "Object.extend(Foo.prototype, {m: function() {/*some comment*/ return 23; }})"
+            if (objectName.startsWith("<error")) {
+                var path = pathToProp.clone();
+                var callExpr = lively.PropertyPath(path.slice(0, -4)).get(ast),
+                    isCall = callExpr && callExpr.type === "CallExpression",
+                    firstArg = isCall && callExpr.arguments[0];
+                if (firstArg) objectName = code.slice(firstArg.start, firstArg.end);
+            }
+
+            return {name: name, args: args, objectName: objectName}
+        }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         // like "var foo = {/*...*/}" or  "var foo = bar = {/*...*/};"
-        function isObjVarDeclaration(node) {
+        function isSingleObjVarDeclaration(node) {
             // should be a var declaration with one declarator with a value
             // being an JS object
-            return node && node.type === 'VariableDeclaration'
-                && node.declarations.length === 1
+            return isSingleVarDeclaration(node)
                 && (node.declarations[0].init.type === "ObjectExpression"
                  || isObjectAssignment(node.declarations[0].init));
+        }
+
+        function isSingleVarDeclaration(node) {
+            return node && node.type === 'VariableDeclaration'
+                && node.declarations.length === 1;
         }
 
         function objAttributesOf(node) {

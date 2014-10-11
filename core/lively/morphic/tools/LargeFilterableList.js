@@ -63,6 +63,27 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         }
         return string;
     },
+
+    completeInput: function completeInput(string) {
+        var inputLine = this.get('inputLine');
+        if (inputLine) {
+            inputLine.setInput(string);
+            inputLine.withAceDo(function(ed) { ed.selection.moveCursorFileEnd(); })
+        }
+    },
+
+    tryCompleteInput: function completeInput() {
+        var compl = this.state.completeOnEnterWithMultipleChoices;
+        var multipleChoices = this.state.filteredCandidates.length > 1;
+        var firstSelected = this.isNthSelected(0);
+        if (!compl || !multipleChoices || firstSelected) return false;
+        var item = this.getSelectedListItem(this.state),
+            string = Object.isFunction(compl) ?
+                compl(item) : item && item.string || String(item);
+        this.completeInput(string)
+        return true;
+    },
+
     deactivate: function deactivate() {
     lively.ide.tools.SelectionNarrowing.lastActive = this;
     $world.activateTopMostWindow();
@@ -197,6 +218,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         this.mouseInputIgnored = true;
         this._resetIgnoreMouseInput();
     },
+
     initLayout: function initLayout(noOfCandidates) {
         var visibleBounds = lively.morphic.World.current().visibleBounds(),
             layout = {
@@ -216,6 +238,12 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         layout.noOfCandidatesShown = Math.min(layout.maxListItems, noOfCandidates);
         return layout;
     },
+
+    isNthSelected: function isNthSelected(n) {
+        var itemMorph = this.submorphs.slice(1)[n];
+        return itemMorph && itemMorph.getStyleClassNames().include("selected");
+    },
+
     onFocus: function onFocus() { this.get('inputLine').focus(); },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() { this.reset(); },
     onKeyDown: function onKeyDown(evt) {
@@ -245,14 +273,17 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         this.toggleShowActions();
         evt.stop(); return true;
     } else if (keys === 'Right') {
-        var inputLine = this.get('inputLine');
         var compl = this.state.completeInputOnRightArrow;
+        var inputLine = this.get('inputLine');
         if (compl && inputLine && inputLine.isAtDocumentEnd()) {
             var item = this.getSelectedListItem(this.state),
                 string = Object.isFunction(compl) ?
                     compl(item) : item && item.string || String(item);
-            inputLine.setInput(string);
-            inputLine.withAceDo(function(ed) { ed.selection.moveCursorFileEnd(); })
+            this.completeInput(string);
+            evt.stop(); return true;
+        }
+    } else if (keys === 'Enter') {
+        if (this.tryCompleteInput()) {
             evt.stop(); return true;
         }
     }
@@ -270,7 +301,8 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         this.focus();
         var idx = this.getListItemIndexFromMouseEvent(evt);
         if (idx === -1) return $super(evt);
-        this.onSelectionConfirmed();
+        if (!this.tryCompleteInput())
+            this.onSelectionConfirmed();
         evt.stop(); return true;
     },
     onMouseWheel: function onMouseWheel(evt) {
@@ -343,6 +375,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
                 candidatesUpdaterMinLength: spec.candidatesUpdaterMinLength,
                 keepInputOnReactivate: spec.keepInputOnReactivate,
                 completeInputOnRightArrow: spec.completeInputOnRightArrow,
+                completeOnEnterWithMultipleChoices: spec.completeOnEnterWithMultipleChoices,
                 filters: [],
                 focusedMorph: focusedMorph,
                 refocusOnClose: spec.refocusOnClose || true

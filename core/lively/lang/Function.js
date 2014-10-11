@@ -703,5 +703,51 @@ Global.Functions = {
             .pluck(0)
             .compact().min(function(ea) { return ea.length; });
         return codeString.replace(new RegExp("^" + indent, 'gm'), '')
+    },
+
+    either: function(/*funcs*/) {
+        // Accepts multiple functions and returns an array of wrapped
+        // functions. Those wrapped functions ensure that only one of the original
+        // function is run (the first on to be invoked).
+        // 
+        // This is useful if you have multiple asynchronous choices of how the
+        // control flow might continue but want to ensure that a continuation
+        // is  only triggered once, like in a timeout situation:
+        // 
+        // ```js
+        // function outerFunction(callback) {
+        //     function timeoutAction() { callback(new Error('timeout!')); }
+        //     function otherAction() { callback(null, "All OK"); }
+        //     setTimeout(timeoutAction, 200);
+        //     doSomethingAsync(otherAction);
+        // }
+        // ```
+        // 
+        // To ensure that `callback` only runs once you would normally have to write boilerplate like this:
+        // 
+        // ```js
+        // var ran = false;
+        // function timeoutAction() { if (ran) return; ran = true; callback(new Error('timeout!')); }
+        // function otherAction() { if (ran) return; ran = true; callback(null, "All OK"); }
+        // ```
+        // 
+        // Since this can get tedious an error prone, especially if more than two choices are involved, `either` can be used like this:
+        // Example:
+        // function outerFunction(callback) {
+        //     var actions = Functions.either(
+        //         function() { callback(new Error('timeout!')); },
+        //         function() { callback(null, "All OK"); });
+        //     setTimeout(actions[0], 200);
+        //     doSomethingAsync(actions[1]);
+        // }
+        var funcs = Array.prototype.slice.call(arguments),
+            wasCalled = false;
+        return funcs.map(function(func) {
+            return function() {
+                if (wasCalled) return;
+                wasCalled = true;
+                func.apply(this, arguments);
+            }
+        });
     }
 };

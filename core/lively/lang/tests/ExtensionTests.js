@@ -1133,6 +1133,24 @@ AsyncTestCase.subclass('lively.lang.tests.ExtensionTests.Function',
         this.assertEquals(expected, code);
         this.done();
     },
+
+    testEither: function() {
+        var aRun = false, bRun = false, cRun = false;
+        var either = Functions.either(
+            function() { aRun = true; },
+            function() { bRun = true; },
+            function() { cRun = true; });
+        setTimeout(either[0], 100);
+        setTimeout(either[1], 40);
+        setTimeout(either[2], 80);
+
+        this.delay(function() {
+            this.assert(!aRun, "a ran");
+            this.assert(bRun, "b didn't ran");
+            this.assert(!cRun, "c ran");
+            this.done();
+        }, 150);
+    },
 });
 
 TestCase.subclass('lively.lang.tests.ExtensionTests.NumbersTest',

@@ -1051,7 +1051,7 @@ lively.ide.tests.FileParserTests.JsParserTest.subclass('lively.ide.tests.FilePar
             '}); // end of module';
         this.root = this.db.prepareForMockModule('foo.js', this.src);
         // If we are called multiple times, don't forget about the original SourceControl
-        if(!lively.ide.SourceControl.hasOwnProperty("putSourceCodeFor")) this.oldDB = lively.ide.SourceControl;
+        if(lively.ide.SourceControl && !lively.ide.SourceControl.hasOwnProperty("putSourceCodeFor")) this.oldDB = lively.ide.SourceControl;
         else debugger;
         lively.ide.SourceControl = this.db;
     },

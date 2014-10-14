@@ -73,11 +73,11 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
              {textString: 'test'}]);
         var events = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
 
-        this.assertEquals(1, events.pointerup.length, 'no doit event handler?');
+        this.assertEquals(1, events.mouseup.length, 'no doit event handler?');
 
         this.text.emphasize({doit: {code: 'Global.textDoitInvoked=true'}}, 0, 3);
         events = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, events.pointerup.length, 'multiple doit event handler?');
+        this.assertEquals(1, events.mouseup.length, 'multiple doit event handler?');
     },
 
     test07OnlyOneHoverEventHandler: function() {
@@ -94,10 +94,10 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
         }]);
 
         var events1 = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
-        // jQuery decides whether it implements pointerenter/leave with
-        // pointerover/out or directly with pointerenter/leave
-        this.assertEquals(1, (events1.pointerover || events1.pointerenter).length);
-        this.assertEquals(1, (events1.pointerout || events1.pointerleave).length);
+        // jQuery decides whether it implements mouseenter/leave with
+        // mouseover/out or directly with mouseenter/leave
+        this.assertEquals(1, (events1.mouseover || events1.mouseenter).length);
+        this.assertEquals(1, (events1.mouseout || events1.mouseleave).length);
 
         var hoverSpec2 = {
             inAction: function() { return 3 },
@@ -109,8 +109,8 @@ lively.morphic.tests.HTMLText.TestCase.subclass('lively.morphic.tests.HTMLText.T
             style: {hover: hoverSpec2}
         }]);
         var events2 = lively.$._data(this.text.firstTextChunk().getChunkNode(), "events");
-        this.assertEquals(1, (events2.pointerover || events2.pointerenter).length);
-        this.assertEquals(1, (events2.pointerout || events2.pointerleave).length);
+        this.assertEquals(1, (events2.mouseover || events2.mouseenter).length);
+        this.assertEquals(1, (events2.mouseout || events2.mouseleave).length);
     }
 
 });

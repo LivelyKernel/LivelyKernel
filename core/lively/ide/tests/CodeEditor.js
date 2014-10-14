@@ -304,11 +304,11 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         e.aceEditor.execCommand('printit');
         this.assertHasText(e, "23 // => 23");
         this.assertEquals(e.getTextRange(), " // => 23");
-        
+
         // 2. multiline
-        e.textString = "var foo = {x: 23, y: 24}; foo";
+        e.textString = "var testPrintItAsComment_var = {x: 23, y: 24}; testPrintItAsComment_var";
         e.aceEditor.execCommand('printit');
-        this.assertHasText(e, "var foo = {x: 23, y: 24}; foo // => {\n//   x: 23,\n//   y: 24\n// }");
+        this.assertHasText(e, "var testPrintItAsComment_var = {x: 23, y: 24}; testPrintItAsComment_var // => {\n//   x: 23,\n//   y: 24\n// }");
         this.assertEquals(e.getTextRange(), " // => {\n//   x: 23,\n//   y: 24\n// }");
         this.done();
     },

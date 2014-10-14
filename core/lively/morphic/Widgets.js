@@ -534,7 +534,7 @@ lively.morphic.Morph.subclass('lively.morphic.FileInput',
     initialize: function($super) {
         $super(this.createShape());
         this.setExtent(lively.pt(200, 20));
-        this.doNotSerialize.push("selectedFile");
+        this.doNotSerialize.pushIfNotIncluded("selectedFile");
     },
     createShape: function() {
         var node = XHTMLNS.create('input');

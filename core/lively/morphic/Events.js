@@ -179,6 +179,17 @@ Object.subclass('lively.morphic.EventHandler',
         Global.LastEventWasHandled = Global.LastEventWasHandled || wasHandled;
         return true;
     },
+    patchEventIfRequired: function(evt) {
+        // Extracted from handleEvent. Used to patch mouseevents that are not handeled by lively anymore.
+        // eventSpec maps morphs and morphic event handlers to events
+        var eventSpec = this.dispatchTable[evt.type];
+        if (!eventSpec) return false;
+        var target = eventSpec.target; // the morph
+        if (target.eventsAreDisabled) return false;
+        if (Global.LastEventWasHandled && evt === Global.LastEvent) return false;
+        // add convenience methods to the event
+        this.patchEvent(evt);
+    },
     patchEvent: function(evt) {
         // FIXME add event function
 
@@ -788,10 +799,15 @@ lively.morphic.Morph.addMethods(
     },
 
     registerForMouseEvents: function(handleOnCapture) {
-        if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
-        if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
+        if (this.onMouseUpEntry) this.registerForEvent('mouseup', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
+        if (this.onMouseDownEntry) this.registerForEvent('mousedown', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
+        if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
+        if (this.onMouseOver) this.registerForEvent('mouseover', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
+        if (this.onMouseOut) this.registerForEvent('mouseout', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
+        // if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
+        // if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
         // if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
-        if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
+        // if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
         if (this.onDoubleClick) this.registerForEvent('dblclick', this, 'onDoubleClick', handleOnCapture);
 
         if (this.onSelectStart) this.registerForEvent('selectstart', this, 'onSelectStart', handleOnCapture);
@@ -801,8 +817,8 @@ lively.morphic.Morph.addMethods(
 
         if (this.onMouseWheelEntry) this.registerForEvent('mousewheel', this, 'onMouseWheelEntry',
 handleOnCapture);
-        if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
-        if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
+        // if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
+        // if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
         if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);

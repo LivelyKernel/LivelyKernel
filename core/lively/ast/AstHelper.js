@@ -1272,13 +1272,16 @@ Object.extend(lively.ast.acorn, {
     // FIXME: global (and temporary) findNodeByAstIndex is used by __getClosure and defined in Rewriting.js
     Global.findNodeByAstIndex = acorn.walk.findNodeByAstIndex;
 
-    acorn.walk.findStatementOfNode = function(ast, target) {
-        // find the statement that a target node is in. Example:
+    acorn.walk.findStatementOfNode = function(options, ast, target) {
+        // Can also be called with just ast and target. options can be {asPath: BOOLEAN}.
+        // Find the statement that a target node is in. Example:
         // let source be "var x = 1; x + 1;" and we are looking for the
         // Identifier "x" in "x+1;". The second statement is what will be found.
+        if (!target) { target = ast; ast = options; options = null }
+        if (!options) options = {}
         if (!ast.astIndex) acorn.walk.addAstIndex(ast);
         var found, targetReached = false, bodyNodes, lastStatement;
-        lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, _) {
+        lively.ast.acorn.withMozillaAstDo(ast, {}, function(next, node, depth, state, path) {
             if (targetReached || node.astIndex < target.astIndex) return;
             if (node.type === "Program" || node.type === "BlockStatement") {
                 bodyNodes = node.body;
@@ -1290,7 +1293,7 @@ Object.extend(lively.ast.acorn, {
                 if (nodeIdxInProgramNode > -1) lastStatement = node;
             }
             if (!targetReached && (node === target || node.astIndex === target.astIndex)) {
-                targetReached = true; found = lastStatement;
+                targetReached = true; found = options.asPath ? path : lastStatement;
             }
             !targetReached && next();
         });

@@ -879,7 +879,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
                 function timeout() { thenDo([]); },
                 function filesFound(files) {
-                    thenDo((filterFunc || Functions.K)(files)
+                    thenDo((filterFunc || Functions.K)(files, input, pattern, dir)
                         .uniqBy(filesAreEqual)
                         .sort(sortFiles.curry(input))
                         .map(fileToListItem)

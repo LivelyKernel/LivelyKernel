@@ -1211,10 +1211,11 @@ Object.extend(lively.ide.commands.byName, {
                 }
             }
             lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-                        'choose directory: ',
+                        'open file: ',
                         null,
-                        function(files) { return files.filterByKey('isDirectory'); },
-                        'lively.ide.findFile.Narrower2',
+                        function(files, input) {
+                            return files.length ?
+                                files : [{isDirectory: false, path: input}]; },
                         [open]);
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

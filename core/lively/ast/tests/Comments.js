@@ -1,10 +1,6 @@
 module('lively.ast.tests.Comments').requires('lively.ast.Comments', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass("lively.ast.tests.Comments.Extraction",
-"running", {
-    setUp: function()  {},
-    tearDown: function()  {}
-},
 'testing', {
 
     testExtractCommentFromMethod: function() {
@@ -22,7 +18,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
             comment: " This is a comment!",
             type: "method", name: "foo", objectName: "obj",
             args: ["arg1", "arg2"]}];
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromFunction: function() {
@@ -38,7 +34,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
             comment: " this is a function comment!",
             name: "fooBar", type: "function",
             args: ["x", "y"]}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromObject: function() {
@@ -52,10 +48,12 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         });
 
         var comments = lively.ast.Comments.extractComments(code);
-        var expected = [{
-            comment: " lalalala\n 'nother comment!",
-            type: "object", name: "someObject"}]
-        this.assertEqualState(expected, comments);
+
+        var expected = [
+          {comment: " I don't belong to someObject...!"},
+          {comment: " lalalala\n 'nother comment!",
+           type: "object", name: "someObject"}]
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromVarDeclaration: function() {
@@ -68,7 +66,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         var expected = [{
             comment: " test-test",
             type: "var", name: "Group"}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromObjectExtension: function() {
@@ -80,7 +78,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
 
         var comments = lively.ast.Comments.extractComments(code);
         var expected = [{comment: "some comment", type: "method", name: "m", objectName: "Foo.prototype", args: []}];
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromAssignment: function() {
@@ -92,7 +90,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
 
         var comments = lively.ast.Comments.extractComments(code);
         var expected = [{comment: "some comment",type: "method", name: "m", objectName: "exports.foo",args: []}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentFromAssignedFunction: function() {
@@ -103,7 +101,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         });
         var comments = lively.ast.Comments.extractComments(code);
         var expected = [{comment: " hello",type: "method", name: "foo", objectName: "Group", args: ["test"]}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
 
         var code = Functions.extractBody(function() {
             Group.bar.foo = function(test) {
@@ -112,7 +110,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         });
         var comments = lively.ast.Comments.extractComments(code);
         var expected = [{comment: " hello",type: "method", name: "foo", objectName: "Group.bar", args: ["test"]}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractFromAppliedFunction: function() {
@@ -129,7 +127,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         var expected = [{
           comment: " test comment",
           type: "method", name: "func", objectName: "foo", args: []}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentBug: function() {
@@ -159,7 +157,7 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
                  + " jsext.string.format(\"Hello %s!\", \"Lively User\"); // => \"Hello Lively User!\"\n"
                  + " ```",
           type: "method", name: "format", objectName: "string", args: []}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     },
 
     testExtractCommentBug2: function() {
@@ -175,8 +173,43 @@ TestCase.subclass("lively.ast.tests.Comments.Extraction",
         var expected = [
             {comment: " test-test",type: "var", name: "Group"},
             {comment: " hello",type: "method", name: "foo", objectName: "Group", args: ["test"]}]
-        this.assertEqualState(expected, comments);
+        this.assertMatches(expected, comments);
     }
+});
+
+TestCase.subclass("lively.ast.tests.Comments.Accessing",
+'testing', {
+
+    testGetCommentForFunctionCall: function() {
+        var code = Functions.extractBody(function() {
+          // comment 1
+          
+          // comment 2
+          // comment 2
+          var x = (function functionName() {
+              var x = 23;
+              bla(x);
+            /* comment3 */
+              foo(x);
+          })();
+          
+          // comment 4
+        });
+
+        var ast = lively.ast.acorn.parse(code, {withComments: true});
+
+        var node1 = ast.body[0];
+        var comment = lively.ast.Comments.getCommentPrecedingNode(ast, node1);
+        var expected = {comment: " comment 2\n comment 2",type: "var", name: "x"}
+
+        this.assertMatches(expected, comment, "node1");
+
+        var node2 = ast.body[0].declarations[0].init.callee.body.body[2]
+        var comment = lively.ast.Comments.getCommentPrecedingNode(ast, node2);
+        var expected = {isBlock: true, comment: " comment3 "};
+        this.assertMatches(expected, comment, "node2");
+    }
+
 });
 
 }) // end of module

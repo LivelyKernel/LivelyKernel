@@ -1,67 +1,85 @@
 module('lively.ast.Comments').requires('lively.ast.AstHelper').toRun(function() {
 
 Object.extend(lively.ast.Comments, {
-    extractComments: function(code) {
-        var ast = lively.ast.acorn.parse(code, {withComments: true})
-        var parsedComments = commentsWithPaths(ast).sortBy(function(c) { return c.comment.start; });
+
+    getCommentPrecedingNode: function(ast, node) {
+        var statementPath = acorn.walk.findStatementOfNode({asPath: true}, ast, node),
+            blockPath = statementPath.slice(0, -2),
+            block = lively.PropertyPath(blockPath).get(ast);
+        return !block.comments || !block.comments.length ? null :
+            lively.ast.Comments.extractComments(ast)
+                .clone().reverse()
+                .detect(function(ea) { return ea.followingNode === node; })
+    },
+
+    extractComments: function(astOrCode, optCode) {
+        var ast = typeof astOrCode === "string" ?
+            lively.ast.acorn.parse(astOrCode, {withComments: true}) : astOrCode;
+        var code = optCode ? optCode : (typeof astOrCode === "string" ?
+            astOrCode : lively.ast.acorn.stringify(astOrCode));
+
+        var parsedComments = commentsWithPathsAndNodes(ast).sortBy(function(c) {
+            return c.comment.start; });
+
         return parsedComments
           .map(function(c, i) {
 
             // 1. a method comment like "x: function() {\n//foo\n ...}"?
             if (isInObjectMethod(c)) {
-                return Object.merge([
+                return Object.merge([c, c.comment,
                   {type: 'method', comment: c.comment.text},
                   methodAttributesOf(c)]);
             }
 
             if (isInComputedMethod(c)) {
-                return Object.merge([
+                return Object.merge([c, c.comment,
                   {type: 'method', comment: c.comment.text},
                   computedMethodAttributesOf(c)]);
             }
 
             // 2. function statement comment like "function foo() {\n//foo\n ...}"?
             if (isInFunctionStatement(c)) {
-                return Object.merge([
+                return Object.merge([c, c.comment,
                   {type: 'function', comment: c.comment.text},
                   functionAttributesOf(c)]);
             }
 
             // 3. assigned method like "foo.bar = function(x) {/*comment*/};"
             if (isInAssignedMethod(c)) {
-                return Object.merge([
+                return Object.merge([c, c.comment,
                   {type: 'method', comment: c.comment.text},
                   methodAttributesOfAssignment(c)]);
             }
 
             // 4. comment preceding another node?
             var followingNode = followingNodeOf(c);
-            if (!followingNode) return null;
+            if (!followingNode) return Object.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
 
             // is there another comment in front of the node>
             var followingComment = parsedComments[i+1];
-            if (followingComment && followingComment.comment.start <= followingNode.start) return null;
+            if (followingComment && followingComment.comment.start <= followingNode.start)
+                return Object.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
 
             // 3. an obj var comment like "// foo\nvar obj = {...}"?
             if (isSingleObjVarDeclaration(followingNode)) {
-                return Object.merge([
+                return Object.merge([c, c.comment, {followingNode:followingNode},
                   {type: 'object',comment: c.comment.text},
                   objAttributesOf(followingNode)])
             }
 
             // 4. Is it a simple var declaration like "// foo\nvar obj = 23"?
             if (isSingleVarDeclaration(followingNode)) {
-                return Object.merge([
+                return Object.merge([c, c.comment, {followingNode:followingNode},
                   {type: 'var',comment: c.comment.text},
                   objAttributesOf(followingNode)])
             }
             
-            return null;
-        }).compact();
+            return Object.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
+        });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-        function commentsWithPaths(ast) {
+        function commentsWithPathsAndNodes(ast) {
             var comments = [];
             lively.ast.acorn.withMozillaAstDo(ast, comments, function(next, node, comments, depth, path) {
                 if (node.comments) {
@@ -79,6 +97,9 @@ Object.extend(lively.ast.Comments, {
                 return node.start > comment.comment.end; });
         }
 
+        function unknownComment(comment) {
+            return {type: "unknown", comment: comment.comment.text}
+        }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-        
 
         function isInFunctionStatement(comment) {

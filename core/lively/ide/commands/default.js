@@ -1214,8 +1214,8 @@ Object.extend(lively.ide.commands.byName, {
                         'open file: ',
                         null,
                         function(files, input) {
-                            return files.length ?
-                                files : [{isDirectory: false, path: input}]; },
+                            return files.length ? files : [{isDirectory: false, path: input}]; },
+                        "lively.ide.findFiles.Narrower",
                         [open]);
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

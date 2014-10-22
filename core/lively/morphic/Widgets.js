@@ -3763,12 +3763,12 @@ Object.extend(lively.ide, {
                 editor.openURL(url);
             }
             editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
-            whenDone instanceof Function && whenDone(editor);
+            typeof whenDone === 'function' && whenDone(editor);
         });
     },
 
     openFileAsEDITOR: function (file, whenEditDone) {
-        lively.ide.openFile(function(editor) {
+        lively.ide.openFile(file, function(editor) {
             editor.closeVetoed = false;
             editor.wasStored = false;
 

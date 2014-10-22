@@ -19598,7 +19598,7 @@ exports.handler.addCommands({
                 if (editor.inMultiSelectMode) editor.forEachSelection({exec: deselect});
                 else deselect();
                 editor.session.$emacsMarkRing = marks.concat(deselectedMarks.reverse());
-            }, 0);
+            }, 10);
         },
         readonly: true
     },

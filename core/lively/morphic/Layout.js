@@ -626,7 +626,10 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
     },
     
     onSubmorphAdded: function($super, newOwner, morph, newOwnerSubmorphs) {
-        if (morph.placeholder) morph.setPosition(morph.placeholder.getPosition());
+        if (morph.placeholder) {
+            morph.setPosition(morph.placeholder.getPosition()
+                .subPt(pt(0,1))) // position slightly above entry below
+        };
         $super(newOwner, morph, newOwnerSubmorphs);
     }
 });

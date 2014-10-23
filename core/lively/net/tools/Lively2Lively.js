@@ -198,7 +198,8 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
 },
     messageReceived: function messageReceived(msgAndSession) {
     var msg = msgAndSession.message, s = msgAndSession.session;
-    if (msg.action === 'remoteEvalRequest') {
+    if (msg.action === 'remoteEvalRequest'
+            && !Config.get("lively2livelyMutedRemoteEval")) {
         var msg = Strings.format(
             'got %s\n%s\n from %s',
             msg.action,

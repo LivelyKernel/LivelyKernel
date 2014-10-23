@@ -66,6 +66,7 @@ lively.morphic.Morph.subclass("lively.presentation.Slides.PageMorph",
 },
 'initialzing', {
     initialize: function($super, bounds) {
+        debugger;
         $super(new lively.scene.Rectangle(bounds));
         this.setFill(Color.white);
         this.setBorderColor(Color.gray);

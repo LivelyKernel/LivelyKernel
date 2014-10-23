@@ -688,6 +688,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     lively.ast.openDebugger(cont.currentFrame, e.toString());
                 });
                 return;
+            } else {
+                 this.showError(e);
             }
             return e;
         }

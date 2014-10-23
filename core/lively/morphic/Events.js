@@ -36,9 +36,11 @@ lively.morphic.EventSimulator = {
         if (!spec.type) spec.type = 'mousedown';
         if (!spec.pos) spec.pos = pt(0,0);
         if (!spec.button) spec.button = 0;
+        if (!spec.hand) spec.hand = lively.morphic.World.current().firstHand();
         var targetMorphOrNode = spec.target;
 
         var evt = this.createMouseEvent(spec.type, spec.pos, spec.button, spec.keys || {});
+        evt.hand = spec.hand;
         if (targetMorphOrNode.isMorph) {
             targetMorphOrNode = targetMorphOrNode.renderContext().morphNode;
         }

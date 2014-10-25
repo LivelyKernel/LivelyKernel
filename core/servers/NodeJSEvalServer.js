@@ -145,7 +145,7 @@ function getCompletions(evalFunc, string, thenDo) {
         objectCompletions = completions.slice(0,2)
         expected = [["[object Object]", ["m1(a)","m2(x)","a"]],
                     ["prototype", ["m3(a,b,c)"]]]
-        assert(Objects.equal(expected, objectCompletions), 'compl not equal');
+        assert(Objects.equals(expected, objectCompletions), 'compl not equal');
         alertOK('all good!')
         
     }

@@ -19,13 +19,13 @@ TestCase.subclass('lively.tests.ObjectTests.ObjectPropertyOperationsTest',
 		this.assertEqualState(a.concat(b), result);
 	},
 
-	test02GetAllSlotsInPropertyHierarchy: function() {
+test02GetAllSlotsInPropertyHierarchy: function() {
 		var classA = Object.subclass('lively.tests.ObjectTests.ClassA', { foo: 3 }),
 			classB = classA.subclass('lively.tests.ObjectTests.ClassB'),
 			classC = classB.subclass('lively.tests.ObjectTests.ClassC', {foo: 4 }),
 			instance = new classC();
 		instance.foo = 5;
-		var instance2 = Object.inherit(instance);
+		var instance2 = Object.create(instance);
 		instance2.foo = 6;
 		try {
 			var result = Object.valuesInPropertyHierarchy(instance2, 'foo');
@@ -33,7 +33,7 @@ TestCase.subclass('lively.tests.ObjectTests.ObjectPropertyOperationsTest',
 		} finally {
 			[classA, classB, classC].invoke('remove');
 		}
-	},
+},
 	test03MergePropertiesFromHierarchy: function() {
 		var classA = Object.subclass('lively.tests.ObjectTests.ClassA', {style: {foo: 3, bar: 4}}),
 			classB = classA.subclass('lively.tests.ObjectTests.ClassB', {style: {bar: 5}}),

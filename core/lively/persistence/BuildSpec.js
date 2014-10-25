@@ -32,11 +32,11 @@ Object.subclass('lively.persistence.SpecObject',
                 case Boolean:
                 case Number: return a === b;
             };
-            if (Object.isFunction(a.equals)) return a.equals(b);
+            if (typeof a.equals === "function") return a.equals(b);
             function cmp(left, right) {
                 for (var name in left) {
-                    if (left[name] instanceof Function) continue;
-            	    if (!Objects.equal(left[name], right[name])) return false;
+                    if (typeof left[name] === "function") continue;
+              	    if (!Objects.equals(left[name], right[name])) return false;
                 }
                 return true;
             }

@@ -52,7 +52,6 @@ module.exports = function(route, app) {
         } else {
             var isJSON = query.isJSON === 'true';
             var isLivelyWorld = query.isLivelyWorld === 'true';
-
             async.parallel([
                 function(next) { withRecordsDo(query.getRecordsA, next); },
                 function(next) { withRecordsDo(query.getRecordsB, next); }

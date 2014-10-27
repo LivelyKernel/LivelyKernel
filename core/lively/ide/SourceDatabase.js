@@ -31,10 +31,12 @@ Object.subclass('lively.ide.ModuleWrapper',
 
 },
 'accessing', {
-    type: function() { return this._type },
-    ast: function() { return this._ast },
-    isVirtual: function() { return this._isVirtual },
-    moduleName: function() { return this._moduleName },
+
+    type: function() { return this._type; },
+    ast: function() { return this._ast; },
+    isVirtual: function() { return this._isVirtual; },
+    moduleName: function() { return this._moduleName; },
+
     fileURL: function() {
         //    works for core modules only:
         //    return URL.codeBase.withFilename(this.fileName())
@@ -43,30 +45,36 @@ Object.subclass('lively.ide.ModuleWrapper',
         //    might work for both, but slower
         return new URL(this.module().findUri(this.type()));
     },
-    module: function() {
-        return lively.module(this._moduleName);
-    },
-    fileName: function() {
-        return this.module().relativePath(this.type());
+
+    module: function() { return lively.module(this._moduleName); },
+    fileName: function() { return this.module().relativePath(this.type()); },
+
+    exists: function() { return this.isVirtual() || this.getSource() !== this.couldNodeGetSourceWarning(); },
+
+    couldNodeGetSourceWarning: function() {
+        return "could not retrieve source for " + this.fileURL();
     },
 
     getSourceUncached: function() {
         if (this.isVirtual()) return this._cachedSource;
         var webR = new WebResource(this.fileURL());
         if (this.forceUncached) webR.forceUncached();
-        this._cachedSource = webR.get().content || '';
+        webR.beSync().get();
+        if (!webR.status.isSuccess()) return this.couldNodeGetSourceWarning();
+        this._cachedSource = webR.content || '';
         this.lastModifiedDate = webR.lastModified;
         return this._cachedSource;
-    },
+    }
+,
 
     setCachedSource: function(source) { this._cachedSource = source },
 
     getSource: function() {
         return this._cachedSource ? this._cachedSource : this.getSourceUncached();
     },
-    getSourceFragment: function(startIdx, endIdx) {
-        return this.getSource().slice(startIdx, endIdx);
-    }
+
+    getSourceFragment: function(startIdx, endIdx) { return this.getSource().slice(startIdx, endIdx); }
+
 },
 'parsing', {
 
@@ -121,9 +129,7 @@ Object.subclass('lively.ide.ModuleWrapper',
         this.queuedRequests.push(this.setSource.curry(source, beSync, checkForOverwrites));
     },
 
-    removeQueuedRequests: function() {
-        this.queuedRequests = [];
-    },
+    removeQueuedRequests: function() { this.queuedRequests = []; },
 
     runQueuedRequest: function() {
         if (this.queuedRequests && this.queuedRequests.length > 0) {
@@ -142,8 +148,8 @@ Object.subclass('lively.ide.ModuleWrapper',
 
         var webR = new WebResource(this.fileURL());
         this.networkRequestInProgress = true;
-        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {converter: function() {
-            return this.sourceObj; }});
+        lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {
+            converter: function() { return this.sourceObj; }});
 
         var putOptions = {};
         if (checkForOverwrites) {

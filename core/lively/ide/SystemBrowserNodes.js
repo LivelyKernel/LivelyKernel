@@ -299,7 +299,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CompleteFileFragmentNode', // s
     },
 
     getSourceCodeMode: function() {
-        var ff = this.browser.selectedNode().target;
+        var node = this.browser.selectedNode();
+        if (!node) return 'text';
+        var ff = node.target;
         var fileName = ff.getFileName && ff.getFileName();
         !fileName && (fileName = ff.fileName);
         if (!fileName) return 'text';

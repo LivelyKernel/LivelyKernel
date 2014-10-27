@@ -478,7 +478,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         var wanted = nodes.detect(test);
         if (!wanted) return null;
         var list = this.panel[paneName].innerMorph();
-        // list.onSelectionUpdate(wanted);
         list.setSelection(wanted);
         return wanted;
     },

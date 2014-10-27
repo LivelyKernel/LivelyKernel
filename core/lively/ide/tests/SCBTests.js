@@ -470,11 +470,12 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
             getContentLastModified: (options && options.lastModified) || null,
             currentRev: 1,
             triggerDoneState: function(options) {
-                if (options.lastModified) this.lastWebR.lastModified = options.lastModified;
+                var lastMod = (options && options.lastModified) || null;
+                if (lastMod) this.lastWebR.lastModified = lastMod;
                 this.lastWebR.status = {
                     isDone: Functions.True,
-                    isSuccess: function() { return options.code < 400 },
-                    code: function() { return options.code }
+                    isSuccess: function() { return options ? options.code < 400 : true; },
+                    code: function() { return options ? options.code : 200; }
                 };
             }
         }
@@ -496,6 +497,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
             webRInspector.lastWebR = this;
             webRInspector.getCallCount++;
             this.content = webRInspector.getContent;
+            webRInspector.triggerDoneState();
             if (webRInspector.getContentLastModified)
                 this.lastModified = webRInspector.getContentLastModified;
             return this;
@@ -556,7 +558,7 @@ TestCase.subclass('lively.ide.tests.ModuleWrapper',
         this.assertEquals(1, webRInspector.putCallCount, 'second put after responding to first');
         this.assertEquals(webRInspector.lastPutSource, 'code2', 'content not ok');
         this.assertMatches([date], webRInspector.putIfUnmodifiedSinceDates,
-                           'required rev of second PUT not OK');
+                          'required rev of second PUT not OK');
         this.assertEquals(0, moduleWrapper.queuedRequests.length, 'queuedRequests not cleared');
     },
 

@@ -679,36 +679,8 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.codeSearch': {
         description: 'code search',
         exec: function(optSource) {
-            var source = optSource;
-
-            function doSearch(source, thenDo) {
-                lively.require('lively.ide.tools.CodeSearch').toRun(function() {
-                    thenDo(null, lively.ide.tools.CodeSearch.doSearch(source));
-                })
-            }
-
-            function askForSource(thenDo) {
-                $world.prompt('Enter query for code search', function(input) {
-                    if (!input) thenDo('aborted');
-                    else thenDo(null, input);
-                }, {historyId: 'lively.ide.codeSearchQuery'});
-            }
-
-            var run;
-
-            if (source) run = doSearch.curry(source);
-            else {
-                var m = lively.ide.commands.helper.focusedMorph();
-                if (m && m.isCodeEditor) {
-                    source = m.getSelectionOrLineString();
-                    run = doSearch.curry(source);
-                } else {
-                    run = Functions.composeAsync(askForSource, doSearch)
-                }
-            }
-
-            run(function(err, searchWindow) { if (err) show(err); });
-
+            lively.require('lively.ide.tools.CodeSearch').toRun(function() {
+                lively.ide.tools.CodeSearch.doSearch(optSource || ""); });
             return true;
         }
     },

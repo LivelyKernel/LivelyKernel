@@ -1954,6 +1954,9 @@ lively.morphic.World.addMethods(
         var items = [
             ['PartsBin', this.openPartsBin.bind(this)],
             ['Parts', this.morphMenuDefaultPartsItems()],
+            ['Search', [
+                ['for Code', function() { lively.ide.commands.byName["lively.ide.codeSearch"].exec(); }]
+            ]],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],
                 ['System Code Browser', this.openSystemBrowser.bind(this)],

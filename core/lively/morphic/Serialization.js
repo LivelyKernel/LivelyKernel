@@ -137,17 +137,26 @@ lively.morphic.World.addMethods(
 
     onrestore: function($super) {
         $super();
-        this.hands.invoke('remove');
-        this.hands = [];
+        this.restoreFixedMorphs.bind(this).delay(0);
+        this.getLastModificationDate();
+    },
+
+    onRenderFinished: function($super) {
+        $super();
+        var toRemove = this.hands.without(this.firstHand())
+        toRemove.invoke('remove');
+        toRemove.each(function (unusedHand) {
+            this.hands.remove(unusedHand);
+        }.bind(this))
+        if (!this.firstHand()) this.addHandMorph();
         if (UserAgent.isMobile) {
-            for (var i = 0; i<5; i++) { this.addHandMorph(); }
+            for (var i = 0; i<4; i++) { this.addHandMorph(); }
             var meta = document.createElement('meta');
             meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
             document.head.appendChild(meta.children[0]);
-            this.bertButton = (new lively.morphic.BertButton()).open(this);
-        } else { this.addHandMorph(); }
-        this.restoreFixedMorphs.bind(this).delay(0);
-        this.getLastModificationDate();
+            this.bertButton = new lively.morphic.BertButton()
+            this.bertButton.open.bind(this.bertButton, this).delay(0);
+        }
     },
 
     interactiveSaveWorldAs: function() {

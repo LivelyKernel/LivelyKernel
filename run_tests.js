@@ -85,6 +85,7 @@ var browserTests = [
 
     // network
     "lively.net.tests.SessionTracker",
+    "lively.net.tests.Wiki",
 
     // lang support
     "lively.lang.tests.ExtensionTests",

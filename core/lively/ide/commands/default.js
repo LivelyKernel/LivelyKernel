@@ -685,6 +685,29 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    'lively.ide.resourceSearch': {
+        description: 'resource search (worlds, parts, files)',
+        exec: function(optSearchTerm) {
+            if (optSearchTerm) doSearch(optSearchTerm);
+            else $world.prompt("Search for world, part, or file matching:", function(input) {
+                if (input) doSearch("*" + input + "*");
+            }, {historyId: "lively.ide.resourceSearch.prompt"});
+            return true;
+
+            function doSearch(searchTerm) {
+                searchTerm = searchTerm.replace(/\*/g, "%"); // for SQL LIKE matching
+                Functions.composeAsync(
+                    function(next) { lively.require('lively.net.Wiki').toRun(function() { next(); }); },
+                    function(next) { lively.net.Wiki.findResourcePathsMatching(searchTerm, true, next); },
+                    function(results, next) { lively.net.Wiki.openResourceList(results, {title: "search: " + searchTerm}, next); }
+                )(function(err, resultListWindow) {
+                    if (err) show("Error searching for " + searchTerm);
+                    resultListWindow.openInWorld().comeForward();
+                })
+            }
+        }
+    },
+
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {

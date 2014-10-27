@@ -1955,7 +1955,8 @@ lively.morphic.World.addMethods(
             ['PartsBin', this.openPartsBin.bind(this)],
             ['Parts', this.morphMenuDefaultPartsItems()],
             ['Search', [
-                ['for Code', function() { lively.ide.commands.byName["lively.ide.codeSearch"].exec(); }]
+                ['code', function() { lively.ide.commands.byName["lively.ide.codeSearch"].exec(); }],
+                ['resources (worlds, parts, files)', function() { lively.ide.commands.byName["lively.ide.resourceSearch"].exec(); }]
             ]],
             ['Tools', [
                 ['Workspace', this.openWorkspace.bind(this)],

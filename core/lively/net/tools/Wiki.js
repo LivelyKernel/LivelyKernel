@@ -67,6 +67,16 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
             } else context.morph.update();
         });
     },
+        actionChangeUser: function actionChangeUser() {
+        // this is the cookie auth user change!!
+        var context = this;
+        $world.askForUserName(null, function(newUsername) {
+            context.morph.update(function() {
+                if (newUsername)
+                    context.morph.uiInform("Username changed!");
+            });
+        });
+    },
         actionChangePassword: function actionChangePassword() {
         var context = this;
         Functions.composeAsync(
@@ -296,10 +306,19 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
     },
         httpDataRequest: function httpDataRequest(method, doFunc) {
         var self = this;
+        // FIXME: should not say uvic-...
         Global.URL.root.withFilename('uvic-current-user').asWebResource()
             .beAsync()[method]()
             .withJSONWhenDone(function(json, status) {
-                doFunc.call(self, !json || json.error || !status.isSuccess() ? new Error(json.error || String(status)) : null, json);
+                var err = null;
+                if (status.isSuccess()) {
+                    if (json && json.error) // logged out?
+                        err = new Error(json.error);
+                } else {
+                    // lively-auth not present
+                    err = json.error || new Error(String(status));
+                }
+                doFunc.call(self, err, json);
             });
     },
         httpGetGroupMembers: function httpGetGroupMembers(groupName, thenDo) {
@@ -545,8 +564,21 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                     var context = {morph: this}
                     this.get("userText").setRichTextMarkup([
                         ["login", this.textDoit("switchUser", context)]]);
+                    this.uiShowError(err);
+                } else {
+                    // lively-auth not present, fallback to cookie auth
+                    var data = { name: $world.getUserName(true), email: '@' },
+                        context = {morph: this, user: data};
+
+                    var markup = [
+                        ["You are logged in as ", {}],  [data.name, {fontWeight: "bold"}],      ["\n", {}],
+                        // ["Your email is ",        {}],  [data.email, {fontWeight: "bold"}],     ["\n", {}],
+                        ["switch user",                 this.textDoit("changeUser", context)],  [" ", {}],
+                        // ["change email",                this.textDoit("changeEmail", context)], [" ", {}],
+                        ["\n\nRefresh",                 this.textDoit("update", context)],      [" ", {}]
+                    ];
+                    this.get("userText").setRichTextMarkup(markup);
                 }
-                this.uiShowError(err);
                 thenDo && thenDo(err, data);
                 return;
             }

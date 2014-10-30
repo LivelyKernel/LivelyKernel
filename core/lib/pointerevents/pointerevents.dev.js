@@ -511,45 +511,6 @@
       // This is used to prevent multiple dispatch of pointerevents from
       // platform events. This can happen when two elements in different scopes
       // are set up to create pointer events, which is relevant to Shadow DOM.
-      if (Global.isRecording) {
-      Global.queuedEvents = Global.queuedEvents || [];
-        Global.queuedEvents.push({
-          altKey: inEvent.altKey, 
-          bubbles: inEvent.bubbles, 
-          button: inEvent.button, 
-          buttons: inEvent.buttons, 
-          cancelable: inEvent.cancelable, 
-          clientX: inEvent.clientX, 
-          clientY: inEvent.clientY, 
-          ctrlKey: inEvent.ctrlKey, 
-          currentTarget: inEvent.currentTarget, 
-          detail: inEvent.detail, 
-          height: inEvent.height, 
-          hwTimestamp: inEvent.hwTimestamp, 
-          isPrimary: inEvent.isPrimary, 
-          layerX: inEvent.layerX, 
-          layerY: inEvent.layerY, 
-          metaKey: inEvent.metaKey, 
-          pageX: inEvent.pageX, 
-          pageY: inEvent.pageY, 
-          pointerId: inEvent.pointerId, 
-          pointerType: inEvent.pointerType,
-          pressure: inEvent.pressure,
-          preventDefault: Event.prototype.preventDefault.bind(inEvent),
-          relatedTarget: inEvent.relatedTarget, 
-          screenX: inEvent.screenX, 
-          screenY: inEvent.screenY, 
-          shiftKey: inEvent.shiftKey, 
-          target: inEvent.target,
-          tiltX: inEvent.tiltX, 
-          tiltY: inEvent.tiltY, 
-          timeStamp: inEvent.timeStamp, 
-          type: inEvent.type,
-          view: inEvent.view, 
-          which: inEvent.which, 
-          width: inEvent.width,
-        })
-      }
       if (inEvent._handledByPE) {
         return;
       }
@@ -890,7 +851,7 @@
     mouseup: function(inEvent) {
       if (!this.isEventSimulatedFromTouch(inEvent)) {
         var p = pointermap.get(this.POINTER_ID);
-        if (p && p.button === inEvent.button) {
+        if ((p && p.button === inEvent.button) || !p) {
           var e = this.prepareEvent(inEvent);
           this.cleanupMouse();
           dispatcher.up(e);

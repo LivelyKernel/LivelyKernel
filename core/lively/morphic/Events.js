@@ -1877,6 +1877,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         this.ignoreEvents();
         this.setFill(Color.red);
         this.setBounds(new Rectangle(0, 0, 2, 2));
+        this.setPointerEvents('none');
     }
 },
 'accessing -- morphic relationship', {

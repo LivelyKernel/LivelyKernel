@@ -137,18 +137,25 @@ lively.morphic.World.addMethods(
 
     onrestore: function($super) {
         $super();
+        var toRemove = this.submorphs
+                .without(this.firstHand())
+                .select(function (ea) {return ea.isHand})
+        toRemove.invoke('remove');
+        toRemove.each(function (unusedHand) {
+            this.hands.remove(unusedHand);
+        }.bind(this))
+        if (!this.firstHand()) this.addHandMorph();
+        if (this.hands[0].getPointerEvents() != 'none') {
+            this.hands[0].remove();
+            this.hands.remove(this.hands[0]);
+            this.addHandMorph();
+        }
         this.restoreFixedMorphs.bind(this).delay(0);
         this.getLastModificationDate();
     },
 
     onRenderFinished: function($super) {
         $super();
-        var toRemove = this.hands.without(this.firstHand())
-        toRemove.invoke('remove');
-        toRemove.each(function (unusedHand) {
-            this.hands.remove(unusedHand);
-        }.bind(this))
-        if (!this.firstHand()) this.addHandMorph();
         if (UserAgent.isMobile) {
             for (var i = 0; i<4; i++) { this.addHandMorph(); }
             var meta = document.createElement('meta');

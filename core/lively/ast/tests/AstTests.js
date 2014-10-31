@@ -342,6 +342,24 @@ TestCase.subclass('lively.ast.tests.Transforming',
         this.assertEquals(expected, result.source);
     },
 
+    testTransformTopLevelVarDeclsAndVarUsageInCatch: function() {
+        var code              = "try { throw {} } catch (e) { e }\n",
+            ast               = lively.ast.acorn.parse(code, {addSource: true}),
+            recorder          = {name: "Global", type: "Identifier"},
+            result            = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
+
+        this.assertEquals(code, result.source);
+    },
+
+    testTransformTopLevelVarDeclsAndVarUsageInForLoop: function() {
+        var code     = "for (var i = 0; i < 5; i ++) { i; }",
+            ast      = lively.ast.acorn.parse(code, {addSource: true}),
+            recorder = {name: "Global", type: "Identifier"},
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
+
+        this.assertEquals(code, result.source);
+    },
+
     testTransformTopLevelVarDeclsForCapturingWithoutGlobals: function() {
         var code     = "var x = 2; y = 3; z = 4; baz(x, y, z)",
             expected = "foo.x = 2; foo.y = 3; z = 4; baz(foo.x, foo.y, z)",

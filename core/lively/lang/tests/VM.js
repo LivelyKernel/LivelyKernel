@@ -74,7 +74,24 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
         this.assertEquals(3, varMapper.x);
         this.assert(!varMapper.hasOwnProperty('y'), 'y recorded?');
         this.done();
-    }
+    },
+  
+    testDontTransformVarDeclsInForLoop: function() {
+      var code = "var sum = 0;\n"
+               + "for (var i = 0; i < 5; i ++) { sum += i; }\n"
+               + "sum"
+      var recorder = {};
+      var result = lively.lang.VM.syncEval(code, {topLevelVarRecorder: recorder});
+      this.assertEquals(10, recorder.sum);
+      this.done();
+    },
+
+    testDontTransformCatchClause: function() {
+      var code = 'try { throw new Error("foo") } catch (e) { e.message }'
+      var result = lively.lang.VM.syncEval(code, {topLevelVarRecorder: {}});
+      this.assertEquals('foo', result);
+      this.done();
+    },
 
 });
 

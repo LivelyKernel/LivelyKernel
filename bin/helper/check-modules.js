@@ -54,11 +54,16 @@ function sanityCheckWithNpmList(thenDo) {
                 depNames = Object.getOwnPropertyNames(npmList.dependencies),
                 toFix = depNames.reduce(function(depsToFix, name) {
                     var dep = npmList.dependencies[name];
-                    if (dep.missing || dep.invalid) depsToFix.push(name);
+                    if (!dep.missing && !dep.invalid) return depsToFix;
+                    try {
+                      var stat = fs.statSync(path.join(lkDir, "node_modules", name));
+                      if (stat.isSymbolicLink()) return depsToFix;
+                    } catch (e) {}
+                    depsToFix.push(name);
                     return depsToFix;
                 }, []);
             thenDo(null, toFix);
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
             // ignore npm list errors for now
             thenDo(null, []);

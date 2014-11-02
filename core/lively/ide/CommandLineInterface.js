@@ -1006,21 +1006,31 @@ Object.subclass("lively.ide.FilePatch",
 'initializing', {
     read: function(patchString) {
         // simple parser for unified patch format;
-        var lines = patchString.split('\n'), line, hunks = this.hunks = [];
+        var lines = Strings.lines(patchString),
+            line, hunks = this.hunks = [];
         if (lines[lines.length-1] === '') lines.pop();
 
         // 1: parse header
-        // line 0 like: "diff --git a/test.txt b/test.txt\n"
-        line = lines.shift();
-        if (line.match(/^diff/)) { this.command = line; line = lines.shift(); }
-        if (line.match('^index')) { line = lines.shift(); }
-
-        lively.assert(line.match(/^---/), 'patch parser line 2');
-        this.pathOriginal = line.split(' ').last();
-        line = lines.shift();
-
-        lively.assert(line.match(/^\+\+\+/), 'patch parser line 3');
-        this.pathChanged = line.split(' ').last();
+        // line 0 like: "diff --git a/test.txt b/test.txt\n". Also support
+        // directly parse hunks if we see no header.
+        if (!lines[0].startsWith("@@")) { // otherwise, no header
+            line = lines.shift();
+            this.command = line; line = lines.shift();
+    
+            // line 1 customized, depending on tool like "======" or "index zyx...abc"
+            if (!line.startsWith("---")) line = lines.shift();
+    
+            // lines 2,3 file name removed, file name added
+            var match = line.match(/^---\s*(.*)/);
+    
+            lively.assert(match && match[1], 'patch parser line 2 ' + match);
+            this.pathOriginal = match[1];
+            line = lines.shift();
+    
+            var match = line.match(/^\+\+\+\s*(.*)/);
+            lively.assert(match && match[1], 'patch parser line 3 ' + match);
+            this.pathChanged = match[1];
+        }
 
         while (lines.length > 0) {
             hunks.push(lively.ide.FilePatchHunk.read(lines));
@@ -1029,17 +1039,23 @@ Object.subclass("lively.ide.FilePatch",
     }
 },
 'patch creation', {
-    createPatchStringHeader: function() {
+
+    reverse: function() {
+        return lively.ide.FilePatch.read(this.createPatchString(true));
+    },
+
+    createPatchStringHeader: function(reverse) {
         var parts = [];
         if (this.command) parts.push(this.command);
-        parts.push('--- ' + this.pathOriginal);
-        parts.push('+++ ' + this.pathChanged);
+        parts.push('--- ' + (reverse ? this.pathChanged : this.pathOriginal));
+        parts.push('+++ ' + (reverse ? this.pathOriginal : this.pathChanged));
         return parts.join('\n');
     },
 
-    createPatchString: function() {
-        return this.createPatchStringHeader() + '\n'
-             + this.hunks.invoke('createPatchString').join('\n');
+    createPatchString: function(reverse) {
+        return this.createPatchStringHeader(reverse) + '\n'
+             + this.hunks.invoke('createPatchString', reverse).join('\n')
+             + "\n"
     },
 
     createPatchStringFromRows: function(startRow, endRow, forReverseApply) {
@@ -1056,6 +1072,40 @@ Object.subclass("lively.ide.FilePatch",
         if (hunkPatches.length === 0) return null;
         return this.createPatchStringHeader() + '\n' + hunkPatches.join('\n') + '\n';
     }
+},
+"accessing", {
+
+  changesByLines: function() {
+      return this.hunks.invoke("changesByLines").flatten();
+  }
+
+},
+"patching", {
+
+  patch: function(string) {
+      return this.changesByLines().reduce(function(patchedLines, change, i) {
+          var startAddition = change.lineNoAdded-1,
+              removed = change.removed.replace(/\n$/, ""),
+              noLinesRemoved = removed ? Strings.lines(removed).length : 0,
+              reallyRemoved = patchedLines.slice(startAddition, startAddition+noLinesRemoved).join('\n');
+
+          if (removed !== reallyRemoved) {
+              var msg = Strings.format("Change %s not matching: Expected \"%s\", got \"%s\"",
+                                       i+1, removed, reallyRemoved);
+              throw new Error(msg);
+          }
+
+          var added = change.added ? change.added : "",
+              endAddition = startAddition + noLinesRemoved,
+              result = patchedLines.slice(0, startAddition)
+                          .concat(added ? Strings.lines(added.replace(/\n$/, "")) : [])
+                          .concat(patchedLines.slice(endAddition));
+
+          // show("%o", result.slice(startAddition-10, endAddition+10));
+          return result;
+      }, Strings.lines(string)).join("\n");
+  }
+
 });
 
 Object.extend(lively.ide.FilePatch, {
@@ -1084,9 +1134,11 @@ Object.subclass("lively.ide.FilePatchHunk",
     }
 },
 'patch creation', {
-    createPatchString: function() {
-        return [this.header].concat(this.lines).join('\n');
+
+    createPatchString: function(reverse) {
+        return this.printHeader(reverse) + "\n" + this.printLines(reverse);
     },
+
     createPatchStringFromRows: function(startRow, endRow, forReverseApply) {
         // this methods takes the diff hunk represented by "this" and produces
         // a new hunk (as a string) that will change only the lines from startRow
@@ -1146,6 +1198,61 @@ Object.subclass("lively.ide.FilePatchHunk",
         header = Strings.format('@@ -%s,%s +%s,%s @@',
             origLine, origLength, changedLine, changedLength);
         return [header].concat(lines).join('\n');
+    }
+
+},
+"accessing", {
+  
+    changesByLines: function() {
+        var self = this;
+        var baseLineAdded = this.changedLine;
+        var baseLineRemoved = this.originalLine;
+        var lineDiff = 0;
+        var result =  this.lines.reduce(function(result, line, i) {
+            if (line[0] === " ") {
+                if (result.current) {
+                  result.changes.push(result.current);
+                  result.current = null;
+                }
+                return result;
+            };
+
+            var change = result.current
+                     || (result.current = {
+                          lineNoAdded: baseLineAdded+i+lineDiff,
+                          lineNoRemoved: baseLineRemoved+i+lineDiff,
+                          added: "", removed: ""});
+
+            if (line[0] === "+") { change.added += line.slice(1) + "\n"; lineDiff++; }
+            else if (line[0] === "-") { change.removed += line.slice(1) + "\n"; lineDiff--; }
+            return result;
+        }, {changes: [], current: null});
+        if (result.current) result.changes.push(result.current);
+        return result.changes;
+    }
+
+},
+"printing", {
+
+    printHeader: function(reverse) {
+        var sub = reverse ?
+          this.changedLine + "," + this.changedLength :
+          this.originalLine + "," + this.originalLength;
+        var add = reverse ?
+          this.originalLine + "," + this.originalLength :
+          this.changedLine + "," + this.changedLength
+        return Strings.format("@@ -%s +%s @@", sub, add);
+    },
+
+    printLines: function(reverse) {
+      return (reverse ? 
+        this.lines.map(function(line) {
+          switch (line[0]) {
+            case ' ': return line;
+            case '+': return "-" + line.slice(1);
+            case '-': return "+" + line.slice(1);
+          }
+        }) : this.lines).join("\n");
     }
 
 });

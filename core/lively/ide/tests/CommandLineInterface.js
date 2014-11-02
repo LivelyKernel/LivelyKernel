@@ -294,8 +294,228 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + "+b2\n"
                  + " c2\n";
         this.assertEquals(expected, result, "4");
-    }
+    },
 
+    testGetChangedLines: function() {
+      var diff = "Index: no file\n"
+               + "===================================================================\n"
+               + "--- no file\n"
+               + "+++ no file\n"
+               + "@@ -97,9 +97,7 @@\n"
+               + " 96\n"
+               + "-97\n"
+               + " 98\n"
+               + " 99\n"
+               + "-100\n"
+               + " 101\n"
+               + " 102\n"
+               + " 103\n"
+               + " 104\n"
+               + "@@ -197,9 +195,11 @@\n"
+               + " 196\n"
+               + " 197\n"
+               + " 198\n"
+               + " 199\n"
+               + "+XXX\n"
+               + "+YYY\n"
+               + "+ZZZ\n"
+               + "-200\n"
+               + " 201\n"
+               + " 202\n"
+               + " 203\n"
+               + " 204\n"
+               + "@@ -297,9 +297,9 @@\n"
+               + " 296\n"
+               + " 297\n"
+               + " 298\n"
+               + " 299\n"
+               + "+300X\n"
+               + "-300\n"
+               + " 301\n"
+               + " 302\n"
+               + " 303\n"
+               + " 304\n";
+
+        var patch = lively.ide.FilePatch.read(diff);
+        var lines = patch.changesByLines();
+        var expected = [
+          {lineNoRemoved: 98, lineNoAdded: 98, removed: "97\n", added: ""},
+          {lineNoRemoved: 100, lineNoAdded: 100, removed: "100\n", added: ""},
+          {lineNoRemoved: 201, lineNoAdded: 199, removed: "200\n", added: "XXX\nYYY\nZZZ\n"},
+          {lineNoRemoved: 301, lineNoAdded: 301, removed: "300\n", added: "300X\n"}
+        ]
+        this.assertEqualState(expected, lines);
+    },
+
+    testSuccessfulPatch: function() {
+      var diff = "Index: no file\n"
+               + "===================================================================\n"
+               + "--- no file\n"
+               + "+++ no file\n"
+               + "@@ -97,9 +97,7 @@\n"
+               + " 96\n"
+               + "-97\n"
+               + " 98\n"
+               + " 99\n"
+               + "-100\n"
+               + " 101\n"
+               + " 102\n"
+               + " 103\n"
+               + " 104\n"
+               + "@@ -197,9 +195,11 @@\n"
+               + " 196\n"
+               + " 197\n"
+               + " 198\n"
+               + " 199\n"
+               + "+XXX\n"
+               + "+YYY\n"
+               + "+ZZZ\n"
+               + "-200\n"
+               + " 201\n"
+               + " 202\n"
+               + " 203\n"
+               + " 204\n"
+               + "@@ -297,9 +297,9 @@\n"
+               + " 296\n"
+               + " 297\n"
+               + " 298\n"
+               + " 299\n"
+               + "+300X\n"
+               + "-300\n"
+               + " 301\n"
+               + " 302\n"
+               + " 303\n"
+               + " 304\n";
+
+        var patch = lively.ide.FilePatch.read(diff),
+            a = Array.range(0,400).join("\n") + "\n",
+            b = a.replace("\n97\n", "\n")
+                 .replace("\n100\n", "\n")
+                 .replace("\n200\n", "\nXXX\nYYY\nZZZ\n")
+                 .replace("\n300\n", "\n300X\n"),
+            result = patch.patch(a);
+        this.assertEquals(b, result);
+    },
+
+    testUnsuccessfulPatch: function() {
+      var diff = "Index: no file\n"
+               + "===================================================================\n"
+               + "--- no file\n"
+               + "+++ no file\n"
+               + "@@ -97,9 +97,7 @@\n"
+               + " 96\n"
+               + "-97\n"
+               + " 98\n"
+               + " 99\n"
+               + "-100\n"
+               + " 101\n"
+               + " 102\n"
+               + " 103\n"
+               + " 104\n"
+               + "@@ -197,9 +195,11 @@\n"
+               + " 196\n"
+               + " 197\n"
+               + " 198\n"
+               + " 199\n"
+               + "+XXX\n"
+               + "+YYY\n"
+               + "+ZZZ\n"
+               + "-AAA\n"
+               + " 201\n"
+               + " 202\n"
+               + " 203\n"
+               + " 204\n"
+               + "@@ -297,9 +297,9 @@\n"
+               + " 296\n"
+               + " 297\n"
+               + " 298\n"
+               + " 299\n"
+               + "+300X\n"
+               + "-300\n"
+               + " 301\n"
+               + " 302\n"
+               + " 303\n"
+               + " 304\n";
+
+        var patch = lively.ide.FilePatch.read(diff),
+            a = Array.range(0,400).join("\n") + "\n";
+        try { patch.patch(a); } catch (e) {
+            this.assertEquals("Change 3 not matching: Expected \"AAA\", got \"200\"", e.message);
+            return;
+        }
+        this.assert(false, "patch successful?");
+    },
+
+    testPrintDiffReverse: function() {
+        var orig = Array.range(0,10).join("\n") + "\n";
+        var changed = orig.replace("\n5\n", "\nHello\nWorld\n");
+        var diff = "Index: foo\n"
+                   + "--- foo\n"
+                   + "+++ foo\n"
+                   + "@@ -2,9 +2,10 @@\n"
+                   + " 1\n"
+                   + " 2\n"
+                   + " 3\n"
+                   + " 4\n"
+                   + "+Hello\n"
+                   + "+World\n"
+                   + "-5\n"
+                   + " 6\n"
+                   + " 7\n"
+                   + " 8\n"
+                   + " 9\n"
+
+        var reverseDiff = "Index: foo\n"
+                        + "--- foo\n"
+                        + "+++ foo\n"
+                        + "@@ -2,10 +2,9 @@\n"
+                        + " 1\n"
+                        + " 2\n"
+                        + " 3\n"
+                        + " 4\n"
+                        + "-Hello\n"
+                        + "-World\n"
+                        + "+5\n"
+                        + " 6\n"
+                        + " 7\n"
+                        + " 8\n"
+                        + " 9\n"
+
+        var patch = lively.ide.FilePatch.read(diff);
+        // lively.ide.diff(orig, changed)
+        // lively.ide.diff(changed, orig)
+
+        var resultForward = patch.createPatchString();
+        this.assertEquals(diff, resultForward, "normal diff");
+
+        var resultReverse = patch.createPatchString(true)
+        this.assertEquals(reverseDiff, resultReverse, "reverse");
+
+    },
+
+    testSuccessfulPatchReverse: function() {
+        var orig = Array.range(0,10).join("\n") + "\n";
+        var changed = orig.replace("\n5\n", "\nHello\nWorld\n");
+        var diff = "Index: foo\n"
+                   + "--- foo\n"
+                   + "+++ foo\n"
+                   + "@@ -2,9 +2,10 @@\n"
+                   + " 1\n"
+                   + " 2\n"
+                   + " 3\n"
+                   + " 4\n"
+                   + "+Hello\n"
+                   + "+World\n"
+                   + "-5\n"
+                   + " 6\n"
+                   + " 7\n"
+                   + " 8\n"
+                   + " 9\n"
+
+        var patch = lively.ide.FilePatch.read(diff).reverse(),
+            result = patch.patch(changed);
+        this.assertEquals(orig, result);
+    },
 });
 
 TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',

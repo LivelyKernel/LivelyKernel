@@ -160,7 +160,7 @@ Object.extend(String.prototype, {
   },
 
   toQueryParams: function(separator) {
-    var match = this.strip().match(/([^?#]*)(#.*)?$/);
+    var match = this.trim().match(/([^?#]*)(#.*)?$/);
     if (!match) return { };
 
     return match[1].split(separator || '&').inject({ }, function(hash, pair) {
@@ -630,4 +630,3 @@ if (!Array.prototype.lastIndexOf) Array.prototype.lastIndexOf = function(item, i
 };
 
 Array.prototype.toArray = Array.prototype.clone;
-

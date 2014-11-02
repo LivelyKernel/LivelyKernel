@@ -1443,7 +1443,7 @@ Object.subclass('lively.ast.AcornInterpreter.Frame',
                 return new URL(m.uri()).relativePathFrom(URL.root);
             });
         }
-        return this._internalModules.member(this.getOriginalAst().sourceFile);
+        return this._internalModules.include(this.getOriginalAst().sourceFile);
     }
 
 });

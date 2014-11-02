@@ -138,7 +138,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.OriginTests',
         var realSelector = this.currentSelector.replace(/\$.*/, ''),
             useClipping = this.currentSelector.endsWith('WITH_CLIPPING');
 
-        this[this.currentSelector] = this[realSelector].curry(useClipping);
+        this[this.currentSelector] = this[realSelector].bind(this, useClipping);
     },
 
     tearDown: function($super) {

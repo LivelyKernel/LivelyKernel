@@ -990,8 +990,8 @@ lively.morphic.World.addMethods(
         lively.Config.set('UserName', username);
         lively.require('lively.net.SessionTracker').toRun(function() {
             lively.net.SessionTracker.serverLogin();
-            var sess = lively.net.SessionTracker.getSession();
-            if (sess.isConnected()) { sess.setUserName(username); }
+            lively.net.SessionTracker.whenOnline(function(err, sess) {
+              if (!err) sess.setUserName(username); });
         });
     },
 

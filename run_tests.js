@@ -182,10 +182,7 @@ if (filter) {
 prepareConfig();
 
 (function setUserName() {
-    var s = lively.net.SessionTracker.getSession();
-    Functions.waitFor(1000, function() { return !! s.isConnected(); }, function() {
-        lively.morphic.World.current().setCurrentUser("run_tests-" + testRunId);
-    });
+    lively.morphic.World.current().setCurrentUser("run_tests-" + testRunId);
 })();
 
 if (lively.Config.get("serverTestDebug")) {

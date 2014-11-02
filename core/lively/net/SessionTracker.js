@@ -539,6 +539,15 @@ Object.extend(lively.net.SessionTracker, {
     isConnected: function() {
         var s = this.getSession();
         return s && s.isConnected();
+    },
+
+    whenOnline: function(thenDo) {
+        var sess;
+        Functions.waitFor(1000,
+            function() {
+                sess = lively.net.SessionTracker.getSession();
+                return sess && sess.isConnected();
+            }, function(err) { thenDo(err, sess); });
     }
 
 });

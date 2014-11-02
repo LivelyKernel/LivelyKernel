@@ -477,7 +477,20 @@ TestCase.subclass('lively.ast.tests.Querying',
             result = lively.ast.query.topLevelDeclsAndRefs(code),
             expected = [];
         this.assertEqualState(expected, result.undeclaredNames);
+    },
+
+    testFindNodesIncludingLines: function() {
+      var code = "var x = {\n  f: function(a) {\n    return 23;\n  }\n}\n";
+
+      var expected1 = ["Program","VariableDeclaration","VariableDeclarator","ObjectExpression","FunctionExpression","BlockStatement","ReturnStatement","Literal"],
+          nodes1 = lively.ast.query.findNodesIncludingLine(null, code, [3]);
+      this.assertEqualState(expected1, nodes1.pluck("type"));
+
+      var expected2 = ["Program","VariableDeclaration","VariableDeclarator","ObjectExpression"],
+          nodes2 = lively.ast.query.findNodesIncludingLines(null, code, [3,5]);
+      this.assertEqualState(expected2, nodes2.pluck("type"));
     }
+
 });
 
 }); // end of module

@@ -1428,8 +1428,19 @@ Object.extend(lively.ast.query, {
             noGlobals = topLevel.declaredNames.concat(q.knownGlobals);
         return topLevel.refs.filter(function(ea) {
             return noGlobals.indexOf(ea.name) === -1; })
-    }
+    },
 
+    findNodesIncludingLines: function(ast, code, lines, options) {
+      if (!code && !ast) throw new Error("Need at least ast or code");
+      code = code ? code : lively.ast.acorn.stringify(ast);
+      ast = ast && ast.loc ? ast : lively.ast.acorn.parse(code, {locations: true});
+      return lively.ast.acorn.withMozillaAstDo(ast, [], function(next, node, found) {
+        if (lines.every(function(line) {
+          return Numbers.between(line, node.loc.start.line, node.loc.end.line); })) {
+            found.pushIfNotIncluded(node); next(); }
+        return found;
+      });
+    }
 });
 
 Object.extend(lively.ast.transform, {

@@ -483,7 +483,7 @@ TestCase.subclass('lively.ast.tests.Querying',
       var code = "var x = {\n  f: function(a) {\n    return 23;\n  }\n}\n";
 
       var expected1 = ["Program","VariableDeclaration","VariableDeclarator","ObjectExpression","FunctionExpression","BlockStatement","ReturnStatement","Literal"],
-          nodes1 = lively.ast.query.findNodesIncludingLine(null, code, [3]);
+          nodes1 = lively.ast.query.findNodesIncludingLines(null, code, [3]);
       this.assertEqualState(expected1, nodes1.pluck("type"));
 
       var expected2 = ["Program","VariableDeclaration","VariableDeclarator","ObjectExpression"],

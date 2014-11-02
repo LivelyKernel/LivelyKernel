@@ -1,4 +1,5 @@
-module('lively.ide.tools.EntanglementInspector').requires('lively.morphic.ColorChooserDraft').toRun(function(){
+module('lively.ide.tools.EntanglementInspector').requires('lively.persistence.Entanglement').toRun(function(){
+
 lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     _BorderColor: Color.rgb(204,0,0),
     _BorderRadius: 6.29,
@@ -23,7 +24,7 @@ lively.BuildSpec('lively.ide.tools.EntanglementInspector',{
     doNotSerialize: [],
     draggingEnabled: true,
     droppingEnabled: false,
-    entanglement: "[object Object]",
+    entanglement: null,
     expandedExtent: lively.pt(764.0,560.0),
     expandedPosition: lively.pt(423.0,81.0),
     expandedTransform: {

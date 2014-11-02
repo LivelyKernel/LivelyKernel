@@ -47,6 +47,17 @@ function findMissingNPMPackages(dev, thenDo) {
     thenDo(null, uninstalled);
 }
 
+function filterNPMModulesForReinstall(moduleNames, thenDo) {
+    var reallyMissing = moduleNames.reduce(function(reallyMissing, name) {
+      try {
+        var stat = fs.statSync(path.join(lkDir, "node_modules", name));
+        if (stat.isSymbolicLink()) reallyMissing.push(name);
+      } catch (e) { reallyMissing.push(name) }
+      return reallyMissing;
+    }, []);
+    thenDo(null, reallyMissing);
+}
+
 function sanityCheckWithNpmList(thenDo) {
     exec('npm list --depth 1 --json', function(code, out, err) {
         try {
@@ -54,12 +65,7 @@ function sanityCheckWithNpmList(thenDo) {
                 depNames = Object.getOwnPropertyNames(npmList.dependencies),
                 toFix = depNames.reduce(function(depsToFix, name) {
                     var dep = npmList.dependencies[name];
-                    if (!dep.missing && !dep.invalid) return depsToFix;
-                    try {
-                      var stat = fs.statSync(path.join(lkDir, "node_modules", name));
-                      if (stat.isSymbolicLink()) return depsToFix;
-                    } catch (e) {}
-                    depsToFix.push(name);
+                    if (dep.missing || dep.invalid) depsToFix.push(name);
                     return depsToFix;
                 }, []);
             thenDo(null, toFix);
@@ -107,11 +113,14 @@ function checkNPMPackages(options, thenDo) {
                 if (missing.indexOf(it) === -1) missing.push(it);
             }
             if (!missing || !missing.length) return thenDo(null);
-            console.log('Not all required npm packages are installed! Installing packages %s', missing);
-            installAll(missing, function(err) {
-                console.log("Finished installing lively server dependencies.");
-                thenDo(null);
-            });
+            filterNPMModulesForReinstall(missing, function(err, missing) {
+                if (err || !missing || !missing.length) return thenDo(null);
+                console.log('Not all required npm packages are installed! Installing packages %s', missing);
+                installAll(missing, function(err) {
+                    console.log("Finished installing lively server dependencies.");
+                    thenDo(null);
+                });
+            })
         })
     });
 }

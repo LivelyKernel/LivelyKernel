@@ -565,7 +565,6 @@ TestCase.subclass('AsyncTestCase',
             optTestSelector = (Object.isString(args[0]) && args[0]),
             sel             = optTestSelector || this.currentSelector,
             whenDoneFunc    = optTestSelector ? args[1] : args[0];
-show("runnin")
         this.runTest(optTestSelector);
         var self = this, waitMs = 100; // time for checking if test is done
         (function doWhenDone(timeWaited) {

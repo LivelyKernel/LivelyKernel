@@ -33,7 +33,10 @@ Object.extend(lively, {
         for (var i = 0, keys = lively.parsePath(string), len = keys.length; i < len; i++) {
             if (!context) return null;
             var key = keys[i];
-            context = context[key] || (createMissing && (context[key] = new lively.Module(context, key)));
+            if (!context[key] && createMissing) {
+              context[key] = new lively.Module(context, key);
+            }
+            context = context[key];
         }
         return context;
     },
@@ -71,8 +74,10 @@ Object.extend(lively, {
 
         function createNamespaceModule(moduleName) {
             return lively.lookup(
-                isNamespaceAwareModule(moduleName) ? moduleName : convertUrlToNSIdentifier(moduleName),
-                Global,true);
+                isNamespaceAwareModule(moduleName) ?
+                    moduleName :
+                    convertUrlToNSIdentifier(moduleName),
+                Global, true);
         }
 
         function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
@@ -148,6 +153,7 @@ var Module = Object.subclass('lively.Module',
     initialize: function(context, nsName) {
         this.namespaceIdentifier = context.namespaceIdentifier + '.' + nsName;
         this.createTime = new Date();
+        this.errors = [];
     },
     beAnonymous: function() {
         this._isAnonymous = true;
@@ -270,9 +276,9 @@ var Module = Object.subclass('lively.Module',
         return new URL(this.uri(optType)).relativePathFrom(URL.codeBase);
     },
 
-    lastPart: function() {
-        return this.name().match(/[^.]+$/)[0];
-    }
+    lastPart: function() { return this.name().match(/[^.]+$/)[0]; },
+
+    getErrors: function() { return this.errors; }
 
 },
 'module dependencies', {
@@ -405,9 +411,7 @@ var Module = Object.subclass('lively.Module',
 'testing', {
     isAnonymous: function() { return this._isAnonymous; },
 
-    isLoaded: function() {
-        return this._isLoaded;
-    },
+    isLoaded: function() { return this._isLoaded; },
 
     isLoading: function() {
         if (this.isLoaded()) return false;
@@ -415,9 +419,9 @@ var Module = Object.subclass('lively.Module',
         return JSLoader.isLoading(this.uri());
     },
 
-    isAnonymous: function() {
-        return this._isAnonymous;
-    }
+    isAnonymous: function() { return this._isAnonymous; },
+
+    hasErrored: function() { return !!this.errors.length; }
 
 },
 'loading', {
@@ -438,8 +442,12 @@ var Module = Object.subclass('lively.Module',
             // module (when the module is first encountered) to evaluation the
             // evaluation of its code, including load time of all requirements
             var time = this.createTime ? new Date() - this.createTime : 'na';
-            console.log(this.uri() + ' loaded in ' + time + ' ms');
-            this.informDependendModules();
+            if (this.hasErrored()) {
+                console.warn(this.uri() + ' encountered errors while loading, took ' + time + ' ms');
+            } else {
+                this.informDependendModules();
+                console.log(this.uri() + ' loaded in ' + time + ' ms');
+            }
             return;
         }
         if (this.isLoading() || this.wasDefined) {
@@ -465,22 +473,26 @@ var Module = Object.subclass('lively.Module',
     }
 },
 'removing', {
+
     remove: function() {
         var ownerNamespace = lively.Class.namespaceFor(this.namespaceIdentifier),
             ownName = lively.Class.unqualifiedNameFor(this.namespaceIdentifier);
         JSLoader.removeAllScriptsThatLinkTo(this.uri());
         delete ownerNamespace[ownName];
     },
+
     removeScriptNode: function() {
         var node = document.getElementById(this.uri());
         if (node) node.parentNode.removeChild(node);
     }
+
 },
 'debugging', {
     toString: function() { return 'lively.module("' + this.namespaceIdentifier + '")' },
     serializeExpr: function() { return this.toString(); },
 
     logError: function(e, optCode) {
+        this.errors.push(e);
         var list = this.traceDependendModules(),
             msg = 'Error while loading ' + (this.moduleName || this) + ': ' + e
                 + '\ndependencies: ' + Strings.printNested(list),

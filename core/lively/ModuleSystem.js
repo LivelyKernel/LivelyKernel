@@ -347,7 +347,7 @@ var Module = Object.subclass('lively.Module',
             if (this.hasPendingRequirements()) return;
             Global.clearInterval(this.loadTestPolling);
             this.load();
-        }.bind(this), 50);
+        }.bind(this), 20);
     },
 
     removeRequiredModule: function(requiredModule) {

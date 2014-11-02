@@ -108,6 +108,7 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
     },
 
     testRequireLib: function() {
+        module('foo.bar').remove();
         var moduleCodeExecuted = false,
             lib = {uri: URL.root.withFilename('foo.js'), loadTest: function() { return false; }};
         module('foo.bar').requires().requiresLib(lib).toRun(function() {
@@ -142,6 +143,7 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
 'testing', {
 
     testRequireLib: function() {
+        module('foo.baz').remove();
         var moduleCodeExecuted = false,
             libBazIsLoaded = false,
             loadTestCalled = 0;
@@ -164,7 +166,7 @@ AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',
             this.assert(moduleCodeExecuted, 'module not executed');
             this.assert(!module('foo.baz').hasPendingRequirements(), 'hasPendingRequirements 3');
             this.done();
-        }, 120);
+        }, 620);
     },
 
     testRequireLibSync: function() {

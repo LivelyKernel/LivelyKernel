@@ -413,7 +413,7 @@ AsyncTestCase.subclass('TestSuiteTest', {
 
     setUp: function() {
         TestCase.subclass('DummyTestCase', {
-            testGreen1: function() {this.assert(true);},
+            testGreen1: function() { this.assert(true); },
             testGreen2: function() {},
             testRed: function() { this.assert(false, 'dummyMessage'); }
         });
@@ -426,8 +426,8 @@ AsyncTestCase.subclass('TestSuiteTest', {
     tearDown: function() {
         DummyTestCase.remove();
         DummyTestCase1.remove();
-            DummyTestCase2.remove();
-            DummyTestCase3.remove();
+        DummyTestCase2.remove();
+        DummyTestCase3.remove();
     },
 
     testRunAll: function() {
@@ -437,7 +437,7 @@ AsyncTestCase.subclass('TestSuiteTest', {
         this.delay(function() {
             this.assertEquals(3, ts.result.runs(), 'result');
             this.done();
-        }, 20);
+        }, 220);
     },
 
     testRunFiltered: function() {
@@ -711,13 +711,15 @@ AsyncTestCase.subclass('lively.tests.TestFrameworkTests.AsyncTestCaseTest', {
         var checkpoint = false;
         this.waitFor(
             function() { steps.push('c'); return checkpoint; }, 20,
-            function() { steps.push('e'); });
+            function() {
+                steps.push('e');
+                this.delay(function() {
+                    this.assertEqualState(['a', 'b', 'c', 'd', 'c', 'e'], steps);
+                    this.done();
+                }, 10);
+            });
         this.delay(function() { steps.push('b'); }, 10);
         this.delay(function() { steps.push('d'); checkpoint = true; }, 30);
-        this.delay(function() {
-            this.assertEqualState(['a', 'b', 'c', 'd', 'c', 'e'], steps);
-            this.done();
-        }, 50);
     },
 
     testAsyncSetUp: function() {

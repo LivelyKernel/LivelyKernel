@@ -492,28 +492,27 @@ TestCase.subclass('AsyncTestCase',
     delay: function(func, ms) {
         var self = this;
         console.log('Scheduled action for ' + self.currentSelector);
-        (function() {
+        setTimeout(function() {
             console.log('running delayed action for ' + self.currentSelector);
             try { func.call(self) } catch(e) { self.done(); self.addAndSignalFailure(e) }
-        }).delay(ms / 1000)
+        }, ms);
     },
     waitFor: function(guardFunc, interval, callback) {
         var self = this;
         console.log('Scheduled wait for ' + self.currentSelector);
-        (function() {
+        var i = setInterval(function() {
             try {
                 if (guardFunc.call(self)) {
+                    clearInterval(i);
                     callback.call(self);
-                } else {
-                    if (!self.isDone()) {
-                        self.waitFor(guardFunc, interval, callback);
-                    }
-                }
+                } else if (self.isDone())
+                    clearInterval(i);
             } catch(e) {
+                clearInterval(i);
                 self.done();
                 self.addAndSignalFailure(e);
             }
-        }).delay(interval / 1000)
+        }, interval);
     },
     runTest: function(aSelector) {
         if (!this.shouldRun) return;
@@ -566,6 +565,7 @@ TestCase.subclass('AsyncTestCase',
             optTestSelector = (Object.isString(args[0]) && args[0]),
             sel             = optTestSelector || this.currentSelector,
             whenDoneFunc    = optTestSelector ? args[1] : args[0];
+show("runnin")
         this.runTest(optTestSelector);
         var self = this, waitMs = 100; // time for checking if test is done
         (function doWhenDone(timeWaited) {
@@ -696,7 +696,8 @@ Object.subclass('TestSuite', {
     },
 
     runDelayed: function() {
-        var testCaseClass = this.testClassesToRun.shift();
+        var self = this,
+            testCaseClass = this.testClassesToRun.shift();
 
         if (!testCaseClass) {
             this.runFinished && this.runFinished(); return }
@@ -708,9 +709,9 @@ Object.subclass('TestSuite', {
         testCase.setTestSelectorFilter(this.testSelectorFilter);
         this.showProgress && this.showProgress(testCase);
 
-        (function() {
-            testCase.runAllThenDo(Functions.Null, this.runDelayed.bind(this))
-        }).bind(this).delay(0);
+        setTimeout(function() {
+            testCase.runAllThenDo(Functions.Null, self.runDelayed.bind(self))
+        }, 0);
     }
 });
 

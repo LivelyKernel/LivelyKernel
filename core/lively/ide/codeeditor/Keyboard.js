@@ -139,6 +139,21 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: this.morphBinding("doInspect"),
                 multiSelectAction: "forEach",
                 readOnly: true
+            }, {
+                name: 'doAutoEvalPrintItComments',
+                exec: function(ed, args) {
+                    ed.$morph.doAutoEvalPrintItComments();
+                },
+                multiSelectAction: "single",
+                handlesCount: true
+            }, {
+                name: 'toggleDoAutoEvalPrintItComments',
+                exec: function(ed, args) {
+                    ed.$morph.setAutoEvalPrintItComments(!ed.$morph.getAutoEvalPrintItComments());
+                    alertOK("auto eval " + (ed.$morph.getAutoEvalPrintItComments() ? "enabled" : "disabled"))
+                },
+                multiSelectAction: "single",
+                handlesCount: true
             }, { // shell eval
                 name: 'runShellCommand',
                 exec: function(ed, args) {

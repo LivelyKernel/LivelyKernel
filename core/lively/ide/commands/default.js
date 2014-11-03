@@ -24,8 +24,12 @@ Object.extend(lively.ide.commands, {
 
     helper: {
         noCodeEditorActive: function() {
+            return !lively.ide.commands.helper.codeEditorActive();
+        },
+
+        codeEditorActive: function() {
             var f = lively.morphic.Morph.focusedMorph();
-            return f && !f.isCodeEditor;
+            return f && f.isCodeEditor;
         },
 
         focusedMorph: function() {

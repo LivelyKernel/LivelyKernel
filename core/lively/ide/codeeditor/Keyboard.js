@@ -154,6 +154,28 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 },
                 multiSelectAction: "single",
                 handlesCount: true
+            }, {
+                name: 'toggleDoAutoEvalPrintItCommentsTicking',
+                exec: function(ed, args) {
+                    var m = ed.$morph;
+                    var selName = "doAutoEvalPrintItComments";
+                    var isTicking = m.scripts.pluck("selector").include(selName);
+                    if (isTicking) {
+                      m.stopSteppingScriptNamed(selName);
+                      alertOK("ticking auto eval stopped");
+                      return;
+                    }
+
+                    $world.prompt("Enter tick time for auto eval:", function(input) {
+                        var ms = parseInt(input);
+                        if (!ms) return;
+                        m.startStepping(ms, 'doAutoEvalPrintItComments');
+                        alertOK("ticking auto eval started");
+                    });
+
+                },
+                multiSelectAction: "single",
+                handlesCount: true
             }, { // shell eval
                 name: 'runShellCommand',
                 exec: function(ed, args) {

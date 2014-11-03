@@ -128,7 +128,7 @@ Object.extend(lively.net.Wiki, {
             var partItemList = makeList("partsList"),
                 partItems = createPartItemList(grouped.partsbin),
                 label1 = makeLabel("PartsBin items");
-            partItems.forEach(function(ea) { partItemList.addMorph(ea) });
+            partItems.forEach(function(ea) { ea.hasOwnListItemBehavior = true; partItemList.addMorph(ea); });
             container.addMorph(label1);
             container.addMorph(partItemList);
         }

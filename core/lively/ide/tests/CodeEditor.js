@@ -455,6 +455,20 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.JSAST',
             this.assertEquals('Program', e.aceEditor.session.$ast.type);
             this.done();
         }, 400);
+    },
+
+    testAutoEvalPrintItComments: function() {
+        var e = this.editor, text;
+        e.setAutoEvalPrintItComments(true);
+        e.textString = "1 + 2";
+        this.delay(function() {
+          this.assertEquals("1 + 2", e.textString);
+          e.textString = "1 + 2 // => 45";
+          this.delay(function() {
+              this.assertEquals("1 + 2 // => 3", e.textString);
+              this.done();
+          }, 300);
+        }, 300);
     }
 
 });

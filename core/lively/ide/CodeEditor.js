@@ -779,6 +779,78 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
     },
 
+    doAutoEvalPrintItComments: function doAutoEvalPrintItComments() {
+      // 1. Test if there are errors:
+      var verbose = lively.Config.get('verboseLogging');
+      lively.Config.set('verboseLogging', false);
+      var success = this.boundEval(this.textString);
+      lively.Config.set('verboseLogging', verbose);
+      if (success instanceof Error) return;
+
+      var ed = this;
+      var doitMarker = "// =>", match;
+      var printDepth = 1;
+      var src = ed.textString;
+      var ast = lively.ast.acorn.parse(src);
+
+      // 2. Find the doit markers in comments and for each comment get a range
+      var commentRanges = Strings
+        .reMatches(src, new RegExp(doitMarker.replace(" ", "\\s*"), 'g'))
+        .map(findCommmentRange.bind(null,ed))
+        .reverse();
+
+      // 3. Eval the code in front of the comments
+      // and the print results as comment
+      var reEvaled = commentRanges
+        .map(evaluateCodeBeforeRange)
+        .map(commentify);
+
+      // 4. replace old comments
+      commentRanges.forEach(function(range, i) {
+        // ed.aceEditor.selection.addRange(range);
+        var repl = reEvaled[i];
+        var orig = ed.getTextRange(range);
+        if (orig.slice(-1) === "\n" && repl.slice(-1) !== "\n") repl += '\n';
+        ed.replace(range, repl) });
+
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      // helper
+
+      function findCommmentRange(ed, match) {
+        var loc = ed.indexToPosition(match.start+1),
+            start = loc, row = loc.row, commentTokens = [ed.getSession().getTokenAt(loc.row, loc.column)];
+        var n = 0;
+        while(true) {
+            n++;
+            if (n > 10000) throw new Error("findCommmentRange endless loop at " + row);
+          var tokens = ed.getSession().getTokens(row+1);
+          if (!tokens || !tokens.length || !tokens.every(function(t) { return t.type === 'comment'})) break;
+          commentTokens.pushAll(tokens); row++;
+        }
+        var tok = commentTokens.last();
+        return ed.createRange(
+            {row: start.row, column: start.column-1},
+            {row: start.row === row ? row : row+1,
+             column: tok.start + tok.value.length});
+      }
+
+      function commentify(string) {
+        return string ?
+          Strings.lines(string)
+            .map(function(line) { return "// " + line; })
+            .join("\n").replace("// ", doitMarker + " ") : "// => uha, sth went wrong"
+      }
+
+      function evaluateCodeBeforeRange(range) {
+        var found = Global.acorn.walk.findNodeBefore(ast, ed.positionToIndex(range.start))
+        if (!found || !found.node) return null;
+        var code = src.slice(found.node.start, found.node.end);
+        return Objects.inspect(ed.tryBoundEval(code), {maxDepth: printDepth});
+      }
+
+    },
+
     evalSelection: function(printIt) {
         var str = this.getSelectionOrLineString(),
             result = this.tryBoundEval(str);
@@ -1378,6 +1450,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.hasOwnProperty("_PrintItAsComment") ? this._PrintItAsComment : false;
     },
 
+    setAutoEvalPrintItComments: function(bool) {
+      var func = bool ? lively.bindings.connect : lively.bindings.disconnect;
+      func(this, 'textChange', this, 'doAutoEvalPrintItComments');
+      return this._AutoEvalPrintItComments = bool; },
+    getAutoEvalPrintItComments: function() {
+        return this.hasOwnProperty("_AutoEvalPrintItComments") ? this._AutoEvalPrintItComments : false;
+    },
+
     getNewLineMode: function() {
         return this.withAceDo(function(ed) { return ed.session.getNewLineMode(); });
     },
@@ -1506,6 +1586,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
         boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
+        boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
         items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;

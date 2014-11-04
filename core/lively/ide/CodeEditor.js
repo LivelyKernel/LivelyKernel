@@ -904,7 +904,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             result = this.tryBoundEval(text);
         if (printResult) {
           if (this.getPrintItAsComment()) {
-            result = " => " + Objects.inspect(result, {maxDepth: 4});
+            try { result = " => " + Objects.inspect(result, {maxDepth: 4});
+            } catch (e) { result = " => Error printing inspect view of " + result + ": " + e; }
           }
           this.printObject(editor, result, false, this.getPrintItAsComment());
           return;

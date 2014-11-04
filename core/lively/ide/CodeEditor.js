@@ -641,7 +641,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         function upHandler(evt) {
             document.removeEventListener("pointerup", upHandler, true);
             lively.morphic.EventHandler.prototype.patchEvent(evt);
-            evt.hand.clickedOnMorph = evt.getTargetMorph();
+            evt.hand.clickedOnMorph = self;
             [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
                 ea.onMouseUpEntry(evt); });
         }

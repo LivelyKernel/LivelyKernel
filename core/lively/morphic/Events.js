@@ -1569,7 +1569,7 @@ lively.morphic.World.addMethods(
         var evtTarget = evt.getTargetMorph();
         while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
 
-        if (evt.isAltDown() && evt.hand.clickedOnMorph && !evt.hand.draggedMorph) {
+        if (evt.isAltDown() && evtTarget && !evt.hand.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world

@@ -821,6 +821,7 @@ Object.extend(lively.ast.acorn, {
         // See https://github.com/marijnh/acorn for full acorn doc and parse options.
         // options: {
         //   addSource: BOOL, -- add source property to each node
+        //   addAstIndex: BOOL, -- each node gets an index  number
         //   withComments: BOOL, -- adds comment objects to Program/BlockStatements:
         //                          {isBlock: BOOL, text: STRING, node: NODE,
         //                           start: INTEGER, end: INTEGER, line: INTEGER, column: INTEGER}
@@ -849,6 +850,8 @@ Object.extend(lively.ast.acorn, {
         var ast = options.addSource ?
             acorn.walk.addSource(source, options) : // FIXME
             acorn.parse(source, options);
+
+        if (options.addAstIndex && !ast.hasOwnProperty('astIndex')) acorn.walk.addAstIndex(ast);
 
         if (ast && comments) attachCommentsToAST({ast: ast, comments: comments, nodesWithComments: []});
 

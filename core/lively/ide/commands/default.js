@@ -387,6 +387,17 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    'lively.ide.WindowNavigation.reopenClosedWindows': {
+        description: 'recover closed windows',
+        exec: function() {
+            var narrower = $world.submorphs.detect(function(morph) { return morph.name && morph.name.include('lively.ide.WindowNavigation.NarrowingList'); });
+            if (narrower) {
+              narrower.state.allCandidates.pluck("value").reverse().invoke("openInWorld");
+            } else show("Could not recover windows");
+            return true;
+        }
+    },
+
     // commands
     'lively.ide.commands.keys.reset': {
         description: 'reset key bindings',

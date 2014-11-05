@@ -149,6 +149,7 @@ var browserTests = [
     "lively.morphic.tests.TabTests",
     "lively.morphic.tests.Text",
     "lively.morphic.tests.TextUndoTests",
+    "lively.morphic.tests.Tree",
 
     // cop
     "cop.tests.LayerTests",

@@ -4280,6 +4280,7 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
                 node.addMorph(submorph);
             });
         this.node = this.addMorph(node);
+        this.label && this.label.fitThenDo(function() { this.node.applyLayout(); }.bind(this));
     }
 },
 "accessing", {

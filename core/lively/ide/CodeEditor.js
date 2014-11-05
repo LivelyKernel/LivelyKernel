@@ -68,6 +68,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showActiveLine: Config.get('aceDefaultShowActiveLine'),
         showIndents: Config.get('aceDefaultShowIndents'),
         softTabs: Config.get('useSoftTabs'),
+        elasticTabs: Config.get('useElasticTabs'),
         tabSize: Config.get('defaultTabSize'),
         autocompletion: Config.get('aceDefaultEnableAutocompletion'),
         showWarnings: Config.get('aceDefaultShowWarnings'),
@@ -189,6 +190,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowIndents(this.getShowIndents());
         this.setSoftTabs(this.getSoftTabs());
         this.setTabSize(this.getTabSize());
+        if (this.getElasticTabs()) this.setElasticTabs(true);
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
         this.setShowWarnings(this.getShowWarnings());
@@ -1406,6 +1408,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getSoftTabs: function() {
         return this.hasOwnProperty("_SoftTabs") ? this._SoftTabs : this.withAceDo(function(ed) {
             return ed.session.getUseSoftTabs(); });
+    },
+
+    setElasticTabs: function(bool) {
+        if (bool) this.setSoftTabs(false);
+        this.withAceDo(function(ed) { ed.setOption("useElasticTabstops", bool); });
+        return this._ElasticTabs = bool;
+    },
+    getElasticTabs: function() {
+        return this.hasOwnProperty("_ElasticTabs") ? this._ElasticTabs : this.withAceDo(function(ed) {
+            return ed.getOption("useElasticTabstops"); });
     },
 
     getTabSize: function() {

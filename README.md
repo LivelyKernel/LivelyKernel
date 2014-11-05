@@ -25,7 +25,7 @@ development follow the steps below.
 
 1. Make sure you have [node.js](http://nodejs.org/download/) installed.
 2. Checkout this repository: `$ git clone https://github.com/LivelyKernel/LivelyKernel`.
-2. Start the server: `$ cd LivelyKernel; npm start`
+3. Start the server: `$ cd LivelyKernel; npm start`
 
 Lively should now be running at [localhost:9001](http://localhost:9001/welcome.html).
 

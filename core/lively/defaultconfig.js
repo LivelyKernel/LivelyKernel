@@ -533,6 +533,7 @@ Config.addOptions(
     // Until we're confident
     ["showAllTyping", true, "Defeat all bundled type-in for testing"],
     ["useSoftTabs", true],
+    ["useElasticTabs", false],
     ["defaultTabSize", 4],
     ["disableSyntaxHighlighting", false],
     ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"]

@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + (false && lively.useMinifiedLibs ? 'lib/ace/lively-ace.min.js' : 'lib/ace/lively-ace.js'), loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + 'lib/ace/lively-ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
@@ -21,42 +21,20 @@ Object.extend(lively.ide, {
             return moduleNames.map(function(ea) {
                 return ea.substring(optPrefix.length); })
         },
-    
-        // currently supported:
-        // "abap", "clojure", "coffee", "css", "dart", "diff", "haml", "html",
-        // "jade", "java", "javascript", "json", "latex", "less", "lisp",
-        // "makefile", "markdown", "objectivec", "python", "r", "rdoc", "sh",
-        // "sql", "svg", "text", "xml"
-        // available but not loaded by default are:
-        // "asciidoc", "c9search", "c_cpp", "coldfusion", "csharp", "curly",
-        // "dot", "glsl", "golang", "groovy", "haxe", "jsp", "jsx", "liquid",
-        // "lua", "luapage", "lucene", "ocaml", "perl", "pgsql", "php",
-        // "powershell", "rhtml", "ruby", "scad", "scala", "scss", "stylus",
-        // "tcl", "tex", "textile", "typescript", "vbscript", "xquery", "yaml"
-    
+
         availableTextModes: function() {
             return lively.ide.ace.modules('ace/mode/', false)
                 .select(function(moduleName) { return !!ace.require(moduleName).Mode })
                 .map(function(name) { return name.substring('ace/mode/'.length); });
         },
-    
+
         moduleNameForTextMode: function(textModeName) {
             return this.availableTextModes().include(textModeName) ?
                 'ace/mode/' + textModeName : null;
         },
-    
-        // supported:
-        // "ambiance", "monokai", "chrome", "pastel_on_dark", "textmate",
-        // "solarized_dark", "twilight", "tomorrow", "tomorrow_night",
-        // "tomorrow_night_blue", "tomorrow_night_bright", "eclipse"
-        // not loaded by default are:
-        // "xcode", "vibrant_ink", "tomorrow_night_eighties",
-        // "tomorrow_night_bright", "tomorrow_night_blue", "solarized_light",
-        // "mono_industrial", "merbivore_soft", "merbivore", "kr", "idle_fingers",
-        // "github", "dreamweaver", "dawn", "crimson_editor", "cobalt",
-        // "clouds_midnight", "clouds", "chaos"
+
         availableThemes: function() { return this.modules('ace/theme/', true) },
-    
+
         moduleNameForTheme: function(themeName) {
             return this.availableThemes().include(themeName) ?
                 "ace/theme/" + themeName : null
@@ -86,9 +64,9 @@ Object.extend(lively.ide, {
 });
 
 (function acePatches() {
+
+    // auto close "{", https://github.com/LivelyKernel/LivelyKernel/issues/197
     var CstyleBehaviour = lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour;
-    // CstyleBehaviour = origCstyleBehaviour
-    // origCstyleBehaviour = CstyleBehaviour
     var oop = lively.ide.ace.require('ace/lib/oop')
     var LivelyCstyleBehaviour = function() {
         this.inherit(CstyleBehaviour);
@@ -148,7 +126,7 @@ Object.extend(lively.ide, {
     Object.extend(LivelyCstyleBehaviour, CstyleBehaviour);
     oop.inherits(LivelyCstyleBehaviour, CstyleBehaviour);
     lively.ide.ace.require('ace/mode/behaviour/cstyle').CstyleBehaviour = LivelyCstyleBehaviour;
-    
+
     if (UserAgent.fireFoxVersion || UserAgent.isMozilla /* UserAgent.isMozilla is also true for Chrome */) {
         var cssOverrides = document.createElement("style");
         cssOverrides.textContent = "\n/* ACE CSS Workarounds for Firefox */" +
@@ -161,4 +139,5 @@ Object.extend(lively.ide, {
         document.head.insertBefore(cssOverrides, document.head.firstChild);
     }
 })();
+
 }); // end of module

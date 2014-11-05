@@ -428,7 +428,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     setTheme: function(themeName) {
         this.withAceDo(function(ed) {
-            ed.setTheme(lively.ide.ace.moduleNameForTheme(themeName));
+            var aceThemeName = lively.ide.ace.moduleNameForTheme(themeName);
+            if (!aceThemeName) {
+                console.log("Loading ace theme %s...", themeName);
+                lively.ide.ace.config.loadModule(["theme", "ace/theme/" + themeName], function() {
+                    console.log("Ace theme %s loaded", themeName);
+                    ed.setTheme(lively.ide.ace.moduleNameForTheme(themeName));
+                });
+            } else { ed.setTheme(aceThemeName); }
         });
         return this._Theme = themeName;
     },
@@ -446,7 +453,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var parts = modeString.split(':'),
             modeName = parts[0], astType = parts[1] || null;
         this.withAceDo(function(ed) {
-            ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
+            var aceModeName = lively.ide.ace.moduleNameForTextMode(modeName);
+            if (!aceModeName) {
+                console.log("Loading ace mode %s...", modeString);
+                lively.ide.ace.config.loadModule(["mode", "ace/mode/" + modeString], function() {
+                    console.log("Ace mode %s loaded", modeString);
+                    ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
+                })
+            } else { ed.session.setMode(aceModeName); }
             ed.session.$astType = astType;
         });
         return this._TextMode = modeString;

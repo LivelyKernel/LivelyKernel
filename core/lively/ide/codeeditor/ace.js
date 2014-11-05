@@ -1,7 +1,7 @@
 module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + 'lib/ace/lively-ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
 
 (function configureAce() {
-    ace.config.set("workerPath", URL.codeBase.withFilename('lib/ace/').fullPath());
+    ace.config.set("basePath", URL.root.withFilename("core/lib/ace/").toString());
     // disable currently broken worker
     ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
 })();
@@ -10,6 +10,7 @@ module('lively.ide');
 
 Object.extend(lively.ide, {
     ace: Object.extend(ace, {
+
         modules: function(optPrefix, shorten) {
             // return ace modules, optionally filtered by optPrefix. If shorten is
             // true remove optPrefix from name
@@ -24,7 +25,7 @@ Object.extend(lively.ide, {
 
         availableTextModes: function() {
             return lively.ide.ace.modules('ace/mode/', false)
-                .select(function(moduleName) { return !!ace.require(moduleName).Mode })
+                .select(function(moduleName) { var mod = ace.require(moduleName); return mod && !!mod.Mode; })
                 .map(function(name) { return name.substring('ace/mode/'.length); });
         },
 
@@ -33,7 +34,7 @@ Object.extend(lively.ide, {
                 'ace/mode/' + textModeName : null;
         },
 
-        availableThemes: function() { return this.modules('ace/theme/', true) },
+        availableThemes: function() { return this.modules('ace/theme/', true).compact() },
 
         moduleNameForTheme: function(themeName) {
             return this.availableThemes().include(themeName) ?

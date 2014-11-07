@@ -1,4 +1,4 @@
-module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions').toRun(function() {
+module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions', 'lively.morphic.tools.FilterableList').toRun(function() {
 
 Object.extend(lively.net.tools.Lively2Lively, {
 
@@ -590,7 +590,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         droppingEnabled: true,
         layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         name: "Lively2LivelyInspector",
-        submorphs: [{
+        submorphs: [
+        lively.BuildSpec("lively.morphic.tools.FilterableList").customize({
             _BorderWidth: 1,
             _ClipMode: "auto",
             _Extent: lively.pt(622.0,320),
@@ -598,18 +599,19 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             _FontSize: 10,
             _Position: lively.pt(10.0,35.0),
             _StyleClassNames: ["SessionList"],
-            _StyleSheet: ".List {\n\
-        	border: 1px solid #DDD !important;\n\
-        }",
-            className: "lively.morphic.List",
             droppingEnabled: true,
             itemList: [],
             layout: {resizeHeight: false,resizeWidth: true},
             name: "SessionList",
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
-        }
-        },{
+                var connectionToMorphNamedFilterableList = this.get('filter').attributeConnections.find(function(ea) {
+                    return ea.sourceAttrName === 'inputChange'
+                })
+                connectionToMorphNamedFilterableList && connectionToMorphNamedFilterableList.disconnect();
+                lively.bindings.connect(this.get('filter'),"inputChange", this, "inputChange", {})
+                lively.bindings.connect(this, "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
+            }
+        }),{
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 5,
             _BorderWidth: 1,
@@ -790,8 +792,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     this.targetMorph.updateSessions();
     this.targetMorph.startStepping(30 * 1000, 'updateSessions');
 }
-});
-
+})
 lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
     _Extent: lively.pt(729.0,367.0),
     className: "lively.morphic.Window",

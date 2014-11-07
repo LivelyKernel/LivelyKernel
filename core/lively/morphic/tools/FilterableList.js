@@ -398,6 +398,14 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         this.renderDebounced();
     },
 
+    setSelection: function setSelection (sel) {
+        this.get('list').setSelection(sel);
+    },
+
+    getSelection: function getSelection () {
+        return this.get('list').getSelection();
+    },
+
     userQueryForSort: function userQueryForSort() {
         var self = this;
         lively.ide.tools.SelectionNarrowing.chooseOne(['time', 'size', 'name'], function(err, selection) {

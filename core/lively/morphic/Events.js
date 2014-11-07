@@ -1534,6 +1534,8 @@ lively.morphic.World.addMethods(
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onWindowResize(evt);
         };
+        // iPad/iPhone don't trigger resize when orientation changes.
+        Global.window.onorientationchange = Global.window.onresize;
         Global.window.onscroll = function(evt) {
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onWindowScroll(evt);

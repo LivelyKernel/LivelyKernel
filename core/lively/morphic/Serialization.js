@@ -161,8 +161,9 @@ lively.morphic.World.addMethods(
             var meta = document.createElement('meta');
             meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
             document.head.appendChild(meta.children[0]);
-            this.bertButton = new lively.morphic.BertButton()
-            this.bertButton.open.bind(this.bertButton, this).delay(0);
+            this.commandButton = new lively.morphic.BertButton();
+            this.commandButton.isCommandButton = true;
+            this.commandButton.open.bind(this.commandButton, this).delay(0);
         }
     },
 

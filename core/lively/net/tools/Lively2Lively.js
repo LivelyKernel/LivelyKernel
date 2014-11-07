@@ -609,7 +609,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                 })
                 connectionToMorphNamedFilterableList && connectionToMorphNamedFilterableList.disconnect();
                 lively.bindings.connect(this.get('filter'),"inputChange", this, "inputChange", {})
-                lively.bindings.connect(this, "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
+                lively.bindings.connect(this.get('list'), "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
             }
         }),{
             _BorderColor: Color.rgb(189,190,192),
@@ -697,7 +697,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
 
         openWorldPreview: function openWorldPreview() {
             lively.net.tools.Functions.openWorldPreview(
-                this.get('SessionList').selection,
+                this.get('SessionList').getSelection(),
                 this.get('SessionList').getSelectedItem().string);
         },
 
@@ -705,8 +705,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             lively.bindings.connect(this.get("RefreshButton"), 'fire', this, 'updateSessions');
             lively.bindings.connect(this.get("PreviewButton"), 'fire', this, 'openWorldPreview');
             lively.bindings.connect(this.get("SendMorphButton"), 'fire', this, 'sendMorphOnUserClick');
-            lively.bindings.connect(this.get("SessionList"), 'selection', this, 'setWorkspaceTarget');
-            this.get("SessionList").selection = null;
+            lively.bindings.connect(this.get("SessionList").get('list'), 'selection', this, 'setWorkspaceTarget');
+            this.get("SessionList").setSelection(null);
             this.get("SessionList").setList([]);
             // this.get('Title').applyStyle({whitespaceHandling: 'pre', wordBreak: 'break-all'})
             this.getPartsBinMetaInfo().addRequiredModule("lively.net.SessionTracker");
@@ -716,7 +716,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         sendMorphOnUserClick: function sendMorphOnUserClick() {
         var world = this.world(),
             sessInspector = this,
-            sel = this.get("SessionList").selection,
+            sel = this.get("SessionList").getSelection(),
             worldName = sel && sel.worldURL;
         if (!sel) { alert('No session selected!'); return }
         alertOK('Please click on the morph that should be send to ' + worldName);
@@ -741,13 +741,13 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
     },
 
         openWorkspaceForSelectedSession: function openWorkspaceForSelectedSession() {
-            var sel = this.get("SessionList").selection;
+            var sel = this.get("SessionList").getSelection();
             if (!sel) { alert('No session selected!'); return }
             lively.net.tools.Functions.openWorkspaceForSession(sel);
         },
 
         visitWorldOfSelectedSession: function visitWorldOfSelectedSession() {
-            var sel = this.get("SessionList").selection;
+            var sel = this.get("SessionList").getSelection();
             sel && lively.net.tools.Functions.visitWorldOfSession(sel);
         },
 
@@ -762,7 +762,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             lively.net.tools.Functions.withSessionsDo(localSession, function(err, sessions) {
                 if (err) {
                     sessionListMorph.setList([]);
-                    sessionListMorph.selection = null;
+                    sessionListMorph.setSelection(null);
                     return;
                 }
 
@@ -774,7 +774,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
                     }
                 });
 
-                var id = sessionListMorph.selection && sessionListMorph.selection.id;
+                var id = sessionListMorph.getSelection() && sessionListMorph.getSelection().id;
                 sessionListMorph.setList(items);
                 var prevSel  = sessionListMorph.itemList.detect(function(item) {
                     return item.value.id === id; })

@@ -365,6 +365,19 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Commands'
         e.aceEditor.execCommand('doit');
         this.assertEquals(42, Global[varName], 'eval not successful');
         this.done();
+    },
+
+    testModifyCommand: function() {
+        var e = this.editor, called = 0;
+        e.textString = "foo\nbar\nbaz\n";
+        e.aceEditor.execCommand('golinedown');
+        this.assertEqualState({row: 1, column: 0}, e.getCursorPositionAce());
+        e.modifyCommand('golinedown', {exec: function (ed,args) { called++ }})
+        e.aceEditor.execCommand('golinedown');
+        lively.ide.ace.require("ace/lib/keys").simulateKey(e.aceEditor, "Down")
+        this.assertEquals(2, called, "callcount")
+        this.assertEqualState({row: 1, column: 0}, e.getCursorPositionAce());
+        this.done();
     }
 
 });

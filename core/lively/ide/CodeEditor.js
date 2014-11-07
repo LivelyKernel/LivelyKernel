@@ -291,9 +291,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             if (typeof cmd.bindKey === 'object' && !commands.platform) return;
             var keySpec = typeof cmd.bindKey === 'object' ? cmd.bindKey[commands.platform] : cmd.bindKey;
             keySpec.split('|').forEach(function(keys) {
-                var parsed = commands.parseKeys(keys),
+                // rk Nov 6, 2014: the current version of date changed the way
+                // keys are recorded in the commandKeyBinding. They now map
+                // directly to the key name instead of a hash/name pair
+                var cmdForKey = ckb[keys.toLowerCase()];
+                if (cmdForKey) ckb[keys.toLowerCase()] = cmd;
+                else {
+                    var parsed = commands.parseKeys(keys);
                     cmdForKey = ckb[parsed.hashId] && ckb[parsed.hashId][parsed.key];
-                if (cmdForKey) ckb[parsed.hashId][parsed.key] = cmd;
+                    if (cmdForKey) ckb[parsed.hashId][parsed.key] = cmd;
+                }
             });
         }
         this.withAceDo(function(ed) {

@@ -797,7 +797,10 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
 
         function pad(string, entireLength) { return Strings.pad(string, entireLength-string.length, true); }
 
-        function printDate(d) { return d && d.format ? d.format("yyyy-mm-dd HH:MM:ss") : "no date"; }
+        function printDate(d) {
+            return d && String(d) !== "Invalid Date" && d.format ?
+                d.format("yyyy-mm-dd HH:MM:ss") : "no date";
+        }
 
     },
 

@@ -920,11 +920,11 @@ handleOnCapture);
         }
 
         if (this.showsMorphMenu
-          && !this.eventsAreIgnored
-          && evt.isRightMouseButtonDown()
-          && evt.getTargetMorph() == this) {
-              evt.hand.clickedOnMorph=this;
-              this.world().clickedOnMorph=this;
+                && !this.eventsAreIgnored
+                && evt.isRightMouseButtonDown()
+                && evt.getTargetMorph() == this) {
+            evt.hand.clickedOnMorph=this;
+            this.world().clickedOnMorph=this;
             this.world().worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
@@ -1278,6 +1278,8 @@ handleOnCapture);
     },
 
     dropOn: function(aMorph) {
+        // I might be wrong, but this.placeHolder is used nowhere wlse and should
+        // probably be this.placeholder. I've not seen where this changes behavior, though.
         var placeholder = this.placeHolder;
         var layouter = aMorph.getLayouter();
 

@@ -405,6 +405,10 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
     getSelection: function getSelection () {
         return this.get('list').getSelection();
     },
+    
+    getSelectedItem: function() {
+        return this.get('list').getSelectedItem();
+    },
 
     userQueryForSort: function userQueryForSort() {
         var self = this;

@@ -642,21 +642,52 @@ lively.morphic.Morph.addMethods(
     },
 
     stopScrollWhenBordersAreReached: function(evt) {
-        if (!this.isScrollable() || this.isInInactiveWindow()) return false;
+        if (!this.isScrollable() || !this.getWindow() || this.isInInactiveWindow()) return false;
         // FIXME HTML specfic! Move to HTML module
+        var morphsUnderHand = evt.hand.world().morphsContainingPoint(evt.hand.getPosition());
+        var otherMorphInWindowScrolls = morphsUnderHand
+                .slice(0, morphsUnderHand.indexOf(this.getWindow()))
+                .find(function(morph) { return morph.handlesScrollEvent(evt) });
+        if (!otherMorphInWindowScrolls && this.stopsScrollEvent(evt)) {
+            evt.stop()
+        };
+        return true;
+    },
+
+    stopsScrollEvent: function(evt) {
+        if (!this.isScrollable() || !this.getWindow() || this.isInInactiveWindow()) return false;
         var div = this.getScrollableNode(evt),
-            maxScroll = this.getMaxScrollExtent();
+            maxScroll = this.getMaxScrollExtent(),
+            stopsEvent = false;
         if (evt.wheelDeltaX) {
             var currentHorizontalScroll = div.scrollLeft;
-            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxScroll.x) { evt.stop(); }
-            if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0) { evt.stop(); }
+            if (evt.wheelDeltaX < 0 && currentHorizontalScroll >= maxScroll.x) { stopsEvent = true; }
+            if (evt.wheelDeltaX > 0 && currentHorizontalScroll <= 0) { stopsEvent = true; }
         }
         if (evt.wheelDeltaY) {
             var currentVerticalScroll = div.scrollTop;
-            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxScroll.y) { evt.stop(); }
-            if (evt.wheelDeltaY > 0 && currentVerticalScroll <= 0) { evt.stop(); }
+            if (evt.wheelDeltaY < 0 && currentVerticalScroll >= maxScroll.y) { stopsEvent = true; }
+            if (evt.wheelDeltaY > 0 && currentVerticalScroll <= 0) { stopsEvent = true; }
         }
-        return true;
+        return stopsEvent;
+    },
+
+    handlesScrollEvent: function(evt) {
+        if (!this.isScrollable() || !this.getWindow() || this.isInInactiveWindow()) return false;
+        var div = this.getScrollableNode(evt),
+            maxScroll = this.getMaxScrollExtent(),
+            handlesEvent = false;
+        if (evt.wheelDeltaX) {
+            var currentHorizontalScroll = div.scrollLeft;
+            if (evt.wheelDeltaX < 0 && currentHorizontalScroll < maxScroll.x) { handlesEvent = true; }
+            if (evt.wheelDeltaX > 0 && currentHorizontalScroll > 0) { handlesEvent = true; }
+        }
+        if (evt.wheelDeltaY) {
+            var currentVerticalScroll = div.scrollTop;
+            if (evt.wheelDeltaY < 0 && currentVerticalScroll < maxScroll.y) { handlesEvent = true; }
+            if (evt.wheelDeltaY > 0 && currentVerticalScroll > 0) { handlesEvent = true; }
+        }
+        return handlesEvent;
     },
 
     isScrollTarget: function(evt) {

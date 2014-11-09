@@ -92,6 +92,9 @@ snippet cl
 # show (lively)
 snippet s
 	show("${1:%o}", ${2});
+# session snippet
+snippet getS
+	var s = lively.net.SessionTracker.getSession();
 # return
 snippet ret
 	return ${1:result};

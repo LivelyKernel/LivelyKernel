@@ -10,6 +10,14 @@ if (!process.env.WORKSPACE_LK) process.env.WORKSPACE_LK = __dirname;
 var path = require("path");
 var util = require('util');
 var ws = require(path.join(process.env.WORKSPACE_LK, 'core/servers/support/websockets'));
+var debug = false;
+
+function log(/*args*/) {
+    if (!debug) return;
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = '[cmdline2lv] ' + args[0];
+    console.log.apply(console, arguments);
+}
 
 function createWebSocketConnection(thenDo) {
     var sessionTrackerURL = process.env.L2L_SESSIONTRACKER_URL
@@ -19,6 +27,7 @@ function createWebSocketConnection(thenDo) {
         options = {protocol: 'lively-json', sender: 'askpass', debugLevel: 10};
 
     if (!secure) {
+        log("Creating websocket connection to %s", url);
         thenDo(null, new ws.WebSocketClient(url, options));
         return;
     }
@@ -38,6 +47,7 @@ function createWebSocketConnection(thenDo) {
         if (caFile) options.tlsOptions.ca = fs.readFileSync(caFile);
         if (keyFile) options.tlsOptions.key = fs.readFileSync(keyFile);
         if (certFile) options.tlsOptions.cert = fs.readFileSync(certFile);
+        log("Creating secure websocket connection to %s", url);
         thenDo(null, new ws.WebSocketClient(url, options));
     });
 }
@@ -46,25 +56,30 @@ function queryLively(msg, thenDo) {
     // lively-2-lively session id to be used to ask for password:
     var clientSessionId = process.env.L2L_EDITOR_SESSIONID;
     if (clientSessionId && !msg.target) msg.target = clientSessionId;
-    
+
+    log("Sending ", msg);
+
     createWebSocketConnection(function(err, wsClient) {
         if (err || !wsClient) {
             thenDo("Lively askpass: unable to create Websocket connection " + err);
             wsClient && wsClient.close();
             return;
         }
-    
+
         wsClient.on('connect', function() {
+            log("Connected");
             wsClient.send(msg, function(answer) {
+                debug && console.error("[cmdline2lv] got answer", answer);
                 wsClient && wsClient.close();
                 thenDo(null, answer);
             });
         });
-        
+
         wsClient.on('error', function(err) {
+            debug && console.error("[cmdline2lv] ", err);
             thenDo("Error in askpass websocket client:\n" + util.inspect(err));
         });
-        
+
         wsClient.connect();
     });
 

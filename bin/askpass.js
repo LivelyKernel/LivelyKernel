@@ -11,11 +11,14 @@ var stderrWrite = process.stderr.write;
 process.stderr.write = function() {};
 process.stdout.write = function() {};
 
-if (!process.env.WORKSPACE_LK) process.env.WORKSPACE_LK = __dirname;
+if (!process.env.WORKSPACE_LK) process.env.WORKSPACE_LK = require("path").join(__dirname, "..");
 
 require("./commandline2lively")({
     action: 'askFor',
-    data: {query: process.argv[2] || 'No query from ASKPASS invocation'},
+    data: {
+        query: process.argv[2] || 'No query from ASKPASS invocation',
+        requiredUser: process.env.L2L_ASKPASS_USER
+    },
 }, function(err, answer) {
     if (err) {
         stderrWrite.call(process.stderr, String(err));

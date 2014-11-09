@@ -161,6 +161,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 case "lisp": case "el": $upd("lisp"); return;
                 case "clj": case "cljs": case "cljx": $upd("clojure"); return;
                 case "cabal": case "hs": $upd("haskell"); return;
+                case "py": $upd("python"); return;
                 default: $upd("text");
             }
         }});

@@ -41,7 +41,7 @@ function runR(rState, args, thenDo) {
     var cmd = "R", dir = process.env.WORKSPACE_LK,
         options = {cwd: dir, stdio: 'pipe', env: process.env};
 
-    if (debug) process.stdout.write('[RServer] Running command: %s', [cmd].concat(args));
+    if (debug) process.stdout.write('[RServer] Running command: ' + [cmd].concat(args));
 
     rState.process = spawn(cmd, args, options);
     domain.add(rState.process);

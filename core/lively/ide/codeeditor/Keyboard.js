@@ -664,12 +664,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     setupEditorConfigBindings: function(kbd) {
             this.addCommands(kbd, [{
                 name: 'increasefontsize',
-                bindKey: {win: "Ctrl-»", mac: "Command-»"},
+                bindKey: {win: "Ctrl-+", mac: "Command-+|Command-="},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() + 1); },
                 readOnly: true
             }, {
                 name: 'decreasefontsize',
-                bindKey: {win: "Ctrl-½", mac: "Command-½"},
+                bindKey: {win: "Ctrl-+", mac: "Command--|Command-_"},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() - 1); },
                 readOnly: true
             }, {

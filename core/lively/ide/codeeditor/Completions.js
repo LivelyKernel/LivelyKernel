@@ -58,6 +58,9 @@ function getObjectForCompletion(evalFunc, stringToEval, thenDo) {
     if (idx >= 0) {
         startLetters = stringToEval.slice(idx+1);
         stringToEval = stringToEval.slice(0,idx);
+    } else {
+        startLetters = stringToEval;
+        stringToEval = 'Global';
     }
     var completions = [];
     try {

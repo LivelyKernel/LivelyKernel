@@ -31,7 +31,31 @@ module('lively.Data').requires('lively.OldModel').toRun(function(thisModule) {
 // FIX for IE9+
 if (typeof XPathResult == 'undefined') {
     JSLoader.loadJs(Config.codeBase + 'lib/wgxpath.install.js', undefined, true);
-    XPathEvaluator = (function () { return document; });
+    XPathEvaluator = (function () {
+        return {
+            createNSResolver: function(ctx) {
+                if (ctx.ownerDocument) {
+                    if (!ctx.ownerDocument.createNSResolver) {
+                        wgxpath.install({document: ctx.ownerDocument});
+                    }
+                    var result = ctx.ownerDocument.createNSResolver(ctx);
+                    result.__doc = ctx.ownerDocument;
+                    return result;
+                } else {
+                    console.warn("Got a ctx without ownerDocument. Shouldn't happen!")
+                    return document.createNSResolver(ctx);
+                }
+            },
+            evaluate: function(expression, node, nsResolver, type, arg) {
+                if (nsResolver.__doc) {
+                    nsResolver.__doc.evaluate(expression, node, nsResolver, type, arg);
+                } else {
+                    console.warn("Got a nsResolver without __doc. Shouldn't happen!")
+                    return document.evaluate(expression, node, nsResolver, type, arg);
+                }
+            }
+        }
+    });
     wgxpath.install();
 }
 

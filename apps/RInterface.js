@@ -77,7 +77,7 @@ Object.extend(apps.RInterface, {
         //var evalProc = {id: id, state: null, output: null};
         //apps.RInterface.evalProcesses.push(evalProc);
 
-        setTimeout(pollForResult, 500);         // give R a little time
+        setTimeout(pollForResult, 2000);         // give R a little time
         return id;
     },
 

@@ -2,6 +2,7 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
 
 (function configureAce() {
     ace.config.set("basePath", URL.root.withFilename("core/lib/ace/").toString());
+    ace.config.set("modePath", URL.root.withFilename("core/lib/ace/").toString());
     // disable currently broken worker
     ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
 })();

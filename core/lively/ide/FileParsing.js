@@ -749,7 +749,7 @@ CodeParser.subclass('JsParser', {
     parseClass: function() { return this.callOMeta("klassDef"); },
 
     parseModuleBegin: function() {
-        var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\s*\.\s*requires\(\s*.*\s*\.\s*toRun\(\s*.*/,
+        var moduleBeginRegex = /^\s*module\([\'\"](.*)[\'\"]\)\s*\.\s*requires\(\s*(?:.|\n)*\s*\.\s*toRun\(\s*.*/,
             match = this.src.slice(this.ptr).match(moduleBeginRegex);
         if (!match) return null;
         if (this.debugMode) {

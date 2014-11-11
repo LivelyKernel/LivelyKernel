@@ -1119,7 +1119,15 @@
                                  && !timemachineActive
                                  && !useRewritten
                                  && !browserDetector.isIE(),
-                combinedModulesHash;
+                combinedModulesHash,
+                onBranch;
+
+            document.cookie.split(';').forEach(function(cookie) {
+                cookie = cookie.trim();
+                if (cookie.substr(0, 20) == 'livelykernel-branch=')
+                    onBranch = cookie.substr(20);
+            });
+            optimizedLoading = optimizedLoading && !onBranch;
 
             if (runCodeOption) {
                 Global.lively.whenLoaded(function() {

@@ -951,7 +951,17 @@ alignSubmorphs: function alignSubmorphs() {
     expand: function expand() {
     var self = this;
     var items = [
-        ['world versions', function() {
+        ['branches ...', function() {
+            var currentBranch = lively.Config.get('cookie')['livelykernel-branch'];
+            $world.prompt('Change branch to:', function(newBranch) {
+                if (newBranch != null) {
+                    document.cookie = 'livelykernel-branch=' + newBranch +
+                        (newBranch == '' ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '');
+                }
+            }, currentBranch);
+            self.collapse();
+        }],
+        ['world versions ...', function() {
             var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
             versionViewer.setPath(URL.source.relativePathFrom(URL.root));
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -960,9 +970,9 @@ alignSubmorphs: function alignSubmorphs() {
     ];
     this.menu = new lively.morphic.Menu(null, items);
     this.menu.openIn(this, pt(0,0), false);
-    this.menu.setBounds(lively.rect(0,-66,130,23*1));
+    this.menu.setBounds(lively.rect(0, -66, 130, 23*items.length));
     this.withCSSTransitionForAllSubmorphsDo(function() {
-        this.setExtent(pt(140, 46+23*1));
+        this.setExtent(pt(140, 46 + 20*items.length));
         this.alignSubmorphs();
     }, 500, function() {});
 },

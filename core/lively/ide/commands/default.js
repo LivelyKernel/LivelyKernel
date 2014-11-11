@@ -1093,6 +1093,15 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
+    'lively.ide.showWikiFlap': {
+        description: 'show wiki flap',
+        exec: function(path) {
+            require('lively.net.tools.Wiki').toRun(function() {
+                lively.BuildSpec('lively.wiki.ToolFlap').createMorph().openInWorld();
+            });
+            return true;
+        }
+    },
 
     'lively.ide.diffWorkspaces': {
         description: 'diff workspaces',

@@ -14,23 +14,35 @@
 // FM: patch do not replace existing globals
 // JL: patch add displayName to functions
 // possible problems with Traits / Mixin Usage
-Object.extend = function(destination, source) {
-    for (var property in source) {
-        if (destination === Global && Global.hasOwnProperty(property)) {
-            console.warn('Global already has a property "' + property + '". If needed, it should be set directly and explicitly, not through the use of extend()');
+Object.extend = function(destination /* ... */) {
+    var currentCategoryNames = null;
+    for (var i = 1; i < arguments.length; i++) {
+        if (typeof arguments[i] == "string") {
+            var catName = arguments[i];
+            if (!destination.categories) destination.categories = {};
+            if (!destination.categories[catName]) destination.categories[catName] = [];
+            currentCategoryNames = destination.categories[catName];
+            continue;
         }
-        var getter = source.__lookupGetter__(property),
-            setter = source.__lookupSetter__(property);
-        if (getter) destination.__defineGetter__(property, getter);
-        if (setter) destination.__defineSetter__(property, setter);
-        if (getter || setter) continue;
-        var sourceObj = source[property];
-        destination[property] = sourceObj;
-        if (sourceObj instanceof Function) {
-            if ((!sourceObj.name || (sourceObj.name.length == 0)) && !sourceObj.displayName) sourceObj.displayName = property;
-            // remember the module that contains the class def
-            if (typeof lively !== 'undefined' && lively.Module && lively.Module.current)
-                sourceObj.sourceModule = lively.Module.current();
+        var source = arguments[i];
+        for (var property in source) {
+            if (destination === Global && Global.hasOwnProperty(property)) {
+                console.warn('Global already has a property "' + property + '". If needed, it should be set directly and explicitly, not through the use of extend()');
+            }
+            var getter = source.__lookupGetter__(property),
+                setter = source.__lookupSetter__(property);
+            if (getter) destination.__defineGetter__(property, getter);
+            if (setter) destination.__defineSetter__(property, setter);
+            if (getter || setter) continue;
+            var sourceObj = source[property];
+            destination[property] = sourceObj;
+            if (currentCategoryNames) currentCategoryNames.push(property);
+            if (sourceObj instanceof Function) {
+                if ((!sourceObj.name || (sourceObj.name.length == 0)) && !sourceObj.displayName) sourceObj.displayName = property;
+                // remember the module that contains the class def
+                if (typeof lively !== 'undefined' && lively.Module && lively.Module.current)
+                    sourceObj.sourceModule = lively.Module.current();
+            }
         }
     }
     return destination;

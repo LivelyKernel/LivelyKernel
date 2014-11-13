@@ -984,6 +984,17 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             $super();
             this.onLoad();
         },
+        onKeyDown: function onKeyDown(evt) {
+        var self = this;
+        var keys = evt.getKeyString();
+        if (keys === "Alt-Shift-T") { // select 'nother session
+          lively.ide.commands.exec(
+            'lively.net.lively2lively.listSessions',
+            function(err, sess) { self.selectTargetSession(sess); })
+          evt.stop(); return true;
+        }
+        return $super(evt);
+    },
         onWindowGetsFocus: function onWindowGetsFocus() {
         this.get('editor').focus();
     },

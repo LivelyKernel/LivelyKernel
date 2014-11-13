@@ -637,7 +637,7 @@ Config.addOptions(
         "lively.morphic.Rendering", [
             ["browserPrefix", browserPrefix, "Prefix used for accessing browser specific features."],
             ["html5CssPrefix", browserPrefixDash],
-            ["html5TransformProperty", UserAgent.isOpera ? 'OTransform' : (browserPrefixDash + 'transform')],
+            ["html5TransformProperty", UserAgent.isOpera ? 'OTransform' : (UserAgent.fireFoxVersion ? "" : browserPrefixDash + 'transform')],
             ["html5TransformOriginProperty", UserAgent.isOpera ? 'OTransformOrigin' : (browserPrefixDash + 'transform-origin')]
         ]);
 

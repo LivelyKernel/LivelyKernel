@@ -751,35 +751,25 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 },
 'mouse events', {
 
-    onMouseOver: function($super, evt) {
-        // this logic is to ensure that if this is a submenu and the selected
-        // item morph of the owner has chnaged but the user is still hovering over
-        // me the item morph which selected me will be reselected.
-        // (deselecting my item morph can happen when quickly swooping over menus)
-
-        if (this.mouseHoveredBefore || this.subMenu) return $super();
-        var owner = this.ownerMenu, myItemInOwner = this.ownerItemMorph;
-
-        (function() {
-            var w = this.world();
-            var handInMe = w && this.fullContainsWorldPoint(w.hand().getPosition());
-            if(!handInMe && owner && myItemInOwner !== owner.overItemMorph) {
-                owner.removeSubMenu();
-                return;
-            }
-            if (handInMe && owner && myItemInOwner && !myItemInOwner.isSelected) {
-                owner.overItemMorph && owner.overItemMorph.deselect();
-                myItemInOwner.select();
-            }
-            this.mouseHoveredBefore = true;
-        }).bind(this).delay(0.3);
-        // evt.stop();
-        return $super(evt);
-    },
-
     onMouseOut: function(evt) {
-        this.mouseHoveredBefore = false;
-        if (evt.getTargetMorph().isAncestorOf(this)) return false;
+        Functions.debounceNamed(this.id + "-maybeRemoveSubmenu", 300, function() {
+            var w = this.world();
+            if (!w) return;
+            var handOverSubmenu = w && this.subMenu && this.subMenu.fullContainsWorldPoint(w.hand().getPosition());
+            if (this.subMenu && this.subMenu.ownerItemMorph !== this.overItemMorph && !this.subMenu.ownerItemMorph.isSelected) {
+                // this logic is to ensure that if this is an owner menu and the selected
+                // item morph that generated a submenu has changed but the user is
+                // still hovering over the submenu then the item morph will be
+                // re-selected
+                // (deselecting my item morph can happen when quickly swooping over menus)
+                if (handOverSubmenu) {
+                    this.overItemMorph && this.overItemMorph.deselect();
+                    this.subMenu.ownerItemMorph.select();
+                    this.overItemMorph = this.subMenu.ownerItemMorph;
+                } else { this.removeSubMenu(); }
+            }
+        }.bind(this))();
+
         if (this.removeOnMouseOut) this.remove();
         return this.removeOnMouseOut;
     }

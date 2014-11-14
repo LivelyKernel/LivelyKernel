@@ -731,7 +731,10 @@
 
         loadAll: function(urls, cb) {
             [].concat(urls).reverse().reduce(function(loadPrevious, url) {
-                return function() { Global.JSLoader.loadJs(url, loadPrevious, url.indexOf('BootstrapDebugger.js') >= -1); };
+                var loadSync = url.indexOf('BootstrapDebugger.js') > -1;
+                return function() {
+                    Global.JSLoader.loadJs(url, loadPrevious, loadSync);
+                };
             }, function() { if (cb) cb(); })();
         },
 

@@ -1,9 +1,9 @@
 /**
- * defaultconfig.js.  System default configuration.
+ * defaultconfig.js.  System default configuration. Reads config.js
  *
- *  Note that if a file localconfig.js can be found, it will be read
- *  immediately after this one, thus allowing any of these settings
- *  to be overridden.
+ * Note that if the files localconfig.json and/or localconfig.js can be found,
+ * those will be read immediately after this one, thus allowing any of these settings
+ * to be overridden to adapt a local Lively installation.
  */
 
 (function setupUserAgent(Global) {
@@ -75,10 +75,6 @@ Global.UserAgent = {
 })(typeof Global !== 'undefined' ? Global : window);
 
 
-//--------------------------
-// Determine runtime behavior based on UA capabilities and user choices
-// (can be overriden in localconfig.js)
-// --------------------------
 (function savePreBootstrapConfig() {
     Global.ExistingConfig = Global.Config;
     if (Global.ExistingConfig) {
@@ -108,9 +104,26 @@ Global.Config = {
         if (option.name === '_options') {
             throw new Error('Cannot set Config._options! Reserved!');
         }
+
         if (!option.hasOwnProperty('value') && option.get) {
+            if (typeof option.get === 'object' && option.get.type === 'function' && option.get.code) {
+                try {
+                    option.get = eval("(" + option.get.code + ")\n\n//# sourceURL=lively.Config.get."+name)
+                } catch (e) {
+                    console.error("Cannot initialize lively.Config." + name + ":\n" + e);
+                }
+            }
             value = option.get();
         }
+
+        if (typeof option.set === 'object' && option.set.type === 'function' && option.set.code) {
+            try {
+                option.set = eval("(" + option.set.code + ")\n\n//# sourceURL=lively.Config.set."+name)
+            } catch (e) {
+                console.error("Cannot initialize lively.Config." + name + ":\n" + e);
+            }
+        }
+
         if (!type && typeof value !== 'undefined') {
             if (Object.isRegExp(value)) type = 'RegExp'
             else if (Object.isArray(value)) type = 'Array'
@@ -118,6 +131,7 @@ Global.Config = {
             else if (typeof value === 'number') type = 'Number'
             else if (typeof value === 'function') type = 'Function'
         }
+
         this._options[name] = {
             doc: docString,
             get: option.get,
@@ -126,6 +140,7 @@ Global.Config = {
             default: value,
             group: group
         }
+
         if (!option.set) this[name] = value;
         else option.set(value);
     },
@@ -214,6 +229,49 @@ Global.Config = {
     },
 
     // helper methods
+    bootstrap: function(LivelyLoader, JSLoader, PreBootstrapConfig, thenDo) {
+        var Config = this, url = Config.codeBase + "lively/config.json";
+
+        // 1. load core/lively/config.json
+        JSLoader.loadJSON(url, function(err, configData) {
+            if (err) thenDo(err, null);
+            else setOptionsFromConfigJSONData(configData, function(err) {
+                // 2. load core/lively/localconfig.js(on)
+                if (err) thenDo(err, null);
+                else loadConfigCustomization(thenDo);
+            });
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function setOptionsFromConfigJSONData(configData, next) {
+            try {
+                var def = Object.keys(configData).reduce(function(def, group) {
+                    return def.concat([group, configData[group]]); }, []);
+                Config.addOptions.apply(Config, def);
+                setContextSpecificOptions(Config, Global.UserAgent, PreBootstrapConfig || {});
+            } catch(e) { next(e, null); return; }
+            next(null);
+        }
+
+        function loadConfigCustomization(thenDo) {
+            loadLocalconfig(function(err) { setConfigOptionsFromURL(); thenDo(); });
+        }
+
+        function loadLocalconfig(thenDo) {
+            try {
+                JSLoader.loadJs(Config.rootPath + 'core/lively/localconfig.js', thenDo);
+            } catch(e) { console.log('localconfig.js could not be loaded.'); thenDo(e); }
+        }
+
+        function setConfigOptionsFromURL() {
+            try {
+                lively.Config.urlQueryOverride();
+            } catch(e) { console.log('Config customization via URL query could not be applied.'); }
+        }
+    },
+
+
     getDocumentDirectory: function() {
         // used in various places
         return JSLoader.currentDir();
@@ -302,326 +360,6 @@ Global.Config = {
     Config._nonOptions = Object.keys(Config).concat(knownNoOptions);
 })(Global.Config);
 
-(function addConfigOptions(Config, UserAgent, ExistingConfig) {
-
-// support for loading from blob urls, e.g. in workers
-// note that workers can also get the location spec passed in as an option so
-// that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
-// doesn't work.
-if (Config.location.protocol.indexOf('blob') > -1) {
-    var isEncoded = !!Config.location.pathname.match(/https?%3A/);
-    var decoded = Config.location.pathname;
-    if (isEncoded) decoded = decodeURIComponent(decoded);
-    var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
-    if (urlMatch) {
-        Config.location = {
-            protocol: urlMatch[1],
-            host: urlMatch[2],
-            pathname: urlMatch[3],
-            toString: function() {
-                return this.protocol + '//' + this.host + this.pathname;
-            }
-        }
-    }
-}
-
-var host = Config.location.host,
-    protocol = Config.location.protocol,
-    url = Config.location.toString();
-
-Config.addOptions(
-"cop", [
-    ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance ."],
-    ['ignoredepricatedProceed', true]
-],
-'cookie', [
-    {
-        name: 'cookie',
-        type: 'Object',
-        doc: 'Get the parsed cookie data',
-        get: function() {
-            return document.cookie ? document.cookie.split(';')
-                .invoke('split', '=')
-                .reduce(function(cookie, kv) {
-                    cookie[kv[0].trim()] = decodeURIComponent(kv[1]);
-                    return cookie;
-                }, {}) : {};
-        },
-        set: function() {}
-    }
-],
-
-'ssl', [
-    {
-        name: 'ssl-subject',
-        type: 'Object|null',
-        doc: 'parsed subject from SSL certificate',
-        get: function() {
-            var subj = Config.get('cookie')["ssl-certificate-subject"];
-            return subj ? Config.get('cookie')["ssl-certificate-subject"]
-                .split('/').compact()
-                .invoke('split', '=').reduce(function(subj, kv) {
-                    subj[kv[0]] = kv[1]; return subj;
-                }, {}) : null;
-        },
-        set: function() {}
-    },
-    {
-        name: 'ssl-auth',
-        type: 'String|null',
-        doc: 'User defined by SSL client certificate',
-        get: function() {
-            var subj = Config.get('ssl-subject');
-            return subj ? {user: subj.CN, email: subj.emailAddress} : null;
-        },
-        set: function() {}
-    }
-],
-
-'user', [
-    {
-        name: 'UserName',
-        type: 'String',
-        doc: 'UserName identifies the current Lively user',
-        get: function() {
-            var user = lively.LocalStorage.get('UserName');
-            if (user && user !== 'undefined') return user;
-            var sslAuth = Config.get('ssl-auth');
-            return (sslAuth && sslAuth.user) || user;
-        },
-        set: function(val) { return lively.LocalStorage.set('UserName', val ? val.replace(/ /g, '_') : val); }
-    },
-    {
-        name: 'UserEmail',
-        type: 'String',
-        doc: 'Email of user',
-        get: function() {
-            var val = lively.LocalStorage.get('UserEmail');
-            if (val && val !== 'undefined') return val;
-            var sslAuth = Config.get('ssl-auth');
-            return (sslAuth && sslAuth.email) || val;
-        },
-        set: function(val) { return lively.LocalStorage.set('UserEmail', val ? val.replace(/ /g, '_') : val); }
-    }
-],
-
-'privacy', [
-    ['isPublicServer', false, "Is the lively server this world is started from considered public?"]
-],
-
-'lively.Network', [
-    ["proxyURL", protocol + '//' + host + '/proxy', "URL that acts as a proxy for network operations"]
-],
-
-'server.nodejs', [
-    ["nodeJSURL", Config.location.protocol + '//' + Config.location.host + '/nodejs'],
-    [/*This is deprecated*/"nodeJSPath", '/home/nodejs/']
-],
-
-'lively.persistence', [
-    ["ignoreClassNotFound", true, "if a class is not found during deserializing a place holder object can be created instead of raising an error"],
-    ["silentFailOnWrapperClassNotFound", true, "DEPRECATED old serialization logic"],
-    ["ignoreLoadingErrors", true],
-    ["ignoreMissingModules", false],
-    ["keepSerializerIds", false],
-    ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."],
-    ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."],
-    ["removeDOMContentBeforeWorldLoad", true, "Whether to remove all the DOM child nodes of the DOM element that is used to display the World."]
-],
-
-'lively.Storage', [
-    ["defaultIndexedDBStores", ["default", "Debugging"], "The default stores created once IndexedDB is opened."]
-],
-
-'lively.bindings', [
-    ["selfConnect", false, "DEPRECATED! some widgets self connect to a private model on startup, but it doesn't seem necessary, turn on to override"],
-    ["debugConnect", false, "For triggering a breakpoint when an connect update throws an error"],
-    ["visualConnectEnabled", false, "Show data-flow arrows when doing a connect using the UI."]
-],
-
-'lively.morphic', [
-    ['isNewMorphic', true, 'Deprecated option, defaults to true. Used in 2011 when Lively2 was being developed.'],
-    ['shiftDragForDup', false, 'Allows easy object duplication using the Shift key.'],
-    ["usePieMenus", UserAgent.isTouch],
-    ["useTransformAPI", (!UserAgent.isOpera) && UserAgent.usableTransformAPI, "Use the browser's affine transforms"],
-
-    ["nullMoveAfterTicks", false, "For the engine/piano demo (and any other simulation interacting with unmoving mouse) it is necessary to generate a mouseMove event after each tick set this true in localconfig if you need this behavior"],
-
-    ["askBeforeQuit", true, "Confirm system shutdown from the user"],
-
-    ["useShadowMorphs", true],
-
-    ["loadSerializedSubworlds", false, "load serialized worlds instead of building them from Javascript"],
-
-    ["personalServerPort", 8081, "where the local web server runs"],
-
-    ["resizeScreenToWorldBounds", false],
-
-    ["changeLocationOnSaveWorldAs", false],
-    ["showWorldSave", true],
-
-    ["gridSpacing", 10, "determins the pixels to snap to alt-dragging the drag halo"],
-
-    // Tests
-    ["serverInvokedTest", false],
-    ["serverTestDebug", false],
-
-    // Modules
-    ["moduleLoadTestTimeout", 10*1000, "Timeout in ms after which to run a module load check. Make it falsy to disable the check."],
-    ["modulesBeforeWorldLoad", ["lively.morphic.HTML"].concat(UserAgent.isMobile ? ["lively.morphic.MobileInterface"] : []), "evaluated before all changes"],
-    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
-    ["codeBase", Config.codeBase && Config.codeBase != '' ? Config.codeBase : Config.getDocumentDirectory()],
-    ["showModuleDefStack", true, "so modules know where they were required from"],
-    ["loadUserConfig", true, "for sth like jens/config.js, used in lively.bootstrap"],
-    ["modulePaths", ["apps", "users"], "root URLs of module lookup"],
-    ["warnIfAppcacheError", true, "In case a world is loaded without being able to reach the application cache (probably because the server cannot be reached) show a warning on world load."],
-
-    ["disableScriptCaching", true],
-    ["defaultDisplayTheme", 'lively'],
-
-    ["onWindowResizeUpdateWorldBounds", true],
-    ["disableNoConsoleWarning", true],
-
-    ["confirmNavigation", false, "don't show confirmation dialog when navigating a link"],
-    ["useAltAsCommand", false, "User Platform Keys (Ctrl und Windows and Meta under Mac as command key)"],
-
-    ["pageNavigationName", "nothing"],
-    ["pageNavigationWithKeys", true, "boy, that's ugly!!!"],
-    ["showPageNumber", true],
-
-    ["useFlattenedHTMLRenderingLayer", true],
-    ["useDelayedHTMLRendering", false],
-
-    // this part is for the CodeDB extension using CouchDB
-    ["couchDBURL", Config.location.protocol + '//' + Config.location.host + '/couchdb'],
-    ["defaultCodeDB", 'code_db'],
-    ["wikiRepoUrl", null],
-
-    ["forceHTML", false],
-
-    ["lessAnnoyingWorldStatusMessages", true],
-    ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]
-],
-
-'lively.morphic.Connectors', [
-    ["enableMagneticConnections", true, "Connectors / lines can \"dock\" to magnet points of morphs."]
-],
-
-'lively.morphic.Events', [
-    ["useMetaAsCommand", false, "Use the meta modifier (maps to Command on the Mac) instead of alt"],
-    ["enableHaloItems", true, "enable or disable showing halo items when Command/Control-clicking"],
-    ["showGrabHalo", false, "enable grab halo (alternative to shadow) on objects in the hand."],
-    ["hideSystemCursor", false],
-    ["handleOnCapture", true],
-    ["globalGrabbing", true],
-    ["touchBeMouse", UserAgent.isTouch]
-],
-
-'lively.debugging', [
-    ["ignoreAdvice", false, "Ignore function logging through the prototype.js wrap mechanism rhino will give more useful exception info"],
-    ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
-    ["loadRewrittenCode", false, "Is currently running code rewritten?"],
-    ["enableDebuggerStatements", false, "Whether to throw Debugger exceptions in rewritten code"],
-    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
-],
-
-'lively.morphic.Text', [
-    ["fontMetricsFromHTML", UserAgent.usableHTMLEnvironment, "Derive font metrics from (X)HTML"],
-    ["fontMetricsFromSVG", false, "Derive font metrics from SVG"],
-    ["fakeFontMetrics", !UserAgent.usableHTMLEnvironment, "Try to make up font metrics entirely (can be overriden to use the native SVG API, which rarely works)"],
-    ["showMostTyping", true, "Defeat bundled type-in for better response in short strings"],
-    // Until we're confident
-    ["showAllTyping", true, "Defeat all bundled type-in for testing"],
-    ["useSoftTabs", true],
-    ["useElasticTabs", false],
-    ["defaultTabSize", 4],
-    ["disableSyntaxHighlighting", false],
-    ["textUndoEnabled", false, "wether Lively takes care of undoing text changes or leaves it to the browser"]
-],
-
-'lively.morphic.CodeEditor', [
-    ['defaultCodeFontSize', 12, "In which pt size code appears."],
-    ['defaultCodeFontFamily', "Monaco,monospace", "Code font"],
-    ['autoIndent', true, "Automatically indent new lines."],
-    ['useAceEditor', true, "Whether to use the ace.ajax editor for code editing."],
-    ['aceDefaultTheme', 'chrome', "Ace theme to use"],
-    ['aceWorkspaceTheme', 'chrome', "Ace theme to use"],
-    ['aceTextEditorTheme', 'chrome', "Ace theme to use"],
-    ['aceSystemCodeBrowserTheme', 'chrome', "Ace theme to use"],
-    ['aceDefaultTextMode', 'javascript', "Ace text mode to use"],
-    ['aceDefaultLineWrapping', true, "Wrap lines in ace?"],
-    ['aceDefaultShowGutter', true, "Enables the line number gutter"],
-    ['aceDefaultShowInvisibles', false, "Indicators for whitespace / non-print chars."],
-    ['aceDefaultShowPrintMargin', false, "Show a vertical line at the print margin column."],
-    ['aceDefaultShowIndents', true, "Indicators for indents in the beginning of lines."],
-    ['aceDefaultUseJavaScriptLinter', false, "Linting JavaScript code on-the-fly"],
-    ['aceDefaultShowActiveLine', false, "Current line is highlighted"],
-    ['aceDefaultShowWarnings', true, "Should autocompletion be enabled?"],
-    ['aceDefaultShowErrors', true, "Show syntax errors in programming language mode?"],
-    ['aceDefaultEnableAutocompletion', true, "Should autocompletion be enabled?"],
-    ['computeCodeEditorCompletionsOnStartup', true, 'when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions'],
-    ['showDoitErrorMessages', true, "When a doit eval results in an error a error message pops up."],
-    ['improvedJavaScriptEval', true, "Eval that changes semantics of how object literals and if statements are evaluated."],
-    ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"]
-],
-
-'lively.ide.Search', [
-    ['codeSearchGrepExclusions', [".svn", ".git", "node_modules", "combined.js", "BootstrapDebugger.js"], "Patterns for files to exclude from grep code search."]
-],
-
-'lively.morphic.StyleSheets', [
-    ["baseThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/base_theme.css', "The base theme CSS file location"],
-    ["ipadThemeStyleSheetURL", ((ExistingConfig && ExistingConfig.codeBase) || Config.getDocumentDirectory()) + 'styles/ipad_theme.css', "The ipad theme CSS file location"]
-],
-
-"lively.PartsBin", [
-    ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"]
-],
-
-"lively.morphic.Windows", [
-    ["useWindowSwitcher", true, "Use the window switcher (F5/CMD+`/CTRL+`)."]
-],
-
-"lively.ide.tools", [
-    ["defaultSCBExtent", [830,515], "Size of SCB"],
-    ["defaultTextEditorExtent", [670,600], "Size of TextEditor"],
-    ["defaultWorkspaceExtent", [600,250], "Size of Workspace"],
-    ["defaultSCBSourcePaneToListPaneRatio", 0.525, "Ratio how much vertical space the sourcePane vs. the list panes get by default in SCB."],
-    ['useHistoryTracking', true, 'When loading lively.ide.SystemCodeBrowserAddons, install history browsing for all future browsers, or not.'],
-    ['propertyPreservation', undefined, 'When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked.']
-],
-
-"Lively2Lively", [
-    ['lively2livelyAutoStart', true, 'Whether to automatically connect to a session tracker server and enable Lively-to-Lively connections.'],
-    ["lively2livelyCentral", "http://lively-web.org/nodejs/SessionTracker/", 'Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate.'],
-    ["lively2livelyAllowRemoteEval", true, 'Allow eval actions from other Lively worlds.'],
-    ["lively2livelyEnableConnectionIndicator", true, 'Show a morph that indicates whether lively2lively is running and which provides access to collab actions.'],
-    ["lively2livelyInformAboutReceivedMessages", true, 'Visually log when receiving a lively2lively message.'],
-    ["lively2livelyTrackerHeartbeatInterval", 30*1000, 'In milliseconds. Ensure staying connected to the tracker by sending regular heartbeats. Change to undefined to disable heartbeats.'],
-    ["lively2livelyLogHeartbeatRoundtripTime", false, 'Logging heartbeat.']
-],
-
-"askpass", [
-    ["askpassSSLcaFile", "", ""],
-    ["askpassSSLkeyFile", "", ""],
-    ["askpassSSLcertFile", "", ""]
-],
-
-"Wiki", [
-    ['showWikiToolFlap', false, 'Show tool flap that gives access to wiki tools.']
-],
-
-'lively.Worker', [
-    ['lively.Worker.idleTimeOfPoolWorker', 60*1000, 'Seconds a lively.Worker that is automatically added to the worker pool is kept alive.']
-],
-
-"Changesets", [
-    ['changesetsExperiment', false, 'track changes and provide a UI for a changesets-based worlkflow'],
-    ['automaticChangesReplay', true, 'restore changes automatically on world load']
-]
-);
-
-})(Global.Config, Global.UserAgent, Global.ExistingConfig);
 
 (function addSystemConfigOptions(Config, UserAgent) {
 
@@ -661,15 +399,59 @@ Config.addOptions(
     lively.Config = Global.Config;
 })();
 
-(function loadConfigCustomization() {
-    try {
-        JSLoader.loadJs(Config.codeBase + 'lively/localconfig.js', null, true);
-    } catch(e) {
-        console.log('localconfig.js could not be loaded.');
+function setContextSpecificOptions(Config, UserAgent, ExistingConfig) {
+    // support for loading from blob urls, e.g. in workers
+    // note that workers can also get the location spec passed in as an option so
+    // that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
+    // doesn't work.
+    if (Config.location.protocol.indexOf('blob') > -1) {
+        var isEncoded = !!Config.location.pathname.match(/https?%3A/);
+        var decoded = Config.location.pathname;
+        if (isEncoded) decoded = decodeURIComponent(decoded);
+        var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
+        if (urlMatch) {
+            Config.location = {
+                protocol: urlMatch[1],
+                host: urlMatch[2],
+                pathname: urlMatch[3],
+                toString: function() {
+                    return this.protocol + '//' + this.host + this.pathname;
+                }
+            }
+        }
     }
-    try {
-        lively.Config.urlQueryOverride();
-    } catch(e) {
-        console.log('Config customization via URL query could not be applied.');
-    }
-})();
+
+    var host = Config.location.host,
+        protocol = Config.location.protocol,
+        url = Config.location.toString();
+
+    Config.addOptions(
+        "lively.Network", [
+            ["proxyURL", protocol + "//" + host + "/proxy", "URL that acts as a proxy for network operations"]
+        ],
+
+        "server.nodejs", [
+            ["nodeJSURL", Config.location.protocol + "//" + Config.location.host + "/nodejs", 'Base URL of Lively subservers. Computed at system start.']
+        ],
+
+        "lively.morphic", [
+            ["modulesBeforeWorldLoad", ["lively.morphic.HTML"].concat(UserAgent.isMobile ? ["lively.morphic.MobileInterface"] : []), "evaluated before all changes"]
+        ],
+
+        "lively.ModuleSystem", [
+            ["codeBase", ExistingConfig.codeBase || Config.getDocumentDirectory()]
+        ],
+
+        "codedb", [
+            ["couchDBURL", Config.location.protocol + "//" + Config.location.host + "/couchdb", "Deprecated."]
+        ],
+
+        "lively.morphic.Events", [
+            ["usePieMenus", UserAgent.isTouch]
+        ],
+
+        "lively.morphic.StyleSheets", [
+          ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + "styles/base_theme.css", "The base theme CSS file location"],
+          ["ipadThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + "styles/ipad_theme.css", "The ipad theme CSS file location"]
+        ]);
+}

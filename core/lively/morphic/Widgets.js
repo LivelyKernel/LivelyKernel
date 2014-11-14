@@ -1,4 +1,4 @@
-module('lively.morphic.Widgets').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
+module('lively.morphic.Widgets').requires(['lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles'].concat(UserAgent.isMobile ? ['lively.morphic.MobileInterface']: [])).toRun(function() {
 
 lively.morphic.Morph.subclass('lively.morphic.Button',
 'settings', {

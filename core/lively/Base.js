@@ -317,7 +317,9 @@ lively.Class = {
             src = '__createClosure("core/lively/Base.js", ' + idx + ', Global, ' + src + ');';
         } else
             src += ' ' + name;
-        return eval(src);
+        var initializer = eval(src);
+        initializer.displayName = name;
+        return initializer;
     },
 
     initializer: function initializer() {

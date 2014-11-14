@@ -108,17 +108,18 @@ Global.Config = {
         if (!option.hasOwnProperty('value') && option.get) {
             if (typeof option.get === 'object' && option.get.type === 'function' && option.get.code) {
                 try {
-                    option.get = eval("(" + option.get.code + ")\n\n//# sourceURL=lively.Config.get."+name)
+                    option.get = eval("(" + option.get.code + ")\n\n//# sourceURL=lively.Config.get."+name);
+                    this.__defineGetter__(name, option.get);
                 } catch (e) {
                     console.error("Cannot initialize lively.Config." + name + ":\n" + e);
                 }
             }
-            value = option.get();
         }
 
         if (typeof option.set === 'object' && option.set.type === 'function' && option.set.code) {
             try {
                 option.set = eval("(" + option.set.code + ")\n\n//# sourceURL=lively.Config.set."+name)
+                this.__defineSetter__(name, option.set);
             } catch (e) {
                 console.error("Cannot initialize lively.Config." + name + ":\n" + e);
             }
@@ -141,8 +142,8 @@ Global.Config = {
             group: group
         }
 
-        if (!option.set) this[name] = value;
-        else option.set(value);
+        if (!option.get && !option.set) this[name] = value;
+        else if (!option.set) option.set(value);
     },
 
     hasOption: function(name) {
@@ -225,18 +226,20 @@ Global.Config = {
         if (!Object.isArray(arr)) {
             throw new Error('Trying to add to a non-array lively.Config.' + name);
         }
-        return arr.push(value);
+        this.set(name, value.concat([value]));
     },
 
     // helper methods
     bootstrap: function(LivelyLoader, JSLoader, PreBootstrapConfig, thenDo) {
-        var Config = this, url = Config.codeBase + "lively/config.json";
+        var Config = this;
 
-        // 1. load core/lively/config.json
+        // 2. load core/lively/config.json
+        var url = PreBootstrapConfig.codeBase + "lively/config.json";
         JSLoader.loadJSON(url, function(err, configData) {
             if (err) thenDo(err, null);
             else setOptionsFromConfigJSONData(configData, function(err) {
-                // 2. load core/lively/localconfig.js(on)
+                addOptionsFromPreBootstrapConfig(PreBootstrapConfig, Config);
+                // 3. load core/lively/localconfig.js(on)
                 if (err) thenDo(err, null);
                 else loadConfigCustomization(thenDo);
             });
@@ -249,7 +252,6 @@ Global.Config = {
                 var def = Object.keys(configData).reduce(function(def, group) {
                     return def.concat([group, configData[group]]); }, []);
                 Config.addOptions.apply(Config, def);
-                setContextSpecificOptions(Config, Global.UserAgent, PreBootstrapConfig || {});
             } catch(e) { next(e, null); return; }
             next(null);
         }
@@ -269,27 +271,30 @@ Global.Config = {
                 lively.Config.urlQueryOverride();
             } catch(e) { console.log('Config customization via URL query could not be applied.'); }
         }
+
+        function addOptionsFromPreBootstrapConfig(ExistingConfig, NewConfig) {
+            if (!ExistingConfig) return;
+            for (var name in ExistingConfig) {
+                var value = ExistingConfig[name];
+                if (NewConfig.hasOption(name)) {
+                    NewConfig.set(name, value)
+                } else {
+                    NewConfig.addOption(name, value, null, 'pre-bootstrap config option');
+                }
+            }
+            delete Global.ExistingConfig;
+        }
     },
 
+    addConfigToLivelyNS: function() {
+        var lively = Global.lively = Global.lively || {};
+        lively.Config = this;
+    },
 
     getDocumentDirectory: function() {
         // used in various places
         return JSLoader.currentDir();
     },
-
-    location: (function setupLocation() {
-        if (typeof document !== "undefined") return document.location;
-        var url = JSLoader.currentDir(),
-            match = url.match(/(^[^:]+:)[\/]+([^\/]+).*/),
-            protocol = match[1],
-            host = match[2];
-        return {
-            toString: function() { return url },
-            valueOf: function() { return url },
-            protocol: protocol,
-            host: host
-        }
-    })(),
 
     // debugging
     allOptionNames: function() {
@@ -360,7 +365,6 @@ Global.Config = {
     Config._nonOptions = Object.keys(Config).concat(knownNoOptions);
 })(Global.Config);
 
-
 (function addSystemConfigOptions(Config, UserAgent) {
 
     var browserPrefix = (function() {
@@ -381,77 +385,6 @@ Global.Config = {
 
 })(Global.Config, Global.UserAgent);
 
-(function addOptionsFromPreBootstrapConfig(ExistingConfig, NewConfig) {
-    if (!ExistingConfig) return;
-    for (var name in ExistingConfig) {
-        var value = ExistingConfig[name];
-        if (NewConfig.hasOption(name)) {
-            NewConfig.set(name, value)
-        } else {
-            NewConfig.addOption(name, value, null, 'pre-bootstrap config option');
-        }
-    }
-    delete Global.ExistingConfig;
-})(Global.ExistingConfig, Global.Config);
-
-(function addConfigToLivelyNS() {
-    var lively = Global.lively = Global.lively || {};
-    lively.Config = Global.Config;
-})();
-
-function setContextSpecificOptions(Config, UserAgent, ExistingConfig) {
-    // support for loading from blob urls, e.g. in workers
-    // note that workers can also get the location spec passed in as an option so
-    // that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
-    // doesn't work.
-    if (Config.location.protocol.indexOf('blob') > -1) {
-        var isEncoded = !!Config.location.pathname.match(/https?%3A/);
-        var decoded = Config.location.pathname;
-        if (isEncoded) decoded = decodeURIComponent(decoded);
-        var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
-        if (urlMatch) {
-            Config.location = {
-                protocol: urlMatch[1],
-                host: urlMatch[2],
-                pathname: urlMatch[3],
-                toString: function() {
-                    return this.protocol + '//' + this.host + this.pathname;
-                }
-            }
-        }
-    }
-
-    var host = Config.location.host,
-        protocol = Config.location.protocol,
-        url = Config.location.toString();
-
-    Config.addOptions(
-        "lively.Network", [
-            ["proxyURL", protocol + "//" + host + "/proxy", "URL that acts as a proxy for network operations"]
-        ],
-
-        "server.nodejs", [
-            ["nodeJSURL", Config.location.protocol + "//" + Config.location.host + "/nodejs", 'Base URL of Lively subservers. Computed at system start.']
-        ],
-
-        "lively.morphic", [
-            ["modulesBeforeWorldLoad", ["lively.morphic.HTML"].concat(UserAgent.isMobile ? ["lively.morphic.MobileInterface"] : []), "evaluated before all changes"]
-        ],
-
-        "lively.ModuleSystem", [
-            ["codeBase", ExistingConfig.codeBase || Config.getDocumentDirectory()]
-        ],
-
-        "codedb", [
-            ["couchDBURL", Config.location.protocol + "//" + Config.location.host + "/couchdb", "Deprecated."]
-        ],
-
-        "lively.morphic.Events", [
-            ["usePieMenus", UserAgent.isTouch]
-        ],
-
-        "lively.morphic.StyleSheets", [
-          ["baseThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + "styles/base_theme.css", "The base theme CSS file location"],
-          ["ipadThemeStyleSheetURL", (ExistingConfig.codeBase || Config.getDocumentDirectory()) + "styles/ipad_theme.css", "The ipad theme CSS file location"]
-        ]);
-}
+(function init(Config) {
+    Config.addConfigToLivelyNS();
+})(Global.Config);

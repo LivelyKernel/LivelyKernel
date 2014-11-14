@@ -949,13 +949,14 @@
                 'core/lively/lang/LocalStorage.js',
                 'core/lively/defaultconfig.js',
                 'core/lively/Base.js',
-                'core/lively/ModuleSystem.js']
+                'core/lively/ModuleSystem.js'];
             return Global.JSLoader.getOption('loadRewrittenCode') ?
                 ["core/lib/escodegen.browser.js",
                  "core/lively/ast/BootstrapDebugger.js"
                 ].concat(normalBootstrapFiles) :
                 normalBootstrapFiles;
         })(),
+
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;
@@ -984,6 +985,7 @@
             console.log('Codebase is ' + codeBase);
             return Config.codeBase = codeBase;
         })(),
+
         rootPath = (function findRootPath() {
             var rootPath = Global.Config && Config.rootPath;
             if (rootPath) return rootPath;
@@ -1003,6 +1005,33 @@
             console.warn('Cannot find rootPath, have to guess...');
             var currentUrl = Global.location.href.toString();
             return Config.rootPath = Global.JSLoader.dirOfURL(currentUrl);
+        })(),
+
+        location = (function computeLocation() {
+          // support for loading from blob urls, e.g. in workers
+          // note that workers can also get the location spec passed in as an option so
+          // that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
+          // doesn't work.
+
+          var loc = Config.location || document.location;
+          if (!loc) return new Error("Could not determine location");
+
+          if (loc.protocol.indexOf('blob') > -1) {
+              var isEncoded = !!loc.pathname.match(/https?%3A/);
+              var decoded = loc.pathname;
+              if (isEncoded) decoded = decodeURIComponent(decoded);
+              var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
+              if (urlMatch) {
+                  return {
+                    protocol: urlMatch[1],
+                    host: urlMatch[2],
+                    pathname: urlMatch[3],
+                    toString: function() { return this.protocol + '//' + this.host + this.pathname; }
+                  }
+              }
+          }
+
+          return loc;
         })();
 
     // ------- generic load support ----------
@@ -1012,6 +1041,7 @@
         bootstrapFiles: bootstrapFiles,
         codeBase: codeBase,
         rootPath: rootPath,
+        location: location,
 
         installWatcher: function(target, propName, haltWhenChanged) {
             // observe slots, for debugging
@@ -1078,11 +1108,10 @@
         startFromSerializedWorld: function(startupFunc) {
             var ldr = Global.LivelyLoader;
             ldr.bootstrap(function(err) {
-                if (err) ldr.handlevStartupError(err);
+                if (err) ldr.handleStartupError(err);
                 else ldr.loadConfig(function(err) {
                     if (err) ldr.handleStartupError(err);
                     else ldr.loadMain(document, function(err) {
-                        debugger;
                         if (err) ldr.handleStartupError(err);
                         else startupFunc && startupFunc();
                     });

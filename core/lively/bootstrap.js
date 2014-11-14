@@ -591,6 +591,20 @@
                     this.loadViaScript(exactUrl, onLoadCb);
             },
 
+        loadJSON: function(url, onLoadCb, beSync) {
+            this.getViaXHR(beSync, url, function(err, content, headers) {
+                if (err) {
+                    console.warn('cannot load JSON %s: %s', url, err);
+                    onLoadCb && onLoadCb(err, null);
+                    return;
+                }
+                try {
+                    var jso = JSON.parse(content);
+                } catch (e) { onLoadCb && onLoadCb(e, null); return; }
+                onLoadCb && onLoadCb(null, jso);
+            });
+        },
+
         loadViaXHR: function(beSync, url, onLoadCb) {
             this.getViaXHR(beSync, url, function(err, content, headers) {
                 if (err) {

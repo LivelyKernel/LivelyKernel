@@ -1053,7 +1053,6 @@
                 }, lively.Config.moduleLoadTestTimeout);
             }
 
-
             var requiredModulesForWorldStart = lively.Config.get("bootstrapModules");
             if (Global.JSLoader.getOption('loadRewrittenCode'))
                 requiredModulesForWorldStart.unshift('lively.ast.Debugging');

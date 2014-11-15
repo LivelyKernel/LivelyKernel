@@ -1,3 +1,4 @@
+/*global require,__dirname,process*/
 var fs           = require("fs"),
     path         = require("path"),
     zlib         = require('zlib'),
@@ -8,22 +9,12 @@ var fs           = require("fs"),
     fuser;
 
 function determineCoreFiles() {
-    // bootstrap.js - libsFile
-    var libsFile = 'core/lib/lively-libs-debug.js';
-    // bootstrap.js - bootstrapFiles
-    var bootstrapFiles = [
-        'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
-        'core/lively/lang/Function.js', 'core/lively/lang/String.js', 'core/lively/lang/Array.js',
-        'core/lively/lang/Number.js', 'core/lively/lang/Date.js', 'core/lively/lang/Worker.js',
-        'core/lively/lang/LocalStorage.js', 'core/lively/defaultconfig.js', 'core/lively/Base.js',
-        'core/lively/ModuleSystem.js'
-    ];
-    // bootstrap.js - bootstrapModules
-    var bootstrapModules = ['lively.lang.Closure', 'lively.bindings', 'lively.Main'];
-    // defaultconfig.js - modulesBeforeWorldLoad
-    bootstrapModules.push('lively.morphic.HTML');
-    // defaultconfig.js - modulesOnWorldLoad
-    bootstrapModules.push('lively.ide', 'lively.IPad', 'lively.net.SessionTracker', 'lively.net.Wiki');
+    var cfg = lively.Config,
+        libsFile = 'core/lib/lively-libs-debug.js',
+        bootstrapFiles = cfg.get("bootstrapFiles"),
+        modulesToInclude = cfg.get("bootstrapModules")
+          .concat(cfg.get("modulesBeforeWorldLoad"))
+          .concat(cfg.get("modulesOnWorldLoad"));
 
     function moduleToFile(module) {
         // TODO: Adapt module load logic
@@ -36,7 +27,7 @@ function determineCoreFiles() {
         return absFile;
     }
 
-    var coreFiles = bootstrapModules.map(moduleToFile).reverse();
+    var coreFiles = modulesToInclude.map(moduleToFile).reverse();
 
     var i = 0;
     var dependencies = {};

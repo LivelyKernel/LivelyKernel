@@ -1,4 +1,27 @@
 {
+  "bootstrap": [
+    ["loadUserConfig", true, "For sth like jens/config.js, used in lively.bootstrap."],
+    ["bootstrapFiles", [
+      "core/lively/Migration.js",
+      "core/lively/JSON.js",
+      "core/lively/lang/Object.js",
+      "core/lively/lang/Function.js",
+      "core/lively/lang/String.js",
+      "core/lively/lang/Array.js",
+      "core/lively/lang/Number.js",
+      "core/lively/lang/Date.js",
+      "core/lively/lang/Worker.js",
+      "core/lively/lang/LocalStorage.js",
+      "core/lively/Base.js",
+      "core/lively/ModuleSystem.js"
+    ], "Loaded to initialize the base Lively system."],
+    ["bootstrapModules", [
+      "lively.lang.Closure",
+      "lively.bindings",
+      "lively.Main"
+      ], "Lively modules to start a world (after the bootstrapFiles are loaded)."]
+  ],
+
   "cop": [
     ["copDynamicInlining", false, "Dynamically compile layered methods for improving their execution performance."],
     ["ignoredepricatedProceed", true]
@@ -11,7 +34,7 @@
       "doc": "Get the parsed cookie data",
       "get": {
           "type": "function",
-          "code": "function() { return document.cookie ? document.cookie.split(';').invoke('split', '=').reduce(function(cookie, kv) { cookie[kv[0].trim()] = decodeURIComponent(kv[1]); return cookie; }, {}) : {}; }"
+          "code": "function() { return typeof document !== 'undefined' && document.cookie ? document.cookie.split(';').invoke('split', '=').reduce(function(cookie, kv) { cookie[kv[0].trim()] = decodeURIComponent(kv[1]); return cookie; }, {}) : {}; }"
       },
       "set": {"type": "function", "code": "function() {}"}
     }
@@ -171,7 +194,6 @@
     ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
     ["codeBase", null, "The URL or path to the core/ Lively modules. Dynamically determined in bootstrap."],
     ["showModuleDefStack", true, "So modules know where they were required from."],
-    ["loadUserConfig", true, "For sth like jens/config.js, used in lively.bootstrap."],
     ["modulePaths", ["apps", "users"], "root URLs of module lookup"],
     ["moduleLoadTestTimeout", 10000, "Timeout in ms after which to run a module load check. Make it falsy to disable the check."],
     ["warnIfAppcacheError", true, "In case a world is loaded without being able to reach the application cache (probably because the server cannot be reached) show a warning on world load."],

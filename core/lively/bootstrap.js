@@ -25,18 +25,11 @@
     */
     var BrowserDetector = function(optSpec) {
         var that = {},
-            spec = optSpec || [{
-                browser: "Chrome",
-                version: "10"
-            }, {
-                browser: "Firefox",
-                version: "4"
-            }, {
-                browser: "Safari",
-                version: "5",
-                versionPrefix: "Version"
-            }],
-            userAgent = Global['navigator'] ? navigator.userAgent : '';
+            spec = optSpec || [
+                {browser: "Chrome", version: "10"},
+                {browser: "Firefox", version: "4"},
+                {browser: "Safari", version: "5", versionPrefix: "Version"}],
+            userAgent = Global.navigator ? Global.navigator.userAgent : '';
 
         that.detectBrowser = function(optSpec) {
             var fullSpec = optSpec || spec,
@@ -730,8 +723,9 @@
                 // + evaluated in the browser b/c module bodies load async). This
                 // is why we wait here using a require
                 // FIXME: cleanup "waitForModules" computation
-                var waitForModules = combinedLoader.expectedModules.withoutAll(LivelyLoader.bootstrapFiles.map(function(fn) {
-                    return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
+                var waitForModules = combinedLoader.expectedModules.withoutAll(
+                    LivelyLoader.bootstrapFiles.map(function(fn) {
+                        return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
                 }).concat(['lib.lively-libs-debug']));
 
                 lively.require(waitForModules).toRun(function() {
@@ -742,9 +736,8 @@
                         realModules = allModules.select(function(ea) {
                             // FIXME, better now throw error in lively.Class.forName
                             return !ea.include('lively-libs')
-                                && lively.Class.forName(ea) !== undefined;
-                        });
-                    lively.require(realModules).toRun(callback);
+                                && lively.Class.forName(ea) !== undefined; });
+                    lively.require(realModules).toRun(function() { callback && callback(); });
                 });
             };
 
@@ -935,28 +928,6 @@
     // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
         libsFiles = [libsFile],
-        bootstrapFiles = (function() {
-            var normalBootstrapFiles = [
-                'core/lively/Migration.js',
-                'core/lively/JSON.js',
-                'core/lively/lang/Object.js',
-                'core/lively/lang/Function.js',
-                'core/lively/lang/String.js',
-                'core/lively/lang/Array.js',
-                'core/lively/lang/Number.js',
-                'core/lively/lang/Date.js',
-                'core/lively/lang/Worker.js',
-                'core/lively/lang/LocalStorage.js',
-                'core/lively/defaultconfig.js',
-                'core/lively/Base.js',
-                'core/lively/ModuleSystem.js'];
-            return Global.JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lib/escodegen.browser.js",
-                 "core/lively/ast/BootstrapDebugger.js"
-                ].concat(normalBootstrapFiles) :
-                normalBootstrapFiles;
-        })(),
-
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;
@@ -1038,10 +1009,18 @@
     Global.LivelyLoader = {
         libsFile: libsFile,
         libsFiles: libsFiles,
-        bootstrapFiles: bootstrapFiles,
         codeBase: codeBase,
         rootPath: rootPath,
         location: location,
+
+        get bootstrapFiles() {
+            var normalBootstrapFiles = lively.Config.bootstrapFiles;
+            return Global.JSLoader.getOption('loadRewrittenCode') ?
+                ["core/lib/escodegen.browser.js",
+                 "core/lively/ast/BootstrapDebugger.js"
+                ].concat(normalBootstrapFiles) :
+                normalBootstrapFiles;
+        },
 
         installWatcher: function(target, propName, haltWhenChanged) {
             // observe slots, for debugging
@@ -1082,10 +1061,8 @@
                 }, lively.Config.moduleLoadTestTimeout);
             }
 
-            var requiredModulesForWorldStart = [
-                'lively.lang.Closure',
-                'lively.bindings',
-                'lively.Main'];
+
+            var requiredModulesForWorldStart = lively.Config.get("bootstrapModules");
             if (Global.JSLoader.getOption('loadRewrittenCode'))
                 requiredModulesForWorldStart.unshift('lively.ast.Debugging');
 
@@ -1101,15 +1078,21 @@
 
         },
 
-        loadConfig: function(thenDo) {
-            Config.bootstrap(Global.LivelyLoader, Global.JSLoader, PreBootstrapConfig, thenDo);
+        loadConfig: function(LivelyLoader, JSLoader, thenDo) {
+            JSLoader.resolveAndLoadAll(
+                LivelyLoader.rootPath, "core/lively/defaultconfig.js",
+                function(err) {
+                    if (err) thenDo(err);
+                    else Global.Config.bootstrap(
+                        Global.LivelyLoader, Global.JSLoader,
+                        PreBootstrapConfig, thenDo); });
         },
 
         startFromSerializedWorld: function(startupFunc) {
             var ldr = Global.LivelyLoader;
-            ldr.bootstrap(function(err) {
+            ldr.loadConfig(ldr, Global.JSLoader, function(err) {
                 if (err) ldr.handleStartupError(err);
-                else ldr.loadConfig(function(err) {
+                else ldr.bootstrap(function(err) {
                     if (err) ldr.handleStartupError(err);
                     else ldr.loadMain(document, function(err) {
                         if (err) ldr.handleStartupError(err);
@@ -1372,11 +1355,7 @@
         // remove libs, JSON:
         Global.LivelyLoader.bootstrapFiles = [
             'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
-        var bootstrapModules = [
-            'lively.lang.Closure',
-            'lively.bindings',
-            'lively.Main'
-        ];
+        var bootstrapModules = lively.Config.get("bootstrapModules");
         Global.LivelyLoader.bootstrap(function() {
             // need to use Lively's global eval because it creates functions
             // with proper Function.prototype extensions

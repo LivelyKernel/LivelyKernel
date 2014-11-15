@@ -270,7 +270,9 @@ Global.Config = {
         function loadLocalconfig(thenDo) {
             try {
                 var path = Config.rootPath.replace(/\/?$/, '/') + 'core/lively/localconfig.js';
-                JSLoader.loadJs(path, thenDo);
+                JSLoader.loadJs(path, function(err) {
+                  /*ignore the error*/
+                  thenDo && thenDo(); });
             } catch(e) { console.log('localconfig.js could not be loaded.'); thenDo(e); }
         }
 

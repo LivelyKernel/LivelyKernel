@@ -180,10 +180,8 @@ Object.subclass('lively.Main.Loader',
 
         XHTMLNS.addCSSDef(cssDef, id);
 
-        // disable Firefox spellchecking
-        if (UserAgent.fireFoxVersion) {
-            document.body.spellcheck = false;
-        }
+        // disable spellchecking to avoid ugly red lines in texts
+        document.body.spellcheck = false;
     }
 
 },

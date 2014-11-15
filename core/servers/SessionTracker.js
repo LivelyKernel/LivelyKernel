@@ -275,6 +275,22 @@ var sessionActions = {
         }
     },
 
+    askFor: function(sessionServer, connection, msg) {
+        var user = msg.data.requiredUser;
+        var filter = user ? function(s) { return s.user === user; } : function() { return true; };
+        var sess = sessionServer.getLastActiveLocalSession(filter);
+        if (!sess) {
+            connection.send({
+                action: msg.action + 'Result',
+                inResponseTo: msg.messageId,
+        		data: {error: "'No last active session!'"}
+            });
+        } else {
+            msg.target = sess.id;
+            sessionServer.routeMessage(msg, connection);
+        }
+    },
+
     remoteEvalRequest: function(sessionServer, connection, msg) {
         try {
             var result = eval(msg.data.expr);
@@ -726,10 +742,11 @@ function SessionTracker(options) {
         return util.format('SessionTracker(%s)', this.websocketServer);
     };
 
-    this.getLastActiveLocalSession = function() {
+    this.getLastActiveLocalSession = function(matchFunc) {
         var sessions = this.getLocalSessions({});
-        return Object.values(sessions[this.id()]).max(function(sess) {
-            return sess.lastActivity || 0; });
+        return Object.values(sessions[this.id()])
+            .filter(matchFunc || function(ea) { return true; })
+            .max(function(sess) { return sess.lastActivity || 0; });
     }
 
     this.getSessionListSimplified = function(options, thenDo) {

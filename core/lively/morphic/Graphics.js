@@ -923,27 +923,7 @@ Object.subclass('lively.morphic.Similitude',
 },
 'application', {
     applyTo: function(rawNode) {
-        if (false && Config.useTransformAPI) {
-            var list = rawNode.transform.baseVal;
-            var canvas = locateCanvas(rawNode);
-
-            var translation = canvas.createSVGTransform();
-            translation.setTranslate(this.e, this.f);
-            list.initialize(translation);
-            if (this.b || this.c) {
-                var rotation = canvas.createSVGTransform();
-                rotation.setRotate(this.getRotation(), 0, 0);
-                list.appendItem(rotation);
-            }
-            if (this.a != 1.0 || this.d != 1.0) {
-                var scaling = canvas.createSVGTransform();
-                var sp = this.getScalePoint();
-                scaling.setScale(sp.x, sp.y);
-                list.appendItem(scaling);
-            }
-        } else {
-            rawNode.setAttributeNS(null, "transform", this.toSVGAttributeValue());
-        }
+        rawNode.setAttributeNS(null, "transform", this.toSVGAttributeValue());
     },
 },
 'transforming', {

@@ -6,6 +6,13 @@
  * to be overridden to adapt a local Lively installation.
  */
 
+(function ensureGlobal() {
+  var _Global = typeof Global !== 'undefined' ? Global :
+               (typeof window !== 'undefined' ? window :
+                (typeof global !== 'undefined' ? global : this));
+  _Global.Global = _Global;
+})();
+
 (function setupUserAgent(Global) {
 
 var webKitVersion = (function() {
@@ -14,8 +21,7 @@ var webKitVersion = (function() {
     return match ? parseInt(match[1]) : 0;
 })();
 
-var isRhino = !Global.navigator || Global.navigator.userAgent.indexOf("Rhino") > -1,
-    isMozilla = Global.navigator && Global.navigator.userAgent.indexOf("Mozilla") > -1,
+var isMozilla = Global.navigator && Global.navigator.userAgent.indexOf("Mozilla") > -1,
     isChrome = Global.navigator && Global.navigator.userAgent.indexOf("Chrome") > -1,
     isOpera = Global.navigator && Global.navigator.userAgent.indexOf("Opera") > -1,
     isIE = Global.navigator && Global.navigator.userAgent.indexOf("MSIE") > -1,
@@ -25,24 +31,10 @@ var isRhino = !Global.navigator || Global.navigator.userAgent.indexOf("Rhino") >
      Global.navigator.userAgent.split("Minefield/")[1]); // nightly
 
 Global.UserAgent = {
-    // Newer versions of WebKit implement proper SVGTransform API, with
-    // potentially better performance. Scratch that, lets make it more
-    // predictable:
-    usableTransformAPI: webKitVersion < 0, //webKitVersion >= 525,
-    usableDropShadow: webKitVersion >= 525,
-    canExtendBrowserObjects: !isRhino, // Error, document
-    usableOwnerSVGElement: !isRhino && !isMozilla,
-
     // WebKit XMLSerializer seems to do weird things with namespaces
     usableNamespacesInSerializer: true, //webKitVersion <= 0,
 
-    usableXmlHttpRequest: !isRhino,
-
-    usableHTMLEnvironment: !isRhino,
-
     webKitVersion: webKitVersion,
-
-    isRhino: isRhino,
 
     isMozilla: isMozilla,
 
@@ -56,9 +48,9 @@ Global.UserAgent = {
 
     isWindows: Global.navigator && Global.navigator.platform == "Win32",
 
-    isLinux: Global.navigator && Global.navigator.platform.startsWith("Linux"),
+    isLinux: Global.navigator && Global.navigator.platform.match(/^Linux/),
 
-    isMacOS: Global.navigator && Global.navigator.platform.startsWith("Mac"),
+    isMacOS: Global.navigator && Global.navigator.platform.match(/^Mac/),
 
     isTouch: false,
 
@@ -72,15 +64,15 @@ Global.UserAgent = {
     isWorker: typeof importScripts !== 'undefined'
 }
 
-})(typeof Global !== 'undefined' ? Global : window);
+})(Global);
 
 
-(function savePreBootstrapConfig() {
+(function savePreBootstrapConfig(Global) {
     Global.ExistingConfig = Global.Config;
     if (Global.ExistingConfig) {
         delete Global.ExistingConfig._options;
     }
-})();
+})(Global);
 
 Global.Config = {
 
@@ -126,8 +118,8 @@ Global.Config = {
         }
 
         if (!type && typeof value !== 'undefined') {
-            if (Object.isRegExp(value)) type = 'RegExp'
-            else if (Object.isArray(value)) type = 'Array'
+            if (value instanceof RegExp) type = 'RegExp'
+            else if (Array.isArray(value)) type = 'Array'
             else if (typeof value === 'string') type = 'String'
             else if (typeof value === 'number') type = 'Number'
             else if (typeof value === 'function') type = 'Function'
@@ -165,11 +157,11 @@ Global.Config = {
         //   [2] docString
         //   [3] type
         //   alernative: spec option as expected by addOption
-        var config = this, args = Array.from(arguments);
+        var config = this, args = Array.prototype.slice.call(arguments);
         for (var i = 0; i < args.length; i += 2) {
             var group = args[i], options = args[i+1];
             options.forEach(function(optionSpec) {
-                if (Object.isArray(optionSpec)) {
+                if (Array.isArray(optionSpec)) {
                     optionSpec[4] = optionSpec[3]; // type, optional
                     optionSpec[3] = group;
                     config.addOption.apply(config, optionSpec);
@@ -183,7 +175,7 @@ Global.Config = {
 
     urlQueryOverride: function() {
         if (Global.UserAgent.isNodejs) return;
-        var queries = document.URL.toString().toQueryParams();
+        var queries = this.parseURLQuery(String(document.location.search));
         for (var name in queries) {
             if (!this.hasOption(name)) continue;
             var value = queries[name];
@@ -223,10 +215,24 @@ Global.Config = {
 
     add: function(name, value) {
         var arr = this.get(name);
-        if (!Object.isArray(arr)) {
+        if (!Array.isArray(arr)) {
             throw new Error('Trying to add to a non-array lively.Config.' + name);
         }
         this.set(name, value.concat([value]));
+    },
+
+    parseURLQuery: function(queryString) {
+        return queryString.split(/[\?\&]/).reduce(function(query, part) {
+          if (!part) return query;
+          var keyAndVal = decodeURIComponent(query).split("=");
+          var val = keyAndVal[1];
+          if (val === "true") val = true;
+          else if (val === "false") val = false;
+          else if (val === "null") val = null;
+          else if (!isNaN(Number(val))) val = Number(val);
+          query[keyAndVal[0]] = val;
+          return query;
+        }, {});
     },
 
     // helper methods
@@ -236,11 +242,11 @@ Global.Config = {
         // 2. load core/lively/config.json
         var url = PreBootstrapConfig.codeBase + "lively/config.json";
         JSLoader.loadJSON(url, function(err, configData) {
-            if (err) thenDo(err, null);
+            if (err) thenDo(err);
             else setOptionsFromConfigJSONData(configData, function(err) {
                 addOptionsFromPreBootstrapConfig(PreBootstrapConfig, Config);
                 // 3. load core/lively/localconfig.js(on)
-                if (err) thenDo(err, null);
+                if (err) thenDo(err);
                 else loadConfigCustomization(thenDo);
             });
         });
@@ -257,12 +263,14 @@ Global.Config = {
         }
 
         function loadConfigCustomization(thenDo) {
-            loadLocalconfig(function(err) { setConfigOptionsFromURL(); thenDo(); });
+            loadLocalconfig(function(err) {
+              setConfigOptionsFromURL(); thenDo(); });
         }
 
         function loadLocalconfig(thenDo) {
             try {
-                JSLoader.loadJs(Config.rootPath + 'core/lively/localconfig.js', thenDo);
+                var path = Config.rootPath.replace(/\/?$/, '/') + 'core/lively/localconfig.js';
+                JSLoader.loadJs(path, thenDo);
             } catch(e) { console.log('localconfig.js could not be loaded.'); thenDo(e); }
         }
 
@@ -388,3 +396,8 @@ Global.Config = {
 (function init(Config) {
     Config.addConfigToLivelyNS();
 })(Global.Config);
+
+(function exports() {
+    if (typeof module !== 'undefined' && module.exports)
+      module.exports = Global.Config;
+})();

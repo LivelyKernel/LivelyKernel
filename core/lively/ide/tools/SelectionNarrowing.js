@@ -87,6 +87,7 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
             setup = options.setup,
             reactivateWithoutInit = options.reactivateWithoutInit,
             narrower = name && this.cachedNarrowers[name];
+        if (narrower) narrower.state.spec.actions = spec.actions;
         if (narrower && reactivateWithoutInit) { narrower.activate(); return }
         if (!narrower) {
             narrower = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();

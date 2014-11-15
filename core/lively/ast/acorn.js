@@ -82,6 +82,15 @@ Object.extend(acorn.walk, {
                 return orig(node, state, cont);
             }
         });
+        base["Property"] = function (node, st, c) {
+            nodes.pushIfNotIncluded(node);
+            c(node.key, st, "Expression");
+            c(node.value, st, "Expression");
+        }
+        base["LabeledStatement"] = function (node, st, c) {
+            node.label && c(node.label, st, "Expression");
+            c(node.body, st, "Statement");
+        }
         acorn.walk.findNodeAround(ast, pos, test, base);
         return nodes;
     },

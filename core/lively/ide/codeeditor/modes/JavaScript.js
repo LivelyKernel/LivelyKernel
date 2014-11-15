@@ -18,7 +18,6 @@ jsMode.addMethods({
 
 });
 
-
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
@@ -90,19 +89,40 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
 
 Object.subclass('lively.ide.codeeditor.modes.JavaScript.RangeExpander',
 'interface', {
-    expandRegion: function(src, ast, expandState) {
+    
+    expandRegion: function(editor, src, ast, expandState) {
+        // use token if no selection
+        if (expandState.range[0] === expandState.range[1]) {
+            var p = editor.indexToPosition(expandState.range[0]);
+            p.column++;
+            var token = editor.tokenAt(p);
+            if (token && !token.type.match(/^(paren|punctuation)/) && !token.value === ",") {
+                var offset = editor.positionToIndex({column: 0, row: p.row});
+                return {
+                    range: [offset + token.start,
+                            offset + token.start + token.value.length],
+                    prev: expandState
+                }
+            }
+        }
+
+        // if selection or no token at point use AST
         ast = ast || (new lively.ide.codeeditor.modes.JavaScript.Navigator()).ensureAST(src);
         var pos = expandState.range[0],
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(node) {
-                return node.start < expandState.range[0] || node.end > expandState.range[1];
-            });
-        return containingNode ?
-            {range: [containingNode.start, containingNode.end], prev: expandState} :
-            expandState;
+                return node.start < expandState.range[0]
+                    || node.end > expandState.range[1]; });
+
+        if (!containingNode) return expandState;
+
+        return {
+            range: [containingNode.start, containingNode.end],
+            prev: expandState
+        }
     },
 
-    contractRegion: function(src, ast, expandState) {
+    contractRegion: function(editor, src, ast, expandState) {
         return expandState.prev || expandState;
     }
 });

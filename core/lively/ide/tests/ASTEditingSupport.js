@@ -10,6 +10,15 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
         this.assertEquals(5, nodes.length);
     },
 
+    testFindNodesIncludingInObjectLiteral: function() {
+        var src = "var x = {foo: 34};",
+            ast = acorn.parse(src),
+            nodes = acorn.walk.findNodesIncluding(ast, 10);
+        this.assertEquals(
+            ["Program","VariableDeclaration","ObjectExpression","Property","Identifier"],
+            nodes.pluck("type"));
+    },
+
     testMatchNodes: function() {
         // body[]:Program<0-11,"Foo.bar = 1">
         //   body[]:Statement<0-11,"Foo.bar = 1">
@@ -100,24 +109,40 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
     }
 });
 
-TestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
+AsyncTestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 'running', {
-    setUp: function() {
+    setUp: function($super, run) {
         this.sut = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
+        this.editor = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), '');
+        var inited = false;
+        this.editor.withAceDo(function() { inited = true; });
+        this.waitFor(function() { return !!inited }, 10, run);
     }
 },
 'testing', {
 
     testExpandRegion: function() {
-        var src = "a + 'foo bar'";
-        var nav = this.sut;
-        this.assertMatches({range: [4, 13]}, nav.expandRegion(src, null, {range: [10,10]}));
-        this.assertMatches({range: [0, 13]}, nav.expandRegion(src, null, {range: [4, 13]}));
-        this.assertMatches({range: [4, 13]}, nav.contractRegion(src, null, {range: [9, 13], prev: {range: [4,13]}}));
+        var src = this.editor.textString = "a + 'foo bar'";
+        this.assertMatches({range: [4, 13]}, this.sut.expandRegion(this.editor, src, null, {range: [10,10]}));
+        this.assertMatches({range: [0, 13]}, this.sut.expandRegion(this.editor, src, null, {range: [4, 13]}));
+        this.assertMatches({range: [4, 13]}, this.sut.contractRegion(this.editor, src, null, {range: [9, 13], prev: {range: [4,13]}}));
 
-        src = "a.b.c";
-        this.assertMatches({range: [4, 5]}, nav.expandRegion(src, null, {range: [4,4]}));
-        // this.assertMatches({range: [2, 5]}, nav.expandRegion(src, {range: [4,5]}));
+        src = this.editor.textString = "a.b.c";
+        this.assertMatches({range: [4, 5]}, this.sut.expandRegion(this.editor, src, null, {range: [4,4]}));
+        // this.assertMatches({range: [2, 5]}, this.sut.expandRegion(src, {range: [4,5]}));
+        this.done();
+    },
+
+    testExpandOnKeyStringLiteral: function() {
+        var src = this.editor.textString = "var x = {foo: 234}";
+        this.assertMatches({range: [9, 12]}, this.sut.expandRegion(this.editor, src, null, {range: [10,10]})); // first "o"
+        this.done();
+    },
+
+    testExpandOnString: function() {
+        var src = this.editor.textString = "var x = 'hello world'";
+        this.assertMatches({range: [8,21]}, this.sut.expandRegion(this.editor, src, null, {range: [12,12]})); // sec "l"
+        this.done();
     }
 
 });

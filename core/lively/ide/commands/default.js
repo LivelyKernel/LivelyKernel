@@ -1400,9 +1400,9 @@ Object.extend(lively.ide.commands.byName, {
     'lively.net.lively2lively.openWorkspace': {description: 'open Lively2LivelyWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace").createMorph().openInWorldCenter().comeForward(); }); return true; }},
     'lively.net.lively2lively.listSessions': {
         description: 'list lively-2-lively sessions',
-        exec: function() {
+        exec: function(withSelectedSessionDo) {
 
-            var foundCandidates = []
+            var foundCandidates = [];
 
             var searcher = Functions.debounce(200, function(input, callback) {
                 lively.net.tools.Functions.withSessionsDo(
@@ -1442,9 +1442,11 @@ Object.extend(lively.ide.commands.byName, {
                     candidatesUpdater: candidateBuilder,
                     keepInputOnReactivate: true,
                     actions: [{
-                        name: 'open workspace',
+                        name: 'open workspace or run callback',
                         exec: function(candidate) {
-                            lively.net.tools.Functions.openWorkspaceForSession(candidate);
+                            withSelectedSessionDo ?
+                              withSelectedSessionDo(null, candidate) :
+                              lively.net.tools.Functions.openWorkspaceForSession(candidate);
                         }
                     }, {
                         name: 'open world preview',

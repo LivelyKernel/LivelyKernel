@@ -161,12 +161,11 @@ Object.subclass('lively.Main.Loader',
         // only texts, lists, etc should show the real focus
 
         if (UserAgent.webKitVersion) {
-            cssDef += ':focus:not(input) {\n'
-                    + '  outline:none;\n'
-                    + '}\n'
-                    + '.visibleSelection:focus {\n'
-                    + '  outline: 2px auto -webkit-focus-ring-color;\n'
-                    + '}\n';
+            cssDef += ':focus:not(input) { outline:none; }\n'
+                    + '.visibleSelection:focus { outline: 2px auto -webkit-focus-ring-color; }\n'
+                    // For fixing CHrome rendering artifacts
+                    // see http://greensock.com/forums/topic/6533-how-to-fix-rendering-artifacts-in-chrome/
+                    + 'body { -webkit-backface-visibility: hidden; }\n';
         }
 
         if (UserAgent.fireFoxVersion) {

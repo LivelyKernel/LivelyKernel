@@ -958,20 +958,17 @@
         })(),
 
         rootPath = (function findRootPath() {
-            var rootPath = Global.Config && Config.rootPath;
-            if (rootPath) return rootPath;
+            if (Global.Config && Config.rootPath) return Config.rootPath;
+            if (codeBase) {
+                var path = Global.JSLoader.makeAbsolute(
+                    Global.JSLoader.dirOfURL(codeBase) + '../');
+                console.log('Root path is ' + path);
+                return Config.rootPath = path;
+            }
             if (Global.Config && Config.standAlone) {
                 // copied from Config.getDocumentDirectory,
-                // Config not yet available...
-                var url = document.URL;
-                rootPath = url.substring(0, url.lastIndexOf('/') + 1);
-                return Config.rootPath = rootPath;
-            }
-            if (codeBase) {
-                var parentDir = Global.JSLoader.dirOfURL(codeBase) + '../';
-                rootPath = Global.JSLoader.makeAbsolute(parentDir);
-                console.log('Root path is ' + rootPath);
-                return Config.rootPath = rootPath;
+                return Config.rootPath = document.URL
+                    .substring(0, url.lastIndexOf('/') + 1);
             }
             console.warn('Cannot find rootPath, have to guess...');
             var currentUrl = Global.location.href.toString();
@@ -1080,7 +1077,7 @@
 
         loadConfig: function(LivelyLoader, JSLoader, thenDo) {
             JSLoader.resolveAndLoadAll(
-                LivelyLoader.rootPath, "core/lively/defaultconfig.js",
+                LivelyLoader.rootPath, ["core/lively/defaultconfig.js"],
                 function(err) {
                     if (err) thenDo(err);
                     else Global.Config.bootstrap(

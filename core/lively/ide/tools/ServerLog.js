@@ -123,10 +123,11 @@ lively.BuildSpec('lively.ide.tools.ServerLog', {
                 atBottom = ed.getCursorPosition().row >= length-2;
             if (length + string.length > maxLength) {
                 var cutoff = Math.max(0, length - string.length - 100000),
-                    snip1 = logText.indexToPosition(0),
-                    snip2 = logText.indexToPosition(cutoff),
-                    snip = lively.ide.ace.require('ace/range').Range(snip1.row, snip1.column, snip2.row, snip2.column);
-                logText.replace(snip, '');
+                    snip = logText.indexToPosition(cutoff);
+                logText.replace({
+                    start: {column: 0, row: 0},
+                    end: {column: snip.column, row: snip.row}
+                }, '');
             }
             ed.session.insert(
                 ed.session.screenToDocumentPosition(Number.MAX_VALUE, Number.MAX_VALUE),

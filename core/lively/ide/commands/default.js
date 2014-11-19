@@ -1576,7 +1576,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.ide.evalJavaScript': 'm-s-:',
-    'lively.ide.WindowNavigation.start': {mac: "cmd-`", win: "ctrl-à"},
+    'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-~", "Command-1", "Command-`", "Control-1"], win: "ctrl-à"},
     'lively.ide.resizeWindow.reset': {mac: "cmd-s-l r e s q", win: "ctrl-s-l r e s q"},
     'lively.ide.resizeWindow.full': {mac: "cmd-s-l r e s f", win: "ctrl-s-l r e s f"},
     'lively.ide.resizeWindow.left': {mac: "cmd-s-l r e s l", win: "ctrl-s-l r e s l"},

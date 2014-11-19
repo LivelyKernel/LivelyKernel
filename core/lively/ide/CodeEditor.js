@@ -133,16 +133,17 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     onstore: function($super, persistentCopy) {
         $super(persistentCopy);
+        if (this.hasOwnProperty("storedTextString")) delete this.storedTextString;
         persistentCopy.storedTextString = this.textString;
     },
 
     onrestore: function($super) {
         $super();
-        if (!this.storedTextString) return;
+        if (!this.hasOwnProperty("storedTextString")) return;
         // wait for ace to be initialized before throwing away the stored string
         // this way we can still return it in textString getter in the meantime
         this.withAceDo(function(ed) {
-            this.textString = this.storedTextString;
+            this.textString = this.storedTextString || "";
             delete this.storedTextString;
         });
     }

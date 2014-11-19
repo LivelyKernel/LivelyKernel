@@ -125,6 +125,7 @@ lively.Worker = {
                     rootPath: options.rootPath,
                     nodeJSURL: options.nodeJSURL,
                     location: options.location,
+                    modulePaths: [],
                     finishLoadingCallbacks: []
                 };
                 Config.location.toString = function() { return this.href; }

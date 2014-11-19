@@ -210,6 +210,13 @@ function startServer(callback) {
     callback(null, process);
 }
 
+function loadNodejsLively(thenDo) {
+    require("lively-loader").withLivelyNamespaceDo(function(err, lively) {
+        if (lively) global.lively = lively;
+        thenDo(err);
+    });
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-
 // This is where we do stuff
 // -=-=-=-=-=-=-=-=-=-=-=-=-
@@ -234,7 +241,8 @@ if (options.defined('info')) {
     checkNPMPackages(function(err) {
         if (err) { console.error('error on server start: %s', err); return; }
         require("async").waterfall([
-    	    downloadPartsBin,
+    	      downloadPartsBin,
+    	      loadNodejsLively,
             getServerInfo,
             killOldServer, // Ensure that only one server for the given port is running
             startServer,

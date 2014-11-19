@@ -1,8 +1,9 @@
-/*global Config, require, Class, WebResource*/
+/*global require, Class, WebResource*/
 /*jshint evil: true, scripturl: true, loopfunc: true, laxbreak: true, immed: true, lastsemic: true, debug: true, regexp: false*/
 
 (function bootstrapLively(Global) {
-    var hostString = Global.document && document.location.host,
+    var PreBootstrapConfig,
+        hostString = Global.document && document.location.host,
         useMinifiedLibs = hostString && hostString.indexOf('localhost') === -1;
 
     /*
@@ -24,18 +25,11 @@
     */
     var BrowserDetector = function(optSpec) {
         var that = {},
-            spec = optSpec || [{
-                browser: "Chrome",
-                version: "10"
-            }, {
-                browser: "Firefox",
-                version: "4"
-            }, {
-                browser: "Safari",
-                version: "5",
-                versionPrefix: "Version"
-            }],
-            userAgent = Global['navigator'] ? navigator.userAgent : '';
+            spec = optSpec || [
+                {browser: "Chrome", version: "10"},
+                {browser: "Firefox", version: "4"},
+                {browser: "Safari", version: "5", versionPrefix: "Version"}],
+            userAgent = Global.navigator ? Global.navigator.userAgent : '';
 
         that.detectBrowser = function(optSpec) {
             var fullSpec = optSpec || spec,
@@ -198,8 +192,7 @@
     })();
 
     (function ensureConfig() {
-        if (!Global.Config) Global.Config = {};
-        Config = Global.Config;
+        return PreBootstrapConfig = Global.Config || (Global.Config = {})
     })();
 
     (function setupLively() {
@@ -559,6 +552,8 @@
                 return Global;
             } :
             function(url, onLoadCb, loadSync, okToUseCache, cacheQuery, suppressDebug) {
+                if (loadSync) console.log("Loading sync %s", url);
+
                 // Deprecation: loading css files via loadJs is no longer
                 // supported
                 if (url.match(/\.css$/) || url.match(/\.css\?/)) {
@@ -570,7 +565,7 @@
                 this.markAsLoading(url);
 
                 // FIXME This is just a test to see if the system can load from rewritten code;
-                var loadDebugCode = JSLoader.getOption('loadRewrittenCode')
+                var loadDebugCode = Global.JSLoader.getOption('loadRewrittenCode')
                                  && !suppressDebug
                                  && !this.isCrossDomain(url);
                 if (loadDebugCode && !url.match(/\/BootstrapDebugger\.js$/)) {
@@ -586,18 +581,33 @@
                     exactUrl = this.makeUncached(exactUrl, cacheQuery);
                 }
 
-                return loadSync || JSLoader.getOption('onLoadRewrite') ?
+                return loadSync || Global.JSLoader.getOption('onLoadRewrite') ?
                     this.loadViaXHR(loadSync, exactUrl, onLoadCb) :
                     this.loadViaScript(exactUrl, onLoadCb);
             },
+
+        loadJSON: function(url, onLoadCb, beSync) {
+            this.getViaXHR(beSync, url, function(err, content, headers) {
+                if (err) {
+                    console.warn('cannot load JSON %s: %s', url, err);
+                    onLoadCb && onLoadCb(err, null);
+                    return;
+                }
+                try {
+                    var jso = JSON.parse(content);
+                } catch (e) { onLoadCb && onLoadCb(e, null); return; }
+                onLoadCb && onLoadCb(null, jso);
+            });
+        },
 
         loadViaXHR: function(beSync, url, onLoadCb) {
             this.getViaXHR(beSync, url, function(err, content, headers) {
                 if (err) {
                     console.warn('cannot load %s: %s', url, err);
-                } else {
-                    JSLoader.evalJavaScriptFromURL(url, content, onLoadCb, headers);
+                    onLoadCb && onLoadCb(err);
+                    return;
                 }
+                Global.JSLoader.evalJavaScriptFromURL(url, content, onLoadCb, headers);
             });
             return null;
         },
@@ -607,7 +617,7 @@
             if (this.loadedURLs.indexOf(url) !== -1) {
                 this.loadedURLs.splice(this.loadedURLs.indexOf(url), 1)
             }
-            JSLoader.removeAllScriptsThatLinkTo(url);
+            Global.JSLoader.removeAllScriptsThatLinkTo(url);
             this.loadJs(url, onLoadCb);
         },
 
@@ -625,20 +635,30 @@
             } else {
                 script.setAttribute('src', url);
             }
-            if (onLoadCb) script.onload = onLoadCb;
+            if (onLoadCb) {
+                script.onload = function(evt) { onLoadCb && onLoadCb(null); };
+                script.onerror = function(evt) { onLoadCb && onLoadCb(evt); };
+            }
             script.setAttributeNS(null, 'async', true);
         },
 
         evalJavaScriptFromURL: function(url, source, onLoadCb) {
-            if (!source) { console.warn('Could not load %s', url); return; }
-            try {
-                // adding sourceURL improves debugging as it will be used
-                // in stack traces by some debuggers
-                eval.call(Global, source + "\n//# sourceURL=" + url);
-            } catch (e) {
-                console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);
+            var err = null;
+            if (!source) {
+                var msg = 'Could not load ' + url + " (could not load source)";
+                console.warn(msg);
+                err = new Error(msg);
+            } else {
+                try {
+                    // adding sourceURL improves debugging as it will be used
+                    // in stack traces by some debuggers
+                    Global.eval(source + "\n\n//# sourceURL=" + url);
+                } catch (e) {
+                    console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);
+                    err = e;
+                }
             }
-            if (typeof onLoadCb === 'function') onLoadCb();
+            if (typeof onLoadCb === 'function') onLoadCb(err);
         },
 
         loadCombinedModules: function(combinedFileUrl, callback, hash) {
@@ -703,8 +723,9 @@
                 // + evaluated in the browser b/c module bodies load async). This
                 // is why we wait here using a require
                 // FIXME: cleanup "waitForModules" computation
-                var waitForModules = combinedLoader.expectedModules.withoutAll(LivelyLoader.bootstrapFiles.map(function(fn) {
-                    return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
+                var waitForModules = combinedLoader.expectedModules.withoutAll(
+                    LivelyLoader.bootstrapFiles.map(function(fn) {
+                        return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
                 }).concat(['lib.lively-libs-debug']));
 
                 lively.require(waitForModules).toRun(function() {
@@ -715,9 +736,8 @@
                         realModules = allModules.select(function(ea) {
                             // FIXME, better now throw error in lively.Class.forName
                             return !ea.include('lively-libs')
-                                && lively.Class.forName(ea) !== undefined;
-                        });
-                    lively.require(realModules).toRun(callback);
+                                && lively.Class.forName(ea) !== undefined; });
+                    lively.require(realModules).toRun(function() { callback && callback(); });
                 });
             };
 
@@ -888,12 +908,9 @@
                 callback(
                     xhr.status >= 400 ? xhr.statusText : null,
                     xhr.responseText,
-                    headerObj
-                );
+                    headerObj);
             };
-            xhr.onerror = function(e) {
-                callback(xhr.statusText, null);
-            };
+            xhr.onerror = function(e) { callback(xhr.statusText, null); };
             xhr.send(null);
         },
 
@@ -911,25 +928,6 @@
     // activate loading on ios 5
     var libsFile = /*useMinifiedLibs ? 'core/lib/lively-libs.js' :*/ 'core/lib/lively-libs-debug.js',
         libsFiles = [libsFile],
-        bootstrapFiles = (function() {
-            var normalBootstrapFiles = [
-                'core/lively/Migration.js',
-                'core/lively/JSON.js',
-                'core/lively/lang/Object.js',
-                'core/lively/lang/Function.js',
-                'core/lively/lang/String.js',
-                'core/lively/lang/Array.js',
-                'core/lively/lang/Number.js',
-                'core/lively/lang/Date.js',
-                'core/lively/lang/Worker.js',
-                'core/lively/lang/LocalStorage.js',
-                'core/lively/defaultconfig.js',
-                'core/lively/Base.js',
-                'core/lively/ModuleSystem.js']
-            return JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"].concat(normalBootstrapFiles) :
-                normalBootstrapFiles;
-        })(),
         codeBase = (function findCodeBase() {
             var codeBase = Global.Config && Config.codeBase,
                 parentDir;
@@ -958,34 +956,68 @@
             console.log('Codebase is ' + codeBase);
             return Config.codeBase = codeBase;
         })(),
+
         rootPath = (function findRootPath() {
-            var rootPath = Global.Config && Config.rootPath;
-            if (rootPath) return rootPath;
+            if (Global.Config && Config.rootPath) return Config.rootPath;
+            if (codeBase) {
+                var path = Global.JSLoader.makeAbsolute(
+                    Global.JSLoader.dirOfURL(codeBase) + '../');
+                console.log('Root path is ' + path);
+                return Config.rootPath = path;
+            }
             if (Global.Config && Config.standAlone) {
                 // copied from Config.getDocumentDirectory,
-                // Config not yet available...
-                var url = document.URL;
-                rootPath = url.substring(0, url.lastIndexOf('/') + 1);
-                return Config.rootPath = rootPath;
-            }
-            if (codeBase) {
-                var parentDir = Global.JSLoader.dirOfURL(codeBase) + '../';
-                rootPath = Global.JSLoader.makeAbsolute(parentDir);
-                console.log('Root path is ' + rootPath);
-                return Config.rootPath = rootPath;
+                return Config.rootPath = document.URL
+                    .substring(0, url.lastIndexOf('/') + 1);
             }
             console.warn('Cannot find rootPath, have to guess...');
             var currentUrl = Global.location.href.toString();
             return Config.rootPath = Global.JSLoader.dirOfURL(currentUrl);
+        })(),
+
+        location = (function computeLocation() {
+          // support for loading from blob urls, e.g. in workers
+          // note that workers can also get the location spec passed in as an option so
+          // that blob parsing shouldn't be necessary. Also, in Firefox blob parsing
+          // doesn't work.
+
+          var loc = Config.location || document.location;
+          if (!loc) return new Error("Could not determine location");
+
+          if (loc.protocol.indexOf('blob') > -1) {
+              var isEncoded = !!loc.pathname.match(/https?%3A/);
+              var decoded = loc.pathname;
+              if (isEncoded) decoded = decodeURIComponent(decoded);
+              var urlMatch = decoded.match(/([^:]+:)\/\/([^\/]+)(.*)/);
+              if (urlMatch) {
+                  return {
+                    protocol: urlMatch[1],
+                    host: urlMatch[2],
+                    pathname: urlMatch[3],
+                    toString: function() { return this.protocol + '//' + this.host + this.pathname; }
+                  }
+              }
+          }
+
+          return loc;
         })();
 
     // ------- generic load support ----------
     Global.LivelyLoader = {
         libsFile: libsFile,
         libsFiles: libsFiles,
-        bootstrapFiles: bootstrapFiles,
         codeBase: codeBase,
         rootPath: rootPath,
+        location: location,
+
+        get bootstrapFiles() {
+            var normalBootstrapFiles = lively.Config.bootstrapFiles;
+            return Global.JSLoader.getOption('loadRewrittenCode') ?
+                ["core/lib/escodegen.browser.js",
+                 "core/lively/ast/BootstrapDebugger.js"
+                ].concat(normalBootstrapFiles) :
+                normalBootstrapFiles;
+        },
 
         installWatcher: function(target, propName, haltWhenChanged) {
             // observe slots, for debugging
@@ -1005,6 +1037,12 @@
                        + '.' + propName + ' installed');
         },
 
+        handleStartupError: function(err) {
+            console.error(
+                "Lively system startup aborted because a critical error occured:\n" + err.stack || err);
+            debugger;
+        },
+
         //
         // ------- load world ---------------
         //
@@ -1020,11 +1058,9 @@
                 }, lively.Config.moduleLoadTestTimeout);
             }
 
-            var requiredModulesForWorldStart = [
-                'lively.lang.Closure',
-                'lively.bindings',
-                'lively.Main'];
-            if (JSLoader.getOption('loadRewrittenCode'))
+
+            var requiredModulesForWorldStart = lively.Config.get("bootstrapModules");
+            if (Global.JSLoader.getOption('loadRewrittenCode'))
                 requiredModulesForWorldStart.unshift('lively.ast.Debugging');
 
             lively.require(requiredModulesForWorldStart).toRun(function() {
@@ -1039,20 +1075,45 @@
 
         },
 
+        loadConfig: function(LivelyLoader, JSLoader, thenDo) {
+            JSLoader.resolveAndLoadAll(
+                LivelyLoader.rootPath, ["core/lively/defaultconfig.js"],
+                function(err) {
+                    if (err) thenDo(err);
+                    else Global.Config.bootstrap(
+                        Global.LivelyLoader, Global.JSLoader,
+                        PreBootstrapConfig, thenDo); });
+        },
+
         startFromSerializedWorld: function(startupFunc) {
-            this.bootstrap(this.loadMain.bind(this, document, startupFunc));
+            var ldr = Global.LivelyLoader;
+            ldr.loadConfig(ldr, Global.JSLoader, function(err) {
+                if (err) ldr.handleStartupError(err);
+                else ldr.bootstrap(function(err) {
+                    if (err) ldr.handleStartupError(err);
+                    else ldr.loadMain(document, function(err) {
+                        if (err) ldr.handleStartupError(err);
+                        else startupFunc && startupFunc();
+                    });
+                });
+            });
+
             return true;
         },
 
         bootstrap: function(thenDoFunc) {
-            var url = Global.JSLoader.currentDir(),
-                dontBootstrap = Config.standAlone || url.indexOf('dontBootstrap=true') >= 0,
-                base = this.rootPath,
+            var loader            = Global.JSLoader,
+                url               = loader.currentDir(),
+                dontBootstrap     = Config.standAlone || loader.getOption('dontBootstrap'),
+                base              = Global.LivelyLoader.rootPath,
                 timemachineActive = /timemachine/.test(Config.rootPath),
-                urlOption = Global.JSLoader.getOption('quickLoad'),
-                useRewritten = !!JSLoader.getOption('loadRewrittenCode'),
-                runCodeOption = Global.JSLoader.getOption('runCode'),
-                optimizedLoading = (urlOption === null ? true : urlOption) && !timemachineActive && !useRewritten && !browserDetector.isIE(),
+                urlOption         = loader.getOption('quickLoad'),
+                useRewritten      = !!loader.getOption('loadRewrittenCode'),
+                runCodeOption     = loader.getOption('runCode'),
+                optimizedLoading  = (urlOption === null ? true : urlOption)
+                                 && !timemachineActive
+                                 && !useRewritten
+                                 && !browserDetector.isIE(),
                 combinedModulesHash;
 
             if (runCodeOption) {
@@ -1061,9 +1122,7 @@
                         console.log('Evaluating code passed in by URL:\n%s', runCodeOption);
                         try {
                             eval(runCodeOption);
-                        } catch(e) {
-                            console.error('Running URL code, error: ', e);
-                        }
+                        } catch(e) { console.error('Running URL code, error: ', e); }
                     }, 0);
                 });
             }
@@ -1072,7 +1131,7 @@
 
             if (optimizedLoading) {
                 var hashUrl = base + 'generated/combinedModulesHash.txt';
-                Global.JSLoader.getViaXHR(true/*sync*/, hashUrl, function(err, hash) {
+                loader.getViaXHR(true/*sync*/, hashUrl, function(err, hash) {
                     if (err) console.warn('Optimized loading not available: ' + err);
                     else combinedModulesHash = hash;
                 });
@@ -1081,9 +1140,9 @@
             if (combinedModulesHash) {
                 console.log('optimized loading enabled');
                 var combinedModulesUrl = base + 'generated/' + combinedModulesHash + '/combinedModules.js';
-                Global.JSLoader.loadCombinedModules(combinedModulesUrl, thenDoFunc);
+                loader.loadCombinedModules(combinedModulesUrl, thenDoFunc);
             } else {
-                Global.JSLoader.resolveAndLoadAll(
+                loader.resolveAndLoadAll(
                     base, this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles),
                     thenDoFunc);
             }
@@ -1286,19 +1345,14 @@
             Global.LivelyMigrationSupport.fixCSS(document);
         }
         var startupFunc = Config.onStartWorld;
-        if (Global.LivelyLoader.startFromSerializedWorld(startupFunc)) return;
-        console.warn("Lively startup failed");
+        Global.LivelyLoader.startFromSerializedWorld(startupFunc)
     }
 
     function initNodejsBootstrap() {
         // remove libs, JSON:
         Global.LivelyLoader.bootstrapFiles = [
             'lib/lively-libs-nodejs.js'].concat(Global.LivelyLoader.bootstrapFiles);
-        var bootstrapModules = [
-            'lively.lang.Closure',
-            'lively.bindings',
-            'lively.Main'
-        ];
+        var bootstrapModules = lively.Config.get("bootstrapModules");
         Global.LivelyLoader.bootstrap(function() {
             // need to use Lively's global eval because it creates functions
             // with proper Function.prototype extensions

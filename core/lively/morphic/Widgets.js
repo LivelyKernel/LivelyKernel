@@ -400,6 +400,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         items.push(['set to original extent', this.setNativeExtent.bind(this)]);
         items.push(['resample image to fit bounds', this.resampleImageToFitBounds.bind(this)]);
         items.push(['inline image data', this.convertToBase64.bind(this)]);
+        items.push(['download', function() { this.downloadImage(); }.bind(this)]);
         return items;
     },
 },
@@ -457,8 +458,27 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         canvasMorph.getContext().drawImage(this.renderContext().imgNode, 0, 0, ext.x, ext.y);
         canvasMorph.adaptCanvasSizeHTML(canvasMorph.renderContext(), canvasMorph.getExtent(), ext);
         this.setImageURL(canvasMorph.toDataURI(), true);
-    }
+    },
 
+    downloadImage: function() {
+        // This doesn't work in all browsers. Alternative would be:
+        // var dataDownloadURL = url.replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+        // window.open(dataDownloadURL);
+        // however this wouldn't allow to set a file name...
+
+        var url = this.getImageURL(), name;
+        if (url.match(/^data:image/)) { // data url
+          name = this.name || "image-from-lively";
+          var typeMatch = url.match(/image\/([^;]+)/)
+          if (typeMatch && typeMatch[1]) name += "." + typeMatch[1];
+        } else {
+          if (!name) name = url.split('/').last();
+        }
+        var link = document.createElement('a');
+        link.download = name;
+        link.href = url;
+        link.click();
+    },
 });
 Object.extend(lively.morphic.Image, {
     fromURL: function(url, optBounds) {

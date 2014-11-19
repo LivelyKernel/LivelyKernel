@@ -218,7 +218,7 @@ Global.Config = {
         if (!Array.isArray(arr)) {
             throw new Error('Trying to add to a non-array lively.Config.' + name);
         }
-        this.set(name, value.concat([value]));
+        this.set(name, arr.concat([value]));
     },
 
     parseURLQuery: function(queryString) {

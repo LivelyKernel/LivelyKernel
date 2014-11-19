@@ -755,7 +755,21 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     visibleBounds:  function () {
         // the bounds call seems to slow down halos...
         return this.windowBounds().intersection(this.innerBounds());
+    },
+
+    isFullscreen: function() {
+        return !!document.fullscreenElement
+            || !!document.webkitFullscreenElement
+            || !!document.mozFullScreenElement;
+    },
+
+    requestFullscreen: function() {
+        var n = this.renderContext().morphNode;
+        if (n.requestFullscreen) { n.requestFullscreen(); }
+        else if (n.webkitRequestFullscreen) { n.webkitRequestFullscreen(); }
+        else if (n.mozRequestFullScreen) { n.mozRequestFullScreen(); }
     }
+
 },
 'rendering', {
     displayOnDocument: function(doc) {

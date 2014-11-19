@@ -93,6 +93,20 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
       this.done();
     },
 
+    testCaptureDefRanges: function() {
+        var code     = "var y = 1, x = 2;\nvar y = 3; z = 4; baz(x, y, z); function baz(a,b,c) {}",
+            expectedValues = {y: 3, x: 2},
+            expectedRanges = {
+              baz: [{end: 72, start: 50, type: "FunctionDeclaration"}],
+              x: [{end: 16, start: 11, type: "VariableDeclarator"}],
+              y: [{end: 9, start: 4, type: "VariableDeclarator"},
+                  {end: 27, start: 22, type: "VariableDeclarator"}]},
+            rec = {}, rangeRecorder = {};
+        lively.lang.VM.syncEval(code, {topLevelVarRecorder: rec, topLevelDefRangeRecorder: rangeRecorder});
+        this.assertEqualState(expectedRanges, rangeRecorder);
+        this.assertEqualState(expectedValues, rec);
+        this.done();
+    },
 
     testDontUndefineVars: function() {
         var code = "var x; var y = x + 3;";

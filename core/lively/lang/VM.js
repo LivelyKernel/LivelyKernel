@@ -2,7 +2,7 @@ module('lively.lang.VM').requires("lively.ast.AstHelper").toRun(function() {
 
 Object.extend(lively.lang.VM, {
 
-    transformForVarRecord: function(code, varRecorder, varRecorderName, blacklist) {
+    transformForVarRecord: function(code, varRecorder, varRecorderName, blacklist, defRangeRecorder) {
         // variable declaration and references in the the source code get
         // transformed so that they are bound to `varRecorderName` aren't local
         // state. THis makes it possible to capture eval results, e.g. for
@@ -13,8 +13,10 @@ Object.extend(lively.lang.VM, {
             var undeclaredToTransform = Object.keys(varRecorder).withoutAll(blacklist),
                 transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
                     code, {name: varRecorderName, type: "Identifier"},
-                    {ignoreUndeclaredExcept: undeclaredToTransform, exclude: blacklist});
+                    {ignoreUndeclaredExcept: undeclaredToTransform,
+                     exclude: blacklist, recordDefRanges: !!defRangeRecorder});
             code = transformed.source;
+            if (defRangeRecorder) Object.extend(defRangeRecorder, transformed.defRanges);
         } catch(e) {
             if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
             else console.error("Eval preprocess error: %s", e.stack || e);
@@ -47,7 +49,8 @@ Object.extend(lively.lang.VM, {
             varRecorderName = options.varRecorderName || '__lvVarRecorder';
 
         if (recorder) code = vm.transformForVarRecord(
-            code, recorder, varRecorderName, options.dontTransform);
+            code, recorder, varRecorderName,
+            options.dontTransform, options.topLevelDefRangeRecorder);
         code = vm.transformSingleExpression(code);
         return code;
     },
@@ -69,7 +72,7 @@ Object.extend(lively.lang.VM, {
         var vm = lively.lang.VM, result, err,
             context = options.context || vm.getGlobal(),
             recorder = options.topLevelVarRecorder;
-          code = vm.evalCodeTransform(code, options);
+        code = vm.evalCodeTransform(code, options);
 
         $morph('log') && ($morph('log').textString = code);
 

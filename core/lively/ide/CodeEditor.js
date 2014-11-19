@@ -190,7 +190,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.setShowInvisibles(this.getShowInvisibles());
         this.setShowIndents(this.getShowIndents());
         this.setSoftTabs(this.getSoftTabs());
-        this.setTabSize(this.getTabSize());
+        if (this.hasOwnProperty("_TabSize")) this.setTabSize(this.getTabSize());
+        else this.guessAndSetTabSize();
         if (this.getElasticTabs()) this.setElasticTabs(true);
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
@@ -1448,6 +1449,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.session.getTabSize(); });
     },
     setTabSize: function(tabSize) {
+        this._TabSize = tabSize;
         return this.withAceDo(function(ed) { return ed.session.setTabSize(tabSize); });
     },
     guessTabSize: function() {

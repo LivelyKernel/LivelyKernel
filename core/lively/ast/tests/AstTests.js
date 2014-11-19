@@ -307,7 +307,7 @@ TestCase.subclass('lively.ast.tests.Transforming',
 
     testTransformTopLevelVarDeclsForCapturing: function() {
         var code     = "var y, z = foo + bar; baz.foo(z, 3)",
-            expected = "Global.y = undefined;\nGlobal.z = Global.foo + Global.bar; Global.baz.foo(Global.z, 3)",
+            expected = "Global.y = Global['y'] || undefined;\nGlobal.z = Global.foo + Global.bar; Global.baz.foo(Global.z, 3)",
             recorder = {name: "Global", type: "Identifier"},
             result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder);
         this.assertEquals(expected, result.source);
@@ -364,8 +364,22 @@ TestCase.subclass('lively.ast.tests.Transforming',
         var code     = "var x = 2; y = 3; z = 4; baz(x, y, z)",
             expected = "foo.x = 2; foo.y = 3; z = 4; baz(foo.x, foo.y, z)",
             recorder = {name: "foo", type: "Identifier"},
-            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(code, recorder, {exclude: ['baz', 'z']});
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
+                code, recorder, {exclude: ['baz', 'z']});
         this.assertEquals(expected, result.source);
+    },
+
+    testTransformTopLevelVarDeclsAndCaptureDefRanges: function() {
+        var code     = "var y = 1, x = 2;\nvar y = 3; z = 4; baz(x, y, z); function baz(a,b,c) {}",
+            expected = {
+              baz: [{end: 72, start: 50, type: "FunctionDeclaration"}],
+              x: [{end: 16, start: 11, type: "VariableDeclarator"}],
+              y: [{end: 9, start: 4, type: "VariableDeclarator"},
+                  {end: 27, start: 22, type: "VariableDeclarator"}]},
+            recorder = {name: "foo", type: "Identifier"},
+            result   = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
+                code, recorder, {recordDefRanges: true});
+        this.assertEqualState(expected, result.defRanges);
     },
 
     testTransformToReturnLastStatement: function() {

@@ -1638,8 +1638,14 @@ Object.extend(lively.ast.transform, {
                             }
 
                             return declNode.declarations.map(function(ea) {
+                                var init = {
+                                  operator: "||",
+                                  type: "LogicalExpression",
+                                  left: {computed: true, object: assignToObj,property: {type: "Literal", value: ea.id.name},type: "MemberExpression"},
+                                  right: {name: "undefined", type: "Identifier"}
+                                }
                                 return shouldDeclBeCaptured(ea) ?
-                                    assign(ea.id, ea.init) : varDecl(ea); });
+                                    assign(ea.id, ea.init || init) : varDecl(ea); });
                         }
                     }
                 }), result);

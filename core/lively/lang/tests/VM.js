@@ -93,6 +93,14 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
       this.done();
     },
 
+
+    testDontUndefineVars: function() {
+        var code = "var x; var y = x + 3;";
+        var rec = {x: 23};
+        lively.lang.VM.syncEval(code, {topLevelVarRecorder: rec});
+        this.assertEquals(26, rec.y);
+        this.done();
+    }
 });
 
 AsyncTestCase.subclass('lively.lang.tests.VM.LivelyCompatTests',

@@ -518,7 +518,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             fixedWidth = isClip || this.fixedWidth,
             fixedHeight = isClip || this.fixedHeight,
             style = textNode.style,
-            prefix, padding;
+            prefix, padding, isMoz = !!UserAgent.fireFoxVersion;
 
         if (fixedWidth || fixedHeight) {
             // only compute it when needed
@@ -534,6 +534,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             var minWidth = this.getMinTextWidth()
             style.minWidth = minWidth ? minWidth + 'px' : null;
         }
+        if (isMoz) style.width = style.minWidth;
 
         if (fixedHeight) {
             var paddingHeight = padding ? padding.top() + padding.bottom() : 0,
@@ -543,6 +544,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             var minHeight = this.getMinTextHeight();
             style.minHeight = minHeight ? minHeight + 'px' : null;
         }
+        if (isMoz) style.height = style.minHeight;
     },
 
     computeRealTextBounds: function() {

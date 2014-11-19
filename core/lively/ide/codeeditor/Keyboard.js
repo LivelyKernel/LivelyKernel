@@ -716,9 +716,11 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         ed.$morph.setTabSize(size);
                         $world.confirm('Set tab size to ' + newTabSize + ' for all editors?', function(input) {
                             if (!input) { ed.$morph.focus(); return; }
-                            lively.Config.set("defaultTabSize", newTabSize);
-                            lively.morphic.CodeEditor.prototype.style.tabSize = Config.get('defaultTabSize');
-                            $world.withAllSubmorphsDo(function(ea) { return ea.isCodeEditor && ea.setTabSize(size); });
+                            var size = 2;
+                            $world.withAllSubmorphsSelect(function(ea) { return ea.isCodeEditor; })
+                              .invoke("setTabSize", newTabSize);
+                            lively.Config.set('defaultTabSize', newTabSize);
+                            lively.morphic.CodeEditor.prototype.style.tabSize = newTabSize;
                             alertOK('Changed global tab size to ' + newTabSize);
                             ed.$morph.focus();
                         });

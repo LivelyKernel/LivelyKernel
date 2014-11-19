@@ -521,7 +521,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         var platform = lively.shell.getServerPlatform(),
             sep = platform.match(/^win/) ? '\\' : '/',
             baseDir = lively.shell.cwd(),
-            needsSep = baseDir[baseDir.length-1] !== sep && path[0] === sep;
+            needsSep = baseDir[baseDir.length-1] !== sep && path[0] !== sep;
         return baseDir + (needsSep ? '/' : '') + path;
     },
 

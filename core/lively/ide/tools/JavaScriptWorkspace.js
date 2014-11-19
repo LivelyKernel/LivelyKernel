@@ -153,20 +153,42 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         }
 
     },
-        boundEval: function boundEval(__evalStatement) {
-            // Evaluate the string argument in a context in which "this" is
-            // determined by the reuslt of #getDoitContext
-            var ctx = this.getDoitContext() || this,
-                result;
-
-            if (!this.state.workspaceVars) this.state.workspaceVars = {};
-
-            lively.lang.VM.runEval(__evalStatement, {
-                context: ctx,
-                topLevelVarRecorder: this.state.workspaceVars
-            }, function(err, _result) { result = err || _result; })
-            return result;
-        },
+        boundEval: function boundEval(__evalStatement, __evalRange) {
+        // Evaluate the string argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
+        var ctx = this.getDoitContext() || this,
+            result;
+    
+        if (!this.state.workspaceVars) this.state.workspaceVars = {};
+        if (!this.state.defRanges) this.state.defRanges = {};
+        var defRanges = {};
+    
+        lively.lang.VM.runEval(__evalStatement, {
+            context: ctx,
+            topLevelVarRecorder: this.state.workspaceVars,
+            topLevelDefRangeRecorder: __evalRange ? defRanges : null
+        }, function(err, _result) { result = err || _result; });
+    
+        __evalRange && Object.keys(defRanges).forEach(function(key) {
+            var defRangesForVar = defRanges[key];
+            defRangesForVar.forEach(function(range) {
+                range.start += __evalRange.start.index;
+                range.end += __evalRange.start.index;
+            });
+        });
+    
+        this.state.defRanges = Object.merge([this.state.defRanges, defRanges]);
+    
+        return result;
+    },
+        getVarValue: function getVarValue(varName) {
+        return !this.state.workspaceVars ?
+          undefined : this.state.workspaceVars[varName];
+    },
+        getVarValue: function setVarValue(varName, val) {
+        if (!this.state.workspaceVars) this.state.workspaceVars = {};
+        return this.state.workspaceVars[varName] = val;
+    },
         hideVariableArea: function hideVariableArea() {
         var newEditorBounds = rect(pt(3,22), this.get("listContainer").bounds().bottomRight());
         // this.setBounds(newEditorBounds);
@@ -207,9 +229,19 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         this.state = {
             depth: 1,
             doNotSerialize: ["workspaceVars"],
-            workspaceVars: {}
+            workspaceVars: {},
+            defRanges: {}
         }
         this.showVars();
+        lively.bindings.connect(this.get("workspaceVarObserver"), "selection", this, "selectVarDef");
+    },
+        selectVarDef: function selectVarDef(selection) {
+        if (!selection) return;
+        var name = selection.item.value.key
+        var defRanges = this.state.defRanges[name];
+        if (!defRanges || !defRanges.length) return;
+        var range = defRanges.last();
+        this.setSelectionRange(range.start, range.end, true);
     },
         showVariableArea: function showVariableArea() {
         var border = 2,
@@ -334,6 +366,8 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             }
 
             function stringifyObj(obj) {
+                var string = String(obj);
+                return string.truncate(250);
                 var string;
                 if (obj && obj.isMorph) {
                     string = obj.toString();
@@ -356,12 +390,17 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         var hidden = this.varAreaIsHidden();
         var label = hidden ? "hide vars" : "show vars";
         btn.setLabel(label);
+        if (this.owner.submorphs.indexOf(btn) < this.owner.submorphs.indexOf(this))
+            this.owner.addMorph(this, btn);
     },
         varAreaIsHidden: function varAreaIsHidden() {
         this.cachedBounds = null;
         this.aceEditor.resize(true)
         var varsAreVisible = this.getWindow().getExtent().x - this.bounds().width > 30;
         return !varsAreVisible
+    },
+        connectionRebuilder: function connectionRebuilder() {
+        lively.bindings.connect(this.get("workspaceVarObserver"), "selection", this, "selectVarDef");
     }
     },{
         _BorderColor: Color.rgb(189,190,192),

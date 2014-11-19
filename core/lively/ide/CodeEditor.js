@@ -721,10 +721,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph eval interface', {
 
-    tryBoundEval: function(string) {
+    tryBoundEval: function(string, range) {
         // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
         try {
-            return this.boundEval(string);
+            return this.boundEval(string, range);
         } catch(e) {
             // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
             if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
@@ -876,7 +876,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     evalSelection: function(printIt) {
         var str = this.getSelectionOrLineString(),
-            result = this.tryBoundEval(str);
+            range = this.getSelectionRange(),
+            result = this.tryBoundEval(str, {start: {index: range[0]}, end: {index: range[1]}});
         if (printIt) this.insertAtCursor(String(result), true);
         return result;
     },
@@ -924,7 +925,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     doit: function(printResult, editor) {
         var text = this.getSelectionMaybeInComment(),
-            result = this.tryBoundEval(text);
+            range = this.getSelectionRange(),
+            result = this.tryBoundEval(text, {start: {index: range[0]}, end: {index: range[1]}});
         if (printResult) {
           if (this.getPrintItAsComment()) {
             try { result = " => " + Objects.inspect(result, {maxDepth: 4});
@@ -1042,12 +1044,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.selection });
     },
 
-    setSelectionRange: function(startIdx, endIdx) {
+    setSelectionRange: function(startIdx, endIdx, reverse) {
         this.withAceDo(function(aceEditor) {
             var doc = aceEditor.session.doc,
                 start = doc.indexToPosition(startIdx),
                 end = doc.indexToPosition(endIdx);
-            aceEditor.selection.setRange({start: start, end: end});
+            aceEditor.selection.setRange({start: start, end: end}, reverse);
         });
     },
 
@@ -1329,7 +1331,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doSave: function() {
         this.savedTextString = this.textString;
         if (this.evalEnabled) {
-            this.tryBoundEval(this.savedTextString);
+            this.tryBoundEval(this.savedTextString, {start: {index: 0}, end: {index: this.textString.length}});
         }
     },
     clear: function() {

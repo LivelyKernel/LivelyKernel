@@ -224,7 +224,7 @@ Global.Config = {
     parseURLQuery: function(queryString) {
         return queryString.split(/[\?\&]/).reduce(function(query, part) {
           if (!part) return query;
-          var keyAndVal = decodeURIComponent(query).split("=");
+          var keyAndVal = decodeURIComponent(part).split("=");
           var val = keyAndVal[1];
           if (val === "true") val = true;
           else if (val === "false") val = false;

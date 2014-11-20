@@ -751,9 +751,8 @@
 
         loadAll: function(urls, cb) {
             [].concat(urls).reverse().reduce(function(loadPrevious, url) {
-                var loadSync = url.indexOf('BootstrapDebugger.js') > -1;
                 return function() {
-                    Global.JSLoader.loadJs(url, loadPrevious, loadSync);
+                    Global.JSLoader.loadJs(url, loadPrevious);
                 };
             }, function() { if (cb) cb(); })();
         },
@@ -1011,12 +1010,8 @@
         location: location,
 
         get bootstrapFiles() {
-            var normalBootstrapFiles = lively.Config.bootstrapFiles;
-            return Global.JSLoader.getOption('loadRewrittenCode') ?
-                ["core/lib/escodegen.browser.js",
-                 "core/lively/ast/BootstrapDebugger.js"
-                ].concat(normalBootstrapFiles) :
-                normalBootstrapFiles;
+            // FIXME: getter does not work with initNodejsBootstrap()
+            return lively.Config.bootstrapFiles;
         },
 
         installWatcher: function(target, propName, haltWhenChanged) {
@@ -1077,7 +1072,11 @@
 
         loadConfig: function(LivelyLoader, JSLoader, thenDo) {
             JSLoader.resolveAndLoadAll(
-                LivelyLoader.rootPath, ["core/lively/defaultconfig.js"],
+                LivelyLoader.rootPath,
+                (Global.JSLoader.getOption('loadRewrittenCode') ?
+                    ["core/lib/escodegen.browser.js", "core/lively/ast/BootstrapDebugger.js"] :
+                    []
+                ).concat(["core/lively/defaultconfig.js"]),
                 function(err) {
                     if (err) thenDo(err);
                     else Global.Config.bootstrap(

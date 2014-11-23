@@ -16,7 +16,6 @@
       "node_modules/lively.lang/lib/date.js",
       "node_modules/lively.lang/lib/messenger.js",
       "node_modules/lively.lang/lib/worker.js",
-      "core/lively/lang/init.js",
       "core/lively/lang/LocalStorage.js",
       "core/lively/Base.js",
       "core/lively/ModuleSystem.js"

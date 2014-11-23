@@ -30,21 +30,25 @@
   * LK class system.
   */
 
-if (Function.prototype.name === undefined) {
-    Function.prototype.__defineGetter__("name", function () {
+(function installLivelyLangGlobals() {
+  var isNodejs = typeof UserAgent !== "undefined" && UserAgent.isNodejs;
+  var livelyLang = isNodejs ? require("lively.lang") : lively.lang;
+  livelyLang.deprecatedLivelyPatches();
+})();
+
+(function defineFunctionPrototypeName() {
+  if (Function.prototype.name === undefined) {
+      Function.prototype.__defineGetter__("name", function () {
         // TODO: find a better method, this is just a heuristic
         if (this.displayName) {
             var splitted = this.displayName.split(".");
             return splitted[splitted.length - 1];
         }
-    	var md = (this + "").match(/function\s+(.*)\s*\(\s*/);
-    	if (md) {
-    	    return md[1];
-    	} else {
-    	    return "Empty";
-    	}
-    });
-}
+      	var md = String(this).match(/function\s+(.*)\s*\(\s*/);
+  	    return md ? md[1] : "Empty";
+      });
+  }
+})();
 
 Object.extend(Function.prototype, {
 
@@ -60,7 +64,7 @@ Object.extend(Function.prototype, {
 
         // modified from prototype.js
 
-        var args = Array.from(arguments),
+        var args = lively.lang.arr.from(arguments),
             className = args.shift(),
             targetScope = Global,
             shortName = null;
@@ -94,19 +98,14 @@ Object.extend(Function.prototype, {
 
             // add a more appropriate toString implementation
             klass.toString = function(){
-                var name = this.type;
-                if(name.startsWith("anonymous_"))
-                    name = "null";
-                else
-                    name = "'" + name + "'";
-                var categories = this.categories;
-                if(categories)
-                    var category = Object.keys(categories).detect(function(category){
-                        return categories[category].include("initialize");
-                    });
-                if(!category) category = "default category";
-                return (this.superclass.type || this.superclass.name) + ".subclass(" + name +
-                        ", '" + category + "', {initialize: " + this.prototype.initialize + "})";
+                var initCategory = lively.lang.arr.detect(
+                  Object.keys(this.categories || {}),
+                  function(category) { return this.categories[category].indexOf("initialize") > -1; }, this)
+                    || "default category";
+                return lively.lang.string.format('%s.subclass("%s",\n"%s", {\n  initialize: %s\n}/*...*/)',
+                  this.superclass.type || this.superclass.name,
+                  this.type, initCategory,
+                  this.prototype.initialize);
             }
         };
 
@@ -124,7 +123,7 @@ Object.extend(Function.prototype, {
             category = this.defaultCategoryName,
             traits = [];
         for (var i = 0; i < args.length; i++) {
-            if (Object.isString(args[i])) {
+            if (typeof args[i] === 'string') {
                 category = args[i];
             } else if (Global.RealTrait && args[i] instanceof RealTrait) {
                 // FIXME Traits are optional and defined in lively.Traits
@@ -178,7 +177,7 @@ Object.extend(Function.prototype, {
             // But they're not full-blown functions and don't
             // inherit argumentNames from Function.prototype
 
-            var hasSuperCall = ancestor && Object.isFunction(value) &&
+            var hasSuperCall = ancestor && typeof value === 'function' &&
                 value.argumentNames && value.argumentNames().first() == "$super";
             if (hasSuperCall) {
                 // wrapped in a function to save the value of 'method' for advice
@@ -201,7 +200,7 @@ Object.extend(Function.prototype, {
 
                     advice.methodName = "$super:" + (this.superclass ? this.superclass.type + ">>" : "") + property;
 
-                    value = Object.extend(advice.wrap(method), {
+                    value = lively.lang.obj.extend(advice.wrap(method), {
                         valueOf:  function() { return method },
                         toString: function() { return method.toString() },
                         originalFunction: method,
@@ -218,7 +217,7 @@ Object.extend(Function.prototype, {
             if (property === "formals") { // rk FIXME remove this cruft
                 // special property (used to be pins, but now called formals to disambiguate old and new style
                 lively.Class.addPins(this, value);
-            } else if (Object.isFunction(value)) {
+            } else if (typeof value === 'function') {
                 // remember name for profiling in WebKit
                 value.displayName = className + "$" + property;
 
@@ -246,19 +245,19 @@ Object.extend(Function.prototype, {
     },
 
     isSubclassOf: function(aClass) {
-        return this.superclasses().include(aClass);
+        return this.superclasses().indexOf(aClass) > -1;
     },
 
     allSubclasses: function() {
         var klass = this;
-        return Global.classes(true).select(function(ea) { return ea.isSubclassOf(klass) });
+        return Global.classes(true).filter(function(ea) { return ea.isSubclassOf(klass) });
     },
     withAllSubclasses: function() { return [this].concat(this.allSubclasses()) },
 
 
     directSubclasses: function() {
         var klass = this;
-        return Global.classes(true).select(function(ea) { return ea.superclass === klass });
+        return Global.classes(true).filter(function(ea) { return ea.superclass === klass });
     },
 
     withAllSortedSubclassesDo: function(func) {
@@ -268,14 +267,14 @@ Object.extend(Function.prototype, {
         // compared to klass (1 for direct subclasses and so on)
 
         function createSortedSubclassList(klass, level) {
-            var list = klass.directSubclasses()
+            var list = lively.lang.chain(klass.directSubclasses())
                 .sortBy(function(ea) { return ea.name.charCodeAt(0) })
-                .collect(function(subclass) { return createSortedSubclassList(subclass, level + 1) })
-                .flatten();
+                .map(function(subclass) { return createSortedSubclassList(subclass, level + 1) })
+                .flatten().value();
             return [{klass: klass, level: level}].concat(list)
         }
 
-        return createSortedSubclassList(this, 0).collect(function(spec, idx) { return func(spec.klass, idx, spec.level) })
+        return createSortedSubclassList(this, 0).map(function(spec, idx) { return func(spec.klass, idx, spec.level) })
     },
 
     superclasses: function() {
@@ -286,7 +285,7 @@ Object.extend(Function.prototype, {
 
     categoryNameFor: function(propName) {
         for (var categoryName in this.categories) {
-            if (this.categories[categoryName].include(propName)) {
+            if (this.categories[categoryName].indexOf(propName) > -1) {
                 return categoryName;
             }
         }
@@ -471,8 +470,8 @@ lively.Class = {
         // this is for refactoring away from Relay and friends
         if (!Object.isArray(spec)) throw new Error('Cannot deal with non-Array spec in addPins');
         function unstripName(name) { return name.replace(/[\+|\-]?(.*)/, '$1') };
-        function needsSetter(name) { return !name.startsWith('-') };
-        function needsGetter(name) { return !name.startsWith('+') };
+        function needsSetter(name) { return !lively.lang.string.startsWith(name, '-') };
+        function needsGetter(name) { return !lively.lang.string.startsWith(name, '+') };
         var mixinSpec = {};
         spec.forEach(function(specString) {
             var name = unstripName(specString);

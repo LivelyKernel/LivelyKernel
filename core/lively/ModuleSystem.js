@@ -54,20 +54,20 @@ Object.extend(lively, {
     module: function module(moduleName) {
         moduleName = LivelyMigrationSupport.fixModuleName(moduleName);
         var module = createNamespaceModule(moduleName);
-        module.requires = basicRequire.curry(module);
+        module.requires = lively.lang.fun.curry(basicRequire, module);
         return module;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function isNamespaceAwareModule(moduleName) {
-            return moduleName && !moduleName.endsWith('.js');
+            return moduleName && !lively.lang.string.endsWith(moduleName, '.js');
         }
 
         function convertUrlToNSIdentifier(url) {
             // foo/bar/baz.js -> foo.bar.baz
             var result = url;
             // get rid of '.js'
-            if (result.endsWith('.js')) result = result.slice(0, result.lastIndexOf('.'));
+            if (lively.lang.string.endsWith(result,'.js')) result = result.slice(0, result.lastIndexOf('.'));
             result = result.replace(/\./g, '\\.').replace(/([^\\])\//g, '$1.');
             return result;
         }
@@ -83,9 +83,9 @@ Object.extend(lively, {
         function basicRequire(/*module, requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
             // support module names as array and parameterlist
 
-            var args = Array.from(arguments),
+            var args = lively.lang.arr.from(arguments),
                 thisModule = args.shift(),
-                preReqModuleNames = Object.isArray(args[0]) ? args[0] : args,
+                preReqModuleNames = lively.lang.arr.isArray(args[0]) ? args[0] : args,
                 requiredModules = [];
 
             preReqModuleNames
@@ -104,7 +104,7 @@ Object.extend(lively, {
             function moduleExecute(code) {
                 var debugCode = code;
                  // pass in own module name for nested requirements
-                code = code.curry(thisModule);
+                code = lively.lang.fun.curry(code, thisModule);
                  // run code with namespace modules as additional parameters
                 function codeWrapper() {
                     try {
@@ -136,11 +136,11 @@ Object.extend(lively, {
 
     require: function require(/*requiredModuleNameOrAnArray, anotherRequiredModuleName, ...*/) {
         var getUniqueName = function() { return 'anonymous_module_' + lively.require.counter },
-            args = Array.from(arguments);
+            args = lively.lang.arr.from(arguments);
         lively.require.counter !== undefined ? lively.require.counter++ : lively.require.counter = 0;
         var m = lively.module(getUniqueName()).beAnonymous();
         if (lively.Config.showModuleDefStack) m.defStack = new Error().stack;
-        return m.requires(Object.isArray(args[0]) ? args[0] : args);
+        return m.requires(lively.lang.arr.isArray(args[0]) ? args[0] : args);
     }
 
 });
@@ -173,17 +173,17 @@ var Module = Object.subclass('lively.Module',
     },
 
     subNamespaces: function(recursive) {
-        return this.gather(
+        return lively.lang.arr.uniq(this.gather(
             'subNamespaces',
             function(ea) { return (ea instanceof lively.Module || ea === Global) && ea !== this },
-            recursive).uniq();
+            recursive));
     },
 
     classes: function(recursive) {
-        var normalClasses = this.gather(
+        var normalClasses = lively.lang.arr.uniq(this.gather(
             'classes',
             function(ea) { return ea && ea !== this.constructor && lively.Class.isClass(ea) },
-            recursive).uniq();
+            recursive));
         if(this === lively.morphic && recursive && lively.morphic.CSS && lively.morphic.CSS.Fill)
             normalClasses.push(lively.morphic.CSS.Fill);
         return this === Global ?
@@ -207,7 +207,7 @@ var Module = Object.subclass('lively.Module',
 
     name: function() {
         var identifier = this.namespaceIdentifier, globalIdStart = 'Global.';
-        if (identifier.startsWith(globalIdStart)) {
+        if (lively.lang.string.startsWith(identifier, globalIdStart)) {
             identifier = identifier.substring(globalIdStart.length);
         }
         return identifier;
@@ -216,7 +216,7 @@ var Module = Object.subclass('lively.Module',
     findUri: function(optFileType) {
         var fileType = optFileType || 'js',
             fileExtension = '.' + fileType,
-            namespacePrefix = this.namespaceIdentifier.startsWith('Global.') ? 'Global.' : '',
+            namespacePrefix = lively.lang.string.startsWith(this.namespaceIdentifier, 'Global.') ? 'Global.' : '',
             relativePath = this.namespaceIdentifier
                 .substr(namespacePrefix.length)
                 .replace(/([^\\])\./g, '$1/')
@@ -228,8 +228,8 @@ var Module = Object.subclass('lively.Module',
         // Instead of mapping the module to URL.codeBase, modules belonging to
         // these special directories are mapped to URL.root. FIXME! remove this
         // special core/ handling!!!
-        var firstPartOfFilename = relativePath.split("/").first(),
-            isSpecialModule = lively.Config.modulePaths.include(firstPartOfFilename),
+        var firstPartOfFilename = relativePath.split("/")[0],
+            isSpecialModule = lively.lang.arr.include(lively.Config.modulePaths, firstPartOfFilename),
             uri = (isSpecialModule ? lively.Config.rootPath : lively.Config.codeBase) + relativePath;
 
         return uri;
@@ -240,7 +240,7 @@ var Module = Object.subclass('lively.Module',
         if (this.fromDB) {
             var id = this.namespaceIdentifier, // something like lively.Core
                 namespacePrefix;
-            if (id.startsWith('Global.')) {
+            if (lively.lang.string.startsWith(id, 'Global.')) {
                 namespacePrefix = 'Global.';
                 id = id.substring(7);
             } else {
@@ -259,7 +259,7 @@ var Module = Object.subclass('lively.Module',
         if (!this.isAnonymous()) {
             url = this.findUri(optType);
         } else {
-            if (id.startsWith('Global.')) namespacePrefix = 'Global.';
+            if (lively.lang.string.startsWith(id, 'Global.')) namespacePrefix = 'Global.';
             else throw dbgOn(new Error('unknown namespaceIdentifier "' + id + '"'));
             url = lively.Config.codeBase
                 + this.namespaceIdentifier.substr(namespacePrefix.length).replace(/\./g, '/');
@@ -288,7 +288,7 @@ var Module = Object.subclass('lively.Module',
 
     informDependendModules: function() {
         if (!this.dependendModules) return;
-        var deps = this.dependendModules.uniq();
+        var deps = lively.lang.arr.uniq(this.dependendModules);
         this.dependendModules = [];
         deps.forEach(function(ea) { ea.removeRequiredModule(this) }, this);
     },
@@ -296,9 +296,9 @@ var Module = Object.subclass('lively.Module',
     traceDependendModules: function(visited) {
         visited = visited || [];
         var deps =  this.debugDependendModules || [];
-        deps = deps.withoutAll(visited);
+        deps = lively.lang.arr.withoutAll(deps, visited);
         visited.push(this);
-        return [this.namespaceIdentifier, deps.collect(function(ea) {
+        return [this.namespaceIdentifier, deps.map(function(ea) {
             return ea.traceDependendModules(visited);
         })]
     },
@@ -349,28 +349,30 @@ var Module = Object.subclass('lively.Module',
         if (this.pendingRequirements && this.pendingRequirements.indexOf(requiredModule) === -1) {
             throw dbgOn(new Error('requiredModule not there'));
         }
-        this.pendingRequirements = this.pendingRequirements.without(requiredModule);
+        this.pendingRequirements = lively.lang.arr.without(this.pendingRequirements, requiredModule);
         if (!this.hasPendingRequirements()) { this.load(); }
     },
 
     pendingRequirementNames: function() {
         if (!this.pendingRequirements) return [];
-        return this.pendingRequirements.collect(function(ea) { return ea.uri() });
+        return this.pendingRequirements.map(function(ea) { return ea.uri() });
     },
 
     hasPendingRequirements: function() {
         if (this.pendingRequirements && this.pendingRequirements.length > 0) return true;
-        if (this.requiredLibs && this.requiredLibs.any(function(libSpec) { return !libSpec.loadTest(); })) return true;
+        if (this.requiredLibs && lively.lang.arr.any(this.requiredLibs, function(libSpec) { return !libSpec.loadTest(); })) return true;
         return false;
     },
 
     loadRequirementsFirst: function() {
-        this.pendingRequirements && this.pendingRequirements.invoke('load');
-        this.requiredLibs && this.requiredLibs.reject(function(libSpec) { return libSpec.loadTest(); }).invoke('load');
+        this.pendingRequirements && lively.lang.arr.invoke(this.pendingRequirements, 'load');
+        this.requiredLibs && lively.lang.chain(this.requiredLibs)
+                                .filter(function(libSpec) { return !libSpec.loadTest(); })
+                                .invoke('load').value();
     },
 
     wasRequiredBy: function() {
-        return Global.subNamespaces(true).select(function(m) {
+        return Global.subNamespaces(true).filter(function(m) {
             return m.privateRequirements && m.privateRequirements.indexOf(this) > -1;
         }, this);
     }
@@ -490,11 +492,11 @@ var Module = Object.subclass('lively.Module',
         this.errors.push(e);
         var list = this.traceDependendModules(),
             msg = 'Error while loading ' + (this.moduleName || this) + ': ' + e
-                + '\ndependencies: ' + Strings.printNested(list),
+                + '\ndependencies: ' + lively.lang.string.printNested(list),
             world = Global.lively && lively.morphic
                  && lively.morphic.World && lively.morphic.World.current();
         if (e.stack) msg += e.stack;
-        if (false && optCode) msg += ("code:\n" + optCode).truncate(1000);
+        if (false && optCode) msg += lively.lang.string.truncate("code:\n" + optCode, 1000);
         if (world && world.logError) world.logError(e);
         else console.error(msg);
         dbgOn(true);
@@ -503,30 +505,46 @@ var Module = Object.subclass('lively.Module',
 
 (function createLivelyNamespace(Global) {
     // let Global act like a namespace itself
-    Object.extend(Global, {namespaceIdentifier: 'Global'});
-    Object.extend(Global, Module.prototype);
-    Global.isLoaded = Functions.True;
+    var Glob = new Module(Global, 'Global');
+    lively.lang.obj.extend(Global, Glob);
+    Global.namespaceIdentifier = 'Global';
+    Global.isLoaded = lively.lang.fun.True;
 
     // make "lively" a proper lively.Module and get the properties of a
     // potentially predefined "lively" object over to the namespace lively object
-    var helper = Global.lively,
-        lively = new Module(Global, 'lively');
-    for (var name in helper) lively[name] = helper[name];
+    var lv = new Module(Global, 'lively');
+    lively.lang.obj.extend(lively, lv);
     lively.Module = Module;
-    Global.module = lively.module;
-    Global.require = lively.require;
-    Global.lively = lively;
+
+    // FIXME get rid of globals
+    lively.lang.obj.extend(Global, {
+        module: lively.module,
+        require: lively.require,
+        lively: lively
+    });
+
+    // also make lively.lang a proper namespace
+    var livelyLang = lively.lang;
+    lively.lang = new lively.Module(lively, 'lang');
+    livelyLang.obj.extend(lively.lang, livelyLang);
+    
+    // FIXME!
+    lively.lang.Execution = {
+        showStack: lively.lang.fun.Null,
+        resetDebuggingStack: lively.lang.fun.Null,
+        installStackTracers: lively.lang.fun.Null
+    };
 })(Global);
 
-Object.extend(lively.Module, {
+lively.lang.obj.extend(lively.Module, {
 
     namespaceStack: [Global],
 
-    current: function() { return this.namespaceStack.last() },
+    current: function() { return lively.lang.arr.last(this.namespaceStack); },
     getLoadedModules: function() {
         return Global.subNamespaces(true)
-			.reject(function(ea) { return ea.isAnonymous(); })
-			.select(function(ea) {
+			.filter(function(ea) { return !ea.isAnonymous(); })
+			.filter(function(ea) {
 				return ea.isLoaded() && new WebResource(ea.uri()).exists(); });
     },
 
@@ -535,7 +553,7 @@ Object.extend(lively.Module, {
             var scripIds = [];
             lively.$('body script').each(function() {
                 scripIds.push(lively.$(this).attr('id')); });
-            return scripIds.collect(function(id) {
+            return scripIds.map(function(id) {
                 var name = id.replace(/^..\//, '');
                 return lively.module(name);
             });
@@ -548,18 +566,20 @@ Object.extend(lively.Module, {
         var sortedModules = [], i = 0;
         while (i < 1000 && modules.length > 0) {
             i++;
-            var canBeLoaded = modules.select(function(module) {
+            var canBeLoaded = modules.filter(function(module) {
                 if (!module.privateRequirements) return true;
                 return module.privateRequirements.all(function(requirement) {
                     return sortedModules.indexOf(requirement) > -1 }); });
             var modulesAndLibs = canBeLoaded.reduce(function(modulesAndLibs, module) {
                 if (module.requiredLibs)
-                    modulesAndLibs.pushAll(module.requiredLibs.map(function(libSpec) {
-                        return libSpec.url || libSpec.urls || []; }).flatten());
+                    lively.lang.arr.pushAll(modulesAndLibs,
+                        lively.lang.chain(module.requiredLibs)
+                            .map(function(libSpec) { return libSpec.url || libSpec.urls || []; })
+                            .flatten().value());
                 modulesAndLibs.push(module);
                 return modulesAndLibs; }, []);
             sortedModules = sortedModules.concat(modulesAndLibs);
-            modules = modules.withoutAll(canBeLoaded);
+            modules = lively.lang.arr.withoutAll(modules, canBeLoaded);
         }
         if (modules.length > 0) {
             throw new Error('Cannot find dependencies for all modules!');
@@ -573,16 +593,16 @@ Object.extend(lively.Module, {
         var baseURL = URL.root;
         return LivelyLoader.libsFiles.concat(LivelyLoader.bootstrapFiles).concat(this.topologicalSortLoadedModules()).reduce(function(uris, ea) {
             if (typeof ea === 'string') {
-                if (ea.startsWith('lively/')) {
+                if (lively.lang.string.startsWith(ea, 'lively/')) {
                     uris.push("core/" + ea);
-                } else if (ea.startsWith(baseURL.toString())) {
+                } else if (lively.lang.string.startsWith(ea, baseURL.toString())) {
                     uris.push(new URL(ea).relativePathFrom(baseURL));
                 } else { uris.push(ea); }
                 return uris;
             }
             var path = new URL(ea.uri()).relativePathFrom(baseURL);
             // omit modules outside of core
-            if (!path.startsWith('..')) uris.push(path);
+            if (!lively.lang.string.startsWith(path, '..')) uris.push(path);
             return uris;
         }, []);
     },
@@ -600,22 +620,24 @@ Object.extend(lively.Module, {
         var webR = url.asWebResource();
         if (beSync) webR.beSync(); else webR.beAsync();
         lively.bindings.connect(webR, 'subDocuments', {onLoad: function(files) {
-            callback(files.invoke('getURL').reject(function(url) {
-                return url.filename().startsWith('.'); }));
+            callback(lively.lang.chain(files)
+                        .invoke('getURL')
+                        .filter(function(url) { return !lively.lang.string.startsWith(url.filename(), '.'); })
+                        .value());
         }}, 'onLoad');
         webR.getSubElements();
     },
 
     findAllInThenDo: function(url, callback, beSync) {
         this.withURLsInDo(url, function(urls) {
-            callback(urls.invoke('asModuleName').map(lively.module));
+            callback(lively.lang.chain(urls).invoke('asModuleName').map(lively.module).value());
         }, beSync);
     },
 
     checkModuleLoadStates: function() {
-        var modules = Global.subNamespaces(true).select(function(ea) { return ea.wasDefined });
+        var modules = Global.subNamespaces(true).filter(function(ea) { return ea.wasDefined });
         modules
-        .select(function(ea) { return ea.hasPendingRequirements() })
+        .filter(function(ea) { return ea.hasPendingRequirements() })
         .forEach(function(ea) {
 		    var msg = Strings.format('%s has unloaded requirements: %s',
 			                         ea.uri(), ea.pendingRequirementNames());
@@ -640,14 +662,6 @@ Object.extend(lively.Module, {
 
 
 (function addUsefulStuffToLivelyNS(Global, lively) {
+    // hmmmm... FIXME!
     lively.assert = Global.assert;
 })(Global, lively);
-
-(function setupLivelyLang(lively) {
-    lively.lang = new lively.Module(lively, 'lang');
-    lively.lang.Execution = {
-        showStack: Functions.Null,
-        resetDebuggingStack: Functions.Null,
-        installStackTracers: Functions.Null
-    };
-})(lively);

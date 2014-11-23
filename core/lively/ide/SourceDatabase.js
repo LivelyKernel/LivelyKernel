@@ -199,6 +199,14 @@ Object.subclass('lively.ide.ModuleWrapper',
         new WebResource(this.fileURL()).del();
     }
 
+},
+'browsing', {
+    browseIt: function() {
+        show(String(this.fileURL()))
+        debugger;
+        lively.ide.browse("http://localhost:9001/core/lively/config.json")
+        lively.ide.browse(String(this.fileURL()));
+    }
 });
 lively.ide.ModuleWrapper.subclass('lively.ide.FileWrapper',
 'documentation', {
@@ -475,36 +483,26 @@ Object.subclass('AnotherSourceDatabase', {
     },
 
     interestingLKFileNames: function(url) {
-        try {
-            var webR = new WebResource(url).beSync(),
-                fileURLs = webR.getSubElements().subDocuments.collect(function(ea) { return ea.getURL(); });
-            
-            return this.selectUniqueLKFileNamesFrom(fileURLs);
-        } catch(e) {
-            console.error('interestingLKFileNames: ' + e);
-            return [];
+        var webR = new WebResource(url).beSync().getSubElements(),
+            fileURLs = webR.subDocuments.concat(webR.subCollections).invoke("getURL");
+        return fileURLs.map(this.mapURLToRelativeModulePaths.bind(this))
+                       .filter(this.canBeDisplayedInSCB.bind(this)).uniq();
+    },
+
+    canBeDisplayedInSCB: function(url) {
+        var matcher = /.*\.(st|js|ometa|css|snippets?|tmsnippets?)|(\/)$/;
+        return matcher.test(String(url));
+    },
+
+    mapURLToRelativeModulePaths: function(url) {
+        var path = url.withRelativePartsResolved().relativePathFrom(URL.root);
+        if (path.startsWith('core/')) {
+            path = path.slice('core/'.length);
+        } else {
+            if (!path.startsWith('/')) path = '/' + path;
+            path = '..' + path;
         }
-    },
-    selectUniqueLKFileNamesFrom: function(fileURLs) {
-        var fileNames = this.mapURLsToRelativeModulePaths(fileURLs),
-            acceptedFileNames = /.*\.(st|js|ometa|css|snippets?|tmsnippets?)$/;
-    
-        return fileNames
-            .select(function(ea) { return acceptedFileNames.test(ea); })
-            .uniq();
-    },
-    
-    mapURLsToRelativeModulePaths: function(urls) {
-        return urls.collect(function(ea) {
-            var path = ea.withRelativePartsResolved().relativePathFrom(URL.root);
-            if (path.startsWith('core/')) {
-                path = path.slice('core/'.length);
-            } else {
-                if (!path.startsWith('/')) path = '/' + path;
-                path = '..' + path;
-            }
-            return path;
-        });
+        return path;
     }
 
 

@@ -15,33 +15,29 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
     removeFile: function(file) { this.allFiles = this.allFiles.without(file) },
 
     locationChanged: function() {
-        var url = this.browser.getTargetURL(),
-            subElements,
-            fileURLs,
-            dirs;
-        
+        var url = this.browser.getTargetURL();
         this.browser.selectNothing();
-        
+
         try {
-            subElements = new WebResource(url).beSync().getSubElements();
-            fileURLs = subElements.subDocuments.collect(function(ea) { return ea.getURL(); });
-            this.allFiles = this.target.selectUniqueLKFileNamesFrom(fileURLs);
-        } catch(e) {
+            var filesAndDirs = this.target.interestingLKFileNames(url)
+                                .partition(function(ea) { return ea.endsWith("/"); })
+            this.allFiles = filesAndDirs[1];
+            this.subNamespacePaths = filesAndDirs[0].map(function(ea) {
+                return URL.codeBase.withFilename(ea); });
+        } catch (e) {
             // can happen when a restored browser from a world that has been moved
             // uses a now incorrect relative URL
             this.statusMessage('Cannot get files for code browser with url '
                 + url + ' error ' + e, Color.red, 6);
+            // show(e.stack)
             this.allFiles = [];
+            this.subNamespacePaths = [];
         }
-        
+
+        // FIXME remove the inconsistency of "core" files
         var isUrlRootOfRepository = this.browser.codeBaseUrlString() == String(url);
         this.parentNamespacePath = isUrlRootOfRepository ? null : url.withFilename('../');
-        
-        dirs = subElements.subCollections || [];
-        this.subNamespacePaths = dirs.collect(function(ea) { return ea.getURL(); });
     },
-
-
 
     childNodes: function() {
         // js files + OMeta files (.txt)
@@ -73,22 +69,13 @@ lively.ide.BrowserNode.subclass('lively.ide.SourceControlNode', {
         moduleNodes = moduleNodes.sortBy(function(node) { return node.asString().toLowerCase() });
 
         // namespace nodes
-        for (i = 0; i < this.subNamespacePaths.length; i++) {
-            var relativePath = this.subNamespacePaths[i];
-            nsNodes.push(new lively.ide.NamespaceNode(relativePath, b, this));
-        }
+        nsNodes.pushAll(this.subNamespacePaths.map(function(relativePath) {
+            return new lively.ide.NamespaceNode(relativePath, b, this); }, this));
         nsNodes = nsNodes.sortBy(function(node) { return node.asString() });
         if (this.parentNamespacePath) {
             nsNodes.push(new lively.ide.NamespaceNode(this.parentNamespacePath, b, this));
         }
-
-        // add local changes
-        var nodes = nsNodes;
-        nodes = nodes.concat(moduleNodes);
-
-        this._childNodes = nodes;
-
-        return nodes;
+        return this._childNodes = nsNodes.concat(moduleNodes);
     }
 });
 
@@ -725,9 +712,9 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
             oldS = target.getSourceCode(),
             success = $super(newSource, sourceControl)
 
-        if (!success || pType !== this.target.type 
+        if (!success || pType !== this.target.type
          || pType !== "propertyDef"
-         || this.target.name === propertyName 
+         || this.target.name === propertyName
          || propertyName === lively.ide.AddMethodToFileFragmentCommand.prototype.newMethodName)
             return success;
 
@@ -744,7 +731,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         var browser = this.browser,
             preserve = lively.Config.get("propertyPreservation", true);
         // The method has to be readded after it was removed, therefore the delay.
-        if (preserve === undefined) $world.confirm("You changed the name of the method / property.\n" 
+        if (preserve === undefined) $world.confirm("You changed the name of the method / property.\n"
                               + "Do you want to add the current code as a new method / property\n"
                               + "or rename the original method / property?", saveOld, ['Add as new', 'Rename']);
         else saveOld.delay(0, !preserve);

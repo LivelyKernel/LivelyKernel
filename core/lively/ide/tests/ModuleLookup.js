@@ -18,4 +18,14 @@ TestCase.subclass('lively.ide.tests.ModuleLookup.URLMappingTest',
 });
 
 
+
+TestCase.subclass('lively.ide.tests.ModuleLookup.ModuleWrapperNameHandling',
+'tests', {
+    testCorrectlyConvertFromFileNameWithDotToModuleNameAndBack: function() {
+        var wrapper = lively.ide.ModuleWrapper.forFile("node_modules/lively.lang/lib/collection.js");
+        this.assertEquals("node_modules.lively\\.lang.lib.collection", wrapper.moduleName())
+        this.assertEquals("../node_modules/lively.lang/lib/collection.js", wrapper.fileName())
+    }
+});
+
 }) // end of module

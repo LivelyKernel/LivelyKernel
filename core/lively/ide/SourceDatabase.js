@@ -251,7 +251,8 @@ Object.extend(lively.ide.ModuleWrapper, {
         // FIXME FIXME FIXME
         while (moduleName.substring(0, 3) === '../') moduleName = moduleName.substring(3); // remove relative parts
         moduleName = moduleName.substring(0, moduleName.lastIndexOf('.')); // remove file extension like .js
-        moduleName = moduleName.replace(/\//g, '.'); // remove double slashes
+        moduleName = moduleName.replace(/\./g, "\\.");
+        moduleName = moduleName.replace(/\//g, '.'); // "/" -> "."
         try {
             return new lively.ide.ModuleWrapper(moduleName, type, null, isVirtual);
         } catch(e) {

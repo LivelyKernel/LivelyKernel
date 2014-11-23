@@ -66,9 +66,9 @@ Object.extend(lively, {
         function convertUrlToNSIdentifier(url) {
             // foo/bar/baz.js -> foo.bar.baz
             var result = url;
-            result = result.replace(/\//g, '.');
             // get rid of '.js'
-            if (result.endsWith('.js')) result = result.substring(0, result.lastIndexOf('.'));
+            if (result.endsWith('.js')) result = result.slice(0, result.lastIndexOf('.'));
+            result = result.replace(/\./g, '\\.').replace(/([^\\])\//g, '$1.');
             return result;
         }
 
@@ -216,27 +216,22 @@ var Module = Object.subclass('lively.Module',
     findUri: function(optFileType) {
         var fileType = optFileType || 'js',
             fileExtension = '.' + fileType,
-            namespacePrefix;
-        if (this.namespaceIdentifier.startsWith('Global.')) {
-            namespacePrefix = 'Global.';
-        } else {
-            throw dbgOn(new Error('unknown namespaceIdentifier "' + this.namespaceIdentifier + '"'));
-        }
-        var relativePath = this.namespaceIdentifier
-                           .substr(namespacePrefix.length)
-                           .replace(/\./g, '/');
-        if (!relativePath.match(/\.js$/)) {
-            relativePath += fileExtension;
-        }
-        var uri = '';
-        lively.Config.modulePaths.forEach(function(ea) {
-            if (relativePath.substring(0, ea.length) == ea) {
-                uri = lively.Config.rootPath + relativePath;
-            }
-        });
-        if (uri == '') {
-            uri = lively.Config.codeBase + relativePath;
-        }
+            namespacePrefix = this.namespaceIdentifier.startsWith('Global.') ? 'Global.' : '',
+            relativePath = this.namespaceIdentifier
+                .substr(namespacePrefix.length)
+                .replace(/([^\\])\./g, '$1/')
+                .replace(/\\\./g, '.');
+
+        if (!relativePath.match(/\.js$/)) relativePath += fileExtension;
+
+        // FIXME modulePaths are super magic special directories in URL.root.
+        // Instead of mapping the module to URL.codeBase, modules belonging to
+        // these special directories are mapped to URL.root. FIXME! remove this
+        // special core/ handling!!!
+        var firstPartOfFilename = relativePath.split("/").first(),
+            isSpecialModule = lively.Config.modulePaths.include(firstPartOfFilename),
+            uri = (isSpecialModule ? lively.Config.rootPath : lively.Config.codeBase) + relativePath;
+
         return uri;
     },
 

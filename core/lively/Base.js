@@ -33,6 +33,10 @@
 (function installLivelyLangGlobals() {
   var isNodejs = typeof UserAgent !== "undefined" && UserAgent.isNodejs;
   var livelyLang = isNodejs ? require("lively.lang") : lively.lang;
+  if (isNodejs) {
+    if (!global.lively) global.lively = {};
+    global.lively.lang = livelyLang;
+  }
   livelyLang.deprecatedLivelyPatches();
 })();
 

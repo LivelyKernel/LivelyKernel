@@ -23,7 +23,6 @@
     ], "Loaded to initialize the base Lively system."],
 
     ["bootstrapModules", [
-      "lively.lang.Closure",
       "lively.bindings",
       "lively.Main"
       ], "Lively modules to start a world (after the bootstrapFiles are loaded)."]

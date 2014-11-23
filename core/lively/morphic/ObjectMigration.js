@@ -83,6 +83,7 @@ Migration Level History:
 7 - No more changesets
 8 - Reframe handles for windows
 9 - Buttons of a window are in titleBar.buttons array
+10 - lively.lang refactoring, removing lively.lang.Closure module
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (false && LivelyMigrationSupport.documentMigrationLevel < 1) {

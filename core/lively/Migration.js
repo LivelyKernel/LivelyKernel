@@ -27,3 +27,5 @@ if (LivelyMigrationSupport.documentMigrationLevel < 7) {
         return jso;
     });
 }
+
+LivelyMigrationSupport.addModuleRename('lively.lang.Closure', 'lively.lang', 8);

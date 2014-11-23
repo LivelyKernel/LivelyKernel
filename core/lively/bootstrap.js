@@ -1260,7 +1260,7 @@
     var LivelyMigrationSupport = Global.LivelyMigrationSupport = {
         // increase this value by hand if you make a change that effects
         // object layout LivelyMigrationSupport.migrationLevel
-        migrationLevel: 8,
+        migrationLevel: 9,
         documentMigrationLevel: 0,
         migrationLevelNodeId: 'LivelyMigrationLevel',
         moduleRenameDict: {},

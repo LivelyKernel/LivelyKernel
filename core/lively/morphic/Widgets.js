@@ -1243,7 +1243,7 @@ lively.morphic.Morph.addMethods(
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // morphic hierarchy / windows
         items.push(['Open in...', [
-            ['Window', function(evt) { self.openInWindow(evt.mousePoint); }]
+            ['Window', function(evt) { self.openInWindow(evt.getPosition()); }]
         ]]);
 
         // Drilling into scene to addMorph or get a halo

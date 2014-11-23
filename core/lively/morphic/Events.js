@@ -266,7 +266,7 @@ Object.subclass('lively.morphic.EventHandler',
         }
 
         evt.isInBoundsOf = function(morph) {
-            return morph.innerBounds().containsPoint(morph.localize(evt.mousePoint))
+            return morph.innerBounds().containsPoint(evt.getPositionIn(morph));
         }
 
         var world = lively.morphic.World.current();
@@ -284,12 +284,10 @@ Object.subclass('lively.morphic.EventHandler',
         };
         evt.getPositionIn = function(aMorph) {
             // returns the event position localized to aMorph
-            var pos = this.getPosition();
-            return aMorph.localize(pos);
+            return aMorph.localize(this.getPosition());
         };
         evt.mousePoint = evt.mousePoint
-                      || pt(evt.pageX || evt.clientX || 0,
-                            evt.pageY || evt.clientY || 0);
+                      || pt(evt.pageX || 0, evt.pageY || 0);
         return evt;
     },
 

@@ -555,6 +555,11 @@ Object.extend(lively.ide.CommandLineInterface, {
             });
     },
 
+    rm: function(path, thenDo) {
+      return lively.ide.CommandLineInterface.run("rm -rf " + path, {}, function(cmd) {
+        thenDo && thenDo(cmd.getCode() ? cmd.resultString(true) : null); });
+    },
+
     diffIgnoringWhiteSpace: function(string1, string2, thenDo) {
         return lively.ide.CommandLineInterface.runAll([
             {command: 'mkdir -p diff-tmp/'},

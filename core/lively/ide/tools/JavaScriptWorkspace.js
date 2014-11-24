@@ -122,6 +122,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         _TextMode: "javascript",
         _aceInitialized: true,
         allowInput: true,
+        evalEnabled: true,
         className: "lively.morphic.CodeEditor",
         layout: { resizeHeight: true, resizeWidth: true },
         name: "workspace",

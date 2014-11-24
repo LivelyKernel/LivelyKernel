@@ -938,7 +938,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           return;
         }
         if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
-            this.world().alert(String(result));
+            this.world().logError(result, "doit error");
         }
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();

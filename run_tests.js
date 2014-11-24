@@ -90,7 +90,11 @@ var browserTests = [
     // lang support
     "lively.lang.tests.ExtensionTests",
     "lively.lang.tests.VM",
-    "lively.lang.tests.WorkerTests",
+    
+    // 2014-11-01 rk: the worker interface has changed since switching to
+    // lively.lang, so these tests are more or less not needed anymore. I wanna
+    // check them for useful stuff before removing them, however.
+    // "lively.lang.tests.WorkerTests",
 
     // persistence
     "lively.persistence.tests.MassMorphCreation",

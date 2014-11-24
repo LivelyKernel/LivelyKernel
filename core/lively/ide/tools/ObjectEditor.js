@@ -1560,15 +1560,15 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
         updateLists: function updateLists() {
 
-            var scriptListItems = this.sortedScriptNamesOfObj(this.target);
+            var scriptListItems = this.sortedScriptNamesOfObj(this.target) || [];
             scriptListItems.unshift("-- ALL --");
-            if (!Arrays.equal(scriptListItems, this.scriptList.getList())) {
+            if (!scriptListItems.equals(this.scriptList.getList())) {
                 this.scriptList.setList(scriptListItems);
             }
 
-            var connectionListItems = this.sortedConnectionNamesOfObj(this.target);
+            var connectionListItems = this.sortedConnectionNamesOfObj(this.target) || [];
             connectionListItems.unshift("-- ALL --");
-            if (!Arrays.equal(connectionListItems, this.connectionList.getList())) {
+            if (!connectionListItems.equals(this.connectionList.getList())) {
                 this.connectionList.setList(connectionListItems);
             }
         },

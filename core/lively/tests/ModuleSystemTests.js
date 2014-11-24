@@ -120,8 +120,16 @@ TestCase.subclass('lively.tests.ModuleSystemTests.ModuleTest', {
     testModuleNamesSupportUnicodeChars: function() {
         this.assertEquals("Global.users.foo.config", module('users.foo.config').namespaceIdentifier);
         this.assertEquals("Global.users.föö.config", module('users.föö.config').namespaceIdentifier);
-    }
+    },
 
+    testModuleNameWithDot: function() {
+        var m = module("foo\\.bar.baz");
+        this.assert(m !== lively.module("foo.bar.baz"), "interpreted as foo.bar.baz");
+        this.assertEquals(m.uri(), URL.codeBase.withFilename("foo.bar/baz.js").toString(),"modulename -> uri conversion");
+        
+        // the other way around
+        this.assertEquals("Global.foo\\.bar.baz", lively.module("foo.bar/baz.js").namespaceIdentifier);
+    }
 });
 
 AsyncTestCase.subclass('lively.tests.ModuleSystemTests.ModuleLoad',

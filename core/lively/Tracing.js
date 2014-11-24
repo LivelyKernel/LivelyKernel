@@ -392,7 +392,7 @@ Object.extend(lively.Tracing, {
     },
 
     warnIfMethodComposition: function(method, obj, selector) {
-        var composition = Functions.methodChain(method);
+        var composition = Functions.wrapperChain(method);
         if (composition.length === 1) return;
         if (composition.length === 2 && method.isSuperWrapper) return;
         var msg = 'Found unknown method composition while tracing ';

@@ -1053,7 +1053,6 @@
                 }, lively.Config.moduleLoadTestTimeout);
             }
 
-
             var requiredModulesForWorldStart = lively.Config.get("bootstrapModules");
             if (Global.JSLoader.getOption('loadRewrittenCode'))
                 requiredModulesForWorldStart.unshift('lively.ast.Debugging');
@@ -1261,7 +1260,7 @@
     var LivelyMigrationSupport = Global.LivelyMigrationSupport = {
         // increase this value by hand if you make a change that effects
         // object layout LivelyMigrationSupport.migrationLevel
-        migrationLevel: 8,
+        migrationLevel: 9,
         documentMigrationLevel: 0,
         migrationLevelNodeId: 'LivelyMigrationLevel',
         moduleRenameDict: {},

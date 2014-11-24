@@ -96,12 +96,12 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.PropertiesTest',
 'testing', {
     testAll: function() {
         var expected, result;
-        expected = ["a", "c"];
+        expected = ["a","c"];
         result = Properties.all(this.sut, function (name, object) {
             return name.length == 1;
         });
         this.assertMatches(expected, result);
-        expected = ["aa", "cc"];
+        expected = ["aa","cc"];
         result = Properties.all(this.sut, function (name, object) {
             return name.length == 2;
         });
@@ -479,11 +479,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ArrayTest', {
         this.assertMatches({x: 'baz'}, [{x: 'bar'},{x: 'foo'}, {x: 'baz'}].max(function(ea) { return ea.x.charCodeAt(2); }));
     },
 
-    testInspect: function() {
-        var obj = {a: 23, inspect: function() { return "<" + this.a + ">"; }};
-        var arr = ["foo", obj, 42];
-        this.assertEquals('[foo, <23>, 42]', arr.inspect());
-    },
+
 
     testSwap: function() {
         var arr = ['a', 'b', 'c', 'd', 'e'];

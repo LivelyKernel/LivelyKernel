@@ -337,7 +337,7 @@ Object.extend(lively.ide, {
     },
 
     browseURL: function(url, browser) {
-        var path = lively.ide.sourceDB().mapURLsToRelativeModulePaths([url]).first();
+        var path = lively.ide.sourceDB().mapURLToRelativeModulePaths(url);
         if (url.isLeaf() && !lively.ide.sourceDB().addModule(path).exists())
             return lively.ide.openFile(url);
 

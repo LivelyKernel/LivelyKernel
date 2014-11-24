@@ -1,4 +1,5 @@
-/*global require,__dirname,process*/
+/*global require, process, __dirname*/
+
 var fs           = require("fs"),
     path         = require("path"),
     zlib         = require('zlib'),
@@ -31,12 +32,12 @@ function determineCoreFiles() {
 
     var i = 0;
     var dependencies = {};
+
+    // rk 2014-10-25: Uuhhh ha, this looks like an ad-hoc parsing adventure...
     while (i < coreFiles.length) {
         var filename = coreFiles[i];
         if (dependencies[filename]) {
-            dependencies[filename].forEach(function(dep) {
-                coreFiles.splice(i + 1, 0, dep);
-            });
+            dependencies[filename].forEach(function(dep) { coreFiles.splice(i + 1, 0, dep); });
             i++;
             continue;
         }
@@ -55,9 +56,7 @@ function determineCoreFiles() {
                     deps.push(filename);
                 });
             }
-        } catch (e) {
-            console.log('Problems processing: ' + filename);
-        }
+        } catch (e) { console.log('Problems processing: ' + filename); }
         i++;
     }
 
@@ -69,6 +68,16 @@ function determineCoreFiles() {
 
     coreFiles = [libsFile].concat(bootstrapFiles).concat(coreFiles);
     return coreFiles;
+}
+
+function moduleToFile(module) {
+    // TODO: Adapt module load logic
+    var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
+    var absFile = path.join(directory, relFile);
+    if (fs.existsSync(absFile)) return absFile;
+    relFile = module.replace(/\./g, '/') + '.js';
+    absFile = path.join(directory, relFile);
+    return absFile;
 }
 
 (function setup() {

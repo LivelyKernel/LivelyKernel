@@ -5,7 +5,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 
     setUp: function($super) {
         $super();
-        this.setMaxWaitDelay(1*1000);
+        this.setMaxWaitDelay(20*1000);
         this.serverURL = URL.create(Config.nodeJSURL+'/SessionTrackerUnitTest/');
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
         this.sut = new lively.net.SessionTrackerConnection({
@@ -84,19 +84,22 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         var serverDown = false, serverRestarted = false;
         this.assertEquals('disconnected', this.sut.status());
         this.sut.register();
+
         this.sut.whenOnline(function() {
             this.assert(this.sut.isConnected(), 'session not connected')
             this.assertEquals('connected', this.sut.status());
             lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL);
             serverDown = true;
         }.bind(this));
-        this.waitFor(function() { return serverDown; }, 100, function() {
+
+        this.waitFor(function() { return serverDown && !this.sut.isConnected(); }, 100, function() {
             this.delay(function() {
                 this.assertEquals('connecting', this.sut.status());
                 lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
                 serverRestarted = true;
             }, 200);
         });
+
         this.waitFor(function() { return serverRestarted; }, 100, function() {
             this.sut.whenOnline(function() {
                 var sessions = lively.net.SessionTracker.getServerStatus()[this.serverURL.pathname];
@@ -134,7 +137,6 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         }.bind(this));
     },
 
-
     testSendAndAnswerMessage: function() {
         var receivedMsg, received = 0, answered = 0, answerAnswered = 0;
         this.sut.register({
@@ -160,18 +162,19 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         var activity1, activity2;
         this.sut.getSessions(function(sessions) {
             activity1 = sessions[this.sut.trackerId][this.sut.sessionId].lastActivity;
-            Global.LastEvent.timeStamp++;
+            Global.LastEvent.timeStamp += 300;
         }.bind(this));
-        this.delay(function() {
+        setTimeout(function() {
             this.sut.getSessions(function(sessions) {
                 activity2 = sessions[this.sut.trackerId][this.sut.sessionId].lastActivity;
             }.bind(this));
-        }, 200);
+        }.bind(this), 300);
         this.delay(function() {
             this.assert(activity1 < activity2, 'Activity not updated ' + activity1 + ' vs ' + activity2);
             this.done();
-        }, 300);
+        }, 700);
     },
+
     testMessageRouting: function() {
         var sendDone = false, receivedData;
         this.sut.register({'self-send': function(msg) { receivedData = msg; sendDone = true; }});
@@ -181,7 +184,9 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
             this.done()
         });
     },
+
     testGetUsers: function() {
+        Global.LastEvent = {timeStamp: Date.now()};
         var result, ts = Global.LastEvent.timeStamp;
         this.sut.register();
         this.sut.getUserInfo(function(users) { result = users; });
@@ -251,6 +256,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
     }
 },
 'testing', {
+
     testConnect2Servers: function() {
         var c1 = this.client1, c2 = this.client2,
             serverToServerConnectDone = false;
@@ -269,6 +275,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             }.bind(this));            
         });
     },
+
     testReconnectServerToServerConnection: function() {
         var c1 = this.client1, c2 = this.client2;
         c1.register(); c2.register();
@@ -293,7 +300,6 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
         }, 700);
     },
 
-
     testRemoteEvalWith2Servers: function() {
         var c1 = this.client1, c2 = this.client2,
             serverToServerConnectDone = false;
@@ -309,6 +315,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             }.bind(this));
         });
     },
+
     testConnect3Servers: function() {
         this.setMaxWaitDelay(8*1000);
         // one server is the "central" ther others clients
@@ -363,6 +370,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
             this.done();
         });
     },
+
     testReportedSessionCleanup: function() {
         var c1 = this.client1, c2 = this.client2, serverToServerConnectDone1 = false;
         c1.register(); c2.register();
@@ -378,6 +386,8 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.SessionFederation',
                 }.bind(this));            
             }, 400);
         });
-    },});
+    }
+
+});
 
 }) // end of module

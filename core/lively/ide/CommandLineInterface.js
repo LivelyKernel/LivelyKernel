@@ -736,7 +736,7 @@ Object.extend(lively.ide.CommandLineSearch, {
     doBrowse: function(spec) {
         var modWrapper = lively.ide.sourceDB().addModule(spec.fileName),
             ff = modWrapper.ast();
-        if (spec.line) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
+        if (spec.line && ff && ff.getSubElementAtLine) ff = ff.getSubElementAtLine(spec.line, 20/*depth*/) || ff;
         return ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
 

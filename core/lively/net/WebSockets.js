@@ -9,8 +9,8 @@ Object.subclass('lively.net.WebSocket',
         // For the server code see the WebSocketExample subserver
         var url = URL.nodejsBase.withFilename("WebSocketExample/connect").toString();
         var ws = new lively.net.WebSocket(url, {protocol: 'lively-json'});
-        connect(ws, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
-        connect(ws, 'lively-message', Global, 'show');
+        lively.bindings.connect(ws, 'closed', Global, 'show', {converter: function() { return 'websocket closed'; }});
+        lively.bindings.connect(ws, 'lively-message', Global, 'show');
         ws.send({action: 'helloWorld', data: 'message from Lively'});
     }
 },

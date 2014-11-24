@@ -155,15 +155,12 @@ Object.extend(Object, {
     valuesInPropertyHierarchy: function(obj, name) {
         // lookup all properties named name in the proto hierarchy of obj
         // also uses Lively's class structure
-        var result = [],
-            lookupObj = obj;
-        while (true) {
-            if (lookupObj.hasOwnProperty(name)) result.push(lookupObj[name])
-            var proto = lively.Class.getPrototype(lookupObj);
-            if (!proto || proto === lookupObj) proto = lively.Class.getSuperPrototype(lookupObj);
-            if (!proto) return result.reverse();
-            lookupObj = proto;
+        var result = [], lookupObj = obj;
+        while (lookupObj) {
+            if (lookupObj.hasOwnProperty(name)) result.unshift(lookupObj[name])
+            lookupObj = Object.getPrototypeOf(lookupObj);
         }
+        return result;
     },
 
     mergePropertyInHierarchy: function(obj, propName) {
@@ -339,7 +336,7 @@ Global.Objects = {
         }
     },
 
-    equal: function(a, b) {
+    equals: function(a, b) {
         if (!a && !b) return true;
         if (!a || !b) return false;
         switch (a.constructor) {
@@ -348,12 +345,12 @@ Global.Objects = {
             case Boolean:
             case Number: return a == b;
         };
-        if (Object.isFunction(a.isEqualNode)) return a.isEqualNode(b);
-        if (Object.isFunction(a.equals)) return a.equals(b);
+        if (typeof a.isEqualNode === "function") return a.isEqualNode(b);
+        if (typeof a.equals === "function") return a.equals(b);
         function cmp(left, right) {
             for (var name in left) {
-                if (left[name] instanceof Function) continue;
-        	    if (!Objects.equal(left[name], right[name])) return false;
+                if (typeof left[name] === "function") continue;
+          	    if (!Objects.equals(left[name], right[name])) return false;
             }
             return true;
         }

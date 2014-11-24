@@ -761,7 +761,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
         Properties.forEachOwn(closures, function(name, closure) {
             // we defer the recreation of the actual function so that all of the
             // function's properties are already deserialized
-            if (closure instanceof lively.Closure) {
+            if (closure && closure.isLivelyClosure) {
                 // obj[name] = closure.recreateFunc();
                 obj.__defineSetter__(name, function(v) { delete obj[name]; obj[name] = v });
                 // in case the method is accessed or called before we are done with serializing

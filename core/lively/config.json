@@ -1,22 +1,27 @@
 {
   "bootstrap": [
     ["loadUserConfig", true, "For sth like jens/config.js, used in lively.bootstrap."],
+    ["libsFile", "core/lib/lively-libs-debug.js", "Library code."],
+
     ["bootstrapFiles", [
       "core/lively/Migration.js",
       "core/lively/JSON.js",
-      "core/lively/lang/Object.js",
-      "core/lively/lang/Function.js",
-      "core/lively/lang/String.js",
-      "core/lively/lang/Array.js",
-      "core/lively/lang/Number.js",
-      "core/lively/lang/Date.js",
-      "core/lively/lang/Worker.js",
+      "node_modules/lively.lang/lib/base.js",
+      "node_modules/lively.lang/lib/events.js",
+      "node_modules/lively.lang/lib/object.js",
+      "node_modules/lively.lang/lib/collection.js",
+      "node_modules/lively.lang/lib/function.js",
+      "node_modules/lively.lang/lib/string.js",
+      "node_modules/lively.lang/lib/number.js",
+      "node_modules/lively.lang/lib/date.js",
+      "node_modules/lively.lang/lib/messenger.js",
+      "node_modules/lively.lang/lib/worker.js",
       "core/lively/lang/LocalStorage.js",
       "core/lively/Base.js",
       "core/lively/ModuleSystem.js"
     ], "Loaded to initialize the base Lively system."],
+
     ["bootstrapModules", [
-      "lively.lang.Closure",
       "lively.bindings",
       "lively.Main"
       ], "Lively modules to start a world (after the bootstrapFiles are loaded)."]
@@ -194,7 +199,7 @@
     ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
     ["codeBase", null, "The URL or path to the core/ Lively modules. Dynamically determined in bootstrap."],
     ["showModuleDefStack", true, "So modules know where they were required from."],
-    ["modulePaths", ["apps", "users"], "root URLs of module lookup"],
+    ["modulePaths", ["apps", "users", "node_modules"], "root URLs of module lookup"],
     ["moduleLoadTestTimeout", 10000, "Timeout in ms after which to run a module load check. Make it falsy to disable the check."],
     ["warnIfAppcacheError", true, "In case a world is loaded without being able to reach the application cache (probably because the server cannot be reached) show a warning on world load."],
 

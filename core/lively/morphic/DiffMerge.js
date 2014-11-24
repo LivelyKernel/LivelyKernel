@@ -86,7 +86,7 @@ lively.morphic.Morph.addMethods(
             try {
                 var myProp = self[sel](),
                     otherProp = otherMorph[sel](),
-                    // consider using Objects.equal here
+                    // consider using Objects.equals here
                     areEqual = myProp.equals ? myProp.equals(otherProp) : myProp == otherProp;
                 if (!areEqual) {
                     var propName = sel.substring(3); // remove "get"

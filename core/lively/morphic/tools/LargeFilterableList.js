@@ -551,11 +551,13 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     // this.setZIndex(1000);
 },
     runAction: function runAction(state, n, candidate) {
-        var action = this.getAction(state, n);
-        if (Object.isFunction(action)) action(candidate);
-        else if (Object.isFunction(action.exec)) action.exec(candidate);
-        else show('Cannot invoke ' + action);
-        return action;
+        try {
+            var action = this.getAction(state, n);
+            if (Object.isFunction(action)) action(candidate);
+            else if (Object.isFunction(action.exec)) action.exec(candidate);
+            else show('Cannot invoke ' + action);
+            return action;
+        } catch (e) { $world.logError(e); }
     },
     selectCurrent: function selectCurrent() {
         this.currentSel = (this.currentSel || 0);

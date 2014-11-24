@@ -147,24 +147,19 @@ Object.extend(lively.ast.Rewriting, {
 
             // 2. request all the files that need to be rewritten in advance
             function requestBootstrapFiles() {
+
                 // list of files taken from life_star config
-                var bootstrapRewriteFiles = [ // 'core/lib/lively-libs-debug.js',
-                    'core/lively/Migration.js', 'core/lively/JSON.js', 'core/lively/lang/Object.js',
-                    'core/lively/lang/Function.js', 'core/lively/lang/String.js',
-                    'core/lively/lang/Array.js', 'core/lively/lang/Number.js', 'core/lively/lang/Date.js',
-                    'core/lively/lang/Worker.js', 'core/lively/lang/LocalStorage.js',
-                    'core/lively/defaultconfig.js', 'core/lively/Base.js', 'core/lively/ModuleSystem.js',
+                var bootstrapRewriteFiles = lively.Config.get("bootstrapFiles").concat([
                     'core/lively/Traits.js', 'core/lively/DOMAbstraction.js', 'core/lively/IPad.js',
-                    'core/lively/LogHelper.js', 'core/lively/localconfig.js',
+                    'core/lively/LogHelper.js',
                     // bootstrap.js
-                    'core/lively/lang/Closure.js',
                     'core/lively/bindings.js', 'core/lively/bindings/Core.js',
                     'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
                     // directly necessary for debugging BUT excluded for now:
                     // 'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
                     // 'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
                     // 'core/lively/ast/acorn.js', 'core/lively/ast/StackReification.js'
-                ];
+                ]);
 
                 bootstrapRewriteFiles.forEachShowingProgress({
                     iterator: function(filename) {

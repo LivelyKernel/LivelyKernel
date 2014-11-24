@@ -242,21 +242,13 @@ module.exports = d.bind(function(route, app, subserver) {
         // can be triggered from a non lilvey page, e.g. via a bookmark to load
         // the default lively object/function/array helpers so that you have a
         // more civilised interface to work with... :)
-
-        var lvDir = process.env.WORKSPACE_LK, files = [
-            path.join(lvDir, "core/lively/lang/Object.js"),
-            path.join(lvDir, "core/lively/lang/Function.js"),
-            path.join(lvDir, "core/lively/lang/String.js"),
-            path.join(lvDir, "core/lively/lang/Array.js"),
-            path.join(lvDir, "core/lively/lang/Number.js"),
-            path.join(lvDir, "core/lively/lang/Date.js"),
-            path.join(lvDir, "core/lively/lang/Worker.js")];
-
+        var lvDir = process.env.WORKSPACE_LK
+        var files = lively.Config.get("bootstrapFiles")
+                     .map(function(fn) { return path.join(lvDir, fn )})
         async.map(files, fs.readFile, function(err, contents) {
            if (err) { res.status(500).end(String(err)); return; }
            res.header('content-type', 'application/javascript');
            res.end(contents.join('\n'));
        });
-
-    })
+    });
 })

@@ -513,8 +513,10 @@ var Module = Object.subclass('lively.Module',
     // make "lively" a proper lively.Module and get the properties of a
     // potentially predefined "lively" object over to the namespace lively object
     var lv = new Module(Global, 'lively');
-    lively.lang.obj.extend(lively, lv);
+    lively.lang.obj.extend(lv, lively);
+    Global.lively = lv;
     lively.Module = Module;
+    delete Global.Module;
 
     // FIXME get rid of globals
     lively.lang.obj.extend(Global, {

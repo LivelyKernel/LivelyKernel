@@ -308,7 +308,7 @@ Object.extend(lively.ide.commands.byName, {
 
             if (!win.normalBounds) win.normalBounds = winB;
 
-            var thirdW = Math.max(660, bounds.width/3),
+            var thirdW = Math.min(750, Math.max(1000, bounds.width/3)),
                 thirdColBounds = bounds.withWidth(thirdW);
 
             if (!how) askForHow();
@@ -1057,38 +1057,6 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
     'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'pastel_on_dark', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
-    'lively.ide.openPythonWorkspace': {
-        description: 'open Python Workspace',
-        exec: function() {
-            var codeEditor = $world.addCodeEditor({
-                textMode: 'python',
-                title: 'Python Workspace',
-                content: "# You can evaluate Python code in here\n[(x, y) for x in [1,2,3] for y in [3,1,4] if x != y]\n    print [x,y]"
-            });
-            codeEditor.addScript(function doit(printResult, editor) {
-                var code = this.getSelectionOrLineString(),
-                    self = this;
-                Global.URL.nodejsBase.withFilename('PythonSubserver/eval').asWebResource().beAsync()
-                    .post(JSON.stringify({expr: code}), 'application/json')
-                    .withJSONWhenDone(function(json, status) { dealWithResult(json); });
-                
-                function dealWithResult(json) {
-                    var stdout = json.stdout.trim();
-                    var stderr = json.stderr.replace(/>>>/g, '').trim();
-                    var string = json.error ? String(json.error) + '\n' + stderr : stdout;
-                    if (!string.length && stderr.length) string = stderr;
-                    if (printResult) { self.printObject(editor, string); return; }
-                    if (json.error && lively.Config.get('showDoitErrorMessages') && self.world()) {
-                        self.world().alert(string);
-                    }
-                    var sel = self.getSelection();
-                    if (sel && sel.isEmpty()) sel.selectLine();
-                }
-            });
-            codeEditor.getWindow().comeForward();
-            return true;
-        }
-    },
     'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
     'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},

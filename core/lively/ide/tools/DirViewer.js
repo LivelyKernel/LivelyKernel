@@ -304,6 +304,8 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             droppingEnabled: true,
             itemList: [],
             itemMorphs: [],
+            isMultipleSelectionList: false,
+            // multipleSelectionMode: 'multiSelectWithShift',
             layout: {
                 adjustForNewBounds: true,
                 extent: lively.pt(477.0,362.3),
@@ -733,13 +735,35 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 if (!lively.ide.ace) return;
                 lively.ide.ace.require('ace/keyboard/emacs').killRing.add(fullPath);
             }
+        },
+        remove = {
+            description: 'remove',
+            exec: function() {
+              $world.confirm("really remove " + fullPath + "?", function(input) {
+                if (!input) return;
+                lively.shell.rm(fullPath, function(err) {
+                  if (!err) self.get("fileList").removeItemOrValue(item);
+                  else show("Error removing " + fullPath + ": " + (err.stack || err));
+                })
+              })
+            }
+        },
+        browse = {
+            description: 'open in browser',
+            exec: function() {
+              var dir = lively.shell.getWorkingDirectory();
+              if (fullPath.indexOf(dir) !== 0) $world.inform("Cannot browse " + fullPath + " because file is not accessible from the web");
+              else window.open(fullPath.slice(dir.length))
+            }
         };
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     if (!item) return [];
+    var self = this;
     var j = lively.ide.FileSystem.joinPaths;
     var fullPath = j(this.dirState.path, item.path);
-    if (item.isDirectory) return [copyPath];
-    return [copyPath, openInSCB, openInTextEditor];
+    return item.isDirectory ?
+      [copyPath, browse, remove] :
+      [copyPath, browse, remove, openInSCB, openInTextEditor];
 },
     execItemAction: function execItemAction(item, n) {
     var action = this.getItemActionsFor(item)[n];

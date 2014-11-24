@@ -824,9 +824,15 @@
             // FIXME duplicated from URL class in lively. Network actually
             // lively.Core should require lively.Network -- but lively.Network
             // indirectly lively.Core ====>>> FIX that!!!
-            var protocolMatch = urlString.match(/(^[^:]+:\/\/)(.*)/),
+            var protocol, result;
+            if (urlString.match(/^\/\//)) {
+                protocol = "//";
+                result = urlString.slice(2);
+            } else {
+                var protocolMatch = urlString.match(/(^[^:]+:\/\/)(.*)/);
                 protocol = protocolMatch[1],
                 result = protocolMatch[2];
+            }
             // resolve ..
             do {
                 urlString = result;
@@ -862,11 +868,12 @@
                .substring(0, url.lastIndexOf('/') + 1);
         },
 
+
         makeAbsolute: function(urlString) {
             // if urlString points to a relative resource then prepend the
             // current protocol, port, path to it to make it absolute
             urlString = this.removeQueries(urlString);
-            if (!urlString.match(/^http|^file/)) {
+            if (!urlString.match(/^http|^file|^\/\//)) {
                 // make absolute
                 urlString = this.currentDir() + urlString;
             }

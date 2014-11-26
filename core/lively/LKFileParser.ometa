@@ -178,7 +178,7 @@ categoryDef =
 category =
 	(
 	  categoryName:name spaces ',' -> name
-	| empty -> { Function.defaultCategoryName }
+	| empty -> { 'default category' }
 	),
 
 categoryName =

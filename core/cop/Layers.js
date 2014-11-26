@@ -463,7 +463,9 @@ Object.extend(cop, {
         cop.layerClass(layer, classObject, defs);
 
         // and now wrap all overriden methods...
-        classObject.allSubclasses().forEach(function(eaClass) {
+        var allSubclasses = Global.classes(true)
+          .filter(function(ea) { return ea.isSubclassOf(classObject); })
+          .forEach(function(eaClass) {
             // log("make m1 layer aware in " + eaClass)
             var obj = eaClass.prototype;
             Object.keys(defs).forEach(function(eaFunctionName) {

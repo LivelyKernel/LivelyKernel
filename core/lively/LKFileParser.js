@@ -734,7 +734,7 @@ module('lively.LKFileParser').requires('ometa.lively').toRun(function () {
                 }), (function () {
                     return (function () {
                         this._apply("empty");
-                        return Function["defaultCategoryName"]
+                        return 'default category'
                     }).call(this)
                 }))
             },

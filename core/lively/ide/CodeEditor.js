@@ -721,10 +721,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph eval interface', {
 
-    tryBoundEval: function(string, range) {
+    tryBoundEval: function(string, options) {
         // FIXME: different behaviour in CodeEditor, TextMorph, ObjectEditor
+        options = options || {};
+        if (!options.sourceURL) options.sourceURL = this.sourceNameForEval();
         try {
-            return this.boundEval(string, range);
+            return this.boundEval(string, options);
         } catch(e) {
             // mr 2014-04-16: e.unwindException has to be used because e is unwrapped when rewritten
             if (lively.Config.get('loadRewrittenCode') && e.unwindException && e.unwindException.isUnwindException) {
@@ -741,7 +743,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         }
     },
 
-    boundEval: function (__evalStatement) {
+    boundEval: function (__evalStatement, __evalOptions) {
         // Evaluate the string argument in a context in which "this" is
         // determined by the reuslt of #getDoitContext
         var ctx = this.getDoitContext() || this,
@@ -779,7 +781,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     context: ctx,
                     topLevelVarRecorder: Global,
                     varRecorderName: 'Global',
-                    dontTransform: lively.ast.query.knownGlobals
+                    dontTransform: lively.ast.query.knownGlobals,
+                    sourceURL: __evalOptions ? __evalOptions.sourceURL : undefined
                 }, function(err, _result) { result = err || _result; });
                 return result;
             } catch(e) {
@@ -800,6 +803,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             else
                 throw e;
         }
+    },
+
+    sourceNameForEval: function() {
+      // used as //# sourceURL, for debugging
+      return "doit";
     },
 
     doAutoEvalPrintItComments: function doAutoEvalPrintItComments() {
@@ -877,7 +885,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     evalSelection: function(printIt) {
         var str = this.getSelectionOrLineString(),
             range = this.getSelectionRange(),
-            result = this.tryBoundEval(str, {start: {index: range[0]}, end: {index: range[1]}});
+            result = this.tryBoundEval(str, {range: {start: {index: range[0]}, end: {index: range[1]}}});
         if (printIt) this.insertAtCursor(String(result), true);
         return result;
     },
@@ -926,7 +934,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doit: function(printResult, editor) {
         var text = this.getSelectionMaybeInComment(),
             range = this.getSelectionRange(),
-            result = this.tryBoundEval(text, {start: {index: range[0]}, end: {index: range[1]}});
+            result = this.tryBoundEval(text, {range: {start: {index: range[0]}, end: {index: range[1]}}});
         if (printResult) {
           if (this.getPrintItAsComment()) {
             try { result = " => " + Objects.inspect(result, {maxDepth: 4});
@@ -1269,7 +1277,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     set textString(string) {
         string = String(string);
-        if (!this.aceEditor) this.storedString = string;
+        if (!this.aceEditor) {
+          this.storedString = string;
+          this.withAceDo(function(ed) { delete this.storedString });
+        }
         this.withAceDo(function(ed) {
             ed.selection.clearSelection();
             var pos = ed.getCursorPosition(),
@@ -1331,7 +1342,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     doSave: function() {
         this.savedTextString = this.textString;
         if (this.evalEnabled) {
-            this.tryBoundEval(this.savedTextString, {start: {index: 0}, end: {index: this.textString.length}});
+            this.tryBoundEval(this.savedTextString, {range: {start: {index: 0}, end: {index: this.textString.length}}});
         }
     },
     clear: function() {

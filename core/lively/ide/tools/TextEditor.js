@@ -99,6 +99,9 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             layout: {resizeHeight: true,resizeWidth: true},
             sourceModule: "lively.ide.CodeEditor",
             textString: "",
+            sourceNameForEval: function sourceNameForEval() {
+                return this.getWindow().getLocation(true/*asstring*/);
+            },
             focus: function focus() {
                 var win = this.getWindow();
                 win && win.targetMorph && (win.targetMorph.lastFocused = this);

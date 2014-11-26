@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
     },
-    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString'],
+    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString'],
     _aceInitialized: false,
     evalEnabled: false,
     isAceEditor: true,
@@ -142,10 +142,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!this.hasOwnProperty("storedTextString")) return;
         // wait for ace to be initialized before throwing away the stored string
         // this way we can still return it in textString getter in the meantime
-        this.withAceDo(function(ed) {
-            this.textString = this.storedTextString || "";
-            delete this.storedTextString;
-        });
+        this.textString = this.storedTextString || "";
+        delete this.storedTextString;
     }
 },
 'accessing', {

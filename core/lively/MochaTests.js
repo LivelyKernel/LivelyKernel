@@ -1,5 +1,9 @@
-module('lively.MochaTests').requires().requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/mocha/2.0.1/mocha.js", loadTest: function() { return typeof mocha !== "undefined"; }}).requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/expect.js/0.2.0/expect.min.js", loadTest: function() { return typeof expect !== "undefined" }}).toRun(function() {
+module('lively.MochaTests').requires()
+  .requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/mocha/2.0.1/mocha.js", loadTest: function() { return typeof mocha !== "undefined"; }})
+  .requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/chai/1.10.0/chai.js", loadTest: function() { return typeof chai !== "undefined"; }}).toRun(function() {
 /*global mocha*/
+
+Global.expect = Global.chai.expect;
 
 mocha.ui("bdd");
 
@@ -60,7 +64,7 @@ Object.extend(lively.MochaTests, {
   },
 
   runAll: function() {
-    // lively.MochaTests.runAll
+    // lively.MochaTests.runAll()
     var suites = lively.MochaTests.registeredSuites;
     Object.keys(suites).doAndContinue(function(next, suiteName) {
       lively.MochaTests.run(suites[suiteName], function(err, reporter) { next(); })

@@ -1,6 +1,5 @@
 module('lively.morphic.Animation').requires().toRun(function() {
 
-// lively.morphic.Animation.Base.withAllSubclasses().invoke('remove')
 Object.subclass("lively.morphic.Animation.Base",
 "initializing", {
     initialize: function(when) {

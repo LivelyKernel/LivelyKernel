@@ -104,7 +104,8 @@ Object.extend(lively.data.FileUpload, {
     handleDroppedFiles: function(files, evt) {
         // handler for specific file types
         var pos = evt.getPosition(), i = 0,
-            handlerClasses = lively.data.FileUpload.Handler.allSubclasses();
+            handlerClasses = lively.data.classes(true).concat(lively.Clipboard.classes(true))
+              .filter(function(ea) { return ea.isSubclassOf(lively.data.FileUpload.Handler); });
 
         if (evt.isAltDown()) {
             this.uploadFilesToServer(files, evt);
@@ -134,7 +135,9 @@ Object.extend(lively.data.FileUpload, {
     handleDroppedItems: function(items, evt) {
         // handler for specific file types
         var pos = evt.getPosition(), i = 0,
-            handlerClasses = lively.data.FileUpload.Handler.allSubclasses();
+            handlerClasses = lively.data.classes(true).concat(lively.Clipboard.classes(true))
+              .filter(function(ea) { return ea.isSubclassOf(lively.data.FileUpload.Handler); });
+
         var handlerClass = handlerClasses.detect(function(handlerClass) {
             return handlerClass.prototype.handlesItems(items, evt); });
         if (handlerClass) {

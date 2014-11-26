@@ -918,18 +918,17 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
 
 (function setupGetInstanceFor() {
     // add a getInstanceFor method to all halo classes
-    lively.morphic.Halo.allSubclasses().forEach(function(klass) {
+    lively.morphic.classes()
+      .filter(function(ea) { return ea.isSubclassOf(lively.morphic.Halo); })
+      .forEach(function(klass) {
         Object.extend(klass, {
             getInstanceFor: function(morph) {
-                if (!klass.instance) {
-                    klass.instance = new klass(morph);
-                } else {
-                    klass.instance.setTarget(morph);
-                }
+                if (!klass.instance) klass.instance = new klass(morph);
+                else klass.instance.setTarget(morph);
                 return klass.instance;
             }
         });
-    });
+      });
 
 })();
 

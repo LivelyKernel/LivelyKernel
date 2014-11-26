@@ -282,6 +282,29 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
             };
         }
 
+        var allClasses = Global.classes(true);
+        function directSubclasses(klass) {
+          allClasses.filter(function(ea) { return ea.superclass === klass });
+        }
+
+        function withAllSortedSubclassesDo(rootKlass, doFunc) {
+          // this method iterates func on all subclasses of klass (including klass)
+          // it is ensured that the klasses are sorted by a) subclass relationship and b) name (not type!)
+          // func gets as parameters: 1) the class 2) index in list 3) level of inheritance
+          // compared to klass (1 for direct subclasses and so on)
+      
+          function createSortedSubclassList(klass, level) {
+            var list = lively.lang.chain(directSubclasses(klass))
+              .sortBy(function(ea) { return ea.name.charCodeAt(0) })
+              .map(function(subclass) { return createSortedSubclassList(subclass, level + 1) })
+              .flatten().value();
+            return [{klass: klass, level: level}].concat(list)
+          }
+      
+          return createSortedSubclassList(rootKlass, 0)
+            .map(function(spec, idx) { return doFunc(spec.klass, idx, spec.level) })
+        }
+
         var superclasses = klass.superclasses().map(function(kl,i ) { return makeListItem(kl, i); }),
             list = klass.withAllSortedSubclassesDo(function(kl, idx, level) {
                 var indent = level + superclasses.length;

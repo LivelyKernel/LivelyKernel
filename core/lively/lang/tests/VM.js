@@ -114,6 +114,14 @@ AsyncTestCase.subclass('lively.lang.tests.VM.Test',
         lively.lang.VM.syncEval(code, {topLevelVarRecorder: rec});
         this.assertEquals(26, rec.y);
         this.done();
+    },
+
+    testEvalCanSetSourceURL: function() {
+      var code = "throw new Error('test');";
+      var err = lively.lang.VM.syncEval(code, {sourceURL: "my-great-source!"});
+      this.assert(err.stack.match(/at eval.*my-great-source!:1/),
+        "stack does not have sourceURL info:\n" + err.stack);
+      this.done();
     }
 });
 

@@ -52,6 +52,9 @@ Object.extend(lively.lang.VM, {
             code, recorder, varRecorderName,
             options.dontTransform, options.topLevelDefRangeRecorder);
         code = vm.transformSingleExpression(code);
+
+        if (options.sourceURL) code += "\n//# sourceURL=" + options.sourceURL.replace(/\s/g, "_"); 
+
         return code;
     },
 
@@ -64,7 +67,13 @@ Object.extend(lively.lang.VM, {
     },
 
     runEval: function (code, options, thenDo) {
-        // the main function where all eval options are configured
+        // The main function where all eval options are configured.
+        // options can include {
+        //   varRecorderName: STRING, // default is '__lvVarRecorder'
+        //   topLevelVarRecorder: OBJECT,
+        //   context: OBJECT,
+        //   sourceURL: STRING
+        // }
         if (typeof options === 'function' && arguments.length === 2) {
             thenDo = options; options = {};
         } else if (!options) options = {};
@@ -82,6 +91,7 @@ Object.extend(lively.lang.VM, {
     },
 
     syncEval: function(string, options) {
+        // See #runEval for options.
         // Although the defaul eval is synchronous we assume that the general
         // evaluation might not return immediatelly. This makes is possible to
         // change the evaluation backend, e.g. to be a remotely attached runtime

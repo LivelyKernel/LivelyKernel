@@ -561,9 +561,10 @@ lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', 
 
     evalSource: function(newSource) {
         if (!this.browser.evaluate) return false;
+        var sourceName = this.browser.selectedNode().getName();
         this.browser.withCurrentModuleActiveDo(function() {
             try {
-                eval(newSource);
+                eval.call(Global, newSource + "\n//# sourceURL=" + sourceName);
             } catch (er) {
                 console.log("error evaluating class:" + er);
                 throw(er)
@@ -758,9 +759,12 @@ lively.ide.FileFragmentNode.subclass('lively.ide.ClassElemFragmentNode', {
         } else {
             def = ownerName + ".addMethods({\n" + methodString +'\n});';
         }
+
+        var sourceName = this.browser.selectedNode().getName();
         this.browser.withCurrentModuleActiveDo(function() {
             try {
                 console.log('Going to eval ' + def);
+                eval.call(Global, def + "\n//# sourceURL=" + sourceName);
                 eval(def);
             } catch (er) {
                 console.log("error evaluating method " + methodString + ': ' + er);

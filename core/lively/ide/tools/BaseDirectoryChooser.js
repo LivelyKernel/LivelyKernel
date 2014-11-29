@@ -113,7 +113,9 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         changeBaseDir: function changeBaseDir(dir) {
         var path = dir && dir.path ? dir.path : (dir ? String(dir) : null);
         alertOK(dir ? 'base directory is now ' + path : 'resetting base dir');
-        lively.ide.CommandLineInterface.setWorkingDirectory(path);
+        lively.shell.setWorkingDirectory(path);
+        lively.require("lively.lang.Runtime").toRun(function() {
+            lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
     },
         onKeyDown: function onKeyDown(evt) {
         var keys = evt.getKeyString();

@@ -1224,7 +1224,7 @@ handleOnCapture);
         if (!this.isFocusable()) { this.blur(); return };
         lively.morphic.Morph.prototype._focusedMorph = this;
     },
-    focusedMorph: function() { return lively.morphic.Morph.prototype._focusedMorph },
+    focusedMorph: function() { return lively.morphic.Morph.focusedMorph(); },
     hasKeyboardFocus: function() { return this.isFocused() },
     isFocused: function() { return lively.morphic.Morph.prototype._focusedMorph === this },
     focus: function() { return this.renderContextDispatch('focus') },
@@ -1430,7 +1430,17 @@ handleOnCapture);
 });
 
 Object.extend(lively.morphic.Morph, {
-    focusedMorph: function() { return lively.morphic.Morph.prototype.focusedMorph(); }
+    focusedMorph: function() {
+        // For optimization we rememeber the focused morph whe we get a focused
+        // event. In case this is not enough, we'll try a DOM walk using the
+        // activeElement property that is widely supported.
+        var f = lively.morphic.Morph.prototype._focusedMorph;
+        if (f) return f;
+        for (var el = lively.$(document.activeElement); !!el.length; el = el.parent()) {
+            var d = el.data("morph"); if (d) return d;
+        }
+        return null;
+    }
 });
 
 lively.morphic.Text.addMethods(

@@ -249,3 +249,10 @@ snippet async
 	Functions.composeAsync(
 		function(${1}next) { ${0:next(null);} }
 	)(${1}function(err) { if (err) show(err); });
+# typeof tests
+snippet typef
+	typeof ${1:object} === "function"${0}
+snippet typeu
+	typeof ${1:object} === "undefined"${0}
+snippet typenu
+	typeof ${1:object} !== "undefined"${0}

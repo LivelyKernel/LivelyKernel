@@ -28,6 +28,13 @@ Object.extend(lively.lang.Runtime, {
           else alertOK("lively runtime of\n" + dir + "\nloaded!");
           thenDo && thenDo(err);
       });
+  },
+
+  resourceChanged: function(resourceId, source, thenDo) {
+    var runtime = lively.lang.Runtime,
+        registry = runtime.Registry.default(),
+        project = runtime.Registry.getProjectWithResource(registry, resourceId);
+    project && runtime.Project.processChange(project, resourceId, source, thenDo);
   }
 
 });

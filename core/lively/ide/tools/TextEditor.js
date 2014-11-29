@@ -228,36 +228,48 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         connect(webR, 'content', this, 'contentLoaded');
         webR.beAsync().forceUncached().get();
     },
-    saveFile: function saveFile() {
-        var loc = this.getLocation();
-        if (loc.isURL) {
-            this.saveFileNetwork();
-        } else {
-            this.saveFileFileSystem();
-        }
+
+    saveFile: function saveFile(thenDo) {
+        var loc = this.getLocation(),
+            selector = loc.isURL ? "saveFileNetwork" : "saveFileFileSystem",
+            self = this;
+        Functions.composeAsync(
+            function(next) {
+                self[selector](function(err) {
+                    if (!err) {
+                        self.message(String(loc) + ' saved', Color.green);
+                        lively.bindings.signal(self, 'contentStored');
+                        next();
+                    } else {
+                        self.message(Strings.format("Could not save.\nError: %s", err), Color.red);
+                        next(err);
+                    }
+                });
+            },
+            function(next) {
+                lively.lang.Runtime.resourceChanged(
+                  String(loc), self.get('editor').textString, next);
+            }
+        )();
     },
-    saveFileFileSystem: function saveFileFileSystem() {
+
+    saveFileFileSystem: function saveFileFileSystem(thenDo) {
         var path = lively.shell.makeAbsolute(this.getLocation(true)),
             content = this.get('editor').textString;
         lively.ide.CommandLineInterface.writeFile(path, {content: content}, function(cmd) {
             var err = cmd.getCode() && cmd.getStderr();
-            if (err) { this.message(Strings.format("Could not write file.\nError: %s", err), Color.red); return; }
-            this.message("File saved successfully.", Color.green);
-            lively.bindings.signal(this, 'contentStored');
+            thenDo && thenDo(err ? new Error(err) : null);
         }.bind(this));
     },
-    saveFileNetwork: function saveFileNetwork() {
-        var ed = this;
-        var webR = this.getWebResource();
-        webR.beAsync().noProxy().put(this.get('editor').textString).whenDone(function(_, status) {
-            if (status.isSuccess()) {
-                lively.bindings.signal(ed, 'contentStored');
-                ed.message(webR.getURL() + ' saved', Color.green);
-            } else {
-                ed.message('Not saved: ' + status, Color.red);
-            }
-        });
+
+    saveFileNetwork: function saveFileNetwork(thenDo) {
+        var ed = this, webR = this.getWebResource();
+        webR.beAsync().noProxy().put(this.get('editor').textString)
+            .whenDone(function(_, status) {
+                thenDo && thenDo(status.isSuccess() ?
+                    null : new Error(String(status))); });
     },
+
     updateWindowTitle: function updateWindowTitle() {
         var location = this.getLocation();
         this.setTitle(String(location));

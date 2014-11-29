@@ -66,6 +66,7 @@ Object.extend(lively.net.Wiki, {
     },
 
     findResourcePathsMatching: function(pattern, onlyExisiting, thenDo) {
+        if (typeof onlyExisiting === "function") { thenDo = onlyExisiting; onlyExisiting = true; }
         var query = {pathPatterns: [pattern], attributes: ['path', 'change', 'date'], newest: true, orderBy: 'date'};
         if (onlyExisiting) query.exists = true;
         this.getRecords(query, function(err, records) {
@@ -219,13 +220,16 @@ Object.extend(lively.net.Wiki, {
         }
 
         function groupResources(resources) {
+            var parts = resources.grep(/\.metainfo/).map(noExtension)
             return resources.groupBy(function(ea) {
-                if (ea.startsWith("PartsBin/")) return "partsbin";
+                if (parts.include(noExtension(ea))) return "partsbin"
                 if (ea.endsWith(".html")) return "world";
                 if (ea.endsWith(".js")) return "module";
                 return "other";
             });
         }
+
+        function noExtension(name) { return name.replace(/\.[^\.]$/, ""); }
 
         function setStringList(listItems, list) {
             var items = listItems.map(function(path) { return {isListItem: true, value: path, string: path}; })

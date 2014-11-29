@@ -63,12 +63,13 @@ Object.extend(lively.MochaTests, {
     return lively.MochaTests.registeredSuites[suite.title] = suite;
   },
 
-  runAll: function() {
+  runAll: function(thenDo) {
     // lively.MochaTests.runAll()
     var suites = lively.MochaTests.registeredSuites;
-    Object.keys(suites).doAndContinue(function(next, suiteName) {
-      lively.MochaTests.run(suites[suiteName], function(err, reporter) { next(); })
-    });
+    var reporter = new lively.MochaTests.Reporter();
+    var m = new (mocha.constructor)({reporter: reporter.reporterFunc(), ui: "bdd"})
+    lively.lang.obj.values(suites).forEach(m.suite.addSuite.bind(m.suite));
+    m.run(function() { thenDo && thenDo(null, reporter); });
   },
 
   run: function(suite, thenDo) {

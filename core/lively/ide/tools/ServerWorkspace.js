@@ -25,10 +25,20 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         _ShowGutter: false,
         theme: lively.Config.get('aceWorkspaceTheme'),
         textString: "// all this code is evaluated in the server context!\n// try to print it:\nprocess.env.WORKSPACE_LK",
-        boundEval: function boundEval(string) {
-            var nodejsServer = this.serverURL.asWebResource();
-            return nodejsServer.post(string).content;
-        },
+        boundEval: function boundEval(__evalStatement, __evalOptions) {
+        __evalOptions = Object.extend({
+          sourceURL: this.getWindow() ?
+            this.getWindow().getTitle() : "lively-nodejs- workspace",
+          varRecorderName: "global",
+          topLevelVarRecorder: {}
+        }, __evalOptions || {});
+      
+        var __evalStatement = lively.lang.VM.evalCodeTransform(
+          __evalStatement, __evalOptions);
+    
+        var nodejsServer = this.serverURL.asWebResource();
+        return nodejsServer.post(__evalStatement).content;
+    },
         getCompletions: function getCompletions(string) {
             // this.getCompletions('lively.re')
             var nodejsServer = this.serverURL.withFilename('completions').asWebResource();
@@ -42,12 +52,14 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
                 new lively.ide.codeeditor.Completions.ProtocolLister(this).openNarrower(completions);
             }.bind(this));
         },
-        printInspect: function printInspect() {
-            var s = this.getSelectionMaybeInComment();
-            s = 'require("util").inspect(' + s + ', null, 0)';
-            var result = this.tryBoundEval(s);
-            this.printObject(null, result);
-        },
+        printInspect: function printInspect(options) {
+          options = options || {};
+          var depth = options.depth ? options.depth-1 : 0;
+          var s = this.getSelectionMaybeInComment();
+          s = 'require("util").inspect(' + s + ', null, ' + depth + ')';
+          var result = this.tryBoundEval(s);
+          this.printObject(null, result);
+      },
         setServerURL: function setServerURL(url) {
             this.serverURL = new URL(url);
             this.owner.setTitle && this.owner.setTitle('ServerWorkspace -- ' + this.serverURL);

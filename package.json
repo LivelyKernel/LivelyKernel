@@ -10,7 +10,7 @@
   },
   "main": "core/lively/bootstrap.js",
   "dependencies": {
-    "async": "~0.2",
+    "async": ">=0.3",
     "colorize": "~0.1",
     "file-fuser": ">=0.0.6",
     "life_star": ">=0.6.6",

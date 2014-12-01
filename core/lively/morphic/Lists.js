@@ -1064,13 +1064,19 @@ lively.morphic.Box.subclass('lively.morphic.List',
         var indexes = arr.collect(function(ea) { return this.find(ea) }, this);
         this.selectAllAt(indexes);
     },
-    setSelectionMatching: function(string) {
-        for (var i = 0; i < this.itemList.length; i++) {
-            var itemString = this.renderFunction(this.itemList[i]);
-            if (string == itemString) {
-                this.selectAt(i);
-                break;
-            }
+    setSelectionMatching: function(stringOrRegexp) {
+        var detector;
+        if (typeof stringOrRegexp === "string") detector = function(item) { return getString(item) === stringOrRegexp; };
+        else if (typeof stringOrRegexp === "function") detector = stringOrRegexp;
+        else if (lively.lang.obj.isRegExp(stringOrRegexp)) detector = function(item) { return getString(item).match(stringOrRegexp); };
+        var item = this.getList().detect(detector);
+        if (item) this.setSelection(item);
+        return item;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function getString(item) {
+          return typeof item === "string" ?
+            item : (item.string ? item.string : "")
         }
     },
     selectAllAt: function(indexes) {

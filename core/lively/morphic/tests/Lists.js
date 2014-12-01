@@ -477,6 +477,15 @@ AsyncTestCase.subclass('lively.morphic.tests.Lists.List',
         list.setList([3,4,5]);
         this.assertEquals([3], list.getSelections(), 2);
         this.done();
+    },
+
+    testSetSelectionMatching: function() {
+        var list = new lively.morphic.List(lively.rect(0, 0, 100, 100), ['1', '2', '344444']);
+        list.setSelectionMatching("2");
+        this.assertEquals("2", list.selection);
+        list.setSelectionMatching(/4+/);
+        this.assertEquals("344444", list.selection);
+        this.done();
     }
 
     // testNoDoubleSelectionWhenClickedInList: function() {

@@ -256,3 +256,14 @@ snippet typeu
 	typeof ${1:object} === "undefined"${0}
 snippet typenu
 	typeof ${1:object} !== "undefined"${0}
+# $world snippets
+snippet prompt
+	\$world.prompt("${1:query text}", function(input) {
+		if (!input) return;
+		${0}
+	}, {input: "${2:initial input}", historyId: "${3:prompt-id}"});
+snippet confirm
+	\$world.confirm("${1:query text}", function(input) {
+		if (!input) return;
+		${0}
+	});

@@ -270,7 +270,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _ClipMode: "auto",
                 _Extent: lively.pt(113.0,19.0),
                 _Fill: Color.rgb(243,243,243),
-                _Position: lively.pt(1.6,1.6),
+                _Position: lively.pt(5,0),
                 className: "lively.morphic.DropDownList",
                 droppingEnabled: true,
                 itemList: ["name","time","size"],
@@ -289,6 +289,24 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 name: "setCwdButton",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("DirViewer"), "changeCwd", {});
+            }
+            }, {
+                _Extent: lively.pt(50.0,18.0),
+                _Position: lively.pt(1,0),
+                className: "lively.morphic.Button",
+                label: "add dir",
+                name: "setCwdButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("DirViewer"), "createDirInteractively", {});
+            }
+            }, {
+                _Extent: lively.pt(50.0,18.0),
+                _Position: lively.pt(2,0),
+                className: "lively.morphic.Button",
+                label: "add file",
+                name: "setCwdButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("DirViewer"), "createFileInteractively", {});
             }
             }]
         },{
@@ -620,9 +638,36 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         this.dirState.sortKey = sortKey;
         this.render();
     },
+        createFileInteractively: function createFileInteractively() {
+        var base = this.dirState.path,
+            self = this;
+        Functions.composeAsync(
+            function(next) {
+                $world.prompt("Create file: Enter a name", function(input) {
+                    next(!input ? new Error("no input") : null, input); });
+            },
+            function(fileName, next) {
+                var path = lively.lang.string.joinPath(base, fileName);
+                lively.shell.writeFile(path, "empty file", function(cmd) {
+                    next(null, path); });
+            },
+            function(filePath, next) {
+              self.fetchAndDisplayDirContent(function(err) { next(err, filePath); });
+            },
+            function(filePath, next) {
+                var name = filePath.split('/').last();
+                setTimeout(function() {
+                  self.get("fileList").setSelectionMatching(new RegExp(" " + name + "$"));
+                  next();
+                }, 40);
+            })(function(err) {
+                if (err) show("Error creating file: " + err);
+                else Global.alertOK("File created");
+            });
+    },
         changeCwd: function changeCwd() {
         var d = this.dirState.path;
-        alertOK(d + ' is now working directory');
+        $world.alertOK(d + '\nis now Lively\'s working directory');
         lively.ide.CommandLineInterface.setWorkingDirectory(d);
     },
         connectionRebuilder: function connectionRebuilder() {
@@ -637,19 +682,18 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                     next(!input ? new Error("no input") : null, input); });
             },
             function(dirName, next) {
-                var path = base + (base.endsWith("/") ? "" : "/") + dirName;
+                var path = lively.lang.string.joinPath(base, dirName);
                 lively.shell.run("mkdir -p " + path, {}, function(cmd) {
                     next(null, dirName); });
             },
             function(dirName, next) {
-                self.fetchAndDisplayDirContent();
-                lively.bindings.connect(
-                    self, 'dirContentUpdated',
-                    {next: function() { next(null, dirName); }}, 'next');
+              self.fetchAndDisplayDirContent(function(err) { next(err, dirName); });
             },
             function(dirName, next) {
-                var firstPart = dirName.split('/').first();
-                self.get("fileList").setSelectionMatching(firstPart);
+                setTimeout(function() {
+                  self.get("fileList").setSelectionMatching(new RegExp(" " + dirName + "$"));
+                  next();
+                }, 40);
             })(function(err) {
                 if (err) show("Error creating directory: " + err);
                 else Global.alertOK("Directory created");
@@ -702,8 +746,11 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             {cwd: this.dirState.path, excludes: '-false', depth: 1},
             function(files) {
                 self.dirState.files = [parentDir].concat(files);
+                lively.bindings.connect(
+                  self, 'dirContentUpdated',
+                  {thenDo: function() {thenDo && thenDo();}}, 'thenDo',
+                  {removeAfterUpdate: true});
                 self.renderDebounced();
-                thenDo && thenDo();
             });
     },
         focusChanged: function focusChanged(newFocus) {
@@ -962,6 +1009,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     if (!fileList.selection) fileList.selectAt(0);
     fileList.isInLayoutCycle = false;
     fileList.applyLayout();
+    lively.bindings.signal(this, 'dirContentUpdated');
 },
         reset: function reset() {
         this.dirState = {

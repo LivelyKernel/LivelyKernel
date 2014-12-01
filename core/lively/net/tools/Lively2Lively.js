@@ -877,7 +877,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             var localSess = this.owner.localSession();
             this.owner.withTargetSession(function(err, targetSess) {
                 if (err) { doFunc(new Error('cannot get target session: %s' + err), err); return; }
-                localSess.remoteEval(targetSess.id, code, function(msg) {
+                localSess.remoteEval(targetSess.id, processCode(code), function(msg) {
                     var isError = true, result = 'something went wrong';
                     if (!msg || !msg.data) { result = 'remote eval failed'; }
                     else if (msg.data.error) { result = 'remote eval error: ' + msg.data.error; }
@@ -885,6 +885,14 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                     doFunc(isError, result);
                 });
             });
+        
+            function processCode(code) {
+              return lively.lang.VM.evalCodeTransform(code, {
+                topLevelVarRecorder: {},
+                varRecorderName: 'window',
+                sourceURL: "remote Lively2Lively workspace"
+              })
+            }
         },
             withCompletionsDo: function withCompletionsDo(code, doFunc) {
             var localSess = this.owner.localSession();

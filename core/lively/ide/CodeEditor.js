@@ -527,13 +527,22 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return ed.session.getWordRange(p.row, p.column);
         });
     },
+
     tokenAt: function(pos/*ace pos or null*/) {
         // that.tokenAt()
         return this.withAceDo(function(ed) {
             pos = pos || ed.getCursorPosition();
             return ed.session.getTokenAt(pos.row, pos.column); });
     },
+
     tokenAtPoint: function() { return this.tokenAt(null); },
+
+    tokenAfterPoint: function(pos) {
+        pos = pos || this.getCursorPositionAce();
+        var tokenPos = {column: pos.column+1, row: pos.row};
+        return this.tokenAt(tokenPos);
+    },
+
     tokensInRange: function(range/*range or null for sel range*/) {
         // if no range given current selection range is used.
         // takes the range and returns all tokens in that range

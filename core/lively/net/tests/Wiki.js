@@ -17,8 +17,8 @@ AsyncTestCase.subclass('lively.net.tests.Wiki.ResourceListing',
         var resources = ['PartsBin/Basic/Rectangle.json', 'blank.html'];
         lively.net.Wiki.openResourceList(resources, function(err, listWindow) {
             test.assert(!err, "Error! " + err);
-            test.assert(1, listWindow.get("partsList").getList().length);
-            test.assert(1, listWindow.get("worldsList").getList().length);
+            test.assertEquals(1, listWindow.get("partsList") && listWindow.get("partsList").getList().length, "no parts list?");
+            test.assertEquals(1, listWindow.get("worldsList") && listWindow.get("worldsList").getList().length, "no worlds list?");
             listWindow.remove();
             test.done();
         });

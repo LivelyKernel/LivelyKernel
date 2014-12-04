@@ -117,7 +117,7 @@ Object.extend(lively.net.Wiki, {
     openResourceList: function(resources, options, thenDo) {
         if (!thenDo && typeof options === 'function') { thenDo = options; options = {}; }
         options = options || {};
-
+debugger;
         var title = options.title || resources.join(", ").truncate(80);
         var nGroups = 0;
         var grouped = groupResources(resources);
@@ -220,7 +220,7 @@ Object.extend(lively.net.Wiki, {
         }
 
         function groupResources(resources) {
-            var parts = resources.grep(/\.metainfo/).map(noExtension)
+            var parts = resources.grep(/\.(metainfo|json)$/).map(noExtension).uniq();
             return resources.groupBy(function(ea) {
                 if (parts.include(noExtension(ea))) return "partsbin"
                 if (ea.endsWith(".html")) return "world";

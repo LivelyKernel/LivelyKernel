@@ -168,12 +168,12 @@ function getNewFilename(diff) {
 }
 
 function removeTempFiles(files) {
-    // async.each(files, function(file, callback) {
-    //     fs.unlink(path.join(process.env.WORKSPACE_LK, file), callback);
-    // },
-    // function() {
-    //     // ignore errors;
-    // });
+    async.each(files, function(file, callback) {
+        fs.unlink(path.join(process.env.WORKSPACE_LK, file), callback);
+    },
+    function() {
+        // ignore errors;
+    });
 }
 
 function commitChanges(treeHash, parentHash, commitMsg, commiter, callback) {
@@ -244,7 +244,6 @@ function createCommit(changeId, commitDiffs, stashDiffs, message, commiter, cb) 
                 },
                 function saveTempFile(doubleHash, tempFile, next) {
                     var newFilename = getNewFilename(changeObjects[doubleHash].diffs[0]);
-                    console.log('Saving ' + tempFile + ' to ' + newFilename);
                     gitHelper.util.createHashObjectFromFile(process.env.WORKSPACE_LK, tempFile, function(err, hash) {
                         if (err) return next(err);
                         changeObjects[doubleHash].fileHash = hash;

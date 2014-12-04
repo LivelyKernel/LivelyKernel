@@ -816,7 +816,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     sourceNameForEval: function() {
       // used as //# sourceURL, for debugging
-      return "doit";
+      return "doit-" + Date.now();
     },
 
     doAutoEvalPrintItComments: function doAutoEvalPrintItComments() {

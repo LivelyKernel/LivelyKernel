@@ -29,31 +29,13 @@ function getBranches(cb) {
 
 function getCommitsByBranch(branch, cb) {
     async.parallel({
-        added: exec.bind(null, 'git',
-            ['rev-list', '..' + BRANCH_PREFIX + branch, '--no-merges', '--pretty=oneline'],
-            { cwd: process.env.WORKSPACE_LK }),
-        missing: exec.bind(null, 'git',
-            ['rev-list', BRANCH_PREFIX + branch + '..', '--no-merges', '--pretty=oneline'],
-            { cwd: process.env.WORKSPACE_LK }),
+        added: gitHelper.util.listCommits.bind(null, '..' + BRANCH_PREFIX + branch, process.env.WORKSPACE_LK),
+        missing: gitHelper.util.listCommits.bind(null, BRANCH_PREFIX + branch + '..', process.env.WORKSPACE_LK),
         changes: exec.bind(null, 'git',
             ['ls-files', '-mdso', '--exclude-standard'],
             { cwd: process.env.WORKSPACE_LK })
     }, function(err, info) {
         if (err) return cb(err);
-        info.added = info.added[0].trimRight();
-        if (info.added != '') {
-            info.added = info.added.split('\n').map(function(line) {
-                var commit = line.match('^([0-9a-f]+) (.*)$');
-                return { commitId: commit[1], message: commit[2] };
-            });
-        } else info.added = [];
-        info.missing = info.missing[0].trimRight();
-        if (info.missing != '') {
-            info.missing = info.missing.split('\n').map(function(line) {
-                var commit = line.match('^([0-9a-f]+) (.*)$');
-                return { commitId: commit[1], message: commit[2] };
-            });
-        } else info.missing = [];
         if ((branch != FS_BRANCH) && (info.changes[0].trim() != '')) {
             // artificial commit for uncommited changes
             info.missing.unshift({
@@ -86,19 +68,10 @@ function getCommits(branch, cb) {
     }
 }
 
-function getStashHash(branch, cb) {
-    // always take the lastest commit as "stash" commit
-    exec('git', ['rev-list', '..' + branch, '-1'], { cwd: process.env.WORKSPACE_LK },
-    function(err, stdout, stderr) {
-        if (err) return cb(err);
-        cb(null, stdout.trimRight());
-    });
-}
-
 function getChanges(b, cb) {
     var branch = b;
     if (branch) branch = BRANCH_PREFIX + branch;
-    getStashHash(branch, function(err, changeHash) {
+    gitHelper.util.getStashHash(branch, process.env.WORKSPACE_LK, function(err, changeHash) {
         if (err) return cb('Could not find change set "' + b + '"!');
         var changes = { changeId: changeHash, changes: [] };
 

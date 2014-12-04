@@ -862,7 +862,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                 s = this.getSelectionMaybeInComment(),
                 code = Global.Strings.format(
                   "var inspector, options, depth = %s, result;\n"
-                + "if (typeof Objects !== 'undefined') { inspector = Objects; options = {maxDepth: depth}; }\n"
+                + "if (typeof lively !== 'undefined' && lively.lang) { inspector = lively.lang.obj; options = {maxDepth: depth}; }\n"
                 + "else if (typeof lv !== 'undefined') { inspector = lv; }\n"
                 + "else if (typeof process !== 'undefined' && typeof require !== 'undefined') { inspector = require('util'); options = {depth: depth-1}; }\n"
                 + "else throw new Error('no inspect available');\n"

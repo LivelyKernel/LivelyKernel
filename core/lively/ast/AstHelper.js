@@ -1350,7 +1350,32 @@ Object.extend(lively.ast.query, {
         return scope;
     },
 
+    nodesAtIndex: function(ast, index) {
+      return lively.ast.acorn.withMozillaAstDo(ast, [], function(next, node, found) {
+        if (node.start <= index && index <= node.end) { found.push(node); next(); }
+        return found;
+      });
+    },
+
+    scopesAtIndex: function(ast, index) {
+      return lively.lang.tree.filter(
+        lively.ast.query.scopes(ast),
+        function(scope) {
+          var n = scope.node;
+          if (n.type === 'FunctionDeclaration') n = n.body;
+          return n.start <= index && index <= n.end;
+        },
+        function(s) { return s.subScopes; });
+    },
+
+    scopeAtIndex: function(ast, index) {
+      return lively.ast.query.scopesAtIndex(ast, index).last();
+    },
+
     scopesAtPos: function(pos, ast) {
+        // DEPRECATED
+        // FIXME "scopes" should actually not referer to a node but to a scope
+        // object, see lively.ast.query.scopes!
         return lively.ast.acorn.nodesAt(pos, ast).filter(function(node) {
             return node.type === 'Program'
                 || node.type === 'FunctionDeclaration'
@@ -1359,6 +1384,9 @@ Object.extend(lively.ast.query, {
     },
 
     nodesInScopeOf: function(node) {
+        // DEPRECATED
+        // FIXME "scopes" should actually not referer to a node but to a scope
+        // object, see lively.ast.query.scopes!
         return lively.ast.acorn.withMozillaAstDo(node, {root: node, result: []}, function(next, node, state) {
             state.result.push(node);
             if (node !== state.root
@@ -1440,6 +1468,49 @@ Object.extend(lively.ast.query, {
             found.pushIfNotIncluded(node); next(); }
         return found;
       });
+    },
+
+    findReferencesAndDeclsInScope: function(scope, name) {
+      function varDeclIdsOf(scope) {
+        return scope.params
+          .concat(
+            scope.funcDecls.concat(
+              scope.varDecls.pluck("declarations").flatten()).pluck('id'));
+      }
+
+      var refs = lively.lang.tree.map(
+        scope,
+        function(scope) {
+          return scope.refs.concat(varDeclIdsOf(scope))
+            .filter(function(ref) { return ref.name === name; });
+        },
+        function(s) {
+          return s.subScopes.filter(function(subScope) {
+            return varDeclIdsOf(subScope)
+              .every(function(id) { return  id.name !== name; })
+          });
+        }).flatten();
+
+      return refs;
+    },
+
+    findDeclarationClosestToIndex: function(ast, name, index) {
+      // var scopes = lively.ast
+      function varDeclIdsOf(scope) {
+        return scope.params
+          .concat(
+            scope.funcDecls.concat(
+              scope.varDecls.pluck("declarations").flatten()).pluck('id'));
+      }
+      var found = null;
+      lively.ast.query.scopesAtIndex(ast, index)
+        .reverse().detect(function(scope) {
+          var decls = varDeclIdsOf(scope),
+              idx = decls.pluck('name').indexOf(name);
+          if (idx === -1) return false;
+          found = decls[idx]; return true;
+      });
+      return found;
     }
 });
 

@@ -503,8 +503,65 @@ TestCase.subclass('lively.ast.tests.Querying',
       var expected2 = ["Program","VariableDeclaration","VariableDeclarator","ObjectExpression"],
           nodes2 = lively.ast.query.findNodesIncludingLines(null, code, [3,5]);
       this.assertEqualState(expected2, nodes2.pluck("type"));
-    }
+    },
 
+    testFindScopeAtIndex: function() {
+      var src = Functions.extractBody(function() {
+        var x = {
+          f: function(a) {
+            return function(a) { return a + 1};
+          },
+          f2: function() {}
+        }
+      });
+      var index = 35; // on first return
+      var ast = lively.ast.acorn.parse(src, {addSource: true});
+      var result = lively.ast.query.scopesAtIndex(ast, index);
+
+      var scopes = lively.ast.query.scopes(ast);
+      var expected = [scopes, scopes.subScopes[0]]
+      this.assertEqualState(expected, result);
+    },
+
+    testFindScopeAtIndexWhenIndexPointsToFuncDecl: function() {
+      var src = 'var x = "fooo"; function bar() { var z = "baz" }';
+      var ast = lively.ast.acorn.parse(src, {addSource: true});
+      var scopes = lively.ast.query.scopes(ast);
+
+      var index = 26; // on bar
+      var result = lively.ast.query.scopeAtIndex(ast, index);
+      this.assertEqualState(scopes, result);
+
+      var index = 34; // inside bar body
+      var result = lively.ast.query.scopeAtIndex(ast, index);
+      this.assertEqualState(scopes.subScopes[0], result);
+    },
+
+    testFindDeclarationClosestToIndex: function() {
+      var src = Functions.extractBody(function() {
+        var x = 3, yyy = 4;
+        var z = function() { yyy + yyy + (function(yyy) { yyy+1 })(); }
+      });
+      var index = 48; // second yyy of addition
+      // show(src.slice(index-1,index+1))
+      var ast = lively.ast.acorn.parse(src);
+      var result = lively.ast.query.findDeclarationClosestToIndex(ast, "yyy", index);
+      this.assertEqualState({end:14,name:"yyy",start:11,type:"Identifier"}, result);
+    },
+
+    testFindReferencesAndDeclsInScope: function() {
+      var src = Functions.extractBody(function() {
+        var x = 3, y = 4;
+        var z = function() { y + y + (function(y) { y+1 })(); }
+      });
+      var ast = lively.ast.acorn.parse(src);
+      var scope = lively.ast.query.scopes(ast);
+      var result = lively.ast.query.findReferencesAndDeclsInScope(scope, "y");
+      var expected = [{end:12,name:"y",start:11,type:"Identifier"},
+                      {end:40,name:"y",start:39,type:"Identifier"},
+                      {end:44,name:"y",start:43,type:"Identifier"}];
+      this.assertEqualState(expected, result);
+    }
 });
 
 }); // end of module

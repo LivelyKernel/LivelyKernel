@@ -154,8 +154,8 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         }
 
     },
-      sourceNameForEval: function() {
-      return this.getWindow() ? this.getWindow().getTitle() : "JS-workspace";
+      sourceNameForEval: function sourceNameForEval() {
+      return (this.getWindow() ? this.getWindow().getTitle() : "JS-workspace") + "-" + Date.now();
     },
         boundEval: function boundEval(__evalStatement, __evalOptions) {
         // Evaluate the string argument in a context in which "this" is

@@ -1,4 +1,4 @@
-module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes', 'lively.lang.VM').toRun(function() {
+module('lively.ide.CodeEditor').requires('lively.morphic', 'lively.ide.codeeditor.ace', 'lively.ide.codeeditor.DocumentChange', 'lively.ide.codeeditor.Commands', 'lively.ide.codeeditor.Keyboard', 'lively.ide.codeeditor.EvalMarker', 'lively.ide.codeeditor.Snippets', 'lively.ide.codeeditor.Modes', 'lively.lang.VM').toRun(function() {
 
 lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 'settings', {
@@ -178,6 +178,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         this.whenOpenedInWorld(function() { e.resize.bind(e,true).delay(0.1); });
 
         // 3) set modes / themes
+        lively.ide.codeeditor.Commands.attach(this);
         lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(this);
         this.setTextMode(this.getTextMode() || "");
         this.setTheme(this.getTheme() || '');

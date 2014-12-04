@@ -6,20 +6,28 @@ jsMode.addMethods({
 
     morphMenuItems: function(items, editor) {
         var mode = this,
-            livelyREvaluateEnabled = mode.livelyEvalMethod === 'lively-R-evaluate',
             s = editor.getSession();
-        items.push(['js',
-            [["open AST editor",
-             function() {
-                 lively.ide.commands.exec("lively.ide.openASTEditor", editor);
-             }]]]);
+
+        var jsItems = [
+          ["open AST editor", function() { lively.ide.commands.exec("lively.ide.openASTEditor", editor); }]
+        ];
+
+        var acceptedIdentifierTokens = ["variable.parameter", "identifier", "entity.name.function"],
+            tokensAtCursor = [editor.tokenAtPoint(), editor.tokenAfterPoint()],
+            cursorOverIdentifier = tokensAtCursor.any(function(t) { return acceptedIdentifierTokens.include(t.type) });
+
+        if (cursorOverIdentifier) {
+          jsItems.push(["jump to definition (Alt-.)", function() { editor.aceEditor.execCommand("selectDefinition"); editor.focus(); }]);
+          jsItems.push(["select all occurrences in scope (Ctrl-Shift-')", function() { editor.aceEditor.execCommand("selectSymbolReferenceOrDeclaration"); editor.focus(); }]);
+        }
+
+        items.push(['js', jsItems]);
         return items;
     }
 
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
 'parsing', {

@@ -482,6 +482,53 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.JSAST',
               this.done();
           }, 300);
         }, 300);
+    },
+
+    testAddNextRefOrDeclToSelection: function() {
+        var src = Functions.extractBody(function() {
+          var x = 3, yyy = 4;
+          var z = function() { yyy + yyy + (function(yyy) { yyy+1 })(); }
+        });
+
+        var e = this.editor, text;
+        e.textString = src;
+        e.setSelectionRange(11, 14);
+        e.aceEditor.execCommand('selectSymbolReferenceOrDeclaration', {args: "all"});
+        this.assertEquals(
+          "Range: [0/11] -> [0/14],Range: [1/21] -> [1/24],Range: [1/27] -> [1/30]",
+          String(e.getSelection().getAllRanges()))
+
+        e.clearSelection();
+        e.setSelectionRange(11, 14);
+        e.aceEditor.execCommand('selectSymbolReferenceOrDeclaration', {args: "next"});
+        this.assertEquals(
+          "Range: [0/11] -> [0/14],Range: [1/21] -> [1/24]",
+          String(e.getSelection().getAllRanges()))
+
+        e.clearSelection();
+        e.setSelectionRange(47, 50);
+        e.aceEditor.execCommand('selectSymbolReferenceOrDeclaration', {args: "prev"});
+        this.assertEquals(
+          "Range: [1/21] -> [1/24],Range: [1/27] -> [1/30]",
+          String(e.getSelection().getAllRanges()))
+
+        this.done();
+    },
+
+    testSelectDefinition: function() {
+        var src = Functions.extractBody(function() {
+          var x = 3, yyy = 4;
+          var z = function() { yyy + yyy + (function(yyy) { yyy+1 })(); }
+        });
+
+        var e = this.editor, text;
+        e.textString = src;
+        e.setSelectionRange(47, 47); // descond "yyy of + op
+        e.aceEditor.execCommand('selectDefinition');
+
+        var expectedRanges = [{start:{column:11,row:0},end:{column:14,row:0}}]; // var yyy
+        this.assertEqualState(expectedRanges, e.getSelection().getAllRanges())
+        this.done();
     }
 
 });

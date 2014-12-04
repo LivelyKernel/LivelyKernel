@@ -625,14 +625,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'doBrowseAtPointOrRegion',
-                bindKey: {win: "Alt-.", mac: "Alt-."},
                 exec: function(ed) {
                     lively.ide.CommandLineSearch.doBrowseAtPointOrRegion(ed.$morph);
                 },
                 multiSelectAction: 'forEach'
             }, {
-                name: 'doCommandLineSearch',
-                bindKey: {win: "Alt-/", mac: "Alt-/"},
+                name: 'doCommandLineSearchInline',
+                // bindKey: {win: "Alt-/", mac: "Alt-/"},
                 exec: function(ed) {
                     lively.ide.CommandLineSearch.doGrepFromWorkspace(ed.$morph.getSelectionOrLineString());
                 },
@@ -642,23 +641,27 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 
     setupMultiSelectBindings: function(kbd) {
         this.addCommands(kbd, [{
-                name: "multiSelectNext",
-                bindKey: "Ctrl-Shift-.",
-                exec: function(ed) { ed.$morph.multiSelectNext(); },
-                readOnly: true
-            }, {
-                name: "multiSelectPrev",
-                bindKey: "Ctrl-Shift-,",
-                exec: function(ed) { ed.$morph.multiSelectPrev(); },
-                readOnly: true
-            }, {
-                name: "selectAllLikeThis",
-                bindKey: "Ctrl-Shift-/",
-                exec: function(ed) {
-                    ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                    ed.findAll(ed.$morph.getTextRange()); },
-                readOnly: true
-            }]);
+            name: "multiSelectNext",
+            bindKey: "Ctrl-Shift-.",
+            exec: function(ed) { ed.$morph.multiSelectNext(); },
+            readOnly: true
+        }, {
+            name: "multiSelectPrev",
+            bindKey: "Ctrl-Shift-,",
+            exec: function(ed) { ed.$morph.multiSelectPrev(); },
+            readOnly: true
+        }, {
+            name: "selectAllLikeThis",
+            bindKey: "Ctrl-Shift-/",
+            exec: function(ed) {
+                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
+                ed.findAll(ed.$morph.getTextRange()); },
+            readOnly: true
+        }]);
+
+        kbd.bindKey("Ctrl-Shift-L", 'selectSymbolReferenceOrDeclarationPrev');
+        kbd.bindKey("Ctrl-Shift-º", 'selectSymbolReferenceOrDeclarationNext'); // Ctrl-Shift-:
+        kbd.bindKey("Ctrl-Shift-'", 'selectSymbolReferenceOrDeclaration');
     },
 
     setupEditorConfigBindings: function(kbd) {
@@ -710,18 +713,17 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 name: "set tab size",
                 exec: function(ed) {
                     $world.prompt('enter new tab size', function(input) {
-                        var newTabSize = input;
-                        var size = newTabSize && Number(newTabSize);
+                        var size = input && Number(input);
                         if (!size) { show("not a valid tab size: %s", size); return; }
                         ed.$morph.setTabSize(size);
-                        $world.confirm('Set tab size to ' + newTabSize + ' for all editors?', function(input) {
+                        $world.confirm('Set tab size to ' + size + ' for all editors?', function(input) {
                             if (!input) { ed.$morph.focus(); return; }
                             var size = 2;
                             $world.withAllSubmorphsSelect(function(ea) { return ea.isCodeEditor; })
-                              .invoke("setTabSize", newTabSize);
-                            lively.Config.set('defaultTabSize', newTabSize);
-                            lively.morphic.CodeEditor.prototype.style.tabSize = newTabSize;
-                            alertOK('Changed global tab size to ' + newTabSize);
+                              .invoke("setTabSize", size);
+                            lively.Config.set('defaultTabSize', size);
+                            lively.morphic.CodeEditor.prototype.style.tabSize = size;
+                            alertOK('Changed global tab size to ' + size);
                             ed.$morph.focus();
                         });
                         ed.$morph.focus();

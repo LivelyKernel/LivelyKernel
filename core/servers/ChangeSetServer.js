@@ -1,11 +1,12 @@
-var path  = require('path');
-var async = require('async');
+var fs    = require('fs'),
+    url   = require('url'),
+    path  = require('path'),
+    async = require('async');
 var exec  = require('child_process').execFile,
     spawn = require('child_process').spawn;
-var fs    = require('fs');
-var url   = require('url');
+var gitHelper = require('lively-git-helper');
 
-var FS_BRANCH = 'master',
+var FS_BRANCH = 'master';
     BRANCH_PREFIX = 'lvChangeSet-';
 
 var log = function log(/*args*/) {
@@ -15,12 +16,9 @@ var log = function log(/*args*/) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 function getBranches(cb) {
-    exec('git', ['branch', '--list'], { cwd: process.env.WORKSPACE_LK },
-    function(err, stdout, stderr) {
+    gitHelper.listBranches(process.env.WORKSPACE_LK, function(err, branches) {
         if (err) return cb(err);
-        var branches = stdout.trimRight().split('\n').map(function(branch) {
-            return branch.substr(2);
-        }).filter(function(branch) {
+        branches = branches.filter(function(branch) {
             return branch.substr(0, BRANCH_PREFIX.length) == BRANCH_PREFIX;
         }).map(function(branch) {
             return branch.substr(BRANCH_PREFIX.length);
@@ -178,85 +176,6 @@ function removeTempFiles(files) {
     // });
 }
 
-function createHashObject(tempFile, callback) {
-    exec('git', ['hash-object', '-t', 'blob', '-w', tempFile], { cwd: process.env.WORKSPACE_LK },
-    function(err, stdout, stderr) {
-        if (err) return callback(err);
-        callback(null, stdout.trimRight());
-    });
-}
-
-function treeFromString(str, withoutPath) {
-    var objects = str.trimRight().split('\n'),
-        withoutPath = !!withoutPath;
-
-    if (objects.length == 1 && objects[0] == '') // no directory content
-        objects = [];
-
-    return objects.reduce(function(tree, objLine) {
-        // ls-tree returns lines in the format of:
-        // <mode> SP <type> SP <object> TAB <file> NL
-        // (see http://git-scm.com/docs/git-ls-tree)
-        var info = objLine.match(/^([0-9]+) (tree|blob) ([0-9a-f]+)\t(.*)$/);
-        if (!info) // should not happen!!
-            throw new Error('Found weird Git ls-tree info (unparseable): ' + objLine);
-        var filename = withoutPath ? path.basename(info[4]) : info[4];
-        tree[filename] = {
-            fileMode: info[1],
-            objectType: info[2],
-            objectHash: info[3]
-        };
-        return tree;
-    }, {});
-}
-
-function stringFromTree(tree) {
-    var lines = Object.getOwnPropertyNames(tree).map(function(filename) {
-        var info = tree[filename];
-        return info.fileMode + ' ' + info.objectType + ' ' + info.objectHash + '\t' + filename;
-    });
-    return lines.join('\n');
-}
-
-function getGitTrees(commitId, filename, treeInfo, callback) {
-    // TODO: eventually create empty trees
-
-    var pathParts = filename.split(path.sep);
-    pathParts.pop();
-    var paths = pathParts.reduce(function(paths, part) {
-        paths.unshift(path.join(paths[0], part) + '/');
-        return paths;
-    }, ['']);
-
-    async.reduce(paths, treeInfo, function(tree, path, next) {
-        if (tree.hasOwnProperty(path)) return next(null, tree);
-        exec('git', ['ls-tree', commitId, path], { cwd: process.env.WORKSPACE_LK }, function(err, stdout, stderr) {
-            if (err) return next(err);
-            tree[path] = treeFromString(stdout, true);
-            next(null, tree);
-        });
-    }, callback);
-}
-
-function createTree(treeInfo, callback) {
-    var cmd = spawn('git', ['mktree'], { cwd: process.env.WORKSPACE_LK }),
-        stdout = '',
-        stderr = '';
-    cmd.stdout.on('data', function(buffer) {
-        stdout += buffer.toString();
-    });
-    cmd.stderr.on('data', function(buffer) {
-        stderr += buffer.toString();
-    });
-    cmd.on('close', function(code) {
-        if (code != 0)
-            return callback(new Error(stderr));
-        var newHash = stdout.trimRight();
-        callback(null, newHash);
-    });
-    cmd.stdin.end(stringFromTree(treeInfo));
-}
-
 function commitChanges(treeHash, parentHash, commitMsg, commiter, callback) {
     exec('git', ['commit-tree', treeHash, '-p', parentHash, '-m', commitMsg], { cwd: process.env.WORKSPACE_LK, env: commiter },
     function(err, stdout, stderr) {
@@ -281,7 +200,7 @@ function createCommit(changeId, commitDiffs, stashDiffs, message, commiter, cb) 
         // assemble tree info
         async.reduce(commitDiffs.map(getNewFilename), {}, function(tree, filename, next) {
             if (filename == '/dev/null') return tree;
-            tree = getGitTrees(changeId, filename, tree, next);
+            tree = gitHelper.util.getTree(process.env.WORKSPACE_LK, filename, changeId, tree, next);
         },
         function(err, treeInfo) {
             if (err) return cb(err);
@@ -324,15 +243,12 @@ function createCommit(changeId, commitDiffs, stashDiffs, message, commiter, cb) 
                     patch.stdin.end(changeObjects[doubleHash].diffs.join('\n'));
                 },
                 function saveTempFile(doubleHash, tempFile, next) {
-                    var newFilename = getNewFilename(changeObjects[doubleHash].diffs[0]),
-                        dirname = path.dirname(newFilename);
-                    changeObjects[doubleHash].targetFilename = path.basename(newFilename);
-                    changeObjects[doubleHash].targetDir = (dirname == '.' ? '' : dirname + '/');
-
+                    var newFilename = getNewFilename(changeObjects[doubleHash].diffs[0]);
                     console.log('Saving ' + tempFile + ' to ' + newFilename);
-                    createHashObject(tempFile, function(err, hash) {
+                    gitHelper.util.createHashObjectFromFile(process.env.WORKSPACE_LK, tempFile, function(err, hash) {
                         if (err) return next(err);
                         changeObjects[doubleHash].fileHash = hash;
+                        gitHelper.util.injectHashObjectIntoTree(newFilename, hash, treeInfo);
                         next(null);
                     });
                 }
@@ -340,45 +256,16 @@ function createCommit(changeId, commitDiffs, stashDiffs, message, commiter, cb) 
                 removeTempFiles(files);
                 if (err) return cb(err);
 
-                changeObjects = Object.getOwnPropertyNames(changeObjects).map(function(hash) {
-                    return changeObjects[hash];
-                });
+                var commitObj = { treeInfos: treeInfo, parent: parentHash },
+                    repoPath = process.env.WORKSPACE_LK;
 
-                // updateing tree and commiting
-                var changedDirs = Object.getOwnPropertyNames(treeInfo).sort().reverse();
-                async.reduce(changedDirs, null, function(memo, dirname, next) {
-                    // update tree with new files ...
-                    changeObjects.each(function(obj) {
-                        if (obj.targetDir != dirname) return;
-                        treeInfo[dirname][obj.targetFilename] = treeInfo[dirname][obj.targetFilename] || {
-                            fileMode: '100644', // default filemode
-                            objectType: 'blob',
-                        };
-                        treeInfo[dirname][obj.targetFilename].objectHash = obj.fileHash;
-                    });
-
-                    // ... and propagate changed hash down
-                    createTree(treeInfo[dirname], function(err, treeHash) {
-                        if (err) return next(err);
-                        if (dirname != '') {
-                            var curDir = path.basename(dirname),
-                                parentDir = path.dirname(dirname.substr(0, dirname.length - 1));
-                            if (parentDir == '.')
-                                parentDir = '';
-                            else
-                                parentDir += '/';
-                            treeInfo[parentDir][curDir].objectHash = treeHash;
-                        }
-                        next(null, treeHash);
-                    });
-                },
-                function(err, treeHash) {
-                    if (err) return cb(err);
-                    commitChanges(treeHash, parentHash, message, commiter, function(err, commitHash) {
-                        console.log('Commited with hash:', commitHash);
-                        cb(err, commitHash);
-                        // TODO: create additional commit with stash (again)
-                    });
+                async.waterfall([
+                    gitHelper.util.createTrees.bind(null, repoPath, commitObj),
+                    gitHelper.util.createCommit.bind(null, repoPath, commiter, message),
+                    gitHelper.util.updateBranch.bind(null, branch, repoPath)
+                ], function(err, commitInfo) {
+                    // TODO: create additional commit with stash (again)
+                    cb(err, commitInfo && commitInfo.commit);
                 });
             });
         });

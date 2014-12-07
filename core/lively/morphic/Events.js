@@ -401,7 +401,7 @@ Object.extend(Event, {
 
     MOUSE_LEFT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && (evt.which === 1 || evt.buttons === 1) } :
+            function(evt) { return evt.world.clickedOnMorph && evt.buttons === 1; } :
             UserAgent.isMobile ?
                 function(evt) { return true } :
                 function(evt) { return (evt.which === 1 || evt.buttons === 1) }

@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         return this;
     },
 
-    getLabel: function(label) { return this.label.textString },
+    getLabel: function() { return this.label.textString },
 
     setActive: function(bool) {
         this.isActive = bool;

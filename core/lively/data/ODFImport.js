@@ -366,231 +366,278 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ODFUploader', {
 });
 
 (function odfTextFunctions() {
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// text extraction
-// mergeStyles([{fill: Color.red, fontFamily: 'Verdana', align: 'center'}, {fill: Color.rgb(0,0,0), fontFamily: 'Arial', align: ''}])
-// mergeStyles([{align: 'center'}, {}])
-mergeStyles = function(styles) {
-    return styles.inject({}, function(merged, style) {
-        var objA = merged, objB = style;
-        Object.keys(objA).union(Object.keys(objB)).forEach(function(name) {
-            var a = objA[name], b = objB[name];
-            if (!a) { merged[name] = b; }
-            else if (!b) { merged[name] = a; }
-            else if (b.isColor) { merged[name] = Color.black.equals(b) ? a : b; }
-            else if (typeof b === 'number') { merged[name] = b; }
-            else if (typeof b === 'string') { merged[name] = b.length ? b : a; }
-            else { merged[name] = b; }
-        });
-        return merged;
-    });
-}
+  Global.mergeStyles             = mergeStyles;
+  Global.textSpecFromFrame       = textSpecFromFrame;
+  Global.morphStyleFromFrame     = morphStyleFromFrame;
+  Global.gatherTextStyle         = gatherTextStyle;
+  Global.gatherMorphStyle        = gatherMorphStyle;
+  Global.textMorphWithStyles     = textMorphWithStyles;
+  Global.convertODFTextsToMorphs = convertODFTextsToMorphs;
+  Global.convertODFImagesToMorphs = convertODFImagesToMorphs;
 
-var cssAttributes;
-lively.whenLoaded(function() { // FIXME include problem with lively.morphic.Graphics
-    var string = String;
-    var color = Functions.compose(
-        function(colorString) { return colorString && colorString.length ? colorString : 'rgba(0,0,0,0)'; },
-        Color.parseRGB.bind(Color),
-        Color.fromTuple);
-    var length = Functions.compose(
-        function(lengthString) { return lengthString && lengthString.length ? lengthString : '0px'; },
-        Functions.flip(Numbers.parseLength).curry('pt'),
-        Math.round)
-    cssAttributes = [
-        {cssName: "background-color", morphicName: "fill", reader: color, textEmphName: 'backgroundColor'},
-        {cssName: "border-width", morphicName: "borderWidth", reader: length},
-        {cssName: "border-color", morphicName: "borderColor", reader: color},
-        {cssName: "border-radius", morphicName: "borderRadius", reader: length},
-        {cssName: "border-style", morphicName: "borderStyle", reader: string},
-        {cssName: "color", morphicName: "textColor", reader: color, textEmphName: 'color'},
-        {cssName: "font-family", morphicName: "fontFamily", reader: string, textEmphName: "fontFamily"},
-        {cssName: "font-size", morphicName: "fontSize", reader: length, textEmphName: 'fontSize'},
-        {cssName: "font-style", morphicName: "fontStyle", reader: string, textEmphName: 'italics'},
-        {cssName: "font-weight", morphicName: "fontWeight", reader: string, textEmphName: "fontWeight"},
-        // {cssName: "line-height", morphicName: "lineHeight", reader: length},
-        // {cssName: "padding", morphicName: "padding", reader: length},
-        {cssName: "text-align", morphicName: "align", reader: string, textEmphName: 'textAlign'},
-        {cssName: "text-decoration", morphicName: "textDecration", reader: string},
-        {cssName: "text-shadow", morphicName: "textShadow", reader: string},
-        {cssName: "vertical-align", morphicName: "verticalAlign", reader: string},
-        {cssName: "white-space", morphicName: "whiteSpaceHandling", reader: string},
-        {cssName: "word-break", morphicName: "wordBreak", reader: string}]
-});
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // text extraction
+  // mergeStyles([{fill: Color.red, fontFamily: 'Verdana', align: 'center'}, {fill: Color.rgb(0,0,0), fontFamily: 'Arial', align: ''}])
+  // mergeStyles([{align: 'center'}, {}])
+  function mergeStyles(styles) {
+      return styles.inject({}, function(merged, style) {
+          var objA = merged, objB = style;
+          Object.keys(objA).union(Object.keys(objB)).forEach(function(name) {
+              var a = objA[name], b = objB[name];
+              if (!a) { merged[name] = b; }
+              else if (!b) { merged[name] = a; }
+              else if (b.isColor) { merged[name] = Color.black.equals(b) ? a : b; }
+              else if (typeof b === 'number') { merged[name] = b; }
+              else if (typeof b === 'string') { merged[name] = b.length ? b : a; }
+              else { merged[name] = b; }
+          });
+          return merged;
+      });
+  }
+  
+  var cssAttributes;
+  lively.whenLoaded(function() { // FIXME include problem with lively.morphic.Graphics
+      var string = String;
+      var color = Functions.compose(
+          function(colorString) { return colorString && colorString.length ? colorString : 'rgba(0,0,0,0)'; },
+          Color.parseRGB.bind(Color),
+          Color.fromTuple);
+      var length = Functions.compose(
+          function(lengthString) { return lengthString && lengthString.length ? lengthString : '0px'; },
+          Functions.flip(Numbers.parseLength).curry('pt'),
+          Math.round)
+      cssAttributes = [
+          {cssName: "background-color", morphicName: "fill", reader: color, textEmphName: 'backgroundColor'},
+          {cssName: "border-width", morphicName: "borderWidth", reader: length},
+          {cssName: "border-color", morphicName: "borderColor", reader: color},
+          {cssName: "border-radius", morphicName: "borderRadius", reader: length},
+          {cssName: "border-style", morphicName: "borderStyle", reader: string},
+          {cssName: "color", morphicName: "textColor", reader: color, textEmphName: 'color'},
+          {cssName: "font-family", morphicName: "fontFamily", reader: string, textEmphName: "fontFamily"},
+          {cssName: "font-size", morphicName: "fontSize", reader: length, textEmphName: 'fontSize'},
+          {cssName: "font-style", morphicName: "fontStyle", reader: string, textEmphName: 'italics'},
+          {cssName: "font-weight", morphicName: "fontWeight", reader: string, textEmphName: "fontWeight"},
+          // {cssName: "line-height", morphicName: "lineHeight", reader: length},
+          // {cssName: "padding", morphicName: "padding", reader: length},
+          {cssName: "text-align", morphicName: "align", reader: string, textEmphName: 'textAlign'},
+          {cssName: "text-decoration", morphicName: "textDecration", reader: string},
+          {cssName: "text-shadow", morphicName: "textShadow", reader: string},
+          {cssName: "vertical-align", morphicName: "verticalAlign", reader: string},
+          {cssName: "white-space", morphicName: "whiteSpaceHandling", reader: string},
+          {cssName: "word-break", morphicName: "wordBreak", reader: string}]
+  });
+  
+  function textSpecFromFrame(frameEl) {
+      // returns list of textStrings with ranged text emphs
+      // [{text: "Five 5 Minute Ideas", emph: [0,19, {fontWeight: "bold"}]}]
+      var textParagraphs = lively.$(frameEl).find("text-box>p").toArray();
+      return textParagraphs.inject([], function(textAndEmphs, p) {
+          var $p = lively.$(p),
+              text = $p.text() + '\n';
+          if (!text.length) return textAndEmphs;
+          var emph = mergeStyles($p.add($p.find("*")).toArray().map(gatherTextStyle)),
+              last = textAndEmphs.last(),
+              startIdx = last ? last.emph[1] : 0,
+              range = [startIdx, startIdx+text.length];
+          return textAndEmphs.concat([{text: text, emph: range.concat([emph])}]);
+      });
+  }
+  
+  function morphStyleFromFrame(frameEl) {
+      var $n = lively.$(frameEl);
+      var bounds = lively.Rectangle.fromElement($n[0]),
+          style = mergeStyles($n.add($n.find("text-box")).toArray().map(gatherMorphStyle));
+      style.position = bounds.topLeft();
+      style.extent = bounds.extent();
+      return style;
+  }
+  
+  function gatherTextStyle(el) {
+      // applies cssAttributes to computed style of el and gets textEmphName/morphicName readings
+      var style = getComputedStyle(el);
+      return cssAttributes.inject({}, function(textStyle, val) {
+          textStyle[val.textEmphName || val.morphicName] = val.reader(style[val.cssName]);
+          return textStyle; });
+  }
+  
+  function gatherMorphStyle(el) {
+      // applies cssAttributes to computed style of el and gets morphicName readings
+      // produces a spec Object for Morph>>applyStyle
+      // with alias it can also be used as text emphasis
+      var style = getComputedStyle(el);
+      return cssAttributes.inject({}, function(morphStyle, val) {
+          morphStyle[val.morphicName] = val.reader(style[val.cssName]);
+          return morphStyle; });
+  }
+  
+  function textMorphWithStyles(morphStyle, textRanges) {
+      var textString = textRanges.pluck('text').join(''),
+          emphs = textRanges.pluck('emph'),
+          t = new lively.morphic.Text(morphStyle.extent.extentAsRectangle(), textString);
+      t.applyStyle(morphStyle);
+      t.emphasizeRanges(emphs);
+      // t.emphasizeRanges.bind(t, emphs).delay(1);
+      // FIXME hacks...
+      t.setWhiteSpaceHandling('pre-wrap')
+      var isCentered = emphs.pluck(2).compact().pluck('textAlign').compact().reMatches(/^center$/).compact().length > 0;
+      if (isCentered) t.setAlign('center');
+      return t;
+  }
+  
+  function convertODFTextsToMorphs(pageMorph) {
+      var textMask = pageMorph.submorphs.map(function(morph) {
+              return morph.jQuery().text().length > 0; }),
+          morphs = pageMorph.submorphs.mask(textMask),
+          $frames = morphs.invoke("jQuery").invoke("find", 'frame');
+      return pageMorph.texts = $frames.map(function($frame, i) {
+          if (!$frame[0]) return null;
+          var text = textMorphWithStyles(
+              morphStyleFromFrame($frame),
+              textSpecFromFrame($frame));
+          // for debugging it is sometimes useful to leave the original elements around
+          if (!text) return;
+          morphs[i].remove();
+          text.name = morphs[i].name;
+          return pageMorph.addMorph(text);
+      }).compact();
+  }
 
-textSpecFromFrame = function(frameEl) {
-    // returns list of textStrings with ranged text emphs
-    // [{text: "Five 5 Minute Ideas", emph: [0,19, {fontWeight: "bold"}]}]
-    var textParagraphs = lively.$(frameEl).find("text-box>p").toArray();
-    return textParagraphs.inject([], function(textAndEmphs, p) {
-        var $p = lively.$(p),
-            text = $p.text() + '\n';
-        if (!text.length) return textAndEmphs;
-        var emph = mergeStyles($p.add($p.find("*")).toArray().map(gatherTextStyle)),
-            last = textAndEmphs.last(),
-            startIdx = last ? last.emph[1] : 0,
-            range = [startIdx, startIdx+text.length];
-        return textAndEmphs.concat([{text: text, emph: range.concat([emph])}]);
-    });
-}
+  function convertODFImagesToMorphs(pageMorph) {
+      var imageEls = pageMorph.submorphs.map(function(ea) {
+          return lively.lang.tree.detect(ea.renderContext().shapeNode,
+            function(el) { return el.tagName && el.tagName.endsWith(":image");},
+            function(el) { return el.childNodes || []; }); }),
+          pageSubmorphs = pageMorph.submorphs.clone();
 
-morphStyleFromFrame = function(frameEl) {
-    var $n = lively.$(frameEl);
-    var bounds = lively.Rectangle.fromElement($n[0]),
-        style = mergeStyles($n.add($n.find("text-box")).toArray().map(gatherMorphStyle));
-    style.position = bounds.topLeft();
-    style.extent = bounds.extent();
-    return style;
-}
+      return pageMorph.images = imageEls.map(function(imageEl, i) {
+          if (!imageEl) return null;
+          var imageWrapperMorph = pageSubmorphs[i],
+              style = window.getComputedStyle(imageEl),
+              imageData = style && style.backgroundImage;
+          if (!imageData || !imageData.match(/^url\(data:image/)) return null;
+          var dataURI = imageData.slice(4,-1); // remove "url(" and ")" from "url(data:...)"
 
-gatherTextStyle = function(el) {
-    // applies cssAttributes to computed style of el and gets textEmphName/morphicName readings
-    var style = getComputedStyle(el);
-    return cssAttributes.inject({}, function(textStyle, val) {
-        textStyle[val.textEmphName || val.morphicName] = val.reader(style[val.cssName]);
-        return textStyle; });
-}
+          var attrs = lively.lang.arr.from(imageEl.parentNode.attributes)
+            .reduce(function(attrs, ea) { attrs[ea.localName] = ea.value; return attrs; }, {})
+          if (width in attrs && height in attrs) {
+            var width  = lively.lang.num.parseLength(style.width);
+            var height = lively.lang.num.parseLength(style.height);
+            var bounds = height && width && lively.rect(0,0,width, height);
+            var x      = lively.lang.num.parseLength(style.x);
+            var y      = lively.lang.num.parseLength(style.y);
+            var bounds = height && width && lively.rect(0,0,width, height);
+          }
+          var image = lively.morphic.Image.fromURL(dataURI, bounds || imageWrapperMorph.bounds());
+          image.name = imageWrapperMorph.name;
+          imageWrapperMorph.remove();
+          return pageMorph.addMorph(image);
+      }).compact();
+  }
 
-gatherMorphStyle = function gatherMorphStyle(el) {
-    // applies cssAttributes to computed style of el and gets morphicName readings
-    // produces a spec Object for Morph>>applyStyle
-    // with alias it can also be used as text emphasis
-    var style = getComputedStyle(el);
-    return cssAttributes.inject({}, function(morphStyle, val) {
-        morphStyle[val.morphicName] = val.reader(style[val.cssName]);
-        return morphStyle; });
-}
-
-textMorphWithStyles = function(morphStyle, textRanges) {
-    var textString = textRanges.pluck('text').join(''),
-        emphs = textRanges.pluck('emph'),
-        t = new lively.morphic.Text(morphStyle.extent.extentAsRectangle(), textString);
-    t.applyStyle(morphStyle);
-    t.emphasizeRanges(emphs);
-    // t.emphasizeRanges.bind(t, emphs).delay(1);
-    // FIXME hacks...
-    t.setWhiteSpaceHandling('pre-wrap')
-    var isCentered = emphs.pluck(2).compact().pluck('textAlign').compact().reMatches(/^center$/).compact().length > 0;
-    if (isCentered) t.setAlign('center');
-    return t;
-}
-
-convertODFTextsToMorphs = function convertODFTextsToMorphs(pageMorph) {
-    var textMask = pageMorph.submorphs.map(function(morph) {
-            return morph.jQuery().text().length > 0; }),
-        morphs = pageMorph.submorphs.mask(textMask),
-        $frames = morphs.invoke("jQuery").invoke("find", 'frame');
-
-    return pageMorph.texts = $frames.map(function($frame, i) {
-        if (!$frame[0]) return null;
-        var text = textMorphWithStyles(
-            morphStyleFromFrame($frame),
-            textSpecFromFrame($frame));
-        // for debugging it is sometimes useful to leave the original elements around
-        if (!text) return;
-        morphs[i].remove();
-        text.name = morphs[i].name;
-        return pageMorph.addMorph(text);
-    }).compact();
-}
 })();
 
 (function odfPageFunctions() {
 
-// odf rendering --> Morphs data pipeline:
-Global.renderStateForOdfPage = function renderStateForOdfPage(pageEl) {
-    // for each odf page element we extract the position, extent, and
-    // elements that are rendered on that page
-    return {
-        node: pageEl,//.cloneNode(false/*don'copy children*/),
-        elements: Array.from(pageEl.childNodes).inject([], function(renderStates, node) {
-            if (node.prefix !== 'draw') return renderStates;
-            var $bounds = lively.$(node).bounds(),
-                bounds = lively.rect(pt($bounds.left, $bounds.top), pt($bounds.right, $bounds.bottom)),
-                state = {
-                    node: node.cloneNode(true),
-                    position: bounds.topLeft(),
-                    extent: bounds.extent(),
-                    id: node.attributes && node.attributes['xml:id'] && node.attributes['xml:id'].value};
-            return renderStates.concat([state]);
-        })
-    }
-}
+  Global.renderStateForOdfPage           = renderStateForOdfPage;
+  Global.morphWrapperForOdfPageElement   = morphWrapperForOdfPageElement;
+  Global.morphForOdfRendering            = morphForOdfRendering;
+  Global.movePageToOriginWhileGenerating = movePageToOriginWhileGenerating;
+  Global.odfToMorphic                    = odfToMorphic;
 
-Global.morphWrapperForOdfPageElement = function morphWrapperForOdfPageElement(renderState) {
-    // this creates a morph for an element that appears on a rendered
-    // odf page, like a text or a drawing
-    var wrapper = new lively.morphic.HtmlWrapperMorph(pt(0,0));
-    wrapper.name = wrapper.odfId = renderState.id;
-    wrapper.applyStyle({fill: Color.white, position: renderState.position});
-    wrapper.shape.odfRenderState = renderState;
-    (function getExtentHTML(ctx) { return this.odfRenderState.extent; }).asScriptOf(wrapper.shape);
-    lively.$(Strings.format('<div style="position: absolute; top: -%spx; left: -%spx" />',
-         renderState.position.y, renderState.position.x))
-        .appendTo(wrapper.renderContext().shapeNode)
-        .append(renderState.node);
-    return wrapper;     
-}
-
-Global.morphForOdfRendering = function morphForOdfRendering(odfRenderState) {
-    // This creates a morph container for an odf page
-    var pageMorph = new lively.presentation.Slides.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
-    odfRenderState.elements
-        .map(morphWrapperForOdfPageElement)
-        .forEach(function(morph) { pageMorph.addMorph(morph); })
-    return pageMorph;
-}
-
-function movePageToOriginWhileGenerating(wrapper, page, doFunc) {
-    var $page = lively.$(page),
-        origPos = wrapper.getPosition(),
-        pagePos = pt($page.bounds().left, $page.bounds().top),
-        result;
-    wrapper.moveBy(pagePos.negated());
-    try { result = doFunc.call(this, pagePos); } finally {
-        wrapper.setPosition(origPos); }
-    return result;
-}
-
-// odfToMorphic(that)
-Global.odfToMorphic = function odfToMorphic(htmlMorph, from, to) {
-    // starting from a HtmlWrapperMorph that has odf content loaded
-    // using the WebODF library this function axtracts the rendered pages
-    // and will create a morph container (as copy) for each page
-    $world.beClip(false);
-    var scroll = $world.getScroll();
-    $world.setScroll(0, 0);
-    var pages = htmlMorph.jQuery().find('presentation page').toArray();
-    if (from || to) pages = pages.slice(from, to);
-    var pageMorphs = pages.map(function(pageEl,i) {
-        return movePageToOriginWhileGenerating(htmlMorph, pageEl, function(pagePos) {
-            var odfPageData = renderStateForOdfPage(pageEl),
-                morph = morphForOdfRendering(odfPageData);
-            morph.name = String(i);
-            morph.openInWorld();
-            convertODFTextsToMorphs(morph);
-            morph.setPosition(pagePos);
-            return morph; });
-    });
-    $world.setScroll(scroll[0], scroll[1]);
-    return pageMorphs;
-}
-
-// that.getWindow().openInWorld()
-// presEl = that.jQuery().find('presentation').toArray()[0];
-// pageEl = Array.from(presEl.childNodes)[0]
-// m=morphForOdfRendering(renderStateForOdfPage(pageEl));
-// m.openInWorld()
-// m.showHalos()
-// show(m.bounds())
-// m.shape.getExtent()
-// m.remove()
-// that.owner.remove()
-// pageMorphs = odfToMorphic(that)
-// pageMorphs.forEach(function(ea) { $world.addMorph(ea); });
-// Global.pageMorphs.invoke('remove')
-// $world.beClip(false)
+  // odf rendering --> Morphs data pipeline:
+  function renderStateForOdfPage(pageEl) {
+      // for each odf page element we extract the position, extent, and
+      // elements that are rendered on that page
+      return {
+          node: pageEl,//.cloneNode(false/*don'copy children*/),
+          elements: Array.from(pageEl.childNodes).inject([], function(renderStates, node) {
+              if (node.prefix !== 'draw') return renderStates;
+              var $bounds = lively.$(node).bounds(),
+                  bounds = lively.rect(pt($bounds.left, $bounds.top), pt($bounds.right, $bounds.bottom)),
+                  state = {
+                      node: node.cloneNode(true),
+                      position: bounds.topLeft(),
+                      extent: bounds.extent(),
+                      id: node.attributes && node.attributes['xml:id'] && node.attributes['xml:id'].value};
+              return renderStates.concat([state]);
+          })
+      }
+  }
+  
+  function morphWrapperForOdfPageElement(renderState) {
+      // this creates a morph for an element that appears on a rendered
+      // odf page, like a text or a drawing
+      var wrapper = new lively.morphic.HtmlWrapperMorph(pt(0,0));
+      wrapper.name = wrapper.odfId = renderState.id;
+      wrapper.applyStyle({fill: Color.white, position: renderState.position});
+      wrapper.shape.odfRenderState = renderState;
+      (function getExtentHTML(ctx) { return this.odfRenderState.extent; }).asScriptOf(wrapper.shape);
+      lively.$(Strings.format('<div style="position: absolute; top: -%spx; left: -%spx" />',
+           renderState.position.y, renderState.position.x))
+          .appendTo(wrapper.renderContext().shapeNode)
+          .append(renderState.node);
+      return wrapper;     
+  }
+  
+  function morphForOdfRendering(odfRenderState) {
+      // This creates a morph container for an odf page
+      var pageMorph = new lively.presentation.Slides.PageMorph(lively.Rectangle.fromElement(odfRenderState.node));
+      odfRenderState.elements
+          .map(morphWrapperForOdfPageElement)
+          .forEach(function(morph) { pageMorph.addMorph(morph); })
+      return pageMorph;
+  }
+  
+  function movePageToOriginWhileGenerating(wrapper, page, doFunc) {
+      var $page = lively.$(page),
+          origPos = wrapper.getPosition(),
+          pagePos = pt($page.bounds().left, $page.bounds().top),
+          result;
+      wrapper.moveBy(pagePos.negated());
+      try { result = doFunc.call(this, pagePos); } finally {
+          wrapper.setPosition(origPos); }
+      return result;
+  }
+  
+  // odfToMorphic(that)
+  function odfToMorphic(htmlMorph, from, to) {
+      // starting from a HtmlWrapperMorph that has odf content loaded
+      // using the WebODF library this function axtracts the rendered pages
+      // and will create a morph container (as copy) for each page
+      $world.beClip(false);
+      var scroll = $world.getScroll();
+      $world.setScroll(0, 0);
+      var pages = htmlMorph.jQuery().find('presentation page').toArray();
+      if (from || to) pages = pages.slice(from, to);
+      var pageMorphs = pages.map(function(pageEl,i) {
+          return movePageToOriginWhileGenerating(htmlMorph, pageEl, function(pagePos) {
+              var odfPageData = renderStateForOdfPage(pageEl),
+                  morph = morphForOdfRendering(odfPageData);
+              morph.name = String(i);
+              morph.openInWorld();
+              Global.convertODFTextsToMorphs(morph);
+              Global.convertODFImagesToMorphs(morph);
+              morph.setPosition(pagePos);
+              return morph; });
+      });
+      $world.setScroll(scroll[0], scroll[1]);
+      return pageMorphs;
+  }
+  
+  // that.getWindow().openInWorld()
+  // presEl = that.jQuery().find('presentation').toArray()[0];
+  // pageEl = Array.from(presEl.childNodes)[0]
+  // m=morphForOdfRendering(renderStateForOdfPage(pageEl));
+  // m.openInWorld()
+  // m.showHalos()
+  // show(m.bounds())
+  // m.shape.getExtent()
+  // m.remove()
+  // that.owner.remove()
+  // pageMorphs = odfToMorphic(that)
+  // pageMorphs.forEach(function(ea) { $world.addMorph(ea); });
+  // Global.pageMorphs.invoke('remove')
+  // $world.beClip(false)
 })();
 
 }) // end of module

@@ -1062,12 +1062,22 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 
-    "lively.tests.runMochaTests": {
-      description: "run mocha tests",
+    "lively.tests.mocha.runAll": {
+      description: "run all mocha tests",
       exec: function runMochaTests(thenDo, mochaSuites) {
         lively.require('lively.MochaTests').toRun(function() {
           if (mochaSuites) lively.MochaTests.run(mochaSuites)
           else lively.MochaTests.runAll()
+        });
+        return true;
+      }
+    },
+    "lively.tests.mocha.reset": {
+      description: "reset mocha test suites",
+      exec: function runMochaTests(thenDo, mochaSuites) {
+        lively.require('lively.MochaTests').toRun(function() {
+          lively.MochaTests.registeredSuites = {};
+          alertOK("mocha tests resetted!")
         });
         return true;
       }
@@ -1569,7 +1579,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.openDirViewer': 'Control-X D',
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
-    "lively.tests.runMochaTests": "Control-C t",
+    "lively.tests.mocha.runAll": "Control-C t",
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-shift-y",
     'lively.morphic.Morph.openStyleEditor': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},

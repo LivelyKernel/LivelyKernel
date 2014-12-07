@@ -274,11 +274,23 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         var location = this.getLocation();
         this.setTitle(String(location));
     },
+
     removeFile: function removeFile() {
-        var webR = this.getWebResource();
-        webR.statusMessage(webR.getURL() + ' removed', webR.getURL() + ' could not removed!');
-        webR.beAsync().del();
+      var loc = this.getLocation();
+      if (loc.isURL) {
+        var webR = this.getWebResource()
+          .statusMessage(webR.getURL() + ' removed', webR.getURL() + ' could not removed!')
+          .beAsync().del();
+      } else {
+        var ed = this.get('editor');
+        lively.shell.rm(loc, function(err) {
+          ed.setStatusMessage(
+            err ? loc + "could not be deleted:\n" + (err.stack || err) : loc + " was deleted",
+            err ? Color.red : Color.green,
+            err ? 5 : undefined); });
+      }
     },
+
     openURL: function openURL(url) {
         this.get('urlText').textString = String(url);
         this.loadFile();

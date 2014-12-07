@@ -264,7 +264,7 @@ Global.Config = {
 
         function loadConfigCustomization(thenDo) {
             loadLocalconfig(function(err) {
-              setConfigOptionsFromURL(); thenDo(); });
+              setConfigOptionsFromURL(); thenDo && thenDo(); });
         }
 
         function loadLocalconfig(thenDo) {

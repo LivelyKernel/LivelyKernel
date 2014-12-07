@@ -1,6 +1,4 @@
-module('lively.MochaTests').requires()
-  .requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/mocha/2.0.1/mocha.js", loadTest: function() { return typeof mocha !== "undefined"; }})
-  .requiresLib({url: "//cdnjs.cloudflare.com/ajax/libs/chai/1.10.0/chai.js", loadTest: function() { return typeof chai !== "undefined"; }}).toRun(function() {
+module('lively.MochaTests').requires().requiresLib({url: lively.Config.codeBase + "lib/mocha-bundle.js", loadTest: function() { return typeof mocha !== "undefined"; }}).toRun(function() {
 /*global mocha*/
 
 Global.expect = Global.chai.expect;

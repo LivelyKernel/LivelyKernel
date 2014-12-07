@@ -547,6 +547,13 @@ Object.extend(lively.ide.CommandLineInterface, {
         return cmd;
     },
 
+    cat: function(path, options, thenDo) {
+        // like readfile but with err, content callback isntead of cmd
+        if (typeof options === "function") { thenDo = options; options = null; }
+        return lively.ide.CommandLineInterface.readFile(path, options, function(cmd) {
+          thenDo && thenDo(cmd.getCode() ? new Error(cmd.getStderr()) : null, cmd.getStdout()); });
+    },
+
     writeFile: function(path, options, thenDo) {
         if (typeof options === "string") options = {content: options};
         options = options || {};

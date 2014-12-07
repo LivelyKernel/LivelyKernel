@@ -1861,4 +1861,10 @@ Object.extend(lively.ast.transform, {
     }
 });
 
+(function extendLivelyAst() {
+  ["withMozillaAstDo","printAst","compareAst","pathToNode","rematchAstWithSource","stringify","parse","parseFunction","parseLikeOMeta","fuzzyParse","nodesAt"].forEach(function(k) {
+    lively.ast[k] = lively.ast.acorn[k];
+  });
+})();
+
 }) // end of module

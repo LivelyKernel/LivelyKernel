@@ -75,7 +75,11 @@ regex /([,{[])|^\s*/:p/
 # setTimeout function
 snippet setTimeout
 regex /\b/st|timeout|setTimeo?u?t?/
-	setTimeout(function() {${3:$TM_SELECTED_TEXT}}, ${1:10});
+	setTimeout(function() {${0:$TM_SELECTED_TEXT}}, ${1:100});
+snippet setInterval
+regex /\b/int|setI?n?t?e?r?v?a?l?/
+	var i = setInterval(function() {${0:$TM_SELECTED_TEXT}}, ${1:1000});
+	clearInterval(i);
 # delay function
 snippet delay
 regex /\b/st|del(ay)?/

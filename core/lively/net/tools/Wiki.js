@@ -777,21 +777,9 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         getPath: function getPath() {
         return this._path;
     },
-        getTimemachineBasePath: function getTimemachineBasePath() {
-            return URL.root.withFilename('timemachine/');
-        },
         getVersions: function getVersions() {
-        var p = this.getPath();
-        if (!p) return;
-        var self = this;
-        lively.require('lively.store.Interface').toRun(function() {
-            new lively.store.ObjectRepository().getRecords({
-                paths: [p],
-                attributes: ['path', 'date', 'author', 'change', 'version']
-            }, function(err, rows) {
-                self.showResult(err, rows);
-            });
-        });
+          var p = this.getPath();
+          p && lively.net.Wiki.getVersions(p, this.showResult.bind(this));
     },
         onLoad: function onLoad() {
         // this.getVersions();
@@ -807,32 +795,24 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             this.get('pathText').textString = '';
         },
         revertToVersion: function revertToVersion() {
+        var path = this.getPath();
+        if (!path) { $world.inform('No resource selected'); return; }
         var sel = this.get('VersionList').selection;
         if (!sel) { $world.inform('No version selected'); return; }
-        var path = this.getPath(),
-            getURL = this.getTimemachineBasePath().withFilename(sel.date + '/').withFilename(path),
-            putURL = URL.root.withFilename(this.getPath()),
-            prompt = 'Do you really want to revert \n'
+        
+        var prompt = 'Do you really want to revert \n'
                     + path
                     + '\nto its version from\n'
                     + new Date(sel.date).format('yy/mm/dd hh:MM:ss') + '?';
-            $world.confirm(prompt, function(input) {
-                if (!input) { $world.alertOK('Revert aborted.'); return; }
-                getURL.asWebResource().createProgressBar('getting reverted content ...').enableShowingProgress().beAsync().get().whenDone(function(content, status) {
-                    if (!status.isSuccess()) {
-                        $world.alert('Revert failed.\nCould not read version: ' + status);
-                        return;
-                    }
-                    putURL.asWebResource().createProgressBar('reverting ...').enableShowingProgress().beAsync().put(content).whenDone(function(_, status) {
-                        if (!status.isSuccess()) {
-                            $world.alert('Revert failed.\nCould not write version: ' + status);
-                            return;
-                        }
-                        $world.alertOK(path + ' successfully reverted.');
-                    });
-                });
+        $world.confirm(prompt, function(input) {
+            if (!input) { $world.alertOK('Revert aborted.'); return; }
+            lively.net.Wiki.revertToVersion(path, sel, function(err) {
+                err ? $world.alert('Revert failed:\n' + (err.stack || err)) :
+                      $world.alertOK(path + ' successfully reverted.');
             });
+        });
     },
+
         setPath: function setPath(path) {
         try {
             // we expect a relative path to be entered, if it's a full URL try
@@ -868,7 +848,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         visitVersion: function visitVersion() {
             var sel = this.get('VersionList').selection;
             if (!sel) { show('nothing selected'); return; }
-            var url = this.getTimemachineBasePath()
+            var url = lively.net.Wiki.getTimemachineBaseURL()
                 .withFilename(encodeURIComponent(sel.date)+'/')
                 .withFilename(this.getPath());
             window.open(''+url);

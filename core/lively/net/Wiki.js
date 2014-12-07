@@ -258,6 +258,41 @@ debugger;
                     return item.value;
                 });
         }
+    },
+
+    getTimemachineBaseURL: function() {
+      return URL.root.withFilename('timemachine/');
+    },
+
+    revertToVersion: function(path, versionInfo, thenDo) {
+      var tmURL = lively.net.Wiki.getTimemachineBaseURL(),
+          getURL = tmURL.withFilename(versionInfo.date + '/').withFilename(path),
+          putURL = URL.root.withFilename(path);
+      lively.lang.fun.composeAsync(
+        function(n) {
+          getURL.asWebResource()
+            .createProgressBar('reverting ' + path).enableShowingProgress()
+            .beAsync().get().whenDone(function(content, status) {
+              n(status.isSuccess() ? null :
+                new Error('Revert of ' + path + ' failed while getting content:\n' + status), content); });
+        },
+        function(content, n) {
+          putURL.asWebResource()
+            .createProgressBar('reverting ' + path).enableShowingProgress()
+            .beAsync().put(content).whenDone(function(_, status) {
+              n(status.isSuccess() ? null :
+                new Error('Revert of ' + path + ' failed while writing content:\n' + status));
+          });
+        })(thenDo);
+    },
+
+    revertResources: function(resourcePaths, versionInfo, thenDo) {
+      // lively.net.Wiki.urlToPath("PartsBin/Basic/Rectangle.json")
+      resourcePaths
+        .map(lively.net.Wiki.urlToPath)
+        .mapAsyncSeries(function(path, i, next) {
+          lively.net.Wiki.revertToVersion(path, versionInfo, next);
+        }, thenDo);
     }
 
 });

@@ -1390,7 +1390,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.net.lively2lively.openWorkspace': {description: 'open Lively2LivelyWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace").createMorph().openInWorldCenter().comeForward(); }); return true; }},
     'lively.net.lively2lively.listSessions': {
         description: 'list lively-2-lively sessions',
-        exec: function(withSelectedSessionDo) {
+        exec: function(withSelectedSessionDo, forceRefresh) {
 
             var foundCandidates = [];
 
@@ -1410,7 +1410,7 @@ Object.extend(lively.ide.commands.byName, {
                         if (candidates.length === 0) candidates = ['nothing found'];
                         foundCandidates = candidates;
                         callback(candidates);
-                    });
+                    }, forceRefresh);
             });
 
             function candidateBuilder(input, callback) {

@@ -79,14 +79,7 @@ Object.extend(lively.net.tools.Functions, {
     openWorkspaceForSession: function(session) {
         var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
         workspace.openInWorldCenter().comeForward();
-        (function() {
-            (function() {
-                var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
-                    return item.value.id === session.id;
-                });
-                workspace.get('ConnectionInput').setSelection(sel);
-            }).delay(1);
-        }).delay(0);
+        workspace.targetMorph.selectTargetSession(session);
     },
 
     openWorldPreview: function(session, title) {

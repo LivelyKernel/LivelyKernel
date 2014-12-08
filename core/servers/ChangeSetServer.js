@@ -69,57 +69,24 @@ function getChanges(b, cb) {
     if (branch) branch = BRANCH_PREFIX + branch;
     gitHelper.util.getStashHash(branch, process.env.WORKSPACE_LK, function(err, changeHash) {
         if (err) return cb('Could not find change set "' + b + '"!');
-        var changes = { changeId: changeHash, changes: [] };
-
-        exec('git', ['--no-pager', 'diff', '-U0', '--full-index', changeHash + '^', changeHash], { cwd: process.env.WORKSPACE_LK },
-        function(err, stdout, stderr) {
+        var changeSet = { changeId: changeHash };
+        gitHelper.util.readCommit(changeHash, process.env.WORKSPACE_LK, function(err, changes) {
             if (err) return cb(err);
-            changes.changes = stdout.split('\n').reduce(function(all, line) {
-                if (line.trim() != '') {
-                    if (line.substr(0, 5) == 'diff ')
-                        all.push(line);
-                    else
-                        all[all.length -1] += '\n' + line;
-                }
-                return all;
-            }, []);
-            cb(null, changes);
+            changeSet.changes = changes;
+            cb(null, changeSet);
         });
     });
 }
 
 function getBranchAndParentFromChangeId(changeId, cb) {
-    exec('git', ['branch', '--contains', changeId], { cwd: process.env.WORKSPACE_LK },
-    function(err, stdout, stderr) {
+    var repo = process.env.WORKSPACE_LK;
+    gitHelper.util.getBranchesByHash(changeId, repo, function(err, branches) {
         if (err) return cb(err);
-        var branches = stdout.trimRight().split('\n').map(function(branch) {
-            return branch.trim();
-        });
-
-        exec('git', ['log', '--pretty=%H', '-n', '1', changeId + '^1'], { cwd: process.env.WORKSPACE_LK },
-        function(err, stdout, stderr) {
+        gitHelper.util.getParentHash(changeId + '^1', repo, function(err, parent) {
             if (err) return cb(err);
-
             // should not be more than one branch!!
-            cb(null, branches && branches[0], stdout.trimRight());
+            cb(null, branches && branches[0], parent);
         });
-    });
-}
-
-function getCommit(commitId, cb) {
-    exec('git', ['--no-pager', 'diff', '-U0', '--full-index', commitId + '^', commitId], { cwd: process.env.WORKSPACE_LK },
-    function(err, stdout, stderr) {
-        if (err) return cb('Could not find commit with id: ' + commitId);
-        var changes = stdout.split('\n').reduce(function(all, line) {
-            if (line.trim() != '') {
-                if (line.substr(0, 5) == 'diff ')
-                    all.push(line);
-                else
-                    all[all.length -1] += '\n' + line;
-            }
-            return all;
-        }, []);
-        cb(null, changes);
     });
 }
 
@@ -282,7 +249,7 @@ module.exports = function(route, app) {
 
     app.get(route + 'commit/:commitId', function(req, res) {
         var commitId = req.param('commitId');
-        getCommit(commitId, function(err, changes) {
+        gitHelper.util.readCommit(commitId, process.env.WORKSPACE_LK, function(err, changes) {
             if (err) res.status(400).json({ error: String(err) });
             else res.json(changes);
         });

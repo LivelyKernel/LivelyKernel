@@ -797,7 +797,7 @@ lively.morphic.Morph.subclass('lively.morphic.Layout.GridLayoutPlaceholder',
         fill: Color.gray,
         extent: pt(100,50)
     },
-    isPlaceHolder: true
+    isPlaceholder: true
 },
 'default category', {
     initialize: function($super, x, y) {

@@ -454,6 +454,30 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Selection
         marker.restoreText();
         this.assertEquals('1+2', marker.getTextString(), 'marker restore');
         this.done();
+    },
+
+    testCycleThroughMultiSelctionRanges: function() {
+        var e = this.editor;
+        e.textString = 'foo\nfoo\nfoo';
+        e.setSelectionRange(0,3);
+        e.multiSelectNext();
+        e.multiSelectNext();
+        this.assertEquals(
+          "Range: [0/0] -> [0/3],Range: [1/0] -> [1/3],Range: [2/0] -> [2/3]",
+          e.getSelection().getAllRanges().toString());
+        this.assertEquals("Range: [2/0] -> [2/3]", e.getSelection().getRange().toString());
+
+        e.multiSelectJump("prev");
+        e.multiSelectJump("prev");
+        this.assertEquals("Range: [0/0] -> [0/3]", e.getSelection().getRange().toString());
+        
+        e.multiSelectJump("next");
+        this.assertEquals("Range: [1/0] -> [1/3]", e.getSelection().getRange().toString());
+
+        this.assertEquals(
+          "Range: [0/0] -> [0/3],Range: [1/0] -> [1/3],Range: [2/0] -> [2/3]",
+          e.getSelection().getAllRanges().toString());
+        this.done();
     }
 
 });

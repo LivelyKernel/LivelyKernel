@@ -140,6 +140,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
+                name: 'togglePrintitAsComment',
+                exec: function(ed, args) {
+                  ed.$morph.setPrintItAsComment(!ed.$morph.getPrintItAsComment());
+                },
+                multiSelectAction: "single",
+                handlesCount: true
+            }, {
                 name: 'doAutoEvalPrintItComments',
                 exec: function(ed, args) {
                     ed.$morph.doAutoEvalPrintItComments();
@@ -649,6 +656,20 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             name: "multiSelectPrev",
             bindKey: "Ctrl-Shift-,",
             exec: function(ed) { ed.$morph.multiSelectPrev(); },
+            readOnly: true
+        }, {
+            name: "multiSelectJumpToPrevRange",
+            bindKey: "Command-Shift-,",
+            exec: function(ed) {
+              ed.$morph.multiSelectJump("prev");
+            },
+            readOnly: true
+        }, {
+            name: "multiSelectJumpToNextRange",
+            bindKey: "Command-Shift-.",
+            exec: function(ed) {
+              ed.$morph.multiSelectJump("next");
+            },
             readOnly: true
         }, {
             name: "selectAllLikeThis",

@@ -1206,6 +1206,28 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         });
     },
 
+    multiSelectJump: function(dir) {
+        // When multiple ranges are active, one of them is the "current" that
+        // is returned by `this.aceEditor.getRange()` and that gets the cursor
+        // when the selections are deactivated. This method can be used to
+        // cycle back and forth between the current range.
+        this.withAceDo(function(ed) {
+          var sel = ed.selection,
+              ranges = sel.getAllRanges(),
+              range = sel.getRange(),
+              multiRange = ranges.detect(function(r) { return r.isEqual(range); }),
+              i = ranges.indexOf(multiRange),
+              nextI = dir === "next" ?
+                (i+1) % ranges.length :
+                i === 0 ? ranges.length-1 : i-1,
+              newRange = ranges[nextI];
+          ed.exitMultiSelectMode();
+          sel.setRange(newRange);
+          ranges.without(newRange).forEach(function(ea) { sel.addRange(ea, true); });
+          ed.centerSelection();
+        });
+    },
+
     collapseSelection: function(dir) {
         // dir = 'start' || 'end'
         var sel = this.getSelection(), range = sel.getRange();

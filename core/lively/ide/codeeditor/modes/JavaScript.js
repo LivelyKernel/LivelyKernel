@@ -13,7 +13,7 @@ jsMode.addMethods({
         ];
 
         var acceptedIdentifierTokens = ["variable.parameter", "identifier", "entity.name.function"],
-            tokensAtCursor = [editor.tokenAtPoint(), editor.tokenAfterPoint()],
+            tokensAtCursor = [editor.tokenAtPoint(), editor.tokenAfterPoint()].compact(),
             cursorOverIdentifier = tokensAtCursor.any(function(t) { return acceptedIdentifierTokens.include(t.type) });
 
         if (cursorOverIdentifier) {

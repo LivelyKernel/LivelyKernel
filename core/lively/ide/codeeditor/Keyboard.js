@@ -192,13 +192,14 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: 'runShellCommandOnRegion',
                 exec: function(ed, args) {
-                    var input = ed.$morph.getSelectionOrLineString();
-                    if (!input || input.length === 0) {
-                        show('Nothing to input into command, aborting...'); return; }
+                    var input = ed.session.getTextRange(),
+                        options = !input || input.length === 0 ? {} : {stdin: input};
                     $world.prompt('Enter shell command to run on region.', function(cmdString) {
                         if (!cmdString) { show('No command entered, aborting...!'); return; }
-                        lively.shell.run(cmdString, {stdin: input}, function(cmd) {
-                            ed.session.replace(ed.selection.getRange(), cmd.resultString(true));
+                        lively.shell.run(cmdString, options, function(cmd) {
+                            ed.session.replace(
+                              ed.selection.getRange(),
+                              cmd.resultString(true).trim());
                         });
                     }, {historyId: 'lively.ide.execShellCommand'});
                 },
@@ -412,7 +413,10 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 
                     // insert upper fence
                     ed.moveCursorTo(startLine, 0);
-                    ed.insert(Strings.indent(fence + '\n', ' ', indent));
+                    if (args && args.count)
+                      ed.insert(Strings.indent("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + '\n', ' ', indent));
+                    else
+                      ed.insert(Strings.indent(fence + '\n', ' ', indent));
                     ed.selection.moveCursorUp();
                     ed.toggleCommentLines();
                     // insert fence below
@@ -426,7 +430,8 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     // select it all
                     ed.selection.setRange({start: {row: startLine, column: 0}, end: ed.getCursorPosition()});
                 },
-                multiSelectAction: "forEach"
+                multiSelectAction: "forEach",
+                handlesCount: true
             }, {
                 name: 'curlyBlockOneLine',
                 exec: function(ed) {

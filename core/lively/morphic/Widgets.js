@@ -333,7 +333,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 },
 'initializing', {
     initialize: function($super, bounds, url, extentOptions, whenImageLoadedFunc) {
-        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle());
+        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle(), url);
         $super(imageShape);
         this.setPosition(bounds.topLeft());
         this.setImageURL(url, extentOptions, whenImageLoadedFunc);

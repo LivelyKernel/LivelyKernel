@@ -50,6 +50,7 @@ Object.extend(lively.morphic, {
                 b.setBounds(bounds);
                 b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
                 b.ignoreEvents();
+                b.setZIndex(1);
                 return b;
             }
             function createMarkerForCorners() {
@@ -65,9 +66,7 @@ Object.extend(lively.morphic, {
                         r.bottomRight(). addXY(-markerLength, -2). extent(pt(markerLength, 0)),
                         r.bottomLeft().  addXY(0,-2).              extent(pt(markerLength, 0)),
                         r.bottomLeft().  addXY(0, -markerLength).  extent(pt(0, markerLength))],
-                    markers = boundsForMarkers.collect(function(bounds) {
-                        return createMarkerMorph(bounds);
-                    });
+                    markers = boundsForMarkers.map(createMarkerMorph);
                 return markers;
             }
             return newShowThenHide(createMarkerForCorners(), duration);

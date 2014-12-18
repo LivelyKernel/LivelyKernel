@@ -747,8 +747,12 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 'accessing', {
     world: function() { return this },
     firstHand: function() {
-        return this.hands && (this.hands.find(function(hand) { return typeof hand.pointerId !== 'undefined' }) || this.hands[0])
+        return this.hands && (this.hands.find(function(hand) {
+          return typeof hand.pointerId !== 'undefined' }) || this.hands[0])
     },
+
+    get hand() { return this.firstHand(); },
+
     windowBounds: function(optWorldDOMNode) {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
         var canvas = optWorldDOMNode || this.renderContext().getMorphNode(),

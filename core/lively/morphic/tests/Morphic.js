@@ -310,6 +310,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.assertEquals(o, r.owner, 'owner');
         this.assertEquals(pt(30,30), r.getPosition(), 'position');
         this.assertEquals(1, o.submorphs.indexOf(r), 'index in owner');
+    },
+
+    testSwapMorphs: function() {
+        var o = lively.morphic.newMorph({bounds: lively.rect(0,0, 100, 100)}),
+            m1 = lively.morphic.newMorph({bounds: lively.rect(20,20, 20,20), style: {fill: Color.blue}}),
+            m2 = lively.morphic.newMorph({bounds: lively.rect(30,30, 20, 20), style: {fill: Color.red}}),
+            m3 = lively.morphic.newMorph({bounds: lively.rect(40,40, 20, 20), style: {fill: Color.yellow}});
+        this.world.addMorph(o);
+        o.addMorph(m1); o.addMorph(m2); m2.addMorph(m3);
+        
+        m1.swapWith(m3);
+        this.assertEquals(o, m3.owner, 'm3 owner');
+        this.assertEquals(m2, m1.owner, 'm1 owner');
+        this.assertEquals(pt(40,40), m1.getPosition(), '1 position');
+        this.assertEquals(pt(20,20), m3.getPosition(), '3 position');
     }
 
 });

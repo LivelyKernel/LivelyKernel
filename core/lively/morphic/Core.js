@@ -428,6 +428,21 @@ Object.subclass('lively.morphic.Morph',
         otherMorph.setPosition(pos);
         o.addMorph(otherMorph, nextMorph);
         return otherMorph;
+    },
+
+    swapWith: function(morph2) {
+      var morph1 = this;
+
+      var owner1 = morph1.owner, idx1 = owner1.submorphs.indexOf(morph1),
+          next1 = owner1.submorphs[idx1+1], pos1 = morph1.bounds().center();
+      var owner2 = morph2.owner, idx2 = owner2.submorphs.indexOf(morph2),
+          next2 = owner2.submorphs[idx2+1], pos2 = morph2.bounds().center();
+      morph1.align(pos1, pos2);
+      morph2.align(pos2, pos1);
+      if (owner1 !== owner2) {
+        morph1.remove(); morph2.remove()
+        owner1 && owner1.addMorph(morph2, next1);
+        owner2 && owner2.addMorph(morph1, next2); }
     }
 
 },

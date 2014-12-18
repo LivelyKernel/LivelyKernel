@@ -155,6 +155,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.copy': {
         description: 'copy morph',
         exec: function() {
@@ -173,6 +174,30 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.morphic.Morph.swapMorphs': {
+        description: 'swap morphs',
+        exec: function() {
+            var morph1;
+            lively.lang.fun.composeAsync(
+              function(next) {
+                $world.alertOK("select first morph");
+                $world.selectMorphWithNextClick({useMenu: true}, next);
+            },
+              function(_morph1, next) {
+                morph1 = _morph1;
+                $world.alertOK("select second morph");
+                $world.selectMorphWithNextClick({useMenu: true}, next);
+              }
+            )(function(err, morph2) {
+              if (err) { $world.logError(err); return; }
+              $world.alertOK("Swapping " + morph1 + "\nwith" + morph2);
+              morph1.swapWith(morph2);
+            });
+            return true;
+        }
+    },
+
     'lively.morphic.Morph.openObjectEditor': {
         description: 'open ObjectEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,

@@ -35,6 +35,12 @@ snippet ife
 	}
 snippet err
 	if (${1:err}) { ${2:thenDo}(err, null); return; }
+snippet options
+	if (typeof ${1:options} === "function") {
+		${2:thenDo} = ${1};
+		${1} = null;
+	}
+	${1} = ${1} || {};
 # tertiary conditional
 snippet ter
 	${1:/* condition */} ? ${2:a} : ${3:b}

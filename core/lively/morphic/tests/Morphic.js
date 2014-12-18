@@ -805,13 +805,26 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 
 });
 
+AsyncTestCase.subclass('lively.morphic.tests.ImageTests',
+'running', {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
+  setUp: function($super) {
+    $super();
+    this.world = lively.morphic.World.current();
+  }
+
+},
 'testing', {
+
     testImageMorphHTML: function() {
-        var url = 'http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png',
+        this.assertNodeMatches = lively.morphic.tests.MorphTests.prototype.assertNodeMatches;
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png",
             morph = new lively.morphic.Image(new Rectangle(0,0,100,100), url)
+
         this.world.addMorph(morph);
+        this.onTearDown(function() { morph.remove(); });
+
         var expected = {
             tagName: 'div',
             childNodes: [{
@@ -819,8 +832,41 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
                 childNodes: [{tagName: 'img', attributes: {src: url}}]
             }]
         };
-        this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
+
+        lively.bindings.connect(morph.shape, 'isLoaded', onLoad, 'call');
+        function onLoad() {
+          test.assertNodeMatches(expected, morph.renderContext().getMorphNode());
+          test.done();
+        }
+    },
+
+    testNativeExtent: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png",
+            morph = lively.morphic.Image.fromURL(url, function() {
+              test.assertEquals(pt(605,139), morph.getExtent());
+              test.done();
+            });
+    },
+
+    testSetURLAndConstrainExtent: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png",
+            morph = lively.morphic.Image.fromURL(url, lively.rect(0,0,100,100), function() {
+              test.assertEquals(pt(100,100), morph.getExtent());
+              test.done();
+            });
+    },
+
+    testSetURLAndConstrainWidth: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png",
+            morph = lively.morphic.Image.fromURL(url, {maxWidth: 100}, function() {
+              test.assertEquals(pt(100,23), morph.getExtent());
+              test.done();
+            });
     }
+
 });
 
 AsyncTestCase.subclass('lively.morphic.tests.MenuTests',

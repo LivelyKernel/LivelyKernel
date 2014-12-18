@@ -332,11 +332,11 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     isImage: true
 },
 'initializing', {
-    initialize: function($super, bounds, url, useNativeExtent) {
-        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle(), url);
+    initialize: function($super, bounds, url, extentOptions, whenImageLoadedFunc) {
+        var imageShape = this.defaultShape(bounds.extent().extentAsRectangle());
         $super(imageShape);
         this.setPosition(bounds.topLeft());
-        this.setImageURL(url, useNativeExtent);
+        this.setImageURL(url, extentOptions, whenImageLoadedFunc);
     },
     defaultShape: function(bounds, url) {
         url = url || '';
@@ -344,18 +344,51 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     }
 },
 'accessing', {
-    setImageURL: function(url, useNativeExtent) {
-        if (!url) return null;
-        this.shape.isLoaded = false;
-        if (useNativeExtent) {
-            connect(this.shape, 'isLoaded', this, 'setNativeExtent',
-                    {removeAfterUpdate: true});
-        } else {
-            connect(this.shape, 'isLoaded', this, 'setExtent',
-                    {removeAfterUpdate: true, converter: function() {
-                        return this.targetObj.getExtent(); }});
+    setImageURL: function(url, useNativeExtentOrOptions, thenDo) {
+        if (!url) { thenDo && thenDo(); return null };
+
+        if (typeof useNativeExtentOrOptions === "function") {
+          thenDo = useNativeExtentOrOptions; useNativeExtentOrOptions = null;
         }
+
+        var options = useNativeExtentOrOptions;
+        if (typeof useNativeExtentOrOptions === "boolean")
+          options = {useNativeExtent: useNativeExtentOrOptions} 
+        options = options || {};
+        if (options.maxWidth || options.maxHeight || options.keepAspectRatio)
+          options.useNativeExtent = true;
+
+        // if the URL is the same but the size options have changed we force a reload
+        var self = this;
+        if (String(this.getImageURL()) === String(url)) { onLoad(); return; }
+
+        this.shape.isLoaded = false;
+        this.whenLoaded(onLoad);
         return this.shape.setImageURL(url);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function onLoad(triedAgain) {
+          if (!options.useNativeExtent) {
+            self.setExtent(self.getExtent());
+          } else {
+            var ext = self.getNativeExtent();
+            // FIXME there is a bug in safari where the natural extent is not
+            // available directly on load, fixes safari issue at
+            //   http://lively-web.org/users/robertkrahn/2014-12-16_logo-voting.html
+            if ((!ext.x || !ext.y) && !triedAgain) return setTimeout(onLoad.curry(true), 0);
+            var aspect = ext.x/ext.y;
+            if (options.maxWidth && ext.x > options.maxWidth) {
+              ext.x = options.maxWidth; ext.y = Math.round(ext.x/aspect);
+            }
+            if (options.maxHeight && ext.y > options.maxHeight) {
+              ext.y = options.maxHeight; ext.x = Math.round(ext.y*aspect);
+            }
+            self.setExtent(ext);
+          }
+        
+          thenDo && thenDo();
+        }
     },
     getImageURL: function() { return this.shape.getImageURL() },
     getNativeExtent: function() { return this.shape.getNativeExtent() },
@@ -481,9 +514,21 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     },
 });
 Object.extend(lively.morphic.Image, {
-    fromURL: function(url, optBounds) {
-        var bounds = optBounds || new Rectangle(0,0, 100, 100);
-        return new lively.morphic.Image(bounds, url, optBounds == undefined)
+    fromURL: function(url, boundsOrOptions, whenImageLoadedFunc) {
+        if (typeof boundsOrOptions === "function") {
+          whenImageLoadedFunc = boundsOrOptions;
+          boundsOrOptions = null;
+        }
+        var bounds, options;
+        if (!boundsOrOptions) boundsOrOptions = {useNativeExtent: true};
+        if (boundsOrOptions instanceof lively.Rectangle) {
+            bounds = boundsOrOptions;
+            options = {useNativeExtent: false};
+        } else {
+            bounds = new lively.Rectangle(0,0, 100, 100);
+            options = boundsOrOptions;
+        }
+        return new lively.morphic.Image(bounds, url, options, whenImageLoadedFunc);
     },
 });
 

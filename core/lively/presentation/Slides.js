@@ -1,4 +1,4 @@
-module('lively.presentation.Slides').requires('cop.Layers', 'lively.morphic').toRun(function() {
+module('lively.presentation.Slides').requires('cop.Layers', 'lively.morphic', 'lively.presentation.Builds').toRun(function() {
 
 Object.extend(lively.presentation.Slides, {
     currentSlideNo: function() {
@@ -203,16 +203,16 @@ Object.extend(lively.presentation.Slides, {
         return {
             "lively.presentation.Slides.prevSlide": {
                 description: 'prev slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.prevStepOrSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { $world.currentPresentationController.prevStepOrSlide(); })
             },
             "lively.presentation.Slides.nextSlide": {
                 description: 'next slide',
-                exec: inPresentationContextDo.curry(function(controller) { controller.nextStepOrSlide(); })
+                exec: inPresentationContextDo.curry(function(controller) { $world.currentPresentationController.nextStepOrSlide(); })
             },
             "lively.presentation.Slides.end": {
                 description: 'exit presentation',
                 exec: inPresentationContextDo.curry(function(controller) {
-                    alertOK('presentation stopped'); controller.endPresentation(); })
+                    alertOK('presentation stopped'); $world.currentPresentationController.endPresentation(); })
             }
         }
     })(),

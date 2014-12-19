@@ -157,7 +157,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
             function stopRunningServer(next) {
                 var cmdString = Strings.format(
                     "lsof -i tcp:%s -a -c ^node -a -c ^Google -t | xargs kill -9 ", port);
-                lively.shell.run(cmdString, {group: cmdQueueName}, function(cmd) { next(); });
+                lively.shell.run(cmdString, {group: cmdQueueName}, function(err, cmd) { next(); });
             }
         )(thenDo);
     },
@@ -172,7 +172,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
         var  livelyLeinProfile = this.livelyLeinProfile;
         Functions.composeAsync(
             function(next) {
-                lively.shell.run("echo $HOME", {}, function(cmd) {
+                lively.shell.run("echo $HOME", {}, function(err, cmd) {
                     if (cmd.getCode()) next(cmd.resultString(true));
                     else {
                         var home = cmd.getStdout().trim()
@@ -183,7 +183,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
                 });
             },
             function(next) {
-                lively.shell.run("mkdir -p " + profilesDir, {}, function(cmd) { next(); });
+                lively.shell.run("mkdir -p " + profilesDir, {}, function(err, cmd) { next(); });
             },
             function(next) {
                 lively.ide.CommandLineInterface.writeFile(

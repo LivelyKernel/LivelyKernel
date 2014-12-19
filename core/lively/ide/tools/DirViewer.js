@@ -683,7 +683,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             },
             function(dirName, next) {
                 var path = lively.lang.string.joinPath(base, dirName);
-                lively.shell.run("mkdir -p " + path, {}, function(cmd) {
+                lively.shell.run("mkdir -p " + path, {}, function(err, cmd) {
                     next(null, dirName); });
             },
             function(dirName, next) {
@@ -710,7 +710,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
 
         $world.confirm("Really delete " + path + "?", function(input) {
             if (!input) return;
-            lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(cmd) {
+            lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(err, cmd) {
                 self.fetchAndDisplayDirContent(); });
         });
     },

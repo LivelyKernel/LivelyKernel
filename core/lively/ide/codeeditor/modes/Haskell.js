@@ -393,7 +393,7 @@ Object.extend(lively.ide.codeeditor.modes.Haskell, {
                 runHoogle.curry(input, flags, thenDo).delay(0.1);
                 return;
             }
-            currentHoogleCommand = lively.shell.run('cd $HOME; hoogle ' + flags.join(' ') + ' "' + input + '"', {}, function(cmd) {
+            currentHoogleCommand = lively.shell.run('cd $HOME; hoogle ' + flags.join(' ') + ' "' + input + '"', {}, function(err, cmd) {
                 currentHoogleCommand = null;
                 if (currentHoogleCommandKillInitialized) {
                     currentHoogleCommandKillInitialized = false;

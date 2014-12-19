@@ -196,7 +196,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         options = !input || input.length === 0 ? {} : {stdin: input};
                     $world.prompt('Enter shell command to run on region.', function(cmdString) {
                         if (!cmdString) { show('No command entered, aborting...!'); return; }
-                        lively.shell.run(cmdString, options, function(cmd) {
+                        lively.shell.run(cmdString, options, function(err, cmd) {
                             ed.session.replace(
                               ed.selection.getRange(),
                               cmd.resultString(true).trim());
@@ -1159,7 +1159,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     return lively.shell.run(
                         'tidy -i -xml -q -',
                         {stdin: xmlString},
-                        function(cmd) { thenDo && thenDo(cmd.getCode(), cmd.resultString()); }).resultString();
+                        function(err, cmd) { thenDo && thenDo(cmd.getCode(), cmd.resultString()); }).resultString();
                 }
                 var source = ed.$morph.getSelectionOrLineString(),
                     range = ed.$morph.getSelectionRangeAce();

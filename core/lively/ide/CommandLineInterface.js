@@ -131,7 +131,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         this.endInterval();
         this.read(status.transport.responseText);
         lively.bindings.signal(this, 'end', this);
-        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,this);
+        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,null,this);
     }
 },
 'internal', {
@@ -228,7 +228,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         this._code = exitCode;
         this._done = true;
         lively.bindings.signal(this, 'end', this);
-        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,this);
+        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,null,this);
     },
     checkIfCommandIsStillAttachedAndRunning: function(thenDo) {
         var pid = this.getPid();
@@ -311,7 +311,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         })
         
         function getIpAddress(next) {
-            lively.shell.run("nslookup " + url, {}, function(cmd) {
+            lively.shell.run("nslookup " + url, {}, function(err, cmd) {
                 var nsLookupString = cmd.resultString(true);
                 var answer = Strings.tableize(nsLookupString).filter(function(entry) { return entry[0] === "Address:" ? entry[1] : null }).last();
                 var ip = answer ? answer.last() : null;
@@ -402,15 +402,26 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     run: function(commandString, options, thenDo) {
         /*
-        cmd = lively.ide.CommandLineInterface.run('ls', {sync:true}, function(cmd) { show(cmd.resultString()); });
-        cmd = lively.ide.CommandLineInterface.run('ls', {}, function(cmd) { show(cmd.resultString()); });
+        cmd = lively.ide.CommandLineInterface.run('ls', {sync:true}, function(err, cmd) { show(cmd.resultString()); });
+        cmd = lively.ide.CommandLineInterface.run('ls', {}, function(err, cmd) { show(cmd.resultString()); });
         cmd.resultString()
-        lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, function(cmd) { show(cmd.resultString()); });
+        lively.ide.CommandLineInterface.run('grep 1 -', {stdin: '123\n567\n,4314'}, function(err, cmd) { show(cmd.resultString()); });
         lively.ide.CommandLineInterface.kill();
         */
 
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
+        
+        // rk 2014-12-18: changed lively.shell.run to take two args (err +
+        // cmd). In order to not break old code immediately we will fix things
+        // here but make clear that the old usage with one arg is deprecated.
+        if (thenDo && thenDo.length === 1) {
+          var realThenDo = thenDo
+          thenDo = function(err, cmd) {
+            console.warn("The callback of lively.shell.run now takes two arguments, \"err\" and \"cmd\"!");
+            realThenDo(cmd);
+          };
+        }
         if (thenDo) options.whenDone = thenDo;
 
         var session = lively.net.SessionTracker.getSession(),
@@ -444,7 +455,7 @@ Object.extend(lively.ide.CommandLineInterface, {
       // successful exit and the resultString() will be passed as 2. parameter to
       // thenDo.
       if (typeof options === "function") { thenDo = options; options = null; }
-      return lively.ide.CommandLineInterface.run(commandString, options, function(cmd) {
+      return lively.ide.CommandLineInterface.run(commandString, options, function(err, cmd) {
         thenDo && thenDo(!cmd.getCode() ? null : new Error(cmd.getStderr()),
                          cmd.resultString(true));
       });
@@ -480,8 +491,8 @@ Object.extend(lively.ide.CommandLineInterface, {
         lively.ide.CommandLineInterface.runAll([
           {name: "cmd1", command: "du -sh ."},
           {name: "cmd2", command: "echo dir size ${cmd1}"},
-         ], function(commands) { show(Object.values(commands).invoke('resultString').join('\n')); })
-        lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."}], function(commands) { show(commands.cmd1.resultString()); });
+         ], function(err, commands) { show(Object.values(commands).invoke('resultString').join('\n')); })
+        lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."}], function(err, commands) { show(commands.cmd1.resultString()); });
         */
         thenDo = thenDo || Functions.Null;
         var results = {};
@@ -502,7 +513,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                 results[name] = ea.transform ? ea.transform(cmd) : cmd;
                 next();
             });
-        }, thenDo.curry(results), this);
+        }, function() { thenDo && thenDo(null, results); }, this);
     },
 
     kill: function(cmd, thenDo) {
@@ -576,7 +587,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     rm: function(path, thenDo) {
-      return lively.ide.CommandLineInterface.run("rm -rf " + path, {}, function(cmd) {
+      return lively.ide.CommandLineInterface.run("rm -rf " + path, {}, function(err, cmd) {
         thenDo && thenDo(cmd.getCode() ? cmd.resultString(true) : null); });
     },
 
@@ -592,7 +603,7 @@ Object.extend(lively.ide.CommandLineInterface, {
             {writeFile: 'diff-tmp/b', content: string2},
             {name: 'diff', command: 'git diff -w --no-index --histogram diff-tmp/a diff-tmp/b'},
             {command: 'rm -rfd diff-tmp/'}
-        ], function(result) { thenDo(result.diff.resultString(true)); });
+        ], function(err, result) { thenDo(result.diff.resultString(true)); });
     },
 
     diff: function(string1, string2, thenDo) {
@@ -602,7 +613,7 @@ Object.extend(lively.ide.CommandLineInterface, {
             {writeFile: 'diff-tmp/b', content: string2},
             {name: 'diff', command: 'git diff --no-index --histogram diff-tmp/a diff-tmp/b'},
             {command: 'rm -rfd diff-tmp/'}
-        ], function(result) { thenDo(result.diff.resultString(true)); });
+        ], function(err, result) { thenDo(result.diff.resultString(true)); });
     },
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -683,7 +694,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         // lively.ide.CommandLineInterface.withShellCompletionsDo(function(err, compl) { show(compl.length) })
         var cmdLineInterface = lively.ide.CommandLineInterface;
         if (cmdLineInterface.shellCompletions) { doFunc(null, cmdLineInterface.shellCompletions); return; }
-        cmdLineInterface.exec('compgen  -abckA function', function(cmd) {
+        cmdLineInterface.exec('compgen  -abckA function', function(err, cmd) {
             // show(Objects.inspect(cmd, {maxDepth: 1}));
             cmdLineInterface.shellCompletions = cmd.getStdout()
                 .split('\n')
@@ -743,7 +754,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
         var charsBefore = 80, charsAfter = 80;
         var cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
-        lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(r) {
+        lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(err, r) {
             if (r.wasKilled()) return;
             lively.ide.CommandLineSearch.lastGrep = null;
             var lines = r.getStdout().split('\n').map(function(line) {
@@ -845,7 +856,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             lastFind = lively.ide.CommandLineSearch.lastFind;
         if (lastFind) lastFind.kill();
         var result = [],
-            cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(cmd) {
+            cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(err, cmd) {
                 if (cmd.getCode() != 0) console.warn(cmd.getStderr());
                 result = parseDirectoryList(cmd.getStdout(), rootDirectory);
                 callback && callback(result);
@@ -1296,7 +1307,7 @@ lively.ide.CommandLineInterface.SpellChecker = {
         // for input "hrlp" aspell returns the output:
         // @(#) International Ispell Version 3.1.20 (but really Aspell 0.60.6.1)
         // & hrlp 5 0: help, harelip, helper, Harold, herald
-        lively.ide.CommandLineInterface.run('aspell -a', {stdin: word}, function(cmd) {
+        lively.ide.CommandLineInterface.run('aspell -a', {stdin: word}, function(err, cmd) {
             var out = cmd.resultString();
             if (cmd.getCode()) { thenDo(out, []); return }
             var result = Strings.lines(out)[1];

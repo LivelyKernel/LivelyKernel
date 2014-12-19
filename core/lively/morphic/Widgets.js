@@ -456,6 +456,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     }
 },
 'inline image', {
+
     convertToBase64: function() {
         var urlString = this.getImageURL(),
             type = urlString.substring(urlString.lastIndexOf('.') + 1, urlString.length);
@@ -478,7 +479,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
             }
             lively.require('lively.ide.CommandLineInterface').toRun(function() { // FIXME
                 var cmd = 'curl --silent "' + urlString + '" | openssl base64'
-                lively.ide.CommandLineInterface.exec(cmd, function(cmd) {
+                lively.ide.CommandLineInterface.exec(cmd, function(err, cmd) {
                     image.setImageURL('data:image/' + type + ';base64,' + cmd.getStdout());
                 });
             });

@@ -65,7 +65,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
             if (!item) { show("nothing selected!"); return;  }
             var useSudo = event.isCommandKey() || event.isShiftDown();
             var cmd = (useSudo ? "sudo -A" : "") + "kill " + item.pid;
-            lively.shell.run(cmd, {}, function(cmd) {
+            lively.shell.run(cmd, {}, function(err, cmd) {
                 show("kill result "
                     + item.pid + ":\n"
                     + cmd.getStdout()
@@ -86,7 +86,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
     },
         update: function update() {
         var cmd, list = this.get("List"), oldSel = list.getSelectedIndexes()[0];
-        lively.shell.run("ps -aux", {}, function(cmd) {
+        lively.shell.run("ps -aux", {}, function(err, cmd) {
             if (cmd.getCode() > 0) {
                 list.setList(["Error in ps -aux",
                               cmd.getStdout(),

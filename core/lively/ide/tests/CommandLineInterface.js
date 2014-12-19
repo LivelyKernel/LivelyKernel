@@ -757,7 +757,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
         };
 
         // Now run the actual test
-        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(cmd) {
+        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(err, cmd) {
             test.assertEquals(1, cmd.getCode());
             test.assertEquals("foobar", cmd.getStdout());
             test.done();

@@ -469,6 +469,17 @@ Object.extend(lively.ide.CommandLineInterface, {
         */
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
+
+        // rk 2014-12-18: changed lively.shell.run to take two args (err +
+        // cmd). In order to not break old code immediately we will fix things
+        // here but make clear that the old usage with one arg is deprecated.
+        if (thenDo && thenDo.length === 1) {
+          var realThenDo = thenDo
+          thenDo = function(err, cmd) {
+            console.warn("The callback of lively.shell.exec now takes two arguments, \"err\" and \"cmd\"!");
+            realThenDo(cmd);
+          };
+        }
         if (thenDo) options.whenDone = thenDo;
         options.exec = true;
         return this.run(commandString, options);

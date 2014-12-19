@@ -751,8 +751,6 @@ lively.morphic.Morph.subclass('lively.morphic.World',
           return typeof hand.pointerId !== 'undefined' }) || this.hands[0])
     },
 
-    get hand() { return this.firstHand(); },
-
     windowBounds: function(optWorldDOMNode) {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
         var canvas = optWorldDOMNode || this.renderContext().getMorphNode(),

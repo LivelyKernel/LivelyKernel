@@ -2221,7 +2221,7 @@ lively.morphic.World.addMethods(
           evt.stop(); return true; });
 
         function onClick() {
-          var pos = $world.hand.getPosition(),
+          var pos = $world.firstHand().getPosition(),
               morphs = $world.morphsContainingPoint(pos).without($world)
               .filter(function(ea) {
                 return ea.isVisible()

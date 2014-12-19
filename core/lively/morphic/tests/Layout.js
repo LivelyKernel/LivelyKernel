@@ -94,7 +94,7 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.LayoutTests',
         t.getLayouter().showPlaceholderFor(m, {hand: this.world.firstHand(), getPosition: function() { return lively.pt(5, 5); }, stop: Functions.Null});
         var extent = t.getExtent();
         this.assert(extent.x >= 120 && extent.y >= 100, "in order to show the placeholder, t should have grown");
-        var hand = $world.hand();
+        var hand = this.world.firstHand();
         hand.addMorphWithShadow(m);
         hand.dropContentsOn(t);
         this.assertEquals(t.getExtent(), extent, "on dropping a morph onto a second, layoutet morph, that second morph should not resize");

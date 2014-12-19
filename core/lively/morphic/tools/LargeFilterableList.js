@@ -648,7 +648,10 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
                 showsActions: true,
                 prompt: 'choose action: ',
                 allCandidates: actionCandidates,
-                actions: [function(actionNumber) { narrower.onSelectionConfirmed(originalState, actionNumber, candidate); }]
+                actions: [
+                  function(actionNumber) {
+                    narrower.onSelectionConfirmed(
+                      originalState, actionNumber, candidate); }]
             };
         state.originalState = this.replaceState(state);
     },

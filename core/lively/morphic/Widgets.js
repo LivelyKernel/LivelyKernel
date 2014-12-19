@@ -345,7 +345,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 },
 'accessing', {
     setImageURL: function(url, useNativeExtentOrOptions, thenDo) {
-        if (!url) { thenDo && thenDo(); return null };
+        if (!url) { thenDo && thenDo(null, this); return null };
 
         if (typeof useNativeExtentOrOptions === "function") {
           thenDo = useNativeExtentOrOptions; useNativeExtentOrOptions = null;
@@ -387,7 +387,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
             self.setExtent(ext);
           }
         
-          thenDo && thenDo();
+          thenDo && thenDo(null, self);
         }
     },
     getImageURL: function() { return this.shape.getImageURL() },

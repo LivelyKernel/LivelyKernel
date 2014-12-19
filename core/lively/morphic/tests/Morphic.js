@@ -857,29 +857,29 @@ AsyncTestCase.subclass('lively.morphic.tests.ImageTests',
 
     testNativeExtent: function() {
         var test = this,
-            url = "http://lively-web.org/core/media/lively-web-logo.png",
-            morph = lively.morphic.Image.fromURL(url, function() {
-              test.assertEquals(pt(605,139), morph.getExtent());
-              test.done();
-            });
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, function(err, morph) {
+          test.assertEquals(pt(605,139), morph.getExtent());
+          test.done();
+        });
     },
 
     testSetURLAndConstrainExtent: function() {
         var test = this,
-            url = "http://lively-web.org/core/media/lively-web-logo.png",
-            morph = lively.morphic.Image.fromURL(url, lively.rect(0,0,100,100), function() {
-              test.assertEquals(pt(100,100), morph.getExtent());
-              test.done();
-            });
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, lively.rect(0,0,100,100), function(err, morph) {
+          test.assertEquals(pt(100,100), morph.getExtent());
+          test.done();
+        });
     },
 
     testSetURLAndConstrainWidth: function() {
         var test = this,
-            url = "http://lively-web.org/core/media/lively-web-logo.png",
-            morph = lively.morphic.Image.fromURL(url, {maxWidth: 100}, function() {
-              test.assertEquals(pt(100,23), morph.getExtent());
-              test.done();
-            });
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, {maxWidth: 100}, function(err, morph) {
+          test.assertEquals(pt(100,23), morph.getExtent());
+          test.done();
+        });
     }
 
 });

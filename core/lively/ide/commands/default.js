@@ -851,7 +851,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'Print directory hierarchy',
         exec: function() {
             function printIt(dir) {
-                lively.shell.run("find " + dir.path + "", {}, function(cmd) {
+                lively.shell.run("find " + dir.path + "", {}, function(err, cmd) {
                     lively.require('lively.data.DirectoryUpload').toRun(function() {
                         var files = cmd.getStdout().split('\n')
                         new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
@@ -911,7 +911,7 @@ Object.extend(lively.ide.commands.byName, {
                 ed.mergeUndosOf(function(triggerMerge) {
                     mergeUndos = triggerMerge;
 
-                    var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
+                    var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(err, cmd) {
                         if (!insertProgress && insertResult)
                             ed.printObject(null, cmd.resultString(true));
 

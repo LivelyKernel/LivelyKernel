@@ -735,7 +735,7 @@
                     var allModules = combinedLoader.expectedModules,
                         realModules = allModules.select(function(ea) {
                             // FIXME, better now throw error in lively.Class.forName
-                            return !ea.include('lively-libs')
+                            return !ea.include('lively-libs') && !ea.include('node_modules')
                                 && lively.Class.forName(ea) !== undefined; });
                     lively.require(realModules).toRun(function() { callback && callback(); });
                 });

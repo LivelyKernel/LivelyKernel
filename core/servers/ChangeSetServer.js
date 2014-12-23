@@ -110,13 +110,18 @@ function getChanges(b, cb) {
         }, []);
 
         if (repoInfos.length == 0) return cb('Could not find change set "' + b + '"!');
-        var changeSet = { changeId: repoInfos[0].changeHash };
         async.map(repoInfos, function(repoInfo, callback) {
             gitHelper.util.readCommit(repoInfo.changeHash, repoInfo.path, process.env.WORKSPACE_LK, callback);
         }, function(err, changesArr) {
             if (err) return cb(err);
 
-            changeSet.changes = Array.prototype.concat.apply(changesArr[0],  changesArr.slice(1));
+            var changeSet = changesArr.reduce(function(all, changes, idx) {
+                var subst = '$& ' + repoInfos[idx].changeHash;
+                changes.forEach(function(change) {
+                    all.push(change.replace(/^@@.*@@$/m, subst));
+                });
+                return all;
+            }, []);
             cb(null, changeSet);
         });
     });

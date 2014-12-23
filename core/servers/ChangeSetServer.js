@@ -6,12 +6,36 @@ var exec  = require('child_process').execFile,
     spawn = require('child_process').spawn;
 var gitHelper = require('lively-git-helper');
 
-var FS_BRANCH = 'master';
-    BRANCH_PREFIX = 'lvChangeSet-';
+var FS_BRANCH = 'master',
+    BRANCH_PREFIX = 'lvChangeSet-',
+    SUB_REPOS = []; // FIXME: do not hard-code
+
+// determine sub-repos (inside node_mdoules)
+fs.readdir(path.join(process.env.WORKSPACE_LK, 'node_modules'), function(err, files) {
+    if (err) return;
+    files = files.map(function(filename) {
+        return path.join(process.env.WORKSPACE_LK, 'node_modules', filename);
+    });
+    async.map(files, fs.stat, function(err, stats) {
+        if (err) return;
+        var dirs = files.filter(function(file, idx) {
+            return stats[idx].isDirectory();
+        });
+        dirs = dirs.map(function(dirname) {
+            return path.join(dirname, '.git');
+        });
+        async.filter(dirs, fs.exists, function(dirs){
+            SUB_REPOS = dirs.map(function(dir) {
+                return dir.substr(0, dir.length - 5);
+            });
+        });
+    });
+});
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 function getBranches(cb) {
+    // only list branches of the main repo
     gitHelper.listBranches(process.env.WORKSPACE_LK, function(err, branches) {
         if (err) return cb(err);
         branches = branches.filter(function(branch) {
@@ -24,6 +48,7 @@ function getBranches(cb) {
 }
 
 function getCommitsByBranch(branch, cb) {
+    // only list branches of the main repo
     async.parallel({
         added: gitHelper.util.listCommits.bind(null, '..' + BRANCH_PREFIX + branch, process.env.WORKSPACE_LK),
         missing: gitHelper.util.listCommits.bind(null, BRANCH_PREFIX + branch + '..', process.env.WORKSPACE_LK),
@@ -65,14 +90,33 @@ function getCommits(branch, cb) {
 }
 
 function getChanges(b, cb) {
-    var branch = b;
+    var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS),
+        branch = b;
     if (branch) branch = BRANCH_PREFIX + branch;
-    gitHelper.util.getStashHash(branch, process.env.WORKSPACE_LK, function(err, changeHash) {
-        if (err) return cb('Could not find change set "' + b + '"!');
-        var changeSet = { changeId: changeHash };
-        gitHelper.util.readCommit(changeHash, process.env.WORKSPACE_LK, function(err, changes) {
+
+    async.map(repos, function(repoPath, callback) {
+        gitHelper.util.getStashHash(branch, repoPath, function(err, changeHash) {
+            if (err && !(err instanceof Error))
+                err = new Error(err);
+            callback(null, err || changeHash)
+        });
+    }, function(err, results) {
+        if (err) return cb('Unexpected error when assembling change set "' + b + '"!');
+
+        var repoInfos = results.reduce(function(res, result, idx) { // filter and zip
+            if (!(result instanceof Error))
+            res.push({ path: repos[idx], changeHash: result });
+            return res;
+        }, []);
+
+        if (repoInfos.length == 0) return cb('Could not find change set "' + b + '"!');
+        var changeSet = { changeId: repoInfos[0].changeHash };
+        async.map(repoInfos, function(repoInfo, callback) {
+            gitHelper.util.readCommit(repoInfo.changeHash, repoInfo.path, process.env.WORKSPACE_LK, callback);
+        }, function(err, changesArr) {
             if (err) return cb(err);
-            changeSet.changes = changes;
+
+            changeSet.changes = Array.prototype.concat.apply(changesArr[0],  changesArr.slice(1));
             cb(null, changeSet);
         });
     });

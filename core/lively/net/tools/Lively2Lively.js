@@ -1012,19 +1012,10 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         },{
             _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(95,94,95),
-            _Extent: lively.pt(721.0,318.0),
-            _FontSize: 12,
+            _Extent: lively.pt(720,365),
             _LineWrapping: false,
             _Position: lively.pt(1.0,60.0),
-            _ShowActiveLine: false,
-            _ShowErrors: true,
             _ShowGutter: false,
-            _ShowIndents: true,
-            _ShowInvisibles: false,
-            _ShowPrintMargin: false,
-            _ShowWarnings: true,
-            _SoftTabs: true,
-            _TabSize: 4,
             _TextMode: "javascript",
             _Theme: "",
             _aceInitialized: true,
@@ -1032,17 +1023,13 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             allowInput: true,
             className: "lively.morphic.CodeEditor",
             droppingEnabled: false,
+            evalEnabled: true,
             grabbingEnabled: false,
-            hasRobertsKeys: true,
-            layout: {
-                resizeHeight: true,
-                resizeWidth: true
-            },
+            layout: { resizeHeight: true, resizeWidth: true },
             name: "editor",
             sourceModule: "lively.ide.CodeEditor",
             textMode: "javascript",
             textString: '// code in here is evaluated in the context of the connected session\n',
-            theme: "",
             doListProtocol: function doListProtocol() {
             var string = this.getSelectionMaybeInComment(), self = this;
             this.withCompletionsDo(string, function(err, result) {

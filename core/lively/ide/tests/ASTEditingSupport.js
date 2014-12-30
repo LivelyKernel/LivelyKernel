@@ -57,19 +57,19 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
     testForwardSexp: function() {
         var src = "this.foo(bar, 23);";
         var nav = this.sut;
-        this.assertEquals(4, nav.forwardSexp(src, 0)); // "|this" -> "this|"
-        this.assertEquals(8, nav.forwardSexp(src, 4)); // "|.foo" -> ".foo|"
-        this.assertEquals(17, nav.forwardSexp(src, 8)); // "|(bar, 23)" -> "(bar, 23)|"
-        this.assertEquals(12, nav.forwardSexp(src, 9));
-        this.assertEquals(18, nav.forwardSexp(src, 17));
-        this.assertEquals(18, nav.forwardSexp(src, 18));
+        this.assertEquals(4, nav._forwardSexp(src, 0)); // "|this" -> "this|"
+        this.assertEquals(8, nav._forwardSexp(src, 4)); // "|.foo" -> ".foo|"
+        this.assertEquals(17, nav._forwardSexp(src, 8)); // "|(bar, 23)" -> "(bar, 23)|"
+        this.assertEquals(12, nav._forwardSexp(src, 9));
+        this.assertEquals(18, nav._forwardSexp(src, 17));
+        this.assertEquals(18, nav._forwardSexp(src, 18));
     },
 
     testForwardSexpInlcudesSiblings: function() {
         var src = "function foo() {\nvar x;\nvar y;\n}\n";
         var nav = this.sut;
-        this.assertEquals(23, nav.forwardSexp(src, 18)); // "function foo() {\n|var x;\nvar y;\n}\n" -> "function foo() {\nvar x;|\nvar y;\n}\n"
-        this.assertEquals(24, nav.forwardSexp(src, 23)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
+        this.assertEquals(23, nav._forwardSexp(src, 18)); // "function foo() {\n|var x;\nvar y;\n}\n" -> "function foo() {\nvar x;|\nvar y;\n}\n"
+        this.assertEquals(24, nav._forwardSexp(src, 23)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
     },
 
     testBackwardSexp: function() {
@@ -79,23 +79,23 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
         // lively.ast.acorn.printAst(src)
         // acorn.walk.findNodesIncluding(ast, 8)
         var nav = this.sut;
-        this.assertEquals(0, nav.backwardSexp(src, 18));
-        this.assertEquals(5, nav.backwardSexp(src, 8));
-        this.assertEquals(0, nav.backwardSexp(src, 4));
-        this.assertEquals(0, nav.backwardSexp(src, 17));
-        // this.assertEquals(12, nav.backwardSexp(src, 14));
+        this.assertEquals(0, nav._backwardSexp(src, 18));
+        this.assertEquals(5, nav._backwardSexp(src, 8));
+        this.assertEquals(0, nav._backwardSexp(src, 4));
+        this.assertEquals(0, nav._backwardSexp(src, 17));
+        // this.assertEquals(12, nav._backwardSexp(src, 14));
     },
 
     testBackwardSexpIncludesSiblings: function() {
         var src = "function foo() {\nvar x;\nvar y;\n}\n";
         var nav = this.sut;
-        this.assertEquals(23, nav.backwardSexp(src, 24)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
+        this.assertEquals(23, nav._backwardSexp(src, 24)); // "function foo() {\nvar x;|\nvar y;\n}\n" -> "function foo() {\nvar x;\n|var y;\n}\n"
     },
 
     testForwardDownSexp: function() {
         var src = "var x = function() { return function(foo) {}; }";
         var nav = this.sut;
-        this.assertEquals(8, nav.forwardDownSexp(src, 0));
+        this.assertEquals(8, nav._forwardDownSexp(src, 0));
     },
 
     testContainingFunctionRange: function() {
@@ -112,7 +112,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
 AsyncTestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 'running', {
     setUp: function($super, run) {
-        this.sut = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
+        this.sut = new lively.ide.codeeditor.modes.JavaScript.Navigator();
         this.editor = new lively.morphic.CodeEditor(lively.rect(0,0, 100, 100), '');
         var inited = false;
         this.editor.withAceDo(function() { inited = true; });
@@ -123,25 +123,25 @@ AsyncTestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
 
     testExpandRegion: function() {
         var src = this.editor.textString = "a + 'foo bar'";
-        this.assertMatches({range: [4, 13]}, this.sut.expandRegion(this.editor, src, null, {range: [10,10]}));
-        this.assertMatches({range: [0, 13]}, this.sut.expandRegion(this.editor, src, null, {range: [4, 13]}));
-        this.assertMatches({range: [4, 13]}, this.sut.contractRegion(this.editor, src, null, {range: [9, 13], prev: {range: [4,13]}}));
+        this.assertMatches({range: [4, 13]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [10,10]}));
+        this.assertMatches({range: [0, 13]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [4, 13]}));
+        this.assertMatches({range: [4, 13]}, this.sut.contractRegion(this.editor.aceEditor, src, null, {range: [9, 13], prev: {range: [4,13]}}));
 
         src = this.editor.textString = "a.b.c";
-        this.assertMatches({range: [4, 5]}, this.sut.expandRegion(this.editor, src, null, {range: [4,4]}));
+        this.assertMatches({range: [4, 5]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [4,4]}));
         // this.assertMatches({range: [2, 5]}, this.sut.expandRegion(src, {range: [4,5]}));
         this.done();
     },
 
     testExpandOnKeyStringLiteral: function() {
         var src = this.editor.textString = "var x = {foo: 234}";
-        this.assertMatches({range: [9, 12]}, this.sut.expandRegion(this.editor, src, null, {range: [10,10]})); // first "o"
+        this.assertMatches({range: [9, 12]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [10,10]})); // first "o"
         this.done();
     },
 
     testExpandOnString: function() {
         var src = this.editor.textString = "var x = 'hello world'";
-        this.assertMatches({range: [8,21]}, this.sut.expandRegion(this.editor, src, null, {range: [12,12]})); // sec "l"
+        this.assertMatches({range: [8,21]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [12,12]})); // sec "l"
         this.done();
     }
 

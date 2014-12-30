@@ -985,7 +985,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     doListProtocol: function() {
         lively.require("lively.ide.codeeditor.Completions").toRun(function() {
-            new lively.ide.codeeditor.Completions.ProtocolLister(this).evalSelectionAndOpenNarrower();
+            new lively.ide.codeeditor.Completions.ProtocolLister(this)
+              .evalSelectionAndOpenNarrower();
         }.bind(this));
     },
 
@@ -1821,11 +1822,23 @@ lively.morphic.CodeEditor.addMethods(
 });
 
 Object.extend(lively.ide, {
+
     newCodeEditor: function (initialBounds, defaultText) {
         var bounds = initialBounds.extent().extentAsRectangle(),
             text = new lively.morphic.CodeEditor(bounds, defaultText || '');
         text.accessibleInInactiveWindow = true;
         return text;
+    },
+
+    allCodeEditors: function() {
+      // returns all codeeditor morphs in the world, also those which are
+      // inside collapsed windows
+      var eds = $world.withAllSubmorphsSelect(function(ea) { return ea.isCodeEditor; }),
+          hiddenEds = $world.withAllSubmorphsSelect(function(ea) { return ea.isWindow && ea.isCollapsed(); })
+            .pluck('targetMorph')
+            .invoke('withAllSubmorphsSelect', function(ea) { return ea.isCodeEditor; })
+            .flatten();
+      return eds.concat(hiddenEds);
     }
 });
 

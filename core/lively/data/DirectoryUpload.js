@@ -52,7 +52,7 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
         $world.addCodeEditor({
             title: (title || "file listing"),
             content: printed,
-            textMode: 'text'
+            textMode: 'texttree'
         });
 
         function createHierarchy(fileMap, currentPath) {

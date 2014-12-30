@@ -428,6 +428,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'reset key bindings',
         exec: function() {
             lively.ide.CodeEditor.KeyboardShortcuts.reinitKeyBindingsForAllOpenEditors();
+            ace.require('ace/edit_session').EditSession.prototype.$modes = {};
             lively.ide.WindowNavigation.WindowManager.reset();
             lively.morphic.KeyboardDispatcher.reset();
             lively.ide.tools.SelectionNarrowing.resetCache();

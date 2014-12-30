@@ -202,7 +202,7 @@ function getCompletions(evalFunc, string, thenDo) {
             return candidates.concat(completions.map(function(completion) {
                 return {
                     isListItem: true,
-                    string: '[' + protoName + '] ' + completion,
+                    string: '[' + protoName.truncate(50) + '] ' + completion,
                     value: complete.curry(completion)
                 }
             }));

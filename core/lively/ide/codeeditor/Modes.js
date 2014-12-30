@@ -6,8 +6,10 @@ Object.extend(lively.ide.codeeditor.Modes, {
         var exts, dir = URL.codeBase.withFilename("lively/ide/codeeditor/modes/");
         lively.Module.findAllInThenDo(dir, function(modules) {
             exts = lively.ide.codeeditor.Modes.extensions = modules.map(function(mod) {
+                var modeName = mod.name().split('.').last().toLowerCase()
+                ace.customTextModes.pushIfNotIncluded(modeName);
                 return {
-                    modeName: mod.name().split('.').last().toLowerCase(),
+                    modeName: modeName,
                     module: mod
                 }
             })
@@ -15,8 +17,9 @@ Object.extend(lively.ide.codeeditor.Modes, {
         return exts;
     })(),
 
-    ensureModeExtensionIsLoaded: function(aceMode, thenDo) {
-        var modeName = (aceMode.$id || 'ace/mode/text').split('/').last();
+    ensureModeExtensionIsLoaded: function(aceModeOrId, thenDo) {
+        var modeId = typeof aceModeOrId === "string" ? aceModeOrId : (aceModeOrId.$id || 'ace/mode/text');
+        var modeName = modeId.split('/').last();
         var ext = this.extensions.detect(function(ext) { return ext.modeName === modeName });
         if (!ext || ext.module.isLoaded()) { thenDo(null, ext && ext.module); return; }
         ext.module.load(true);

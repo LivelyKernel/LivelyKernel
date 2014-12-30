@@ -468,7 +468,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     console.log("Ace mode %s loaded", modeString);
                     ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
                 })
-            } else { ed.session.setMode(aceModeName); }
+            } else {
+              lively.ide.codeeditor.Modes.ensureModeExtensionIsLoaded("ace/mode/" + modeString, function() {
+                ed.session.setMode(aceModeName);
+              });
+            }
             ed.session.$astType = astType;
         });
         return this._TextMode = modeString;

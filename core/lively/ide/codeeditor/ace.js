@@ -24,11 +24,14 @@ Object.extend(lively.ide, {
                 return ea.substring(optPrefix.length); })
         },
 
+        customTextModes: [],
         availableTextModes: function() {
             return lively.ide.ace.modules('ace/mode/', false)
                 .select(function(moduleName) { var mod = ace.require(moduleName); return mod && !!mod.Mode; })
-                .map(function(name) { return name.substring('ace/mode/'.length); });
+                .map(function(name) { return name.substring('ace/mode/'.length); })
+                .concat(ace.customTextModes || []).uniq();
         },
+
 
         moduleNameForTextMode: function(textModeName) {
             return this.availableTextModes().include(textModeName) ?

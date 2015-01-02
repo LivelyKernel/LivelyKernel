@@ -34,7 +34,7 @@ Object.subclass('lively.net.StreamingConnection',
         
         // periodic functions
         var _this = this;
-        Global.setInterval(function() {
+        this.statsInterval = Global.setInterval(function() {
             _this.generateMonitoringData();
         }, 1000);
     },
@@ -67,6 +67,7 @@ Object.subclass('lively.net.StreamingConnection',
         
         socket.onclose = function() {
             Global.alertOK('socket closed');
+            _this.onClose();
         };
         
         socket.onmessage = function(evt) {
@@ -81,6 +82,9 @@ Object.subclass('lively.net.StreamingConnection',
         }
         
         this.socket = socket;
+    },
+    onClose: function() {
+        Global.clearInterval(this.statsInterval);
     },
     withLively2LivelySessionDo: function(timeoutMs, thenDo) {
         // wait for a lively2lively connection
@@ -748,6 +752,125 @@ Object.subclass('lively.net.Stream',
     'deactivate': function() {
         // TODO: do something useful
         show('Stream ' + this.streamId + ' deactivated');
+    },
+});
+
+lively.net.Stream.subclass('lively.net.RecordedStream', 
+'initializing', {
+    'initialize': function($super, id) {
+        $super(id);
+    },
+});
+
+lively.net.Stream.subclass('lively.net.BackInTimeStream', 
+'initializing', {
+    'initialize': function($super, id, streamingConnection) {
+        $super(id);
+        if (!streamingConnection) {
+            // this stream type is useless without a streaming connection
+            throw new Error('Missing argument: streamingConnection');
+        }
+        
+        this.streamingConnection = streamingConnection;
+        
+        // constants
+        this.maxRecentBuffer = 100;
+        this.maxLoadedChunks = 5;
+        this.keyframeTimeDifference = 10 * 1000;
+        
+        // arrays
+        this.recentBuffer = [];
+        this.availableBufferChunks = [];
+        
+        // objects
+        this.pastBufferIndex = {};
+    },
+},
+'frame handling', {
+    'newFrame': function(imageURL, timestamp) {
+        this.active = true;
+        
+        var frameRecord = {
+            timestamp: timestamp,
+            image: imageURL
+        }
+        
+        this.recentBuffer.push(frameRecord);
+        
+        this.ensureRecentBufferSize();
+        this.ensureFullHistory();
+    },
+},
+'buffer management', {
+    'ensureRecentBufferSize': function() {
+        // load frames to fill the buffer, if needed
+        // this will typically happen after subscribing to a stream
+        if (this.recentBuffer.length < this.maxRecentBuffer && !this.isLoadingRecentBuffer) {
+            var missingAmount = this.maxRecentBuffer - this.recentBuffer.length;
+            var _this = this;
+            var firstTimestamp;
+            // we will load missingAmount-number of frame BEFORE firstTimestamp
+            // so if there is something in recentBuffer, take the oldest available frame,
+            // if there is nothing in there, load frames before now
+            if (this.recentBuffer[0]) {
+                firstTimestamp = this.recentBuffer[0].timestamp;
+            } else {
+                firstTimestamp = Date.now();
+            }
+            
+            this.isLoadingRecentBuffer = true;
+            
+            // fill the recentBuffer by loading missingAmout-number of frames before firstTimestamp
+            this.streamingConnection.loadAmountOfFrames(this.streamId, firstTimestamp, missingAmount, function(data) {
+                // we received the requested data
+                _this.isLoadingRecentBuffer = false;
+                // First data element is the newest frame, last one is the oldest.
+                // In recentBuffer, it is vice versa.
+                for (var i = data.length - 1; i >= 0; i--) {
+                    // create a new record and add it at the beginning of the buffer
+                    var record = {
+                        image: data[i].image,
+                        timestamp: data[i].timestamp
+                    }
+                    // insert at the beginning of recentBuffer
+                    _this.recentBuffer.unshift(record);
+                };
+            });
+        }
+        
+        // ensure that recentBuffer does not grow bigger than max size
+        while (this.recentBuffer.length > this.maxRecentBuffer) {
+            var removed = this.recentBuffer.splice(0, 1);
+            var time = removed[0].timestamp;
+            // check whether the removed frame should be added as keyframe in the pastBuffer
+            if (time > this.availableBufferChunks.last() + this.keyframeTimeDifference) {
+                // removed is a one-element array
+                this.pastBufferIndex[time] = {
+                    data: removed,
+                    loaded: false,
+                    lastAccess: Date.now()
+                }
+                this.insertSorted(this.availableBufferChunks, time);
+            }
+        }
+    },
+    'ensureFullHistory': function() {
+        // TODO
+    },
+},
+'utils', {
+    'insertSorted': function(arr, item) {
+        if (arr.length === 0) {
+            arr.push(item);
+            return;
+        }
+        
+        // do not insert the same item twice
+        if (arr.indexOf(item) !== -1) return;
+        
+        var i = 0;
+        while (arr[i] && arr[i] < item) i++;
+        arr.splice(i, 0, item);
     },
 });
 

@@ -187,8 +187,48 @@ Object.subclass('lively.net.StreamingConnection',
         }
     },
     updateAvailableStreams: function(streams) {
-        // TODO
-        // should return array of removed streams
+        var _this = this;
+        
+        // TODO: could find be exchanged with indexOf?
+        
+        // substract streams from known items to detect removed streams
+        var removedStreams = this.availableStreams.slice();
+        streams.forEach(function(stream) {
+            var idx = -1; 
+            removedStreams.find(function(item, i) {
+                idx = i;
+                return item.id === stream.id;
+            });
+            removedStreams.splice(idx, 1);
+        });
+        
+        // remove removedStreams from avalableStreams
+        removedStreams.forEach(function(stream) {
+            var idx = -1;
+            _this.availableStreams.find(function(item, i) {
+                idx = i;
+                return item.id === stream.id;
+            });
+            _this.availableStreams.splice(idx, 1);
+        });
+        
+        // substract the known items from the newStreams array to detect new streams
+        var newStreams = streams.slice();
+        this.availableStreams.forEach(function(item) {
+            var idx = -1;
+            newStreams.find(function(stream, i) {
+                idx = i;
+                return stream.id === item.id;
+            });
+            newStreams.splice(idx, 1);
+        });
+        
+        // append newStreams to availableStreams
+        newStreams.forEach(function(stream) {
+            _this.availableStreams.push(stream);
+        });
+        
+        return removedStreams;
     },
     'relateProgressInformation': function(streamId, timestamps) {
         // TODO
@@ -294,7 +334,10 @@ Object.subclass('lively.net.StreamingConnection',
 },
 'stream handling', {
     'deactivateStreams': function(streams) {
-        // TODO
+        // TODO: do something useful
+        streams.forEach(function(stream) {
+            show('Stream ' + stream.id + ' was unpublished');
+        });
     },
     addStream: function(morph) {
         if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
@@ -324,7 +367,7 @@ Object.subclass('lively.net.StreamingConnection',
     },
     assignStreamingFunction: function(morph) {
         if (typeof morph.streamingConfig.steppingFunction === 'function') {
-            // this morph already has his own stepping function
+            // this morph already has its own stepping function
             morph.streamingFunction = morph.streamingConfig.steppingFunction;
             return;
         }
@@ -467,11 +510,13 @@ Object.subclass('lively.net.StreamingConnection',
         
         this.send(message);
         
-        this.createNewDownstream(streamId);
+        return this.createNewDownstream(streamId);
     },
     createNewDownstream: function(streamId) {
         var stream = new lively.net.Stream(streamId);
         this.downstreams[streamId] = stream;
+        
+        return stream;
     },
     fillupConfig: function(morph) {
         if (!morph.streamingConfig) morph.streamingConfig = {};
@@ -550,13 +595,14 @@ Object.subclass('lively.net.StreamingConnection',
         
         this.sendingBuffer.push(message);
         this.sendCount++;
+        this.sendBuffer();
     },
     sendBuffer: function() {
         var OPEN = 1;
         // write all messages in the buffer into the socket
         while (true) {
             // pop the first message
-            var message = this.buffer.shift();
+            var message = this.sendingBuffer.shift();
             // no more messages left
             if (message === undefined) break;
             // send the message

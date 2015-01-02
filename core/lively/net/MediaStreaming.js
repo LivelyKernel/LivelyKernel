@@ -10,13 +10,17 @@ Object.subclass('lively.net.StreamingConnection',
         this.availableStreams = [];
         this.idRequestCallbacks = [];
         this.takeoverCallbacks = [];
-        this.streamedObjects = [];
         
         // objects
+        this.streamedObjects = {};
         this.downstreams = {};
+        this.trafficStats = {};
         
         // counters
         this.upstreamData = 0;
+        this.downstreamData = 0;
+        this.sendCount = 0;
+        this.receiveCount = 0;
         
         // setup functions
         var _this = this;
@@ -28,6 +32,11 @@ Object.subclass('lively.net.StreamingConnection',
         // retrieve l2l session
         this.withLively2LivelySessionDo(5000, init);
         
+        // periodic functions
+        var _this = this;
+        Global.setInterval(function() {
+            _this.generateMonitoringData();
+        }, 1000);
     },
     openSocketConnection: function() {
         // open a connection to the socket server
@@ -96,6 +105,8 @@ Object.subclass('lively.net.StreamingConnection',
 }, 
 'message handling', {
     handleMessage: function(message) {
+        this.receiveCount++;
+        
         switch (message.type) {
             // frames from a video and a canvas are rendered equally
             case 'image':
@@ -155,6 +166,7 @@ Object.subclass('lively.net.StreamingConnection',
                 break;
             case 'stream-changes':
                 var streams = message.streams;
+                show('stream changes');
                 var removedStreams = this.updateAvailableStreams(streams);
                 this.deactivateStreams(removedStreams);
                 break;
@@ -339,7 +351,7 @@ Object.subclass('lively.net.StreamingConnection',
             show('Stream ' + stream.id + ' was unpublished');
         });
     },
-    addStream: function(morph) {
+    publish: function(morph) {
         if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
             show('no websocket open');
             return;
@@ -364,6 +376,42 @@ Object.subclass('lively.net.StreamingConnection',
             _this.assignStreamingFunction(morph);
             _this.startStreaming(morph);
         });
+    },
+    unpublish: function(streamId) {
+        var morph = this.streamedObjects[streamId];
+        
+        if (!morph) {
+            show('Stream ' + streamId + ' unknown');
+            return;
+        }
+        
+        morph.isBeingStreamed = false;
+        
+        var mediatype = morph.streamingConfig.mediatype;
+        switch (mediatype) {
+            case 'image':
+                morph.stopStepping();
+                delete morph.streamingFunction;
+                break;
+            case 'audio':
+                delete morph.streamingFunction;
+                break;
+            case 'data':
+                morph.stopStepping();
+                delete morph.streamingFunction;
+                break;
+            default: 
+                show('Unknown media type');
+                return;
+        }
+        
+        this.send({
+            type: 'unpublish',
+            streamId: streamId,
+            senderId: this.session.sessionId
+        });
+        
+        delete this.streamedObjects[streamId];
     },
     assignStreamingFunction: function(morph) {
         if (typeof morph.streamingConfig.steppingFunction === 'function') {
@@ -489,7 +537,8 @@ Object.subclass('lively.net.StreamingConnection',
     
         morph.isBeingStreamed = true;
         
-        this.streamedObjects.push(morph);
+        // register the streamed morph
+        this.streamedObjects[morph.streamingConfig.streamId] = morph;
         
         // just start stepping, if the morph wants to be streamed periodically
         if (steptime >= 0) {
@@ -511,6 +560,25 @@ Object.subclass('lively.net.StreamingConnection',
         this.send(message);
         
         return this.createNewDownstream(streamId);
+    },
+    deactivateDownstream: function(streamId) {
+        var stream = this.downstreams[streamId];
+        
+        if (!stream) {
+            show(streamId + ' does not exist');
+            return;
+        }
+        
+        stream.deactivate();
+    },
+    unsubscribe: function(streamId) {
+        this.send({
+            type: 'unsubscribe',
+            senderId: this.session.sessionId,
+            streamId: streamId
+        });
+        
+        this.deactivateDownstream(streamId);
     },
     createNewDownstream: function(streamId) {
         var stream = new lively.net.Stream(streamId);
@@ -622,6 +690,27 @@ Object.subclass('lively.net.StreamingConnection',
         
         this.send(obj);
     }
+},
+'traffic monitoring', {
+    'generateMonitoringData': function() {
+        // upstream
+        var size = Global.Numbers.humanReadableByteSize(this.upstreamData);
+        this.trafficStats.upstream = size + '/s';
+        this.upstreamData = 0;
+        
+        // downstream
+        size = Global.Numbers.humanReadableByteSize(this.downstreamData);
+        this.trafficStats.downstream = size + '/s';
+        this.downstreamData = 0;
+        
+        // upstreamFps
+        this.trafficStats.upstreamFps = this.sendCount;
+        this.sendCount = 0;
+        
+        // downstreamFps
+        this.trafficStats.downstreamFps = this.receiveCount;
+        this.receiveCount = 0;
+    },
 });
 
 Object.subclass('lively.net.Stream',
@@ -629,11 +718,12 @@ Object.subclass('lively.net.Stream',
     initialize: function(id) {
         this.streamId = id;
         this.viewer = null;
-        // bla
+        this.active = false;
     },
 },
 'frame handling', {
     'newFrame': function(imageURL, timestamp) {
+        this.active = true;
         if (!this.viewer) return;
         
         var frameRecord = {
@@ -652,6 +742,12 @@ Object.subclass('lively.net.Stream',
         viewer.openInHand();
         
         return viewer;
+    },
+},
+'stream handling', {
+    'deactivate': function() {
+        // TODO: do something useful
+        show('Stream ' + this.streamId + ' deactivated');
     },
 });
 

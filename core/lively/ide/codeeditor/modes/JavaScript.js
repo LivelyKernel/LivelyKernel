@@ -51,11 +51,6 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
       range[isBackward ? "setStart" : "setEnd"](newPos.row, newPos.column);
       if (!select) range[isBackward ? "setEnd" : "setStart"](newPos.row, newPos.column);
       sel.setRange(range, isBackward);
-    },
-
-    select: function(selector, codeEditor) {
-      var newRangeIndices = this[selector](codeEditor.textString, codeEditor.getSelectionRange());
-      if (newRangeIndices) codeEditor.setSelectionRange(newRangeIndices[0], newRangeIndices[1]);
     }
 
 },
@@ -104,7 +99,9 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
 },
 'selection', {
     markDefun: function(ed) {
-      this.select('rangeForFunctionOrDefinition', ed.$morph);
+      var range = this.rangeForFunctionOrDefinition(
+        ed.getValue(), ed.$morph.getSelectionRange());
+      if (range) ed.execCommand('expandRegion', {start: range[0], end: range[1]});
     },
 
     rangeForNodesMatching: function(src, pos, func) {

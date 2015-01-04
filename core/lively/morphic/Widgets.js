@@ -2590,7 +2590,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     setTitle: function(string) { this.titleBar.setTitle(string) },
     getTitle: function() { return this.titleBar.getTitle() },
     setExtent: function($super, newExtent) {
-        $super(newExtent);
+        var offset = this.getWindow().contentOffset || lively.pt(3,22);
+        var min = this.targetMorph ?
+          this.targetMorph.getMinExtent().addXY(offset.x*2, offset.y+offset.x) : pt(0,0);
+        var ext = $super(newExtent.maxPt(min));
         this.alignAllHandles();
     },
 

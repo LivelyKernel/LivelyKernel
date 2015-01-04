@@ -7,6 +7,9 @@ var libs = [{
   url: Config.codeBase + 'lib/ace/ace.ext.lang.ast-commands.js',
   loadTest: function() { return lively.lang.Path("ext.lang.astCommands").get(ace); }
 }, {
+  url: Config.codeBase + 'lib/ace/ace.improvements.js',
+  loadTest: function() { return Global.ace && ace.improved; }
+}, {
   url: Config.codeBase + 'lib/ace/ace.ext.lang.codemarker.js',
   loadTest: function() { return lively.lang.Path("ext.lang.codemarker").get(ace); }
 }, {

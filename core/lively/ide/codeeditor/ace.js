@@ -4,20 +4,14 @@ var libs = [{
   url: Config.codeBase + 'lib/ace/lively-ace.js',
   loadTest: function() { return typeof ace !== 'undefined';}
 }, {
-  url: Config.codeBase + 'lib/ace/ace.ext.lang.ast-commands.js',
-  loadTest: function() { return lively.lang.Path("ext.lang.astCommands").get(ace); }
-}, {
   url: Config.codeBase + 'lib/ace/ace.improvements.js',
   loadTest: function() { return Global.ace && ace.improved; }
 }, {
+  url: Config.codeBase + 'lib/ace/ace.ext.lang.ast-commands.js',
+  loadTest: function() { return lively.lang.Path("ext.lang.astCommands").get(ace); }
+}, {
   url: Config.codeBase + 'lib/ace/ace.ext.lang.codemarker.js',
   loadTest: function() { return lively.lang.Path("ext.lang.codemarker").get(ace); }
-}, {
-  url: Config.codeBase + 'lib/ace/paredit-bundle.js',
-  loadTest: function() { return !!Global.paredit; }
-}, {
-  url: Config.codeBase + 'lib/ace/ace.ext.lang.paredit.js',
-  loadTest: function() { return lively.lang.Path("ext.lang.paredit").get(ace); }
 }];
 
 lively.lang.arr.mapAsyncSeries(libs,

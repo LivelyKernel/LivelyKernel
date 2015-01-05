@@ -1011,6 +1011,9 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     fileList.applyLayout();
     lively.bindings.signal(this, 'dirContentUpdated');
 },
+selectFileNamed: function selectFileNamed(fn) {
+  this.get("fileList").setSelectionMatching(new RegExp(" " +fn+"$"))
+},
         reset: function reset() {
         this.dirState = {
             files: [],
@@ -1048,6 +1051,17 @@ Object.extend(lively.ide.tools.DirViewer, {
         dirViewer.targetMorph.goto(path || lively.ide.CommandLineInterface.cwd());
         return dirViewer.openInWorldCenter().comeForward();
     },
+    onFile: function(path) {
+        var sep = '/',
+            fileParts = path.split(sep),
+            dirPath = fileParts.slice(0,-1).join(sep),
+            fn = fileParts.last(),
+            d = lively.ide.tools.DirViewer.on(dirPath);
+        lively.bindings.once(d.targetMorph, 'dirContentUpdated', {select: function() {
+          (function() { d.targetMorph.selectFileNamed(fn); }).delay(0);
+        }}, 'select');
+        return d;
+    }
 });
 
 }) // end of module

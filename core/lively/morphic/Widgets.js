@@ -1901,8 +1901,25 @@ lively.morphic.World.addMethods(
         editor.accessibleInInactiveWindow = true;
         if (options.hasOwnProperty("evalEnabled")) editor.evalEnabled = options.evalEnabled;
         editor.applyStyle(options);
+        if (options.name) editor.name = options.name;
         editor.focus();
         return pane;
+    },
+
+    addActionText: function(actionSpec, options) {
+      options = lively.lang.obj.merge(options || {}, {textMode: "attributedtext"});
+      show(options)
+      var ed = $world.addCodeEditor(options);
+      ed.addScript(function setAttributedText(textSpec) {
+        // textSpec like [["string", {type: "tokenType", onClick: ..., commands: ...}}]]
+        return this.withAceDo(function(ed) {
+          var m = ed.session.getMode();
+          return m.set(ed, textSpec);
+        });
+      });
+      ed.setAttributedText(actionSpec);
+      ed.getWindow().comeForward();
+      return ed;
     }
 
 },

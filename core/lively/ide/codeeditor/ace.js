@@ -12,6 +12,9 @@ var libs = [{
 }, {
   url: Config.codeBase + 'lib/ace/ace.ext.lang.codemarker.js',
   loadTest: function() { return lively.lang.Path("ext.lang.codemarker").get(ace); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.custom-text-attributes.js',
+  loadTest: function() { return !!ace.require('ace/mode/attributedtext'); }
 }];
 
 lively.lang.arr.mapAsyncSeries(libs,

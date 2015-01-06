@@ -10,6 +10,7 @@ Object.subclass('lively.net.StreamingConnection',
         this.availableStreams = [];
         this.idRequestCallbacks = [];
         this.takeoverCallbacks = [];
+        this.frameLoadingCallbacks = [];
         
         // objects
         this.streamedObjects = {};
@@ -174,6 +175,19 @@ Object.subclass('lively.net.StreamingConnection',
                 var removedStreams = this.updateAvailableStreams(streams);
                 this.deactivateStreams(removedStreams);
                 break;
+            case 'recorded-data':
+                var requestId = message.requestId;
+                var data = this.decodeAll(message.data);
+                
+                var record = this.frameLoadingCallbacks.find(function(record) {
+                    return record.requestId === requestId;
+                });
+                
+                var idx = this.frameLoadingCallbacks.indexOf(record);
+                this.frameLoadingCallbacks.splice(idx, 1);
+                
+                record.callback(data);
+                break;
             case 'request-takeover':
                 var streamId = message.streamId;
                 var requesterId = message.requesterId;
@@ -190,6 +204,11 @@ Object.subclass('lively.net.StreamingConnection',
                 
                 callbackRecord.callback(response);
                 // TODO remove callback from array?
+                break;
+            case 'continue-streaming':
+                var streamId = message.streamId;
+                Global.alertOK('continue stream ' + streamId);
+                this.continueStreaming(streamId);
                 break;
             case 'progress-update':
                 this.relateProgressInformation(message.streamId, message.timestamps);
@@ -247,7 +266,11 @@ Object.subclass('lively.net.StreamingConnection',
         return removedStreams;
     },
     'relateProgressInformation': function(streamId, timestamps) {
-        // TODO
+        var stream = this.downstreams[streamId];
+        
+        if (!stream || !stream.newTimelineData) return;
+        
+        stream.newTimelineData(timestamps);
     },
     relateToStream: function(message, imageURL) {
         var id = message.streamId;
@@ -338,6 +361,16 @@ Object.subclass('lively.net.StreamingConnection',
         
         // interpret the resulting buffer as float32
         return new Global.Float32Array(tmpBuffer.buffer);
+    },
+    decodeAll: function(data) {
+        var _this = this;
+        data.forEach(function(frame) {
+            if (frame.lzwEncoded) {
+                frame.image = _this.lzwDecode(frame.image);
+            }
+        });
+        
+        return data;
     },
     arraybufferToString: function() {
         // create a Uint16Array data view from the buffer
@@ -585,7 +618,11 @@ Object.subclass('lively.net.StreamingConnection',
         this.deactivateDownstream(streamId);
     },
     createNewDownstream: function(streamId) {
-        var stream = new lively.net.Stream(streamId);
+        var streamRecord = this.availableStreams.find(function(record) {
+            return record.id === streamId;
+        });
+        
+        var stream = new lively.net.BackInTimeStream(streamId, this, streamRecord.starttime);
         this.downstreams[streamId] = stream;
         
         return stream;
@@ -715,6 +752,43 @@ Object.subclass('lively.net.StreamingConnection',
         this.trafficStats.downstreamFps = this.receiveCount;
         this.receiveCount = 0;
     },
+},
+'data loading', {
+
+    loadAmountOfFrames: function(streamId, before, amount, callback) {
+        var message = {
+            type: 'request-recorded-data',
+            senderId: this.session.sessionId,
+            streamId: streamId,
+            requestId: Date.now(),
+            before: before,
+            amount: amount
+        }
+        
+        this.frameLoadingCallbacks.push({
+            requestId: message.requestId,
+            callback: callback
+        });
+        
+        this.send(message);
+    },
+    loadFramesByDuration: function(streamId, timecode, duration, callback) {
+        var message = {
+            type: 'request-recorded-data',
+            senderId: this.session.sessionId,
+            streamId: streamId,
+            requestId: Date.now(),
+            timecode: timecode,
+            duration: duration
+        }
+        
+        this.frameLoadingCallbacks.push({
+            requestId: message.requestId,
+            callback: callback
+        });
+        
+        this.send(message);
+    },
 });
 
 Object.subclass('lively.net.Stream',
@@ -755,23 +829,19 @@ Object.subclass('lively.net.Stream',
     },
 });
 
-lively.net.Stream.subclass('lively.net.RecordedStream', 
-'initializing', {
-    'initialize': function($super, id) {
-        $super(id);
-    },
-});
 
 lively.net.Stream.subclass('lively.net.BackInTimeStream', 
 'initializing', {
-    'initialize': function($super, id, streamingConnection) {
+    'initialize': function($super, id, streamingConnection, starttime) {
         $super(id);
         if (!streamingConnection) {
             // this stream type is useless without a streaming connection
             throw new Error('Missing argument: streamingConnection');
         }
         
+        this.starttime = starttime || Date.now();
         this.streamingConnection = streamingConnection;
+        this.lastFrameAccessedAt = Date.now();
         
         // constants
         this.maxRecentBuffer = 100;
@@ -781,6 +851,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         // arrays
         this.recentBuffer = [];
         this.availableBufferChunks = [];
+        this.timelineData = [];
         
         // objects
         this.pastBufferIndex = {};
@@ -797,6 +868,10 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         
         this.recentBuffer.push(frameRecord);
         
+        if (this.viewer) {
+            this.viewer.newFrame(frameRecord);
+        }
+        
         this.ensureRecentBufferSize();
         this.ensureFullHistory();
     },
@@ -809,7 +884,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
             var missingAmount = this.maxRecentBuffer - this.recentBuffer.length;
             var _this = this;
             var firstTimestamp;
-            // we will load missingAmount-number of frame BEFORE firstTimestamp
+            // we will load missingAmount-number of frames BEFORE firstTimestamp
             // so if there is something in recentBuffer, take the oldest available frame,
             // if there is nothing in there, load frames before now
             if (this.recentBuffer[0]) {
@@ -854,8 +929,74 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
             }
         }
     },
+    loadChunk: function(chunkTime) {
+        var idx = this.availableBufferChunks.indexOf(chunkTime);
+        var nextChunkTime = this.availableBufferChunks[idx + 1] || Date.now();
+        
+        var duration = (nextChunkTime - chunkTime) / 1000;
+        var _this = this;
+        
+        // prevent the chunk from being loaded multiple times
+        this.pastBufferIndex[chunkTime].loaded = true;
+        
+        this.streamingConnection.loadFramesByDuration(this.streamId, chunkTime, duration, function(data) {
+            _this.pastBufferIndex[chunkTime] = {
+                data: data,
+                loaded: true,
+                lastAccess: Date.now()
+            }
+            _this.checkUnloadChunks();
+        });
+    },
+    checkUnloadChunks: function() {
+        var loaded = [];
+        var _this = this;
+        
+        Object.keys(this.pastBufferIndex).forEach(function(key) {
+            if (_this.pastBufferIndex[key].loaded) {
+                loaded.push(_this.pastBufferIndex[key]);
+            }
+        });
+        
+        // no need for unloading chunks
+        if (loaded.length <= this.maxLoadedChunks) return;
+        
+        var unloadCandidate = loaded[0];
+        for (var i = 1; i < loaded.length; i++) {
+            if (loaded[i].lastAccess < unloadCandidate.lastAccess) {
+                unloadCandidate = loaded[i];
+            }
+        }
+        
+        // unload the chunk by removing all data but the first frame
+        unloadCandidate.data = [unloadCandidate.data[0]];
+        unloadCandidate.loaded = false;
+    },
     'ensureFullHistory': function() {
-        // TODO
+        var _this = this;
+        // check whether pastBufferIndex is an empty object
+        if (Object.keys(this.pastBufferIndex).length === 0) {
+            // load history key frames
+            var time = this.starttime;
+            
+            function requestAndSaveData(time) {
+                // request stream data from time with a length of null, which returns just one frame
+                _this.streamingConnection.loadFramesByDuration(_this.streamId, time, null, function(data) {
+                    _this.pastBufferIndex[data[0].timestamp] = {
+                        data: data,
+                        loaded: false,
+                        lastAccess: Date.now()
+                    }
+                    _this.insertSorted(_this.availableBufferChunks, data[0].timestamp);
+                });
+            }
+            
+            // load frames from starttime to present time
+            while (time <= Date.now()) {
+                requestAndSaveData(time);
+                time += _this.keyframeTimeDifference;
+            }
+        }
     },
 },
 'utils', {
@@ -871,6 +1012,126 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         var i = 0;
         while (arr[i] && arr[i] < item) i++;
         arr.splice(i, 0, item);
+    },
+    getDuration: function() {
+        if (this.recentBuffer.length === 0) return 0;
+        
+        return this.recentBuffer.last().timestamp - this.starttime;
+    },
+},
+'viewer handling', {
+    'openViewerInHand': function() {
+        var viewer = $world.loadPartItem('BackInTimeStreamViewer', 'PartsBin/Felix');
+        viewer.stream = this;
+        this.viewer = viewer;
+        
+        viewer.openInHand();
+        
+        return viewer;
+    },
+},
+'frame access', {
+    'getFrameAtMillisecond': function(ms, load) {
+        // ms in milliseconds from the beginning of the video,
+        // if load is set, chunks will be loaded if not available
+        
+        if (this.recentBuffer.length === 0) return;
+        
+        // time of first frame of stream
+        var t0 = this.starttime;
+        // time of first frame in recentBuffer
+        var t1 = this.recentBuffer[0].timestamp;
+        // time of most recent frame
+        var t2 = this.recentBuffer.last().timestamp;
+        
+        // t0                         t1          t2
+        // |--------------------------|------------|
+        // |------- pastBuffer -------|recentBuffer|
+        
+        var requestedTime = ms + t0;
+        
+        this.lastFrameAccessedAt = requestedTime;
+        
+        if (requestedTime >= t1 && requestedTime <= t2) {
+            // requestedTime falls into recentBuffer
+            for (var i = 0; i < this.recentBuffer.length; i++) {
+                if (this.recentBuffer[i].timestamp > requestedTime) {
+                    return this.recentBuffer[i-1];
+                }
+            }
+            return this.recentBuffer.last();
+        }
+        
+        if (requestedTime > t2) {
+            // requestedTime exceeds buffer size
+            return this.recentBuffer.last();
+        }
+        
+        // requestedTime falls before recentBuffer
+        var i = 0;
+        while (this.availableBufferChunks[i] <= requestedTime) i++;
+        var chunkTime = this.availableBufferChunks[i-1];
+        var chunk = this.pastBufferIndex[chunkTime];
+        
+        if (load) {
+            // check if chunk of currently requested frame needs to be loaded
+            if (!chunk.loaded) {
+                this.loadChunk(chunkTime);
+            }
+            
+            // pre-load the following chunk, if it's not loaded yet
+            var nextChunkTime = this.availableBufferChunks[i];
+            if (nextChunkTime) {
+                var nextChunk = this.pastBufferIndex[nextChunkTime];
+                if (!nextChunk.loaded) {
+                    this.loadChunk(nextChunkTime);
+                }
+            }
+        }
+        
+        // look for best match in chunk data
+        // recently loaded chunks might not be available yet, but they will be 
+        // for later requests
+        for (var i = 1; i < chunk.data.length; i++) {
+            if (chunk.data[i].timestamp > requestedTime) {
+                return chunk.data[i-1];
+            }
+        }
+        
+        // If no good match was found, return the first frame in the chunk.
+        // This is the case if either there is no better match in the chunk,
+        // or the chunk is not loaded and only contains one frame.
+        return chunk.data[0];
+    },
+
+    getAllAvailableFrames: function() {
+        var _this = this;
+        var frames = [];
+        
+        this.availableBufferChunks.forEach(function(timecode) {
+            _this.pastBufferIndex[timecode].data.forEach(function(frame) {
+                frames.push(frame);
+            });
+        });
+        
+        this.recentBuffer.forEach(function(frame) {
+            frames.push(frame);
+        });
+        
+        return frames;
+    },
+},
+'user progress', {
+    sendProgress: function() {
+        if (this.lastFrameAccessedAt === -1) return;
+        
+        this.streamingConnection.sendProgress(this.streamId, this.lastFrameAccessedAt);
+    },
+    newTimelineData: function(data) {
+        this.timelineData = data;
+    },
+    getViewerProgressData: function() {
+        return this.timelineData;
     },
 });
 

@@ -1087,9 +1087,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getSelectionRange: function() {
+      return this.withAceDo(function(ed) {
         var range = this.getSelectionRangeAce(),
             doc = this.getDocument();
         return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
+      }) || [0,0];
     },
 
     getSelectionRangeAce: function() {

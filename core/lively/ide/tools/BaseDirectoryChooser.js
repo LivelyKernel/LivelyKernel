@@ -102,13 +102,24 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         var idx = list.addItem({isListItem: true, string: String(dir), value: dir});
         list.selectAt(idx);
     },
+    checkNewDir: function checkNewDir(dirBefore, d, thenDo) {
+    lively.shell.run('cd "'+d+'"; pwd', function(err, cmd) {
+      var newD = !err && cmd.getStdout().trim().length ?
+        cmd.getStdout().trim() : dirBefore;
+      thenDo(err, newD)
+    }.bind(this));
+  },
         addDirInteractively: function addDirInteractively() {
+        var cwd = lively.shell.exec('pwd', {sync:true}).resultString(),
+            self = this;;
         lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
             'choose directory: ',
             lively.shell.exec('pwd', {sync:true}).resultString(),
             function(files) { return files.filterByKey('isDirectory'); },
             "lively.ide.browseFiles.baseDirList.NarrowingList",
-            [this.addDir.bind(this)]);
+            [function(sel) {
+              self.checkNewDir(cwd, sel, function(err, newDir) { self.addDir(newDir) })
+            }]);
     },
         changeBaseDir: function changeBaseDir(dir) {
         var path = dir && dir.path ? dir.path : (dir ? String(dir) : null);

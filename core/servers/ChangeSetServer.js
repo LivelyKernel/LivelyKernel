@@ -151,9 +151,9 @@ function getNewFilename(diff) {
     return filename != '/dev/null' ? filename.substr(2) : null;
 }
 
-function removeTempFiles(files) {
+function removeTempFiles(files, tempDir) {
     async.each(files, function(file, callback) {
-        fs.unlink(path.join(process.env.WORKSPACE_LK, file), callback);
+        fs.unlink(path.join(tempDir, file), callback);
     },
     function() {
         // ignore errors;
@@ -236,7 +236,7 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
                 });
             }
         ), function(err) {
-            removeTempFiles(tempFiles);
+            removeTempFiles(tempFiles, commitObj.repoPath);
             if (err) return cb(err);
 
             async.waterfall([

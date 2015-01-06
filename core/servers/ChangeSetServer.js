@@ -127,8 +127,7 @@ function getChanges(b, cb) {
     });
 }
 
-function getBranchAndParentFromChangeId(changeId, cb) {
-    var repo = process.env.WORKSPACE_LK;
+function getBranchAndParentFromChangeId(changeId, repo, cb) {
     gitHelper.util.getBranchesByHash(changeId, repo, function(err, branches) {
         if (err) return cb(err);
         gitHelper.util.getParentHash(changeId + '^1', repo, function(err, parent) {
@@ -167,7 +166,7 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
     //    .repoPath -  with git directory name
     //    .treeInfos - empty hash table or previously loaded tree info
     var commitObjects = diffs.reduce(function(list, diff) {
-        var hash = getOldFileHash(diff) + '-' + getNewFileHash(diff);
+        var hash = getOldFileHash(diff) + '-' + getNewFileHash(diff) + '-' + getNewFilename(diff);
         if (!list.hasOwnProperty(hash))
             list[hash] = { diffs: [] };
         list[hash].diffs.push(diff);
@@ -175,8 +174,15 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
     }, {});
     var tempFiles = [];
 
+    var relPath = path.relative(process.env.WORKSPACE_LK, commitObj.repoPath),
+        filenames = diffs.map(function(diff) {
+            var filename = getNewFilename(diff);
+            if (filename == '/dev/null') return filename;
+            return path.relative(relPath, filename);
+        });
+
     // assemble tree info
-    async.reduce(diffs.map(getNewFilename), commitObj.treeInfos, function(tree, filename, next) {
+    async.reduce(filenames, commitObj.treeInfos, function(tree, filename, next) {
         if (filename == '/dev/null') return tree;
         gitHelper.util.getTree(commitObj.repoPath, filename, commitObj.parent, tree, next);
     },
@@ -221,7 +227,7 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
                 patch.stdin.end(commitObjects[doubleHash].diffs.join('\n'));
             },
             function saveTempFile(doubleHash, tempFile, next) {
-                var newFilename = getNewFilename(commitObjects[doubleHash].diffs[0]);
+                var newFilename =  path.relative(relPath, getNewFilename(commitObjects[doubleHash].diffs[0]));
                 gitHelper.util.createHashObjectFromFile(commitObj.repoPath, tempFile, function(err, hash) {
                     if (err) return next(err);
                     commitObjects[doubleHash].fileHash = hash;
@@ -241,30 +247,54 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
     });
 }
 
-function commitChanges(changeId, diffsToCommit, diffsToStash, message, commiter, cb) {
-    var files = [];
-    getBranchAndParentFromChangeId(changeId, function(err, branch, parentHash) {
-        if (err || branch == undefined) return cb(err || new Error('No branch found!'));
+function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
+    var files = [],
+        reposByChangeId = {}; // { CHANGE_ID*: { path: PATH, changes: DIFF* } }
 
-        var commitObj = {
-            treeInfos: {},
-            parent: parentHash,
-            repoPath: process.env.WORKSPACE_LK
-        };
+    function fillRepos(reposMap, diffs, storage) {
+        diffs.each(function(diff) {
+            var match = diff.match(/^@@.*@@ (.+)$/m),
+                changeId = match && match[1].trim();
+            if (!reposMap.hasOwnProperty(changeId)) {
+                reposMap[changeId] = { changes: [], stash: [] };
+                var filename = path.join(process.env.WORKSPACE_LK, getNewFilename(diff));
+                reposMap[changeId].path = SUB_REPOS.filter(function(repoPath) {
+                    return filename.indexOf(repoPath) == 0;
+                })[0] || process.env.WORKSPACE_LK;
+            }
+            reposMap[changeId][storage].push(diff);
+        });
+    }
 
-        async.waterfall([
-            commitDiffs.bind(null, diffsToCommit, commiter, message, commitObj),
-            function(commitObj, callback) {
-                // clean commitObj
-                commitObj.parent = commitObj.commit;
-                delete commitObj.commit;
-                delete commitObj.rootTree;
-                callback(null, commitObj);
-            },
-            commitDiffs.bind(null, diffsToStash, commiter, null),
-            gitHelper.util.updateBranch.bind(null, branch, commitObj.repoPath)
-        ], cb);
-    });
+    fillRepos(reposByChangeId, diffsToCommit, 'changes');
+    fillRepos(reposByChangeId, diffsToStash, 'stash');
+
+    async.eachSeries(Object.getOwnPropertyNames(reposByChangeId),
+    function(changeId, callback) {
+        var repo = reposByChangeId[changeId];
+        getBranchAndParentFromChangeId(changeId, repo.path, function(err, branch, parentHash) {
+            if (err || branch == undefined) return callback(err || new Error('No branch found!'));
+
+            var commitObj = {
+                treeInfos: {},
+                parent: parentHash,
+                repoPath: repo.path
+            };
+
+            async.waterfall([
+                commitDiffs.bind(null, repo.changes, commiter, message, commitObj),
+                function(commitObj, callback) {
+                    // clean commitObj
+                    commitObj.parent = commitObj.commit;
+                    delete commitObj.commit;
+                    delete commitObj.rootTree;
+                    callback(null, commitObj);
+                },
+                commitDiffs.bind(null, repo.stash, commiter, null),
+                gitHelper.util.updateBranch.bind(null, branch, commitObj.repoPath)
+            ], callback);
+        });
+    }, cb);
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -305,16 +335,13 @@ module.exports = function(route, app) {
     });
 
     app.post(route + 'commit', function(req, res) {
-        var changeId = req.body && req.body.changeId,
-            commit = req.body && req.body.commit,
+        var commit = req.body && req.body.commit,
             stash = req.body && req.body.stash,
             user = req.body && req.body.user,
             email = req.body && req.body.email,
             message = req.body && req.body.message,
             force = req.body && !!(req.body.force);
-        if (!changeId)
-            res.status(400).json({ error: 'Could not find change ID!' });
-        else if (!commit)
+        if (!commit)
             res.status(400).json({ error: 'Could not find changes to commit (commit)!' });
         else if (!stash)
             res.status(400).json({ error: 'Could not find remaining, uncommited changes (stash)!' });
@@ -331,12 +358,24 @@ module.exports = function(route, app) {
                 GIT_COMMITTER_NAME: 'Lively ChangeSets',
                 GIT_COMMITTER_EMAIL: 'unknown-user@lively-web.local'
             };
-            commitChanges(changeId, commit, stash, message, commiter, function(err) {
+            commitChanges(commit, stash, message, commiter, function(err) {
                 if (err)
                     res.status(409).json({ error: 'Files have changed!' });
                 else
                     res.status(201).json('Commit successful!');
             });
+        }
+    });
+
+    app.get(route + 'merge/:branch1/:branch2?', function(req, res) {
+        var toBranch = req.param('branch2') || req.param('branch1'),
+            fromBranch = req.param('branch2') ? req.param('branch1') : req.cookies['livelykernel-branch'];
+        if ((fromBranch == undefined) || (toBranch == undefined))
+            res.status(400).json({ error: 'Could not find changeset to merge from or to.' });
+        else if (fromBranch == toBranch)
+            res.status(400).json({ error: 'Changeset to merge from and to cannot be the same (' + fromBranch + ').' });
+        else {
+            res.json({ merge: { from: fromBranch, to: toBranch }});
         }
     });
 

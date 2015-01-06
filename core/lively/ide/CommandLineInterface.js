@@ -913,7 +913,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 input: initialCandidates[0] || undefined,
                 candidatesUpdater: candidateBuilder,
                 maxItems: 25,
-                keepInputOnReactivate: true,
+                keepInputOnReactivate: false,
                 completeInputOnRightArrow: true,
                 completeOnEnterWithMultipleChoices: true,
                 actions: actions || [show]

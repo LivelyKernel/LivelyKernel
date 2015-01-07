@@ -87,6 +87,9 @@ Object.subclass('lively.net.StreamingConnection',
     onClose: function() {
         Global.clearInterval(this.statsInterval);
     },
+    close: function() {
+        this.socket.close();
+    },
     withLively2LivelySessionDo: function(timeoutMs, thenDo) {
         // wait for a lively2lively connection
         if (!thenDo) { thenDo = timeoutMs; timeoutMs = 5000; }
@@ -793,8 +796,9 @@ Object.subclass('lively.net.StreamingConnection',
 
 Object.subclass('lively.net.Stream',
 'initializing', {
-    initialize: function(id) {
+    initialize: function(id, streamingConnection) {
         this.streamId = id;
+        this.streamingConnection = streamingConnection;
         this.viewer = null;
         this.active = false;
     },
@@ -827,20 +831,22 @@ Object.subclass('lively.net.Stream',
         // TODO: do something useful
         show('Stream ' + this.streamId + ' deactivated');
     },
+    unsubscribe: function() {
+        this.streamingConnection.unsubscribe(this.streamId);
+    },
 });
 
 
 lively.net.Stream.subclass('lively.net.BackInTimeStream', 
 'initializing', {
     'initialize': function($super, id, streamingConnection, starttime) {
-        $super(id);
+        $super(id, streamingConnection);
         if (!streamingConnection) {
             // this stream type is useless without a streaming connection
             throw new Error('Missing argument: streamingConnection');
         }
         
         this.starttime = starttime || Date.now();
-        this.streamingConnection = streamingConnection;
         this.lastFrameAccessedAt = Date.now();
         
         // constants
@@ -1122,10 +1128,17 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
     },
 },
 'user progress', {
-    sendProgress: function() {
-        if (this.lastFrameAccessedAt === -1) return;
+    sendProgress: function(_this) {
+        if (_this.lastFrameAccessedAt === -1) return;
         
-        this.streamingConnection.sendProgress(this.streamId, this.lastFrameAccessedAt);
+        _this.streamingConnection.sendProgress(_this.streamId, _this.lastFrameAccessedAt);
+    },
+    startSendingProgress: function() {
+        var _this = this;
+        this.progressIntervalHandle = Global.setInterval(function() { _this.sendProgress(_this) }, 1000);
+    },
+    stopSendingProgress: function() {
+        Global.clearInterval(this.progressIntervalHandle);
     },
     newTimelineData: function(data) {
         this.timelineData = data;

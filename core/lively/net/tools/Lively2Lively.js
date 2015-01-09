@@ -482,6 +482,9 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         addText: function addText(string) {
         var messages = this.get('MessageList')
         var y = messages.submorphs.length ? messages.submorphs.last().bounds().bottom() : 0;
+        if (messages.submorphs.last().textString === string) {
+            return;
+        }
         var t = new lively.morphic.Text(lively.rect(0,y, messages.getExtent().x-6, 20), string);
         t.applyStyle({fixedWidth: true, fixedHeight: false,
             borderWidth: 1, borderColor: Color.white});

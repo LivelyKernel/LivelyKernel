@@ -1544,19 +1544,18 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName, cb) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
-            part = lively.PartsBin.getPart(partName, optPartspaceName, cb ? function(err, part) {
-                if (part && part.onCreateFromPartsBin) part.onCreateFromPartsBin();
-                cb(err, part)
-            } : undefined);
-        if (!part) {debugger;
-            return;
+      function init(part) {
+          if (part && part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         }
-        if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
+            part = lively.PartsBin.getPart(partName, optPartspaceName,
+              cb ? function(err, part) { init(part); cb(err, part); } : undefined);
+        if (!cb) init(part);
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
         var part = this.loadPartItem(partName, optPartspaceName);
+        if (!part) return null;
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
         var win = part.getWindow();

@@ -48,9 +48,9 @@ Object.subclass('lively.morphic.Morph',
 
 },
 'accessing -- morph properties', {
-    setPosition: function(value) {
+    setPosition: function(pt) {
         this.cachedBounds = null;
-        return this.morphicSetter('Position', value);
+        return this.morphicSetter('Position', pt);
     },
     getPosition: function () {
         var pos = this.morphicGetter('Position') || pt(0,0);

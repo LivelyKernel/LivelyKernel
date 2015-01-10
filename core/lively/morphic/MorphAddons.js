@@ -9,6 +9,12 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 Object.extend(lively.morphic, {
 
     show: function(obj) {
+
+        function showText(text) {
+          $world.setStatusMessage(text, Color.gray);
+          return text;
+        }
+
         function newShowPt(/*pos or x,y, duration, extent*/) {
             var args = Array.from(arguments);
             // pos either specified using point object or two numbers
@@ -93,7 +99,7 @@ Object.extend(lively.morphic, {
         }
 
         if (!obj && !Object.isString(obj)) { return lively.morphic.show(String(obj)); }
-        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); return lively.morphic.alert(msg); }
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); return showText(msg); }
         else if (Object.isArray(obj)) return obj.map(function(ea) { return lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) return newShowPt(obj);
         else if (obj instanceof lively.Line) return newShowLine(obj);
@@ -101,7 +107,7 @@ Object.extend(lively.morphic, {
         else if (obj.isMorph) return newShowMorph(obj);
         else if (obj instanceof Global.HTMLElement) return newShowElement(obj);
         else if (obj instanceof Global.Element && obj.getBoundingClientRect) { var b = obj.getBoundingClientRect(); return newShowRect(lively.rect(b.left,b.top,b.width,b.height)); }
-        else { var msg = Strings.format("%o", obj); return lively.morphic.alert(msg); }
+        else { var msg = Strings.format("%o", obj); return showText(msg); }
     },
 
     alertDbg: function(msg) {
@@ -816,7 +822,7 @@ lively.morphic.World.addMethods(
         // Example:
         // $world.createStatusMessage("Hello :)", {openAt: 'leftCenter'});
         options = options || {};
-        var msgMorph = lively.newMorph({extent: options.extent || pt(200, 68)});
+        var msgMorph = lively.newMorph({extent: options.extent || pt(240, 68)});
         msgMorph.isEpiMorph = true;
         msgMorph.openInWorld()
         msgMorph.applyStyle({

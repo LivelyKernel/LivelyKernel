@@ -1743,7 +1743,7 @@ lively.morphic.World.addMethods(
                         return ea.wantsDroppedMorph(toBeDropped)
                             && toBeDropped.wantsToBeDroppedInto(ea); }); });
         if (!dropTarget) {
-            this.alert('found nothing to drop onto');
+            console.warn('found nothing to drop onto');
             dropTarget = this;
         }
         return evt.hand.dropContentsOn(dropTarget, evt);

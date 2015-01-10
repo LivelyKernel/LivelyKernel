@@ -355,9 +355,9 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             filters = this.filterState.filters,
             sortKey = this.filterState.sortKey,
             items = this.filterState.items,
-            processItems = Functions.compose(
+            processItems = lively.lang.fun.compose(
                 this.itemsFilter.curry(filters),
-                sortKey ? this.itemsSort.curry(sortKey) : Functions.K,
+                sortKey ? this.itemsSort.curry(sortKey) : lively.lang.fun.K,
                 this.itemsForList.bind(this)),
             processedItems = processItems(items);
     

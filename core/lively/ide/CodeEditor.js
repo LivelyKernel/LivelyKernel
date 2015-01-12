@@ -731,7 +731,65 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     doKeyCopy: Functions.Null,
-    doKeyPaste: Functions.Null
+    doKeyPaste: Functions.Null,
+
+    commandKeyName: function() {
+      return !!UserAgent.isMacOS ? "command" : "ctrl";
+    },
+
+    showEffectiveKeybindings: function() {
+      return this.withAceDo(function(ed) {
+        var all = ace.ext.keys.allEditorCommands(ed);
+        var cmdNames = Object.keys(all).sort();
+        var colWidth = cmdNames.reduce(function(colWidth, cmdName) {
+          return Math.max(cmdName.length, colWidth); }, 0);
+        var spec = cmdNames.reduce(function(spec, cmdName) {
+          var boundCommands = all[cmdName];
+          var keys = boundCommands
+            .map(function(ea) { return ea.key.include("input") ? null : ea.key; })
+            .uniq().compact().join("|");
+          var string = lively.lang.string.pad(cmdName, colWidth+1-cmdName.length, false) + keys;
+          return spec.concat([
+              [string, {type: "text", boundCommands: boundCommands}],
+              ["\n"]])
+        }, [])
+        
+        var winEd = $world.addCodeEditor({
+          title: "bound keys",
+          // content: "",
+          // textMode: "attributedtext"
+          content: spec.pluck(0).join(""),
+          textMode: "text"
+        });
+        winEd.setInputAllowed(false);
+        // winEd.withAceDo(function(ed) { ed.session.getMode().set(ed, spec); })
+        winEd.getWindow().comeForward();
+        return winEd;
+      });
+    },
+
+    customizeKeybindingsInteractively: function() {
+      var existing = ace.ext.keys.getKeyCustomizationLayer("user-key-bindings") || {};
+      var editor = $world.addCodeEditor({
+        title: "user key customizations",
+        content: (JSON.stringify(existing, null, 2)),
+        textMode: "json",
+      });
+      
+      editor.setStatusMessage("Press " + this.commandKeyName() + "-s to save\n"
+                            + "customizations should have the form\n{\"command-name\": \"key\"}\n", null, 10);
+
+      editor.addScript(function doSave() {
+        try {
+          var cust = JSON.parse(this.textString);
+          ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust);
+          lively.LocalStorage.set("user-key-bindings", JSON.stringify(cust));
+          this.setStatusMessage("user key customization saved");
+        } catch (e) {
+          this.setStatusMessage("Error setting key customization:\n"+e, Color.red);
+        }
+      });
+    }
 },
 'text morph eval interface', {
 
@@ -1661,6 +1719,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             items.push(item);
         }
         var settingsItems = [];
+        settingsItems.push(['Show effective keybindings', function() { self.showEffectiveKeybindings(); }]);
+        settingsItems.push(['Customize keybindings', function() { self.customizeKeybindingsInteractively(); }]);
         boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
         boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
         boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);

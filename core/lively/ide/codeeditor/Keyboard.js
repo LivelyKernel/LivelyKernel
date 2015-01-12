@@ -1,4 +1,4 @@
-module('lively.ide.codeeditor.Keyboard').requires('lively.ide.codeeditor.JumpChar').toRun(function() {
+module('lively.ide.codeeditor.Keyboard').requires('lively.ide.codeeditor.ace', 'lively.ide.codeeditor.JumpChar').toRun(function() {
 
 module("lively.ide.CodeEditor");
 
@@ -1053,5 +1053,15 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
       });
     }
 });
+
+(function loadUserKeyBindings() {
+  // user key bindings
+  try {
+    var cust = JSON.parse(lively.LocalStorage.get("user-key-bindings"));
+    if (cust) ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust);
+  } catch (e) {
+    console.error("Error setting ace user keys:\n" + e);
+  }
+})();
 
 }) // end of module

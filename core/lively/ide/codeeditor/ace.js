@@ -15,6 +15,9 @@ var libs = [{
 }, {
   url: Config.codeBase + 'lib/ace/ace.ext.custom-text-attributes.js',
   loadTest: function() { return !!ace.require('ace/mode/attributedtext'); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.keys.js',
+  loadTest: function() { return ace.ext && !!ace.ext.keys; }
 }];
 
 lively.lang.arr.mapAsyncSeries(libs,

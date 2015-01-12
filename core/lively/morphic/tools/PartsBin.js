@@ -597,7 +597,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                     + "-o -type f -iname '*%s*.json*' -print",
                     cmd = Strings.format(cmdTemplate, findPath, searchString);
                 lively.require('lively.ide.CommandLineInterface').toRun(function() {
-                    lively.shell.exec(cmd, next);
+                    lively.shell.run(cmd, function(err, cmd) { next(cmd); });
                 });
             }
             function processResult(next, searchCmd) {

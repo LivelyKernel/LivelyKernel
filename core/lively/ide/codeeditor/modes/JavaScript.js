@@ -23,20 +23,44 @@ jsMode.addMethods({
 
         items.push(['js', jsItems]);
         return items;
-    }
+    },
 
+    getCodeNavigator: function() {
+      return new lively.ide.codeeditor.modes.JavaScript.Navigator();
+    }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
-'parsing', {
+'helper', {
     ensureAST: function(astOrSource) {
         return Object.isString(astOrSource) ? lively.ast.acorn.fuzzyParse(astOrSource) : astOrSource;
+    },
+
+    move: function(selector, ed) {
+      var select = ed.emacsMark && ed.emacsMark(),
+          codeEditor = ed.$morph,
+          sel = codeEditor.getSelection(),
+          pos = sel.lead,
+          idx = codeEditor.positionToIndex(pos),
+          newIdx = this[selector](codeEditor.textString, idx),
+          newPos = codeEditor.indexToPosition(newIdx),
+          isBackward = sel.isBackwards(),
+          range = sel.getRange();
+      range[isBackward ? "setStart" : "setEnd"](newPos.row, newPos.column);
+      if (!select) range[isBackward ? "setEnd" : "setStart"](newPos.row, newPos.column);
+      sel.setRange(range, isBackward);
     }
+
 },
 'movement', {
-    forwardSexp: function(src, pos) {
+    forwardSexp: function(ed) { this.move("_forwardSexp", ed); },
+    backwardSexp: function(ed) { this.move("_backwardSexp", ed); },
+    backwardUpSexp: function(ed) { this.move("_backwardUpSexp", ed); },
+    forwardDownSexp: function(ed) { this.move("_forwardDownSexp", ed); },
+
+    _forwardSexp: function(src, pos) {
         var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.end !== pos; });
@@ -48,7 +72,7 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
         return containingNode.end;
     },
 
-    backwardSexp: function(src, pos) {
+    _backwardSexp: function(src, pos) {
         var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.start !== pos; });
@@ -60,20 +84,26 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
         return containingNode ? containingNode.start : pos;
     },
 
-    backwardUpSexp: function(src, pos) {
+    _backwardUpSexp: function(src, pos) {
         var ast = this.ensureAST(src),
             nodes = acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.start !== pos; });
         return containingNode ? containingNode.start : pos;
     },
 
-    forwardDownSexp: function(src, pos) {
+    _forwardDownSexp: function(src, pos) {
         var ast = this.ensureAST(src),
             found = acorn.walk.findNodeAfter(ast, pos, function(type, node) { return node.start > pos; });
         return found ? found.node.start : pos;
     }
 },
 'selection', {
+    markDefun: function(ed) {
+      var range = this.rangeForFunctionOrDefinition(
+        ed.getValue(), ed.$morph.getSelectionRange());
+      if (range) ed.execCommand('expandRegion', {start: range[0], end: range[1]});
+    },
+
     rangeForNodesMatching: function(src, pos, func) {
         // if the cursor is at a position that has a containing node matching func
         // return start/end index of that node
@@ -89,23 +119,21 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
             var typeOK = ['AssignmentExpression', 'FunctionDeclaration', 'FunctionExpression'].include(node.type);
             if (typeOK &&
                 ((isNullSelection && node.end !== currentRange[1])
-             || (!isNullSelection && node.start < currentRange[0]))) return true;
+              || (!isNullSelection && node.start < currentRange[0]))) return true;
             return false;
         });
     }
-});
-
-Object.subclass('lively.ide.codeeditor.modes.JavaScript.RangeExpander',
-'interface', {
+},
+'expansion', {
     
-    expandRegion: function(editor, src, ast, expandState) {
+    expandRegion: function(ed, src, ast, expandState) {
         // use token if no selection
         if (expandState.range[0] === expandState.range[1]) {
-            var p = editor.indexToPosition(expandState.range[0]);
+            var p = ed.session.doc.indexToPosition(expandState.range[0]);
             p.column++;
-            var token = editor.tokenAt(p);
+            var token = ed.session.getTokenAt(p.row, p.column);
             if (token && !token.type.match(/^(paren|punctuation)/) && !token.value === ",") {
-                var offset = editor.positionToIndex({column: 0, row: p.row});
+                var offset = ed.session.doc.positionToIndex({column: 0, row: p.row});
                 return {
                     range: [offset + token.start,
                             offset + token.start + token.value.length],
@@ -130,7 +158,7 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.RangeExpander',
         }
     },
 
-    contractRegion: function(editor, src, ast, expandState) {
+    contractRegion: function(ed, src, ast, expandState) {
         return expandState.prev || expandState;
     }
 });

@@ -1544,19 +1544,18 @@ lively.morphic.Text.addMethods(
 lively.morphic.World.addMethods(
 'tools', {
     loadPartItem: function(partName, optPartspaceName, cb) {
-        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
-            part = lively.PartsBin.getPart(partName, optPartspaceName, cb ? function(err, part) {
-                if (part && part.onCreateFromPartsBin) part.onCreateFromPartsBin();
-                cb(err, part)
-            } : undefined);
-        if (!part) {debugger;
-            return;
+      function init(part) {
+          if (part && part.onCreateFromPartsBin) part.onCreateFromPartsBin();
         }
-        if (part.onCreateFromPartsBin) part.onCreateFromPartsBin();
+        var optPartspaceName = optPartspaceName || 'PartsBin/NewWorld',
+            part = lively.PartsBin.getPart(partName, optPartspaceName,
+              cb ? function(err, part) { init(part); cb(err, part); } : undefined);
+        if (!cb) init(part);
         return part;
     },
     openPartItem: function(partName, optPartspaceName) {
         var part = this.loadPartItem(partName, optPartspaceName);
+        if (!part) return null;
         part.openInWorld(pt(0,0))
         part.align(part.bounds().center(), this.visibleBounds().center());
         var win = part.getWindow();
@@ -1901,8 +1900,25 @@ lively.morphic.World.addMethods(
         editor.accessibleInInactiveWindow = true;
         if (options.hasOwnProperty("evalEnabled")) editor.evalEnabled = options.evalEnabled;
         editor.applyStyle(options);
+        if (options.name) editor.name = options.name;
         editor.focus();
         return pane;
+    },
+
+    addActionText: function(actionSpec, options) {
+      options = lively.lang.obj.merge(options || {}, {textMode: "attributedtext"});
+      show(options)
+      var ed = $world.addCodeEditor(options);
+      ed.addScript(function setAttributedText(textSpec) {
+        // textSpec like [["string", {type: "tokenType", onClick: ..., commands: ...}}]]
+        return this.withAceDo(function(ed) {
+          var m = ed.session.getMode();
+          return m.set(ed, textSpec);
+        });
+      });
+      ed.setAttributedText(actionSpec);
+      ed.getWindow().comeForward();
+      return ed;
     }
 
 },
@@ -2590,7 +2606,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     setTitle: function(string) { this.titleBar.setTitle(string) },
     getTitle: function() { return this.titleBar.getTitle() },
     setExtent: function($super, newExtent) {
-        $super(newExtent);
+        var offset = this.getWindow().contentOffset || lively.pt(3,22);
+        var min = this.targetMorph ?
+          this.targetMorph.getMinExtent().addXY(offset.x*2, offset.y+offset.x) : pt(0,0);
+        var ext = $super(newExtent.maxPt(min));
         this.alignAllHandles();
     },
 

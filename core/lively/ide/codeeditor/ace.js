@@ -1,4 +1,27 @@
-module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + 'lib/ace/lively-ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+var aceLoaded = false;
+
+var libs = [{
+  url: Config.codeBase + 'lib/ace/lively-ace.js',
+  loadTest: function() { return typeof ace !== 'undefined';}
+}, {
+  url: Config.codeBase + 'lib/ace/ace.improvements.js',
+  loadTest: function() { return Global.ace && ace.improved; }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.lang.ast-commands.js',
+  loadTest: function() { return lively.lang.Path("ext.lang.astCommands").get(ace); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.lang.codemarker.js',
+  loadTest: function() { return lively.lang.Path("ext.lang.codemarker").get(ace); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.custom-text-attributes.js',
+  loadTest: function() { return !!ace.require('ace/mode/attributedtext'); }
+}];
+
+lively.lang.arr.mapAsyncSeries(libs,
+  function(lib, _, n) { JSLoader.loadJs(lib.url); lively.lang.fun.waitFor(lib.loadTest, n); },
+  function(err) { err && console.error(err); aceLoaded = true; });
+
+module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({loadTest: function() { return !!aceLoaded; }}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("basePath", URL.root.withFilename("core/lib/ace/").toString());

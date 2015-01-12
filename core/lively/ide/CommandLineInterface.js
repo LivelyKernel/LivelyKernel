@@ -276,7 +276,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             var self = this;
             this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
                 err = err || (answer.data && answer.data.error);
-                if (err) show(err);
+                if (err) console.warn("stopShellCommand: " + err);
                 var running = answer && answer.commandIsRunning;
                 self._killed = !running; // hmmmmm
                 thenDo && thenDo(err, answer);
@@ -913,7 +913,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 input: initialCandidates[0] || undefined,
                 candidatesUpdater: candidateBuilder,
                 maxItems: 25,
-                keepInputOnReactivate: true,
+                keepInputOnReactivate: false,
                 completeInputOnRightArrow: true,
                 completeOnEnterWithMultipleChoices: true,
                 actions: actions || [show]
@@ -922,7 +922,11 @@ Object.extend(lively.ide.CommandLineSearch, {
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-        function candidateBuilder(input, callback) { callback(['searching...']); searchForMatching(input, callback); };
+        function candidateBuilder(input, callback) {
+          callback(['searching...']);
+          if (input === "undefined" || input === "searching...") input = "";
+          searchForMatching(input, callback);
+        };
 
         function doSearch(input, pattern, dir, filterFunc, thenDo) {
             if (lastSearch) { lastSearch.kill(); lastSearch = null; }

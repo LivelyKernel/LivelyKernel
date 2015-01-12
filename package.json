@@ -20,7 +20,8 @@
     "watch": "~0.8.0",
     "websocket": "1.0.8",
     "lively-loader": "https://github.com/LivelyKernel/node-lively-loader/tarball/master",
-    "lively.lang": "git://github.com/LivelyKernel/lively.lang.git#master"
+    "lively.lang": "git://github.com/LivelyKernel/lively.lang.git#master",
+    "ace.improved": ">=0.1"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

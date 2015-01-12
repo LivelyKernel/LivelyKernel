@@ -12,7 +12,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         var self = this;
         codeEditor.withAceDo(function(ed) {
             var kbd = ed.getKeyboardHandler();
-            if (kbd.hasLivelyKeys) return;
+            // if (kbd.hasLivelyKeys) return;
             // so that mutli key shortcuts can be transfered from the global
             // key handler:
             ed.keyBinding.$data.keyChain = "";
@@ -109,19 +109,19 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: 'printit',
                 bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-                exec: function(ed) { maybeUseModeFunction(ed, "doEval", "doit", [true]);; },
+                exec: function(ed) { maybeUseModeFunction(ed, "doEval", "doit", [true]); },
                 multiSelectAction: "forEach",
                 readOnly: false
             }, {
                 name: 'list protocol',
                 bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
-                exec: this.morphBinding("doListProtocol"),
+                exec: function(ed) { maybeUseModeFunction(ed, "doListProtocol", "doListProtocol"); },
                 multiSelectAction: "single",
                 readOnly: false
             }, {
                 name: 'doSave',
                 bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-                exec: this.morphBinding("doSave"),
+                exec: function(ed, args) { maybeUseModeFunction(ed, "doSave", "doSave"); },
                 multiSelectAction: "single",
                 readOnly: false
             }, {
@@ -693,12 +693,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     setupEditorConfigBindings: function(kbd) {
             this.addCommands(kbd, [{
                 name: 'increasefontsize',
-                bindKey: {win: "Ctrl-+", mac: "Command-+|Command-="},
+                bindKey: {win: "Ctrl-+", mac: "Command-="},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() + 1); },
                 readOnly: true
             }, {
                 name: 'decreasefontsize',
-                bindKey: {win: "Ctrl-+", mac: "Command--|Command-_"},
+                bindKey: {win: "Ctrl-+", mac: "Command--"},
                 exec: function(ed) { ed.$morph.setFontSize(ed.$morph.getFontSize() - 1); },
                 readOnly: true
             }, {
@@ -875,162 +875,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
     },
 
     setupASTNavigation: function(kbd) {
-
-        function move(selector, codeEditor, select) {
-            var sel = codeEditor.getSelection(),
-                pos = sel.lead,
-                idx = codeEditor.positionToIndex(pos),
-                nav = new lively.ide.codeeditor.modes.JavaScript.Navigator(),
-                newIdx = nav[selector](codeEditor.textString, idx),
-                newPos = codeEditor.indexToPosition(newIdx),
-                isBackward = sel.isBackwards(),
-                range = sel.getRange();
-            range[isBackward ? "setStart" : "setEnd"](newPos.row, newPos.column);
-            if (!select) range[isBackward ? "setEnd" : "setStart"](newPos.row, newPos.column);
-            sel.setRange(range, isBackward);
-        }
-
-        function select(selector, codeEditor) {
-            var nav = new lively.ide.codeeditor.modes.JavaScript.Navigator(),
-                newRangeIndices = nav[selector](codeEditor.textString, codeEditor.getSelectionRange());
-            if (newRangeIndices) codeEditor.setSelectionRange(newRangeIndices[0], newRangeIndices[1]);
-        }
-
-        kbd.addCommands([{
-            name: 'forwardSexp',
-            bindKey: 'Ctrl-Alt-f|Ctrl-Alt-Right',
-            exec: function(ed) {
-                move('forwardSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'backwardSexp',
-            bindKey: 'Ctrl-Alt-b|Ctrl-Alt-Left',
-            exec: function(ed) {
-                move('backwardSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'backwardUpSexp',
-            bindKey: 'Ctrl-Alt-u|Ctrl-Alt-Up',
-            exec: function(ed) {
-                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                move('backwardUpSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'forwardDownSexp',
-            bindKey: 'Ctrl-Alt-d|Ctrl-Alt-Down',
-            exec: function(ed) {
-                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                move('forwardDownSexp', ed.$morph, ed.emacsMark && ed.emacsMark());
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'markDefun',
-            bindKey: 'Ctrl-Alt-h',
-            exec: function(ed) {
-                ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                select('rangeForFunctionOrDefinition', ed.$morph);
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'expandRegion',
-            bindKey: {win: 'Shift-Ctrl-E', mac: 'Shift-Command-Space'},
-            exec: function(ed) {
-                ed.$morph.withASTDo(function(ast) {
-                    var state = ed.$expandRegionState || (ed.$expandRegionState = {range: ed.$morph.getSelectionRange()});
-                    var nav = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
-                    var newState = nav.expandRegion(ed.$morph, ed.$morph.textString, ast, state);
-                    if (newState && newState.range) {
-                        ed.$morph.setSelectionRange(newState.range[0], newState.range[1]);
-                        ed.$expandRegionState = newState;
-                    }
-                    ed.selection.once('changeCursor', function(evt) { ed.$expandRegionState = null; });
-                });
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'contractRegion',
-            bindKey: {win: 'Shift-Ctrl-S', mac: 'Ctrl-Command-space'},
-            exec: function(ed) {
-                ed.$morph.withASTDo(function(ast) {
-                    var state = ed.$expandRegionState;
-                    if (!state) return;
-                    var nav = new lively.ide.codeeditor.modes.JavaScript.RangeExpander();
-                    var newState = nav.contractRegion(ed.$morph, ed.$morph.textString, ast, state);
-                    if (newState && newState.range) {
-                        ed.$morph.setSelectionRange(newState.range[0], newState.range[1]);
-                        ed.$expandRegionState = newState;
-                    }
-                    ed.selection.once('changeCursor', function(evt) { ed.$expandRegionState = null; });
-                });
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'gotoNextError',
-            bindKey: 'Ctrl-`',
-            exec: function(ed) {
-                ed.$morph.withASTDo(function(ast) {
-                    var pos = ed.$morph.indexToPosition(ast.parseError.pos);
-                    ed.$morph.setCursorPosition(pos);
-                });
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'visualizeAST',
-            // bindKey: 'Ctrl-`',
-            exec: function(ed) {
-                var sel = ed.getSelection()
-                var code = !sel.isEmpty() ? ed.session.getTextRange(sel.getRange()) : ed.getValue();
-                require('lively.ast.Visualization').toRun(function() {
-                    lively.ast.visualize(code).openInWorldCenter();
-                });
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'gotoNextErrorOrWarning',
-            exec: function(ed, args) {
-                var marker = ed.session.$livelyCodeMarker;
-                if (!marker || !marker.markerRanges) return;
-                var pos = ed.$morph.getCursorPositionAce(),
-                    idx = ed.$morph.positionToIndex(pos),
-                    rev = args && args.backwards,
-                    markers = rev ? marker.markerRanges.clone().reverse() : marker.markerRanges,
-                    next = markers.detect(function(markerRange) {
-                        return rev ? markerRange.start < idx : markerRange.start > idx; }),
-                    nextPos = next && ed.$morph.indexToPosition(next.start);
-                if (!nextPos) return;
-                ed.pushEmacsMark && ed.pushEmacsMark(pos);
-                ed.moveCursorToPosition(nextPos)
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }, {
-            name: 'gotoPrevErrorOrWarning',
-            exec: function(ed, args) {
-                ed.execCommand('gotoNextErrorOrWarning', {backwards: true});
-            },
-            multiSelectAction: 'forEach',
-            readOnly: true
-        }]);
-
-        // kbd.bindKeys({"C-M-f": {command: 'forwardSexp'}});
-        // kbd.bindKeys({"C-M-b": {command: 'backwardSexp'}});
-        // kbd.bindKeys({"C-M-u": {command: 'backwardUpSexp'}});
-        // kbd.bindKeys({"C-M-d": {command: 'forwardDownSexp'}});
-        // kbd.bindKeys({"C-M-h": {command: 'markDefun'}});
-        // kbd.bindKeys({"S-CMD-space": {command: 'expandRegion'}});
-        // kbd.bindKeys({"C-CMD-space": {command: 'contractRegion'}});
+      var astCommands = lively.lang.Path('ext.lang.astCommands').get(ace);
+      if (!astCommands) {
+        console.error("Error when initializing ace: ace.ext.lang.astCommands not loaded!");
+        return;
+      }
+      kbd.addCommands(astCommands);
     },
 
     setupKeyboardMacroBindings: function(kbd) {
@@ -1195,12 +1045,12 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
         return this._instance || (this._instance = new this());
     },
     reinitKeyBindingsForAllOpenEditors: function() {
-        lively.morphic.World.current().withAllSubmorphsDo(function(ea) { /*reinit codeeditor key bindings*/
-            ea.isCodeEditor && ea.withAceDo(function(ed) {
-                ed.getKeyboardHandler().hasLivelyKeys = false;
-                lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
-            });
-        });
+      lively.ide.allCodeEditors().forEach(function(ea) {
+        ea.withAceDo(function(ed) {
+          ed.keyBinding.$handlers.forEach(function(h) { delete h.hasLivelyKeys; });
+          lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
+        })
+      });
     }
 });
 

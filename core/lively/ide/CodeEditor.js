@@ -985,7 +985,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     doListProtocol: function() {
         lively.require("lively.ide.codeeditor.Completions").toRun(function() {
-            new lively.ide.codeeditor.Completions.ProtocolLister(this).evalSelectionAndOpenNarrower();
+            new lively.ide.codeeditor.Completions.ProtocolLister(this)
+              .evalSelectionAndOpenNarrower();
         }.bind(this));
     },
 
@@ -1086,9 +1087,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getSelectionRange: function() {
+      return this.withAceDo(function(ed) {
         var range = this.getSelectionRangeAce(),
             doc = this.getDocument();
         return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
+      }) || [0,0];
     },
 
     getSelectionRangeAce: function() {
@@ -1566,64 +1569,69 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'morph menu', {
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
-            range = this.getSelectionRangeAce();
-        // eval marker
-        var evalMarkerItems = ['eval marker', []];
-        items.push(evalMarkerItems);
-        if (!range.isEmpty()) {
-            var selectedText = this.getSelectionOrLineString();
-            var indexOfDot = selectedText.lastIndexOf('.')
-            if(indexOfDot + 1 !== selectedText.length) {
-                var firstChar = selectedText.charAt(indexOfDot + 1);
-                if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
-                    var selectorItems = ['Selector...', []];
-                    items.push(selectorItems);
-                    selectorItems[1].push(['Implementors', function() {
-                        self.doBrowseImplementors(); }]);
-                    selectorItems[1].push(['Senders', function() {
-                        self.doBrowseSenders(); }]);
-                } else {
-                    if(firstChar.toUpperCase() === firstChar) {
-                        try {
-                            var potentialClass = this.boundEval(selectedText);
-                            if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
-                                var classItems = ['Class...', []];
-                                items.push(classItems);
-                                classItems[1].push(['Browse', function() {
-                                    self.browseClass(potentialClass); }]);
-                                classItems[1].push(['Browse Hierarchy', function() {
-                                    self.browseHierarchy(potentialClass); }]);
-                                classItems[1].push(['References', function() {
-                                    self.browseReferencesTo(potentialClass); }]);
-                            }
-                        } catch(e) {
-                        }
-//                        Global.classes(true);
-                    }
-                }
-            }
-            evalMarkerItems[1].push(['Mark expression', function() {
-                self.addEvalMarker(); }]);
+            range = this.getSelectionRangeAce(),
+            mode = this.getTextMode();
+        
+        if (mode.match(/javascript/)) {
+          // eval marker
+          var evalMarkerItems = ['eval marker', []];
+          items.push(evalMarkerItems);
+          if (!range.isEmpty()) {
+              var selectedText = this.getSelectionOrLineString();
+              var indexOfDot = selectedText.lastIndexOf('.')
+              if(indexOfDot + 1 !== selectedText.length) {
+                  var firstChar = selectedText.charAt(indexOfDot + 1);
+                  if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
+                      var selectorItems = ['Selector...', []];
+                      items.push(selectorItems);
+                      selectorItems[1].push(['Implementors', function() {
+                          self.doBrowseImplementors(); }]);
+                      selectorItems[1].push(['Senders', function() {
+                          self.doBrowseSenders(); }]);
+                  } else {
+                      if(firstChar.toUpperCase() === firstChar) {
+                          try {
+                              var potentialClass = this.boundEval(selectedText);
+                              if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
+                                  var classItems = ['Class...', []];
+                                  items.push(classItems);
+                                  classItems[1].push(['Browse', function() {
+                                      self.browseClass(potentialClass); }]);
+                                  classItems[1].push(['Browse Hierarchy', function() {
+                                      self.browseHierarchy(potentialClass); }]);
+                                  classItems[1].push(['References', function() {
+                                      self.browseReferencesTo(potentialClass); }]);
+                              }
+                          } catch(e) {
+                          }
+  //                        Global.classes(true);
+                      }
+                  }
+              }
+              evalMarkerItems[1].push(['Mark expression', function() {
+                  self.addEvalMarker(); }]);
+          }
+          evalMarkerItems[1].push(['Remove eval marker', function() {
+              self.removeEvalMarker(); }]);
+  
+          var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
+          if (marker) {
+              if (marker.doesContinousEval()) {
+                  evalMarkerItems[1].push(['Disable eval interval', function() {
+                      marker.stopContinousEval();
+                  }]);
+              } else {
+                  evalMarkerItems[1].push(['Set eval interval', function() {
+                      world.prompt('Please enter the interval time in milliseconds', function(input) {
+                          input = Number(input);
+                          marker.startContinousEval(input);
+                          self.evalMarkerDelay = input || null;
+                      }, '200');
+                  }]);
+              }
+          }
         }
-        evalMarkerItems[1].push(['Remove eval marker', function() {
-            self.removeEvalMarker(); }]);
 
-        var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
-        if (marker) {
-            if (marker.doesContinousEval()) {
-                evalMarkerItems[1].push(['Disable eval interval', function() {
-                    marker.stopContinousEval();
-                }]);
-            } else {
-                evalMarkerItems[1].push(['Set eval interval', function() {
-                    world.prompt('Please enter the interval time in milliseconds', function(input) {
-                        input = Number(input);
-                        marker.startContinousEval(input);
-                        self.evalMarkerDelay = input || null;
-                    }, '200');
-                }]);
-            }
-        }
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // themes
         var currentTheme = this.getTheme(),
@@ -1821,11 +1829,23 @@ lively.morphic.CodeEditor.addMethods(
 });
 
 Object.extend(lively.ide, {
+
     newCodeEditor: function (initialBounds, defaultText) {
         var bounds = initialBounds.extent().extentAsRectangle(),
             text = new lively.morphic.CodeEditor(bounds, defaultText || '');
         text.accessibleInInactiveWindow = true;
         return text;
+    },
+
+    allCodeEditors: function() {
+      // returns all codeeditor morphs in the world, also those which are
+      // inside collapsed windows
+      var eds = $world.withAllSubmorphsSelect(function(ea) { return ea.isCodeEditor; }),
+          hiddenEds = $world.withAllSubmorphsSelect(function(ea) { return ea.isWindow && ea.isCollapsed(); })
+            .pluck('targetMorph')
+            .invoke('withAllSubmorphsSelect', function(ea) { return ea.isCodeEditor; })
+            .flatten();
+      return eds.concat(hiddenEds);
     }
 });
 

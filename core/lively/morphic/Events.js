@@ -2121,6 +2121,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             .concat([parts.last().toLowerCase()]);
         return parts.join('-');
     },
+
     normalizeCombo: function(comboParts) {
         return comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
     },
@@ -2253,15 +2254,18 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         // are we typing in a codeeditor?
         if (!focused || !focused.isCodeEditor
          || !focused.aceEditor
-         || !focused.aceEditor.keyBinding.$data
-         // does the codeEditor know about key combos?
-         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return;
+         || !focused.aceEditor.keyBinding.$data) return;
+
         var combo = this.normalizeCombo(prevKeysPressed),
             kbd = focused.aceEditor.keyBinding.$handlers.detect(function(ea) { return ea.isEmacs; });
         // is the current combo a prefix for codeeditor?
-        if (!kbd || kbd.commandKeyBinding[combo] === undefined) return;
+        // if (!kbd || kbd.commandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
+        focused.aceEditor.keyBinding.$data.$keyChain = prevKeysPressed.map(function(ea) {
+          return ea.replace(/c-/gi, "ctrl-").replace(/cmd-/gi, "command-")
+            .replace(/s-/gi, "shift-").replace(/m-/gi, "alt-")
+        }).join(" ")
     },
 
     transferPrefixFromActiveCodeEditor: function(keyInputState) {
@@ -2269,11 +2273,10 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         // are we typing in a codeeditor?
         if (!focused || !focused.isCodeEditor
          || !focused.aceEditor
-         || !focused.aceEditor.keyBinding.$data
-         // does the codeEditor know about key combos?
-         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return keyInputState;
-        var chain = focused.aceEditor.keyBinding.$data.keyChain;
-        if (!chain.length) return keyInputState;
+         || !focused.aceEditor.keyBinding.$data) return keyInputState;
+        var d = focused.aceEditor.keyBinding.$data;
+        var chain = d.keyChain || d.$keyChain;
+        if (!chain || !chain.length) return keyInputState;
         chain = this.normalizeCombo([chain]).split(' ');
         return Object.merge([keyInputState, {prevKeys: chain}]);
     },
@@ -2371,7 +2374,7 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
-        if (transferKeyPrefixFromCodeEditor(evt, keys)) return true;
+        if (transferKeyPrefixFromCodeEditor()) return true;
         if (showPressedKeys(evt, keys)) return true;
         return undefined;
     }

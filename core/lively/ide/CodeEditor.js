@@ -741,30 +741,47 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
       return this.withAceDo(function(ed) {
         var all = ace.ext.keys.allEditorCommands(ed);
         var cmdNames = Object.keys(all).sort();
-        var colWidth = cmdNames.reduce(function(colWidth, cmdName) {
-          return Math.max(cmdName.length, colWidth); }, 0);
         var spec = cmdNames.reduce(function(spec, cmdName) {
           var boundCommands = all[cmdName];
           var keys = boundCommands
             .map(function(ea) { return ea.key.include("input") ? null : ea.key; })
             .uniq().compact().join("|");
-          var string = lively.lang.string.pad(cmdName, colWidth+1-cmdName.length, false) + keys;
-          return spec.concat([
-              [string, {type: "text", boundCommands: boundCommands}],
-              ["\n"]])
-        }, [])
-        
+          if (!keys.length) return spec;
+          spec[cmdName] = keys
+          return spec;
+        }, {});
         var winEd = $world.addCodeEditor({
           title: "bound keys",
-          // content: "",
-          // textMode: "attributedtext"
-          content: spec.pluck(0).join(""),
-          textMode: "text"
+          content: JSON.stringify(spec, null, 2),
+          textMode: "json"
         });
         winEd.setInputAllowed(false);
-        // winEd.withAceDo(function(ed) { ed.session.getMode().set(ed, spec); })
         winEd.getWindow().comeForward();
         return winEd;
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        // var colWidth = cmdNames.reduce(function(colWidth, cmdName) {
+        //   return Math.max(cmdName.length, colWidth); }, 0);
+        // var spec = cmdNames.reduce(function(spec, cmdName) {
+        //   var boundCommands = all[cmdName];
+        //   var keys = boundCommands
+        //     .map(function(ea) { return ea.key.include("input") ? null : ea.key; })
+        //     .uniq().compact().join("|");
+        //   var string = lively.lang.string.pad(cmdName, colWidth+1-cmdName.length, false) + keys;
+        //   return spec.concat([
+        //       [string, {type: "text", boundCommands: boundCommands}],
+        //       ["\n"]])
+        // }, [])
+        //
+        // var winEd = $world.addCodeEditor({
+        //   title: "bound keys",
+        //   content: "",
+        //   textMode: "attributedtext"
+        // });
+        // winEd.setInputAllowed(false);
+        // winEd.withAceDo(function(ed) { ed.session.getMode().set(ed, spec); })
+        // winEd.getWindow().comeForward();
+        // return winEd;
       });
     },
 

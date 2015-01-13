@@ -572,7 +572,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
 },
 'testing', {
     isChecked: function() { return this.checked; },
-    isActive: function() { return this.active; },
+    isActive: function() { return !this.hasOwnProperty("active") || !!this.active; },
 },
 'event handling', {
     onClick: function(evt) {

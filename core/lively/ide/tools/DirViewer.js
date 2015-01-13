@@ -344,10 +344,18 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             createListItemMorph: function createListItemMorph(string, i, layout) {
             var m = $super(string, i, layout);
             m.renderContext().textNode.style.pointerEvents = 'none'; // issue with double clk
-            m.addScript(function onDoubleClick(evt) {
+            m.addScript(function onClick(evt) {
+              // FIXME rk 2015-01-13: using onDoubleClick would be better but
+              // for some reason repeated double clicks arent recognized reliably,
+              // so this hack helpes with that
+              if (this._dblClickHelper_wasTarget) {
                 var list = this.owner.owner,
                     value = this.owner.owner.itemList[this.index];
                 lively.bindings.signal(list, 'listItemDoubleClicked', value.value || value);
+              } else {
+                this._dblClickHelper_wasTarget = true;
+                setTimeout(function() { delete  this._dblClickHelper_wasTarget; }.bind(this), 400);
+              }
             });
             return m;
         },

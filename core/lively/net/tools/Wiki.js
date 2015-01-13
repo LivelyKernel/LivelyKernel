@@ -951,14 +951,14 @@ alignSubmorphs: function alignSubmorphs() {
     expand: function expand() {
     var self = this;
     var items = [
-        ['branches ...', function() {
-            var currentBranch = lively.Config.get('cookie')['livelykernel-branch'];
-            $world.prompt('Change branch to:', function(newBranch) {
-                if (newBranch != null) {
-                    document.cookie = 'livelykernel-branch=' + newBranch +
-                        (newBranch == '' ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '');
+        ['ChangeSet ...', function() {
+            var currentCS = lively.Config.get('cookie')['livelykernel-branch'];
+            $world.prompt('Change ChangeSet to:', function(newCS) {
+                if (newCS != null) {
+                    document.cookie = 'livelykernel-branch=' + newCS +
+                        (newCS == '' ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '');
                 }
-            }, currentBranch);
+            }, currentCS);
             self.collapse();
         }],
         ['world versions ...', function() {

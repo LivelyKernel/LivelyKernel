@@ -20559,8 +20559,9 @@ OccurKeyboardHandler.installIn = function(editor) {
 
 OccurKeyboardHandler.uninstallFrom = function(editor) {
     editor.commands.removeCommands(occurCommands);
-    var handler = editor.getKeyboardHandler();
-    if (handler.isOccurHandler)
+    var handler = editor.keyBinding.$handlers.filter(function(ea) {
+      return ea.isOccurHandler; })[0];
+    if (handler && handler.isOccurHandler)
         editor.keyBinding.removeKeyboardHandler(handler);
 }
 

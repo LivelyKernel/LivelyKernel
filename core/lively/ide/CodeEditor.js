@@ -1654,9 +1654,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
             range = this.getSelectionRangeAce(),
-            mode = this.getTextMode();
+            mode = this.getTextMode(),
+            isJs = mode.match(/javascript/);
         
-        if (mode.match(/javascript/)) {
+        if (isJs) {
           // eval marker
           var evalMarkerItems = ['eval marker', []];
           items.push(evalMarkerItems);
@@ -1734,9 +1735,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                                                  mode);
                 return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
-        items.push(["themes", themeItems]);
-        items.push(["modes", modeItems]);
-
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function boolItem(itemSpec, items) {
             var enabled = editor["get"+itemSpec.name]();
@@ -1747,6 +1745,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var settingsItems = [];
         settingsItems.push(['Show effective keybindings', function() { self.showEffectiveKeybindings(); }]);
         settingsItems.push(['Customize keybindings', function() { self.customizeKeybindingsInteractively(); }]);
+        settingsItems.push(["themes", themeItems]);
+        settingsItems.push(["modes", modeItems]);
         boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
         boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
         boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);
@@ -1763,8 +1763,10 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
-        boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
-        boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
+        if (isJs) {
+          boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
+          boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
+        }
         items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;
@@ -1781,11 +1783,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 if (options.focusAfter) editor.focus();
             }]);
         }
+        
         cmdBinding({name: 'save', cmdName: 'doSave', shortcut: {win: 'CTRL-s', mac: 'CMD-s'}});
-        cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
-        cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
-        cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
-        cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
+        if (isJs) {
+          cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
+          cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
+          cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
+          cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
+        }
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // modes

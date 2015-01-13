@@ -556,18 +556,23 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         // FIXME: render context dependent
         var self = this;
         this.checked = bool;
-        function setDOMState() {
-            self.renderContext().shapeNode.checked = bool;
-        }
+        function setDOMState() { self.renderContext().shapeNode.checked = bool; }
         if (this.isRendered()) setDOMState()
         else this.whenOpenedInWorld(setDOMState)
         return bool;
+    },
+    setActive: function(bool) {
+      var self = this;
+      this.active = bool;
+      function setDOMState() { self.renderContext().shapeNode.disabled = !bool ? "disabled" : null; }
+      if (this.isRendered()) setDOMState()
+      else this.whenOpenedInWorld(setDOMState)
+      return bool;
     }
 },
 'testing', {
-    isChecked: function() {
-        return this.checked;
-    },
+    isChecked: function() { return this.checked; },
+    isActive: function() { return this.active; },
 },
 'event handling', {
     onClick: function(evt) {
@@ -587,6 +592,7 @@ lively.morphic.Morph.subclass('lively.morphic.CheckBox',
         // FIXME what about connections to this.isChecked?
         // they would be updated here...
         this.setChecked(this.isChecked());
+        this.setActive(this.isActive());
     }
 });
 

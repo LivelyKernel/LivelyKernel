@@ -177,6 +177,8 @@ Object.subclass('lively.net.StreamingConnection',
                 show('stream changes');
                 var removedStreams = this.updateAvailableStreams(streams);
                 this.deactivateStreams(removedStreams);
+                
+                $(this).trigger('stream-changes', [streams]);
                 break;
             case 'recorded-data':
                 var requestId = message.requestId;

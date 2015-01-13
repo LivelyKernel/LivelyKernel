@@ -187,6 +187,10 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
             lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter().comeForward();
             self.collapse();
         }],
+        ['open stream list', function() {
+            lively.BuildSpec('lively.net.tools.StreamList').createMorph().openInWorldCenter();
+            self.collapse();
+        }],
         ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {
             lively.Config.set('lively2livelyAllowRemoteEval', !allowRemoteEval);
             self.collapse();

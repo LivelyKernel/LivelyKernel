@@ -786,7 +786,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     customizeKeybindingsInteractively: function() {
-      var existing = ace.ext.keys.getKeyCustomizationLayer("user-key-bindings") || {};
+      var existing = ace.ext.keys.getKeyCustomizationLayer("user-key-bindings") || {commandKeyBinding: {}};
       var editor = $world.addCodeEditor({
         title: "user key customizations",
         content: (JSON.stringify(existing, null, 2)),
@@ -797,13 +797,22 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                             + "customizations should have the form\n{\"command-name\": \"key\"}\n", null, 10);
 
       editor.addScript(function doSave() {
-        try {
-          var cust = JSON.parse(this.textString);
-          ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust);
-          lively.LocalStorage.set("user-key-bindings", JSON.stringify(cust));
-          this.setStatusMessage("user key customization saved");
-        } catch (e) {
-          this.setStatusMessage("Error setting key customization:\n"+e, Color.red);
+        var key = "user-key-bindings";
+        var s = this.textString;
+        if (!s.length) {
+          ace.ext.keys.removeKeyCustomizationLayer(key, cust);
+          lively.LocalStorage.remove(key);
+          this.setStatusMessage("User key customization removed");
+        } else {
+          try {
+            var cust = JSON.parse(this.textString);
+            if (!cust.priority) cust.priority = 100;
+            ace.ext.keys.addKeyCustomizationLayer(key, cust);
+            lively.LocalStorage.set(key, JSON.stringify(cust));
+            this.setStatusMessage("user key customization saved");
+          } catch (e) {
+            this.setStatusMessage("Error setting key customization:\n"+e, Color.red);
+          }
         }
       });
     }

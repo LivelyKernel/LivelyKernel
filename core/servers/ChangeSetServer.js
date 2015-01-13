@@ -265,7 +265,7 @@ function commitDiffs(diffs, commiter, message, commitObj, cb) {
 
 function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
     var files = [],
-        reposByChangeId = {}; // { CHANGE_ID*: { path: PATH, changes: DIFF* } }
+        reposByChangeId = {}; // { CHANGE_ID*: { path: PATH, changes: DIFF*, commitId: HASH } }
 
     function fillRepos(reposMap, diffs, storage) {
         diffs.each(function(diff) {
@@ -302,6 +302,7 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
                 commitDiffs.bind(null, repo.changes, commiter, message, commitObj),
                 function(commitObj, callback) {
                     // clean commitObj
+                    repo.commitId = commitObj.commit;
                     commitObj.parent = commitObj.commit;
                     delete commitObj.commit;
                     delete commitObj.rootTree;
@@ -311,7 +312,22 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
                 gitHelper.util.updateBranch.bind(null, branch, commitObj.repoPath)
             ], callback);
         });
-    }, cb);
+    }, function(err) {
+        if (err) return cb(err);
+
+        var commitNote = Object.getOwnPropertyNames(reposByChangeId).map(function(changeId) {
+            var repo = reposByChangeId[changeId],
+                repoName = path.relative(process.env.WORKSPACE_LK, repo.path);
+            if (repoName == '') repoName = '.';
+            return repoName + ': ' + repo.commitId;
+        }).join('\n');
+
+        async.eachSeries(Object.getOwnPropertyNames(reposByChangeId),
+        function(changeId, callback) {
+            var repo = reposByChangeId[changeId];
+            gitHelper.util.addCommitNote(repo.path, repo.commitId, commitNote, callback);
+        }, cb);
+    });
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

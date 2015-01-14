@@ -305,11 +305,15 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
             .map(function(spec, idx) { return doFunc(spec.klass, idx, spec.level) })
         }
 
-        var superclasses = klass.superclasses().map(function(kl,i ) { return makeListItem(kl, i); }),
-            list = klass.withAllSortedSubclassesDo(function(kl, idx, level) {
-                var indent = level + superclasses.length;
-                return kl === klass ? makeListItem(kl, indent - 1, '-->') : makeListItem(kl, indent);
-            });
+        var subclasses = Global.classes(true).filter(function(ea) { return lively.lang.class.isSubclassOf(ea, klass); });
+        var superclasses = lively.lang.class.superclasses(klass);
+        var list = superclasses.map(function(kl,i ) { return makeListItem(kl, i); })
+          .concat([makeListItem(klass, superclasses.length, '-->')])
+          .concat(subclasses.map(function(ea) {
+            var depLevel = lively.lang.class.superclasses(ea).indexOf(klass);
+            var indent = superclasses.length + depLevel + 2;
+            return makeListItem(ea, indent)
+          }));
 
         //var listPane = newRealListPane(new Rectangle(0,0, 400, 400));
         //listPane.innerMorph().updateList(list);

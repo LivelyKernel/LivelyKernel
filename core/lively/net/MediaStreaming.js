@@ -631,10 +631,10 @@ Object.subclass('lively.net.StreamingConnection',
         var stream;
         switch (streamRecord.type) {
             case 'image':
-                stream = new lively.net.BackInTimeStream(streamId, this, streamRecord.starttime);
+                stream = new lively.net.BackInTimeVideoStream(streamId, this, streamRecord.starttime);
                 break;
             case 'audio':
-                stream = new lively.net.AudioStream(streamId, this);
+                stream = new lively.net.BackInTimeAudioStream(streamId, this, streamRecord.starttime);
                 break;
             default: 
                 stream = new lively.net.Stream(streamId, this);
@@ -1037,13 +1037,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
 },
 'viewer handling', {
     'openViewerInHand': function() {
-        var viewer = $world.loadPartItem('BackInTimeStreamViewer', 'PartsBin/Felix');
-        viewer.stream = this;
-        this.viewer = viewer;
-        
-        viewer.openInHand();
-        
-        return viewer;
+        show('subclass responsibility');
     },
 },
 'frame access', {
@@ -1157,6 +1151,33 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         return this.timelineData;
     },
 });
+
+lively.net.BackInTimeStream.subclass('lively.net.BackInTimeVideoStream', 
+'viewer handling', {
+    'openViewerInHand': function() {
+        var viewer = $world.loadPartItem('BackInTimeStreamViewer', 'PartsBin/Felix');
+        viewer.stream = this;
+        this.viewer = viewer;
+        
+        viewer.openInHand();
+        
+        return viewer;
+    },
+});
+
+lively.net.BackInTimeStream.subclass('lively.net.BackInTimeAudioStream', 
+'viewer handling', {
+    'openViewerInHand': function() {
+        var viewer = $world.loadPartItem('BackInTimeAudioStreamPlayer', 'PartsBin/Felix');
+        viewer.stream = this;
+        this.viewer = viewer;
+        
+        viewer.openInHand();
+        
+        return viewer;
+    },
+});
+
 lively.net.Stream.subclass('lively.net.AudioStream',
 'initializing', {
     initialize: function($super, id, streamingConnection) {

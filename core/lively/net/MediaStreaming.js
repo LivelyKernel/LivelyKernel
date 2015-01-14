@@ -119,7 +119,7 @@ Object.subclass('lively.net.StreamingConnection',
             // frames from a video and a canvas are rendered equally
             case 'image':
                 // got image data
-                var imageURL = message.image;
+                var imageURL = message.data;
                 var lzwEncoded = message.lzwEncoded;
             
                 if (lzwEncoded) {
@@ -130,7 +130,7 @@ Object.subclass('lively.net.StreamingConnection',
                 break;
             case 'audio':
                 // got audio data
-                var audioString = message.audioBuffer;
+                var audioString = message.data;
                 var lzwEncoded = message.lzwEncoded;
                 
                 if (lzwEncoded) {
@@ -369,7 +369,7 @@ Object.subclass('lively.net.StreamingConnection',
         var _this = this;
         data.forEach(function(frame) {
             if (frame.lzwEncoded) {
-                frame.image = _this.lzwDecode(frame.image);
+                frame.data = _this.lzwDecode(frame.data);
             }
         });
         
@@ -505,7 +505,7 @@ Object.subclass('lively.net.StreamingConnection',
                         senderId: session.sessionId,
                         streamId: config.streamId,
                         senderName: session.username,
-                        image: imageURL,
+                        data: imageURL,
                         record: !!config.record,
                         size: {
                             width: morph.getExtent().x,
@@ -534,7 +534,7 @@ Object.subclass('lively.net.StreamingConnection',
                         senderId: session.sessionId,
                         streamId: config.streamId,
                         senderName: session.username,
-                        audioBuffer: audioString,
+                        data: audioString,
                         lzwEncoded: false,
                         reducedBitDepth: config.compressionParameters.reducedBitDepth
                     }
@@ -818,13 +818,13 @@ Object.subclass('lively.net.Stream',
     },
 },
 'frame handling', {
-    'newFrame': function(imageURL, timestamp) {
+    'newFrame': function(data, timestamp) {
         this.active = true;
         if (!this.viewer) return;
         
         var frameRecord = {
             timestamp: timestamp,
-            image: imageURL
+            data: data
         }
         
         this.viewer.render(frameRecord);
@@ -874,12 +874,12 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
     },
 },
 'frame handling', {
-    'newFrame': function(imageURL, timestamp) {
+    'newFrame': function(data, timestamp) {
         this.active = true;
         
         var frameRecord = {
             timestamp: timestamp,
-            image: imageURL
+            data: data
         }
         
         this.recentBuffer.push(frameRecord);
@@ -920,7 +920,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
                 for (var i = data.length - 1; i >= 0; i--) {
                     // create a new record and add it at the beginning of the buffer
                     var record = {
-                        image: data[i].image,
+                        data: data[i].data,
                         timestamp: data[i].timestamp
                     }
                     // insert at the beginning of recentBuffer

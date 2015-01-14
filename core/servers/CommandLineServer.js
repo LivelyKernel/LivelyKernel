@@ -285,6 +285,19 @@ module.exports = d.bind(function(route, app) {
         });
     });
 
+    app.get(route + "read-file", function(req, res) {
+      var q = require("url").parse(req.url, true).query;
+      var fn = q.fileName;
+      var mimeType = q.mimeType || "text/plain";
+      if (!fn || !fs.existsSync(fn) || !fs.statSync(fn).isFile()) {
+        res.status(400).end("cannot read " + fn);
+        return;
+      }
+      
+      res.contentType(mimeType);
+      fs.createReadStream(fn).pipe(res);
+    });
+
     app.get(route, function(req, res) {
         res.json({cwd: dir});
     });

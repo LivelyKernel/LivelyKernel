@@ -627,7 +627,7 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
 });
 
 lively.BuildSpec('lively.wiki.VersionViewer', {
-    _Extent: lively.pt(354.0,196.0),
+    _Extent: lively.pt(454.0,246.0),
     _Position: lively.pt(812.0,61.0),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(3.0,22.0),
@@ -637,10 +637,10 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
     sourceModule: "lively.morphic.Widgets",
     submorphs: [{
         _BorderColor: Color.rgb(95,94,95),
-        _BorderWidth: 1,
-        _Extent: lively.pt(348.0,171.0),
-        _Fill: Color.rgb(255,255,255),
-        _Position: lively.pt(3.0,22.0),
+        _BorderWidth: 0,
+        _Extent: lively.pt(451.0,223.0),
+        _Fill: Color.rgb(235,235,235),
+        _Position: lively.pt(2.0,22.0),
         _path: null,
         className: "lively.morphic.Box",
         droppingEnabled: true,
@@ -658,8 +658,11 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
         name: "VersionViewer",
         sourceModule: "lively.morphic.Core",
         submorphs: [{
+            _BorderColor: Color.rgb(210,210,210),
+            _BorderWidth: 1,
             _ClipMode: "hidden",
-            _Extent: lively.pt(339.0,19.0),
+            _Extent: lively.pt(340.0,21.0),
+            _Fill: Color.rgb(255,255,255),
             _FontFamily: "Arial, sans-serif",
             _HandStyle: null,
             _InputAllowed: true,
@@ -685,10 +688,12 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             lively.bindings.connect(this, "savedTextString", this.get("VersionViewer"), "setPath", {});
         }
         },{
+            _BorderColor: Color.rgb(210,210,210),
+            _BorderWidth: 1,
             _ClipMode: { x: "hidden", y: "scroll" },
-            _Extent: lively.pt(339.6,109.2),
-            _Fill: Color.rgb(243,243,243),
-            _Position: lively.pt(4.2,25.8),
+            _Extent: lively.pt(336.0,107.0),
+            _Fill: Color.rgb(255,255,255),
+            _Position: lively.pt(4.2,27.8),
             isMultipleSelectionList: true,
             multipleSelectionMode: "multiSelectWithShift",
             className: "lively.morphic.List",
@@ -710,7 +715,6 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             submorphs: []
         },{
             _Extent: lively.pt(339.6,29.1),
-            _Fill: Color.rgb(255,255,255),
             _Position: lively.pt(4.2,137.7),
             className: "lively.morphic.Box",
             droppingEnabled: true,
@@ -726,7 +730,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             sourceModule: "lively.morphic.Core",
             submorphs: [{
                 _BorderColor: Color.rgb(189,190,192),
-                _BorderRadius: 5,
+                _BorderRadius: 2,
                 _BorderWidth: 1,
                 _Extent: lively.pt(163.7,21.2),
                 _Position: lively.pt(171.9,4.0),
@@ -743,7 +747,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             }
             },{
                 _BorderColor: Color.rgb(189,190,192),
-                _BorderRadius: 5,
+                _BorderRadius: 2,
                 _BorderWidth: 1,
                 _Extent: lively.pt(163.7,21.2),
                 _Position: lively.pt(4.0,4.0),
@@ -760,7 +764,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
             }
             }, {
                 _BorderColor: Color.rgb(189,190,192),
-                _BorderRadius: 5,
+                _BorderRadius: 2,
                 _BorderWidth: 1,
                 _Extent: lively.pt(163.7,21.2),
                 _Position: lively.pt(4.0,4.0),
@@ -772,14 +776,48 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("VersionViewer"), "diffSelectedVersions", {});
             }
+            }, {
+                _BorderColor: Color.rgb(204,0,0),
+                _Extent: lively.pt(12,12),
+                _Position: lively.pt(400,4),
+                checked: false,
+                className: "lively.morphic.CheckBox",
+                droppingEnabled: true,
+                layout: { moveHorizontal: true },
+                name: "allChangeSets",
+                sourceModule: "lively.morphic.Widgets",
+                connectionRebuilder: function connectionRebuilder() {
+                    lively.bindings.connect(this, "checked", this.get("VersionViewer"), "getVersions", {});
+                }
+            }, {
+                _Extent: lively.pt(80.0,18.0),
+                _Padding: lively.rect(2,3,0,0),
+                _Position: lively.pt(440,200),
+                _FontFamily: "Arial, sans-serif",
+                _FontSize: 8,
+                _HandStyle: "default",
+                _InputAllowed: false,
+                allowInput: false,
+                className: "lively.morphic.Text",
+                fixedWidth: true,
+                grabbingEnabled: false,
+                layout: { moveHorizontal: true },
+                name: "allChangeSetsLabel",
+                textString: "all ChangeSets",
+                onMouseDown: function onMouseDown(evt) {
+                    var checkbox = this.get('allChangeSets');
+                    checkbox.setChecked(!checkbox.isChecked());
+                }
             }]
         }],
         getPath: function getPath() {
         return this._path;
     },
         getVersions: function getVersions() {
-          var p = this.getPath();
-          p && lively.net.Wiki.getVersions(p, this.showResult.bind(this));
+          var p = this.getPath(),
+              all = this.get('allChangeSets').isChecked(),
+              changeSet = lively.Config.get('cookie')['livelykernel-branch'];
+          p && lively.net.Wiki.getVersions(p, all || (changeSet ? ['lvChangeSet-' + changeSet] : []), this.showResult.bind(this));
     },
         onLoad: function onLoad() {
         // this.getVersions();
@@ -837,9 +875,11 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 try {
                     var date = new Date(version.date).format('yy/mm/dd HH:MM:ss tt');
                 } catch (e) { show(e); date = 'Invalid date'; }
+                if (version.branch)
+                    version.branch = version.branch.substr(12); // remove prefix: lvChangeSet-
                 return {
                     isListItem: true,
-                    string: version.author + ' - ' + date + ' (' + version.change + ')',
+                    string: version.author + ' - ' + date + ' (' + version.change + (version.branch ? ' on ' + version.branch : '') + ')',
                     value: version
                 }
             });

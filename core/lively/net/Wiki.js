@@ -58,10 +58,16 @@ Object.extend(lively.net.Wiki, {
         this.getStore().getRecords(querySpec, thenDo);
     },
 
-    getVersions: function(url, thenDo) {
+    getVersions: function(url, changesets, thenDo) {
+        if (typeof changesets == 'boolean')
+            var all = changesets;
+        else if (Array.isArray(changesets))
+            var branches = changesets;
         this.getRecords({
             paths: [this.urlToPath(url)],
-            attributes: ['path', 'version', 'date', 'author', 'change']
+            attributes: ['path', 'version', 'branch', 'date', 'author', 'change'],
+            allBranches: all,
+            branches: branches
         }, thenDo);
     },
 

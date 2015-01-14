@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
     },
-    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString'],
+    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString', '_statusMorph'],
     _aceInitialized: false,
     evalEnabled: false,
     isAceEditor: true,
@@ -1648,7 +1648,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'rendering', {
-    setClipMode: Functions.Null
+    setClipMode: Functions.Null,
+    
+    onOwnerChanged: function($super, newOwner) {
+      if (!newOwner && this._statusMorph) this._statusMorph.remove();
+      return $super(newOwner);
+    }
 },
 'morph menu', {
     codeEditorMenuItems: function() {
@@ -1815,37 +1820,62 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'messaging', {
     setStatusMessage: function (msg, color, delay) {
-        console.log("%s status: %s", this, msg)
         var world = this.world();
         if (!world) return;
-        var sm = this._statusMorph;
+        var self = this, sm = this._statusMorph,
+            ext = this.getExtent();
+
+        // create if not there yet. Note that every editor gets its own message
+        // morph but that the message morph will be a submorph of world
         if (!sm) {
-            this._statusMorph = sm = new lively.morphic.Text(this.getExtent().withY(80).extentAsRectangle());
+            this._statusMorph = sm = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
             sm.applyStyle({
                 fontFamily: 'Monaco,monospace',
                 borderWidth: 0, borderRadius: 6,
-                fill: Color.gray.lighter(),
-                fontSize: this.getFontSize() + 1,
-                fixedWidth: true, fixedHeight: false
+                fontSize: this.getFontSize()-2,
+                inputAllowed: false,
+                fixedWidth: true, fixedHeight: false,
             });
             sm.isEpiMorph = true;
-            this._sm = sm;
         }
-        sm.textString = msg;
-        sm.ignoreEvents();
+
+        // setting 'da message
+        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
+        else sm.textString = msg;
+        sm.lastUpdated = Date.now();
         world.addMorph(sm);
+        var color = color || Color.white;
+        var fill = (color === Color.green || color === Color.red) ? Color.white : Color.black.lighter()
         sm.applyStyle({
-            textColor: color || Color.black,
+            textColor: color, fill: fill,
             position: this.worldPoint(this.innerBounds().bottomLeft()),
         });
+
+        // aligning
         sm.fit();
         (function() {
-            var world = sm.world(), visibleBounds = world.visibleBounds(),
-                overlapY = sm.bounds().bottom() - visibleBounds.bottom();
-            if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+          var visibleBounds = world.visibleBounds(),
+              overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+          if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+          sm.setExtent(sm.getExtent().withX(ext.x));
         }).delay(0);
-        if (sm._removeTimer) clearTimeout(sm._removeTimer);
-        sm._removeTimer = setTimeout(sm.remove.bind(sm), 1000*(delay||4))
+
+        // either remove via timeout or when curs/selection changes occur. Note
+        // that via onOwnerChanged the statusMorph also is removed when the
+        // editors owner is null
+        (function() {
+          function removeStatusMessage() {
+            sm.remove();
+            self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
+          }
+        
+          if (sm._removeTimer) clearTimeout(sm._removeTimer);
+          if (typeof delay === "number") {
+            sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
+          } else {
+            self.withAceDo(function(ed) { ed.once("changeSelection", removeStatusMessage); });
+          }
+        }).delay(0);
     },
     hideStatusMessage: function () {
         if (this._statusMorph && this._statusMorph.owner) this._statusMorph.remove();

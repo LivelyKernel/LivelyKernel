@@ -371,6 +371,17 @@ Object.subclass('lively.net.StreamingConnection',
             if (frame.lzwEncoded) {
                 frame.data = _this.lzwDecode(frame.data);
             }
+            if (frame.type === 'audio') {
+                frame.data = _this.stringToArraybuffer(frame.data);
+                
+                // if the bit depth was reduced to 16 bit, interpret it as 32 bit
+                if (frame.reducedBitDepth) {
+                    frame.data = _this.to32BitBuffer(frame.data);
+                } else {
+                    frame.data = new Global.Float32Array(frame.data);
+                }
+            }
+            
         });
         
         return data;
@@ -395,7 +406,7 @@ Object.subclass('lively.net.StreamingConnection',
             show('no websocket open');
             return;
         }
-        
+        debugger;
         // use the morphs config, fill up all required fields
         this.fillupConfig(morph);
         var config = morph.streamingConfig;
@@ -945,7 +956,9 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
             }
         }
     },
-    loadChunk: function(chunkTime) {
+    loadChunk: function(chunkTime, loadingStats) {
+        if (!loadingStats) loadingStats = {};
+        
         var idx = this.availableBufferChunks.indexOf(chunkTime);
         var nextChunkTime = this.availableBufferChunks[idx + 1] || Date.now();
         
@@ -962,6 +975,8 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
                 lastAccess: Date.now()
             }
             _this.checkUnloadChunks();
+            loadingStats.isLoading = false;
+            if (loadingStats.onLoaded) loadingStats.onLoaded();
         });
     },
     checkUnloadChunks: function() {
@@ -1041,11 +1056,19 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
     },
 },
 'frame access', {
-    'getFrameAtMillisecond': function(ms, load) {
+    'getFrameAtMillisecond': function(ms, loadingStats) {
         // ms in milliseconds from the beginning of the video,
-        // if load is set, chunks will be loaded if not available
+        // loadingStats can be an object with the following keys:
+        // {
+        //     load: set to true to load the containing chunk, if it's not loaded yet
+        //     onLoaded: callback when the chunk is loaded
+        // }
+        // also, if the frame has to be loaded, loadingStats.isLoading will be set to true
+        // until onLoaded is called
         
         if (this.recentBuffer.length === 0) return;
+        
+        if (!loadingStats) loadingStats = {};
         
         // time of first frame of stream
         var t0 = this.starttime;
@@ -1083,10 +1106,11 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         var chunkTime = this.availableBufferChunks[i-1];
         var chunk = this.pastBufferIndex[chunkTime];
         
-        if (load) {
+        if (loadingStats.load) {
             // check if chunk of currently requested frame needs to be loaded
             if (!chunk.loaded) {
-                this.loadChunk(chunkTime);
+                loadingStats.isLoading = true;
+                this.loadChunk(chunkTime, loadingStats);
             }
             
             // pre-load the following chunk, if it's not loaded yet

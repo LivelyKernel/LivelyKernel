@@ -287,7 +287,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         fontFamily: 'Helvetica',
         textColor: Config.get('textColor'),
         fontSize: 10,
-        padding: Rectangle.inset(4, 2)
+        padding: Rectangle.inset(4, 2),
+        selectable: true
     },
 
     autoAdjustPadding: true,
@@ -307,6 +308,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     applyStyle: function($super, spec) {
         if (!spec) return this;
         if (spec.allowInput !== undefined) this.setInputAllowed(spec.allowInput); // also sets handstyle that might be overriden
+        if (spec.selectable !== undefined) this.setIsSelectable(spec.selectable); // also sets handstyle that might be overriden
         $super(spec);
         if (spec.fixedWidth !== undefined) this.setFixedWidth(spec.fixedWidth);
         if (spec.fixedHeight !== undefined) this.setFixedHeight(spec.fixedHeight);
@@ -449,7 +451,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.morphicSetter('InputAllowed', bool);
         this.setHandStyle(bool ? null : 'default');
         return this.allowInput = bool;
-    }
+    },
+
+    isSelectable: function() {
+      var val = this.morphicGetter('IsSelectable');
+      return typeof val === "undefined" ? true : val;
+    },
+    setIsSelectable: function(value) { this.morphicSetter('IsSelectable', value); }
 
 },
 'rendering', {
@@ -2396,12 +2404,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         statusMorph.ignoreEvents();
         // FIXME getSelectionBounds does not work yet when there is a null selection
         if (this.isFocused()) {
-            statusMorph.align(statusMorph.bounds().topLeft(),
-                              this.worldPoint(this.innerBounds().bottomLeft()))
+            statusMorph.align(
+              statusMorph.bounds().topLeft(),
+              this.worldPoint(this.innerBounds().bottomLeft()))
         } else {
             statusMorph.centerAt(this.worldPoint(this.innerBounds().center()));
         };
-        (function() { statusMorph.remove() }).delay(delay || 4);
+        (function() { statusMorph.remove(); }).delay(delay || 4);
     }
 },
 'tab handling', {

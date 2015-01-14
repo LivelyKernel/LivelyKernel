@@ -583,42 +583,43 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (URL.root.hostname !== this.partsBinURL().hostname) {
             show('Search not available.'); return; }
 
-            this.showMsg("searching...");
-            var pb = this;
-            var searchString = this.get('searchText').textString;
-            if (!searchString || searchString.length === 0) return;
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // find parts via cmdline
-            var partsBinPath = this.partsBinURL().relativePathFrom(URL.root),
-                findPath = "$WORKSPACE_LK/" + partsBinPath.replace(/\/\//g, '\/');
-            function doCommandLineSearch(next, searchString) {
-                    var cmdTemplate = "find %s "
-                                    + "\\( -name node_modules -o -name '.svn' -o -name '.git' \\) -type d -prune "
-                                    + "-o -type f -iname '*%s*.json*' -print",
-                    cmd = Strings.format(cmdTemplate, findPath, searchString);
-                lively.require('lively.ide.CommandLineInterface').toRun(function() {
-                    lively.shell.run(cmd, function(err, cmd) { next(cmd); });
-                });
-            }
-            function processResult(next, searchCmd) {
-                if (searchCmd.getCode()) {
-                    pb.showMsg('Search failure:\n' + searchCmd.getStderr);
-                    next([]);
-                    return;
-                }
-                var lines = Strings.lines(searchCmd.getStdout());
-                var partItemURLs = lines.map(function(line) {
-                    line = line.replace(/\/\//g, '\/') // double path slashes
-                    var partPath = line.split(partsBinPath).last();
-                    return pb.partsBinURL().withFilename(partPath);
-                });
-                next(partItemURLs)
-            }
-            function listPartItems(partItemURLs) {
-                pb.addPartsFromURLs(partItemURLs);
-            }
+        this.showMsg("searching...");
+        var pb = this;
+        var searchString = this.get('searchText').textString;
+        if (!searchString || searchString.length === 0) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // find parts via cmdline
+        var partsBinPath = this.partsBinURL().relativePathFrom(URL.root),
+            findPath = "$WORKSPACE_LK/" + partsBinPath.replace(/\/\//g, '\/');
         doCommandLineSearch(processResult.curry(listPartItems), searchString);
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function doCommandLineSearch(next, searchString) {
+                var cmdTemplate = "find %s "
+                                + "\\( -name node_modules -o -name '.svn' -o -name '.git' \\) -type d -prune "
+                                + "-o -type f -iname '*%s*.json*' -print",
+                cmd = Strings.format(cmdTemplate, findPath, searchString);
+            lively.require('lively.ide.CommandLineInterface').toRun(function() {
+                lively.shell.exec(cmd, next);
+            });
+        }
+        function processResult(next, err, searchCmd) {
+            if (searchCmd.getCode()) {
+                pb.showMsg('Search failure:\n' + searchCmd.getStderr);
+                next([]);
+                return;
+            }
+            var lines = Strings.lines(searchCmd.getStdout());
+            var partItemURLs = lines.map(function(line) {
+                line = line.replace(/\/\//g, '\/') // double path slashes
+                var partPath = line.split(partsBinPath).last();
+                return pb.partsBinURL().withFilename(partPath);
+            });
+            next(partItemURLs)
+        }
+
+        function listPartItems(partItemURLs) { pb.addPartsFromURLs(partItemURLs); }
     },
         ensureCategories: function ensureCategories() {
         if (!this.categories)

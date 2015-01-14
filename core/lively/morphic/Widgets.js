@@ -2411,7 +2411,8 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         fixedWidth: true,
         fixedHeight: true,
         resizeWidth: true,
-        allowInput: false
+        allowInput: false,
+        selectable: false
     }
 },
 'intitializing', {

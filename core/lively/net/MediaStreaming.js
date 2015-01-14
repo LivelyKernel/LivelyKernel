@@ -127,12 +127,15 @@ Object.subclass('lively.net.StreamingConnection',
                 }
                 
                 this.relateToStream(message, imageURL);
-                // var id = message.streamId;
-                // this.getScreen(id, message.size).newFrame(imageURL, message.timestamp);
                 break;
             case 'audio':
                 // got audio data
                 var audioString = message.audioBuffer;
+                var lzwEncoded = message.lzwEncoded;
+                
+                if (lzwEncoded) {
+                    audioString = this.lzwDecode(audioString);
+                }
                 
                 // retrieve an ArrayBuffer from the audioString
                 var buffer = this.stringToArraybuffer(audioString);
@@ -144,12 +147,7 @@ Object.subclass('lively.net.StreamingConnection',
                     buffer = new Global.Float32Array(buffer);
                 }
                 
-                // TODO: what to do with the audio?
-                show('Audio playback not implemented');
-                // this.audioBuffer.push(buffer);
-                // if (!this.playingAudioBuffer) {
-                //     this.playAudioBuffer();
-                // }
+                this.relateToStream(message, buffer);
                 break;
             case 'data':
                 // got raw data packet
@@ -277,7 +275,7 @@ Object.subclass('lively.net.StreamingConnection',
         
         stream.newTimelineData(timestamps);
     },
-    relateToStream: function(message, imageURL) {
+    relateToStream: function(message, data) {
         var id = message.streamId;
         var stream = this.downstreams[id];
         if (!stream) {
@@ -285,7 +283,7 @@ Object.subclass('lively.net.StreamingConnection',
             return;
         }
         
-        stream.newFrame(imageURL, message.timestamp);
+        stream.newFrame(data, message.timestamp);
     },
 },
 'compression', {
@@ -377,7 +375,7 @@ Object.subclass('lively.net.StreamingConnection',
         
         return data;
     },
-    arraybufferToString: function() {
+    arraybufferToString: function(buffer) {
         // create a Uint16Array data view from the buffer
         var array = new Global.Uint16Array(buffer);
         // create a string from the values in the array
@@ -388,9 +386,8 @@ Object.subclass('lively.net.StreamingConnection',
 },
 'stream handling', {
     'deactivateStreams': function(streams) {
-        // TODO: do something useful
         streams.forEach(function(stream) {
-            show('Stream ' + stream.id + ' was unpublished');
+            // TODO: do something useful
         });
     },
     publish: function(morph) {
@@ -535,6 +532,7 @@ Object.subclass('lively.net.StreamingConnection',
                     var obj = {
                         type: config.mediatype,
                         senderId: session.sessionId,
+                        streamId: config.streamId,
                         senderName: session.username,
                         audioBuffer: audioString,
                         lzwEncoded: false,
@@ -622,12 +620,26 @@ Object.subclass('lively.net.StreamingConnection',
         
         this.deactivateDownstream(streamId);
     },
-    createNewDownstream: function(streamId) {
-        var streamRecord = this.availableStreams.find(function(record) {
-            return record.id === streamId;
+    getStreamById: function(id) {
+        return this.availableStreams.find(function(stream) {
+            return stream.id === id;
         });
+    },
+    createNewDownstream: function(streamId) {
+        var streamRecord = this.getStreamById(streamId);
         
-        var stream = new lively.net.BackInTimeStream(streamId, this, streamRecord.starttime);
+        var stream;
+        switch (streamRecord.type) {
+            case 'image':
+                stream = new lively.net.BackInTimeStream(streamId, this, streamRecord.starttime);
+                break;
+            case 'audio':
+                stream = new lively.net.AudioStream(streamId, this);
+                break;
+            default: 
+                stream = new lively.net.Stream(streamId, this);
+        }
+        
         this.downstreams[streamId] = stream;
         
         return stream;
@@ -843,10 +855,6 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
 'initializing', {
     'initialize': function($super, id, streamingConnection, starttime) {
         $super(id, streamingConnection);
-        if (!streamingConnection) {
-            // this stream type is useless without a streaming connection
-            throw new Error('Missing argument: streamingConnection');
-        }
         
         this.starttime = starttime || Date.now();
         this.lastFrameAccessedAt = Date.now();
@@ -1149,5 +1157,68 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         return this.timelineData;
     },
 });
-
+lively.net.Stream.subclass('lively.net.AudioStream',
+'initializing', {
+    initialize: function($super, id, streamingConnection) {
+        $super(id, streamingConnection);
+        
+        if (!$world.audioContext) {
+            $world.audioContext = new Global.AudioContext();
+        }
+        
+        this.audioContext = $world.audioContext;
+        
+        // --- constants ---
+        this.minBufferSize = 3;
+        this.maxBufferSize = 10;
+        
+        // --- arrays ---
+        this.audioBuffer = [];
+    },
+},
+'frame handling', {
+    'newFrame': function(data, timestamp) {
+        this.audioBuffer.push({
+            timestamp: timestamp,
+            buffer: data
+        });
+        
+        if (!this.playingAudioBuffer) {
+            this.playAudioBuffer();
+        }
+    },
+},
+'replay', {
+    'playAudioBuffer': function() {
+        // check if buffer is filled
+        if (this.audioBuffer.length < this.minBufferSize) {
+            // still buffering
+            return;
+        }
+        if (this.audioBuffer.length > this.maxBufferSize) {
+            // eliminate overflow by throwing away the oldest sample buffers
+            this.audioBuffer.splice(this.audioBuffer.length - this.maxBufferSize, this.maxBufferSize);
+        }
+        
+        var sampleBuffer = this.audioBuffer.shift().buffer;
+        // create buffer with 1 channel, #buffer.length samples, 11025Hz sampling rate
+        var audioBuffer = this.audioContext.createBuffer(1, sampleBuffer.length, 11025);
+        var channel = audioBuffer.getChannelData(0);
+        
+        // fill the buffer
+        for (var i = 0; i < sampleBuffer.length; i++) {
+            channel[i] = sampleBuffer[i];
+        }
+        
+        var source = this.audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        var _this = this;
+        source.onended = function() {
+            // play the next audio frame
+            _this.playAudioBuffer();
+        };
+        source.connect(this.audioContext.destination);
+        source.start();
+    },
+});
 }) // end of module

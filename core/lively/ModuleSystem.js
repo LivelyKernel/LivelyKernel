@@ -475,7 +475,7 @@ var Module = Object.subclass('lively.Module',
         var ownerNamespace = lively.Class.namespaceFor(this.namespaceIdentifier),
             ownName = lively.Class.unqualifiedNameFor(this.namespaceIdentifier);
         JSLoader.removeAllScriptsThatLinkTo(this.uri());
-        JSLoader.loadedURLs.remove(this.uri());
+        JSLoader.loadedURLs && JSLoader.loadedURLs.remove(this.uri());
         delete ownerNamespace[ownName];
     },
 

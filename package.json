@@ -21,7 +21,9 @@
     "websocket": "1.0.8",
     "lively-loader": "https://github.com/LivelyKernel/node-lively-loader/tarball/master",
     "lively.lang": "git://github.com/LivelyKernel/lively.lang.git#master",
-    "ace.improved": ">=0.1"
+    "ace.improved": "git://github.com/rksm/ace.improved.git#master",
+    "paredit.js": "git://github.com/rksm/paredit.js.git#master",
+    "nrepl-client": "git://github.com/rksm/node-nrepl-client.git#master"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

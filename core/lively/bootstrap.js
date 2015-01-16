@@ -868,7 +868,6 @@
                .substring(0, url.lastIndexOf('/') + 1);
         },
 
-
         makeAbsolute: function(urlString) {
             // if urlString points to a relative resource then prepend the
             // current protocol, port, path to it to make it absolute
@@ -893,6 +892,11 @@
             for (var i = 0; i < scripts.length; i++) {
                 scripts[i].parentNode.removeChild(scripts[i]);
             }
+        },
+
+        forget: function(url) {
+            this.removeAllScriptsThatLinkTo(url);
+            this.loadedURLs && this.loadedURLs.remove(url);
         },
 
         getViaXHR: function(beSync, url, callback) {

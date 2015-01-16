@@ -935,8 +935,7 @@ handleOnCapture);
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
         if (lively.Config.get("enableHaloItems") && this.halosEnabled && (
-                (evt.isLeftMouseButtonDown() && evt.isCommandKey()) ||
-                (UserAgent.isLinux && evt.isRightMouseButtonDown()))) {
+                (evt.isLeftMouseButtonDown() && evt.isCommandKey()))) {
             evt.hand.haloTarget = this;
             return false;
         }

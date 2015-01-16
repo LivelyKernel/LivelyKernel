@@ -47,24 +47,85 @@ function getBranches(cb) {
     });
 }
 
-function getCommitsByBranch(branch, cb) {
-    // only list branches of the main repo
-    async.parallel({
-        added: gitHelper.util.listCommits.bind(null, '..' + BRANCH_PREFIX + branch, process.env.WORKSPACE_LK),
-        missing: gitHelper.util.listCommits.bind(null, BRANCH_PREFIX + branch + '..', process.env.WORKSPACE_LK),
-        changes: exec.bind(null, 'git',
-            ['ls-files', '-mdso', '--exclude-standard'],
-            { cwd: process.env.WORKSPACE_LK })
-    }, function(err, info) {
-        if (err) return cb(err);
-        if ((branch != FS_BRANCH) && (info.changes[0].trim() != '')) {
-            // artificial commit for uncommited changes
-            info.missing.unshift({
-                commitId: null, message: '[Filesystem changes]'
+function topologicalSort(arrs, diffProp1, diffProp2) {
+    var itemsLeft = arrs.map(function(arr) { return arr.length; }).reduce(function(sum, len) { return sum + len; }, 0),
+        ordered = [],
+        atArr = 0,
+        headItem,
+        hasDependency;
+    while (itemsLeft > 0) {
+        headItem = arrs[atArr][0];
+        if (headItem != undefined) {
+            hasDependency = arrs.some(function(arr, aIdx) {
+                if (aIdx == atArr) return false;
+                return arr.some(function(elem, eIdx) {
+                    if (eIdx == 0) return false;
+                    return (elem[diffProp1] != null ? elem[diffProp1] == headItem[diffProp1] : false) &&
+                        (elem[diffProp2] != null ? elem[diffProp2] == headItem[diffProp2] : false);
+                })
             });
+            if (!hasDependency) {
+                arrs.forEach(function(arr, idx) {
+                    var elem = arr[0];
+                    if (elem && ((elem == headItem) ||
+                        (elem[diffProp1] != null ? elem[diffProp1] == headItem[diffProp1] : false) ||
+                        (elem[diffProp2] != null ? elem[diffProp2] == headItem[diffProp2] : false))) {
+                        arr.shift();
+                        itemsLeft--;
+                    }
+                });
+                ordered.push(headItem);
+                atArr = -1; // reset idx to prefer first array
+            }
         }
-        delete info.changes;
-        cb(null, info);
+        atArr = (atArr + 1) % arrs.length;
+    }
+    return ordered;
+}
+
+function getCommitsByBranch(branch, cb) {
+    var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
+    branch = BRANCH_PREFIX + branch;
+
+    async.map(repos, function(repo, callback) {
+        gitHelper.util.diffCommits(branch, repo, function(err, info) {
+            if (err) {
+                if (err.code == 'NOTACOMMIT')
+                    return callback(null, { added: [], missing: [] }); // empty result
+                return callback(err);
+            }
+             // FIXME: not neccessary anymore when every FS access is commited too
+            exec('git', ['ls-files', '-mdso', '--exclude-standard'], { cwd: repo }, function(err, changes) {
+                if (err) return callback(err);
+                if ((branch != FS_BRANCH) && (changes[0].trim() != '')) {
+                    // artificial commit for uncommited changes
+                    info.missing.unshift({
+                        commitId: null, message: '[Filesystem changes]', notes: null
+                    });
+                }
+                callback(null, info);
+            });
+        });
+    }, function(err, commitInfoByRepo) {
+        var sortedCommits = topologicalSort(commitInfoByRepo.map(function(repo) { return repo.added.reverse(); }), 'note', 'message');
+        sortedCommits.reverse();
+        sortedCommits.forEach(function(commit) {
+            if (commit.note) {
+                var repos = commit.note.split('\n');
+                commit.repos = repos.reduce(function(allRepos, repo) {
+                    var parsed = repo.match(/^(.*): ([0-9a-f]+)$/);
+                    allRepos[parsed[1]] = parsed[2];
+                    return allRepos;
+                }, {});
+                commit.commitId = commit.repos['.'] || null;
+            }
+            delete commit.note;
+        });
+        var result = {
+            added: sortedCommits,
+            missing: commitInfoByRepo[0].missing
+        };
+        cb(err, result);
     });
 }
 
@@ -80,7 +141,7 @@ function getCommits(branch, cb) {
     }
 
     if (branch)
-        commitsForBranches([branch])
+        commitsForBranches([branch]);
     else {
         getBranches(function(err, branches) {
             if (err) cb(err);

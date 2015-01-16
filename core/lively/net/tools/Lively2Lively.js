@@ -1,4 +1,4 @@
-module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions', 'lively.morphic.tools.FilterableList').toRun(function() {
+module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions', 'lively.morphic.tools.FilterableList', 'lively.net.tools.MediaStreaming').toRun(function() {
 
 Object.extend(lively.net.tools.Lively2Lively, {
 

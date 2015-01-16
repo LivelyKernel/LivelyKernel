@@ -4,6 +4,7 @@ Object.subclass('lively.net.StreamingConnection',
     'initialize': function() {
         // constants
         this.serverUrl = 'ws://localhost:1234';
+        // this.serverUrl = 'ws://104.131.62.171:1234';
         
         // arrays
         this.sendingBuffer = [];
@@ -406,7 +407,7 @@ Object.subclass('lively.net.StreamingConnection',
             show('no websocket open');
             return;
         }
-        debugger;
+        
         // use the morphs config, fill up all required fields
         this.fillupConfig(morph);
         var config = morph.streamingConfig;
@@ -415,10 +416,6 @@ Object.subclass('lively.net.StreamingConnection',
             show('Unknown media type. Set the mediatype field in the morphs streamingConfig');
             return;
         }
-        
-        // if (this.sources.indexOf(morph) === -1) {
-        //     this.sources.push(morph);
-        // }
         
         var _this = this;
         this.requestNewStreamId(function(id) {
@@ -707,7 +704,8 @@ Object.subclass('lively.net.StreamingConnection',
         if (typeof callback !== 'function') return;
         
         this.send({
-            type: 'request-stream-id'
+            type: 'request-stream-id',
+            senderId: this.session.sessionId
         });
         
         this.idRequestCallbacks.push(callback);
@@ -1080,6 +1078,8 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         // t0                         t1          t2
         // |--------------------------|------------|
         // |------- pastBuffer -------|recentBuffer|
+        //                                         ^
+        //                                        now
         
         var requestedTime = ms + t0;
         
@@ -1123,6 +1123,15 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
             }
         }
         
+        // If the requested time is bigger than the last frame available in that
+        // chunk, the last frame is the best match. This is either the case if the 
+        // chunk is not loaded (contains only one frame), or if the requested time
+        // actually falls between the last frame in this chunk and the first frame 
+        // in the next one.
+        if (requestedTime >= chunk.data.last().timestamp) {
+            return chunk.data.last();
+        }
+        
         // look for best match in chunk data
         // recently loaded chunks might not be available yet, but they will be 
         // for later requests
@@ -1131,11 +1140,6 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
                 return chunk.data[i-1];
             }
         }
-        
-        // If no good match was found, return the first frame in the chunk.
-        // This is the case if either there is no better match in the chunk,
-        // or the chunk is not loaded and only contains one frame.
-        return chunk.data[0];
     },
 
     getAllAvailableFrames: function() {

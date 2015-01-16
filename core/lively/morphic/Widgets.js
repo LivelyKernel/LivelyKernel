@@ -1913,7 +1913,6 @@ lively.morphic.World.addMethods(
 
     addActionText: function(actionSpec, options) {
       options = lively.lang.obj.merge(options || {}, {textMode: "attributedtext"});
-      show(options)
       var ed = $world.addCodeEditor(options);
       ed.addScript(function setAttributedText(textSpec) {
         // textSpec like [["string", {type: "tokenType", onClick: ..., commands: ...}}]]

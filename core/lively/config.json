@@ -41,7 +41,7 @@
       "doc": "Get the parsed cookie data",
       "get": {
           "type": "function",
-          "code": "function() { return typeof document !== 'undefined' && document.cookie ? document.cookie.split(';').invoke('split', '=').reduce(function(cookie, kv) { cookie[kv[0].trim()] = decodeURIComponent(kv[1]); return cookie; }, {}) : {}; }"
+          "code": "function() { return typeof document !== 'undefined' && document.cookie ? document.cookie.split(';').map(function(ea) { return ea.split('='); }).reduce(function(cookie, kv) { cookie[kv[0].trim()] = decodeURIComponent(kv[1]); return cookie; }, {}) : {}; }"
       },
       "set": {"type": "function", "code": "function() {}"}
     }
@@ -144,6 +144,19 @@
           "code": "function() { return Config.location.protocol + '//' + Config.location.host + '/nodejs'; }"
       },
       "set": {"type": "function", "code": "function() {}"}
+    },
+    {
+      "name": "nodeJSWebSocketURL",
+      "type": "String",
+      "doc": "Optional url to be used for websocket connections. By default the normal nodeJSURL will be used but under certain circumstances it can be blocked for websocket traffic. In this case you can set this aleernate url, e.g. to re-route to a certain port.",
+      "get": {
+          "type": "function",
+          "code": "function() { return lively.Config._nodeJSWebSocketURL; }"
+      },
+      "set": {
+        "type": "function",
+        "code": "function(val) { lively.Config._nodeJSWebSocketURL = val; var sessionTracker = lively.lang.Path('net.SessionTracker').get(lively); if (sessionTracker) { sessionTracker.localSessionTrackerURL = new URL(val.replace(/\\$/, '') + '/SessionTracker/'); if (lively.Config.get('lively2livelyAutoStart')) sessionTracker.resetSession(); } return val; }"
+      }
     }
   ],
 

@@ -251,7 +251,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     var keys = evt.getKeyString();
     var modifierPressed = evt.isCtrlDown() || evt.isCommandKey();
 
-    if (keys.match(/(Command|Control)(-Shift)?-(`|~|F3|1)/i)) {
+    if (keys.match(/(Command|Alt)(-Shift)?-(`|~|F3|1|À)/i)) {
         if (evt.isShiftDown())  this.selectPrev();
         else this.selectNext(); evt.stop(); return true;
     }  else if (keys === "Escape") {
@@ -459,6 +459,8 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
             // redefine exec code of commands locally so we dan't have to fiddle with keybindings
             inputLine.modifyCommand('golinedown', {exec: function (ed,args) { ed.$morph.owner.selectNext(); }});
             inputLine.modifyCommand('golineup', {exec: function (ed) { ed.$morph.owner.selectPrev(); }});
+            inputLine.modifyCommand('gotostart', {exec: function (ed) { ed.$morph.owner.selectN(0); }});
+            inputLine.modifyCommand('gotoend', {exec: function (ed) { ed.$morph.owner.selectN(ed.$morph.owner.state.filteredCandidates.length); }});
             inputLine.modifyCommand('gotopageup', {
                 exec: function (ed) {
                     var narrower = ed.$morph.owner;

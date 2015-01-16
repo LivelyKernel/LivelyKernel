@@ -96,7 +96,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'doit',
-                bindKey: {win: 'Ctrl-D',  mac: 'Command-D'},
+                bindKey: {win: 'Ctrl-D|Ctrl-Return',  mac: 'Command-D|Command-Return'},
                 exec: function(ed) { maybeUseModeFunction(ed, "doEval", "doit", [false]); },
                 multiSelectAction: "forEach",
                 readOnly: true // false if this command should not apply in readOnly mode
@@ -114,7 +114,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: false
             }, {
                 name: 'list protocol',
-                bindKey: {win: 'Ctrl-Shift-P',  mac: 'Command-Shift-P'},
+                bindKey: {win: 'Ctrl-Shift-P|Alt-Shift-P',  mac: 'Command-Shift-P'},
                 exec: function(ed) { maybeUseModeFunction(ed, "doListProtocol", "doListProtocol"); },
                 multiSelectAction: "single",
                 readOnly: false
@@ -234,7 +234,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 
         this.addCommands(kbd, [{
                 name: 'removeSelectionOrLine',
-                bindKey: {win: 'Ctrl-X', mac: 'Command-X'},
+                bindKey: {win: 'Win-X', mac: 'Command-X'},
                 exec: function(ed) {
                     var sel = ed.selection;
                     if (sel.isEmpty()) { sel.selectLine(); }
@@ -263,7 +263,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: false
             }, {
                 name: 'insertLineBelow',
-                bindKey: "Command-Return",
+                bindKey: {mac: "Command-Return", win: "Win-Return"},
                 exec: function(ed) { ed.navigateLineEnd(); ed.insert('\n'); },
                 multiSelectAction: 'forEach',
                 readOnly: false
@@ -473,7 +473,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 readOnly: true
             }, {
                 name: 'selectLine',
-                bindKey: {win: "Ctrl-L", mac: "Command-L"},
+                bindKey: {win: "Alt-L|Ctrl-L", mac: "Command-L"},
                 exec: this.morphBinding("selectCurrentLine"),
                 multiSelectAction: 'forEach',
                 readOnly: true

@@ -1,5 +1,7 @@
 module('lively.ide.commands.default').requires().toRun(function() {
 
+lively.module("lively.ide.tools.SelectionNarrowing").load();
+
 Object.extend(lively.ide.commands, {
     byName: {},
     defaultBindings: {},
@@ -407,8 +409,10 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.WindowNavigation.start': {
         description: 'open window navigator',
         exec: function() {
+          lively.require("lively.ide.WindowNavigation").toRun(function() {
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
-            return true;
+          });
+          return true;
         }
     },
 
@@ -1592,7 +1596,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.ide.evalJavaScript': 'm-s-:',
-    'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-`", "Command-1"], win: "ctrl-à"},
+    'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-`", "Command-1"], win: ["Alt-À"]},
     'lively.ide.resizeWindow.reset': {mac: "cmd-s-l r e s q", win: "ctrl-s-l r e s q"},
     'lively.ide.resizeWindow.full': {mac: "cmd-s-l r e s f", win: "ctrl-s-l r e s f"},
     'lively.ide.resizeWindow.left': {mac: "cmd-s-l r e s l", win: "ctrl-s-l r e s l"},

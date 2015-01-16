@@ -828,8 +828,10 @@ lively.morphic.Panel.subclass('lively.ide.BrowserPanel',
     },
 
     onKeyDown: function(evt) {
-        // Command-U / Control-U to reset the souce view
-        if (evt.isCommandKey() && evt.getKeyChar().toLowerCase() === 'u') {
+        // Command-U / Control-U to reset the source view
+        var s = evt.getKeyString().toLowerCase();
+        var reset = UserAgent.isMacOS ? s === "command-u" : "alt-u";
+        if (reset) {
             var browser = this.ownerWidget, node = browser.selectedNode();
             browser.ensureSourceNotAccidentlyDeleted(function() {
                 browser.allChanged(false, node);

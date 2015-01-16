@@ -31,6 +31,9 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
     ace.config.set("modePath", URL.root.withFilename("core/lib/ace/").toString());
     // disable currently broken worker
     ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
+    
+    // no Ctrl-Shift-Space
+    ace.require("ace/autocomplete").Autocomplete.startCommand.bindKey = "Ctrl-Space|Alt-Shift-Space|Alt-Space";
 })();
 
 module('lively.ide');

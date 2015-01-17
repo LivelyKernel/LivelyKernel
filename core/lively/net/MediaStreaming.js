@@ -483,7 +483,7 @@ Object.subclass('lively.net.StreamingConnection',
         
         switch (morph.streamingConfig.mediatype) {
             case 'image':
-                return function(force) {
+                return function(dataString, force) {
                     // lookup the config at time of execution, so that it can be
                     // changed dynamically during steaming
                     var config = lookupStreamingConfig();
@@ -500,7 +500,7 @@ Object.subclass('lively.net.StreamingConnection',
                     var compression = compressionParams.lzwCompression;
                     
                     // capture a video frame
-                    var imageURL = morph.captureFrame(encoding, quality);
+                    var imageURL = dataString || morph.captureFrame(encoding, quality);
                     
                     // apply lzw compression, if desired
                     if (compression) {
@@ -532,10 +532,15 @@ Object.subclass('lively.net.StreamingConnection',
                     var config = lookupStreamingConfig();
                     
                     // Check if the morph wants to be streamed at the moment.
-                    // Although, it can be forced when the flag is set.
+                    // It can be forced when the flag is set.
                     if (!force && !config.streaming()) return;
                     
-                    var audioString = _this.arraybufferToString(typedArray.buffer);
+                    var audioString
+                    if (typedArray) {
+                        audioString = _this.arraybufferToString(typedArray.buffer);
+                    } else {
+                        audioString = morph.captureFrame();
+                    }
                     
                     var obj = {
                         type: config.mediatype,
@@ -543,6 +548,7 @@ Object.subclass('lively.net.StreamingConnection',
                         streamId: config.streamId,
                         senderName: session.username,
                         data: audioString,
+                        record: !!config.record,
                         lzwEncoded: false,
                         reducedBitDepth: config.compressionParameters.reducedBitDepth
                     }
@@ -568,8 +574,10 @@ Object.subclass('lively.net.StreamingConnection',
                     var obj = {
                         type: config.mediatype,
                         senderId: session.sessionId,
+                        streamId: config.streamId,
                         senderName: session.username,
                         data: dataString,
+                        record: !!config.record,
                         lzwEncoded: !!config.compressionParameters.lzwCompression
                     }
                     
@@ -639,10 +647,18 @@ Object.subclass('lively.net.StreamingConnection',
         var stream;
         switch (streamRecord.type) {
             case 'image':
-                stream = new lively.net.BackInTimeVideoStream(streamId, this, streamRecord.starttime);
+                if (streamRecord.record) {
+                    stream = new lively.net.BackInTimeVideoStream(streamId, this, streamRecord.starttime);    
+                } else {
+                    stream = new lively.net.Stream(streamId, this);
+                }
                 break;
             case 'audio':
-                stream = new lively.net.BackInTimeAudioStream(streamId, this, streamRecord.starttime);
+                if (streamRecord.record) {
+                    stream = new lively.net.BackInTimeAudioStream(streamId, this, streamRecord.starttime);
+                } else {
+                    stream = new lively.net.AudioStream(streamId, this);
+                }
                 break;
             default: 
                 stream = new lively.net.Stream(streamId, this);
@@ -841,7 +857,7 @@ Object.subclass('lively.net.Stream',
 },
 'viewer handling', {
     'openViewerInHand': function() {
-        var viewer = $world.loadPartItem('CanvasScreen', 'PartsBin/Felix');
+        var viewer = $world.loadPartItem('SimpleScreen', 'PartsBin/MediaStreaming');
         this.viewer = viewer;
         
         viewer.openInHand();
@@ -1183,7 +1199,8 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
 lively.net.BackInTimeStream.subclass('lively.net.BackInTimeVideoStream', 
 'viewer handling', {
     'openViewerInHand': function() {
-        var viewer = $world.loadPartItem('BackInTimeStreamViewer', 'PartsBin/Felix');
+        var viewer = $world.loadPartItem('BackInTimeVideoStreamPlayer', 'PartsBin/MediaStreaming');
+        // var viewer = $world.loadPartItem('SimpleScreen', 'PartsBin/MediaStreaming');
         viewer.stream = this;
         this.viewer = viewer;
         
@@ -1196,7 +1213,7 @@ lively.net.BackInTimeStream.subclass('lively.net.BackInTimeVideoStream',
 lively.net.BackInTimeStream.subclass('lively.net.BackInTimeAudioStream', 
 'viewer handling', {
     'openViewerInHand': function() {
-        var viewer = $world.loadPartItem('BackInTimeAudioStreamPlayer', 'PartsBin/Felix');
+        var viewer = $world.loadPartItem('BackInTimeAudioStreamPlayer', 'PartsBin/MediaStreaming');
         viewer.stream = this;
         this.viewer = viewer;
         
@@ -1242,6 +1259,7 @@ lively.net.Stream.subclass('lively.net.AudioStream',
         // check if buffer is filled
         if (this.audioBuffer.length < this.minBufferSize) {
             // still buffering
+            this.playingAudioBuffer = false;
             return;
         }
         if (this.audioBuffer.length > this.maxBufferSize) {
@@ -1249,9 +1267,11 @@ lively.net.Stream.subclass('lively.net.AudioStream',
             this.audioBuffer.splice(this.audioBuffer.length - this.maxBufferSize, this.maxBufferSize);
         }
         
+        this.playingAudioBuffer = true;
+        
         var sampleBuffer = this.audioBuffer.shift().buffer;
         // create buffer with 1 channel, #buffer.length samples, 11025Hz sampling rate
-        var audioBuffer = this.audioContext.createBuffer(1, sampleBuffer.length, 11025);
+        var audioBuffer = this.audioContext.createBuffer(1, sampleBuffer.length, 44100);
         var channel = audioBuffer.getChannelData(0);
         
         // fill the buffer

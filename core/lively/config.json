@@ -211,6 +211,7 @@
     ["onWindowResizeUpdateWorldBounds", true],
     ["disableNoConsoleWarning", true],
 
+    ["thatCapture", true, "Alt-click on morphs assigns them to the global variable 'that'."],
     ["confirmNavigation", false, "don't show confirmation dialog when navigating a link"],
     ["useAltAsCommand", false, "User Platform Keys (Ctrl und Windows and Meta under Mac as command key)"]
 

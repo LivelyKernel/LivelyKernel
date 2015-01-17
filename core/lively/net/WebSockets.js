@@ -121,7 +121,10 @@ Object.subclass('lively.net.WebSocket',
                     console.error(show('Error in websocket message callback\n%s', e.stack || e));
                 }
             });
-            if (!expectMore) callbacks.clear();
+            if (!expectMore) {
+              callbacks.clear();
+              delete this.callbacks[responseId];
+            }
         } else { // an initiating message
             lively.bindings.signal(this, 'lively-message', msg);
         }

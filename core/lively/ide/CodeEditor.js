@@ -1819,25 +1819,27 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'messaging', {
+
+    ensureStatusMessageMorph: function() {
+      if (this._statusMorph) return this._statusMorph;
+      var ext = this.getExtent();
+      var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
+      sm.applyStyle({
+          fontFamily: 'Monaco,monospace',
+          borderWidth: 0, borderRadius: 6,
+          fontSize: this.getFontSize()-2,
+          inputAllowed: false,
+          fixedWidth: true, fixedHeight: false,
+      });
+      sm.isEpiMorph = true;
+      return sm;
+    },
+
     setStatusMessage: function (msg, color, delay) {
         var world = this.world();
         if (!world) return;
-        var self = this, sm = this._statusMorph,
+        var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
             ext = this.getExtent();
-
-        // create if not there yet. Note that every editor gets its own message
-        // morph but that the message morph will be a submorph of world
-        if (!sm) {
-            this._statusMorph = sm = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
-            sm.applyStyle({
-                fontFamily: 'Monaco,monospace',
-                borderWidth: 0, borderRadius: 6,
-                fontSize: this.getFontSize()-2,
-                inputAllowed: false,
-                fixedWidth: true, fixedHeight: false,
-            });
-            sm.isEpiMorph = true;
-        }
 
         // setting 'da message
         if (Array.isArray(msg)) sm.setRichTextMarkup(msg);

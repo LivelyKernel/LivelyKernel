@@ -2960,7 +2960,13 @@ Object.subclass('lively.morphic.TextEmphasis',
                 var doit = this.doit;
                 this.addCallbackWhenApplyDone('click', function(evt) {
                     lively.morphic.EventHandler.prototype.patchEvent(evt);
-                    var src = '(function(evt) {\n' + doit.code + '\n})';
+                    var code = lively.lang.fun.extractBody(function() {
+                      // so we reset our event sytem after clikcing on a "strange" thing
+                      $world.hands[0].clickedOnMorph = null;
+                      $world.hands[0].draggedMorph = null;
+                      __CODE__
+                    }).replace("__CODE__", doit.code)
+                    var src = '(function(evt) {\n' + code + '\n})';
                     try {
                         var func = eval(src);
                         func.call(doit.context || Global, evt);

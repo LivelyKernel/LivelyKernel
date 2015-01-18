@@ -548,8 +548,19 @@ Object.extend(lively.net.SessionTracker, {
                 sess = lively.net.SessionTracker.getSession();
                 return sess && sess.isConnected();
             }, function(err) { thenDo(err, sess); });
-    }
+    },
 
+    start: function(thenDo) {
+        lively.whenLoaded(function(world) {
+            Functions.composeAsync(
+                lively.net.SessionTracker.serverLogin,
+                lively.net.SessionTracker.setupSessionTrackerConnection
+            )(function(err) {
+              console.log("lively.set.SessionTracker setup done");
+              thenDo && thenDo();
+            });
+        });
+    }
 });
 
 Object.extend(lively.net.SessionTracker, {
@@ -608,12 +619,7 @@ Object.extend(lively.net.SessionTracker, {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // initialization, at load time
 (function serverLogin() {
-    lively.whenLoaded(function(world) {
-        Functions.composeAsync(
-            lively.net.SessionTracker.serverLogin,
-            lively.net.SessionTracker.setupSessionTrackerConnection
-        )(function(err) { console.log("lively.set.SessionTracker setup done"); });
-    });
+  lively.net.SessionTracker.start();
 })();
 
 }) // end of module

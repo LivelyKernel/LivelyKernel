@@ -887,6 +887,7 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             return {
                 isMenuItem: true,
                 isListItem: true,
+                isDivider: false,
                 isSubMenu: isSubMenu,
                 string: string,
                 value: value,
@@ -1180,7 +1181,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     initialize: function($super, item) {
         $super(new Rectangle(0,0, 20, 23), item.string);
         this.item = item;
-        if (item.isSubMenu) this.addArrowMorph();
+        if (item.isDivider) this.showDivider();
+        else if (item.isSubMenu) this.addArrowMorph();
     },
 
     addArrowMorph: function() {
@@ -1190,12 +1192,21 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         arrowMorph.setPosition(pt(extent.x, 0));
         arrowMorph.applyStyle(this.getStyle());
         this.arrow = this.addMorph(arrowMorph);
+    },
+    
+    showDivider: function() {
+      this.setExtent(pt(20, 3));
+      this.textString = "";
+      this.applyStyle({
+        borderWidth: 2, borderColor: Color.gray.lighter(),
+        padding: Rectangle.inset(0), align: "center"})
     }
 },
 'mouse events', {
 
     onMouseOver: function(evt) {
         // Selects a new menu option
+        if (this.item.isDivider) return false;
         this.owner.overItemMorph = this;
         this.owner.itemMorphs.without(this).invoke('deselect');
         if (this.isSelected) return false;

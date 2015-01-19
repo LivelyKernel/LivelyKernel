@@ -793,8 +793,12 @@ lively.morphic.Box.subclass('lively.morphic.List',
         scroll.setBounds(lively.rect(0,0,
             this.getExtent().x-scrollbarExtent.x,
             layout.listItemHeight*noOfItems+4));
-    }
+    },
 
+    onOwnerChanged: function ($super, newOwner) {
+      if (newOwner) this.updateView();
+      return $super(newOwner);
+    }
 },
 'accessing', {
     get selectedLineNo() {

@@ -823,9 +823,11 @@ lively.morphic.Box.subclass('lively.morphic.List',
 },
 'list interface', {
 
-    addItem: function(item) {
-        this.updateList(this.itemList.concat([item]));
-        return this.itemList.length - 1; // return index of added item
+    addItem: function(item, index) {
+        if (typeof index !== 'number' || index < 0) index = this.itemList.length;
+        this.itemList.splice(index, 0, item);
+        this.updateList(this.itemList);
+        return index; // return index of added item
     },
 
     find: function (itemOrValue) {

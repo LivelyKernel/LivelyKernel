@@ -2861,7 +2861,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         }
         this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {
             self.comeForward();
-            self.targetMorph.onWindowExpand && self.targetMorph.onWindowExpand();
+            self.withAllSubmorphsDo(function(ea) { return ea.onWindowExpand && ea.onWindowExpand(this); });
         });
     }
 

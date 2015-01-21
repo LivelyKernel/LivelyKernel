@@ -792,7 +792,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         content: (JSON.stringify(existing, null, 2)),
         textMode: "json",
       });
-      
+
       editor.setStatusMessage("Press " + this.commandKeyName() + "-s to save\n"
                             + "customizations should have the form\n{\"command-name\": \"key\"}\n", null, 10);
 
@@ -1649,7 +1649,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'rendering', {
     setClipMode: Functions.Null,
-    
+
     onOwnerChanged: function($super, newOwner) {
       if (!newOwner && this._statusMorph) this._statusMorph.remove();
       return $super(newOwner);
@@ -1661,7 +1661,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             range = this.getSelectionRangeAce(),
             mode = this.getTextMode(),
             isJs = mode.match(/javascript/);
-        
+
         if (isJs) {
           // eval marker
           var evalMarkerItems = ['eval marker', []];
@@ -1703,7 +1703,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           }
           evalMarkerItems[1].push(['Remove eval marker', function() {
               self.removeEvalMarker(); }]);
-  
+
           var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
           if (marker) {
               if (marker.doesContinousEval()) {
@@ -1788,7 +1788,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 if (options.focusAfter) editor.focus();
             }]);
         }
-        
+
         cmdBinding({name: 'save', cmdName: 'doSave', shortcut: {win: 'CTRL-s', mac: 'CMD-s'}});
         if (isJs) {
           cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
@@ -1812,10 +1812,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
     },
     showMorphMenu: function ($super, evt) {
-        if (!evt || !evt.isRightMouseButtonDown()) return $super(evt);
-        lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
-        evt && evt.stop();
-        return true;
+        if (evt && (evt.isRightMouseButtonDown()
+         || (evt.isLeftMouseButtonDown() && (UserAgent.isMacOS && evt.isCtrlDown())))) {
+          lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
+          evt && evt.stop();
+          return true;
+         } else  return $super(evt);
     }
 },
 'messaging', {
@@ -1870,7 +1872,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             sm.remove();
             self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
           }
-        
+
           if (sm._removeTimer) clearTimeout(sm._removeTimer);
           if (typeof delay === "number") {
             sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)

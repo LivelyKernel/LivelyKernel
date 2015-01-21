@@ -992,7 +992,8 @@ handleOnCapture);
             return false;
         }
 
-        if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
+        if (completeClick && this.showsMorphMenu
+         && (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown()))) {
             return evt.world.currentMenu || this.currentMenu || this.showMorphMenu(evt);
         }
 

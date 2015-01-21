@@ -8,6 +8,17 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 
 Object.extend(lively.morphic, {
 
+    showMarkerFor: function(morph) {
+      var m = lively._showMarker || (lively._showMarker = $world.loadPartItem("Marker", "PartsBin/Basic"));
+      m.setOpacity(1);
+      m.openInWorld();
+      m.setBounds(morph.globalBounds().expandBy(10));
+      m.applyStyle({borderWidth: 7, borderRadius: 10});
+      (function() {
+        m.setOpacityAnimated(0, 1000, function() { m.remove(); })
+      }).delay(1);
+    },
+
     show: function(obj) {
 
         function showText(text) {
@@ -171,6 +182,7 @@ Object.extend(lively.morphic, {
 });
 
 Object.extend(lively, {
+    showMarkerFor:     lively.morphic.showMarkerFor,
     show:     lively.morphic.show,
     log:      lively.morphic.log,
     newMorph: lively.morphic.newMorph
@@ -178,6 +190,7 @@ Object.extend(lively, {
 
 Object.extend(Global, {
     show:     lively.morphic.show,
+    showMarkerFor:     lively.morphic.showMarkerFor,
     alertDbg: lively.morphic.alertDbg,
     alert:    lively.morphic.alert,
     alertOK:  lively.morphic.alertOK,
@@ -1252,8 +1265,16 @@ Object.extend(lively.morphic.Panel, {
 
 Object.extend(Global, {
     // deprecated interface!
-    newTextPane: lively.morphic.Panel.prototype.newTextPane,
-    newDragnDropListPane: lively.morphic.Panel.prototype.newDragnDropListPane
+    newTextPane:          lively.morphic.Panel.prototype.newTextPane,
+    newDragnDropListPane: lively.morphic.Panel.prototype.newDragnDropListPane,
+    show:                 lively.morphic.show,
+    showMarkerFor:        lively.morphic.showMarkerFor,
+    alertDbg:             lively.morphic.alertDbg,
+    alert:                lively.morphic.alert,
+    alertOK:              lively.morphic.alertOK,
+    inspect:              lively.morphic.inspect,
+    edit:                 lively.morphic.edit,
+    log:                  lively.morphic.log
 });
 
 lively.morphic.Text.addMethods(
@@ -1333,13 +1354,19 @@ lively.morphic.Morph.addMethods(
 
     },
 
-
     moveByAnimated: function(delta, time, callback) {
-        this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);
+        if (delta.eqPt(pt(0,0))) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);
+    },
+
+    alignAnimated: function(posA, posB, time, callback) {
+        if (posA.eqPt(posB)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.align.bind(this, posA, posB), time, callback);
     },
 
     setPositionAnimated: function(position, time, callback) {
-        this.withCSSTransitionDo(this.setPosition.curry(position), time, callback);
+        if (this.getPosition().eqPt(position)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setPosition.curry(position), time, callback);
     },
 
     setOpacityAnimated: function(opacity, time, callback) {
@@ -1347,11 +1374,13 @@ lively.morphic.Morph.addMethods(
     },
 
     setScaleAnimated: function(scale, time, callback) {
-        this.withCSSTransitionDo(this.setScale.curry(scale), time, callback);
+        if (this.getScale() == scale) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setScale.curry(scale), time, callback);
     },
 
     setExtentAnimated: function(extent, time, callback) {
-        this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
+        if (this.getExtent().eqPt(extent)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }
 });
 

@@ -335,7 +335,7 @@ Object.subclass('lively.morphic.Morph',
     },
 
     getMorphById: function(id) {
-        return this.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
+        return $world.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
     },
 
     submorphBounds: function(tfm) {

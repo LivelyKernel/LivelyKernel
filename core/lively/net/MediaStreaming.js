@@ -117,7 +117,6 @@ Object.subclass('lively.net.StreamingConnection',
         this.receiveCount++;
         
         switch (message.type) {
-            // frames from a video and a canvas are rendered equally
             case 'image':
                 // got image data
                 var imageURL = message.data;
@@ -156,7 +155,8 @@ Object.subclass('lively.net.StreamingConnection',
                 if (message.lzwEncoded) {
                     dataString = this.lzwDecode(dataString);
                 }
-                
+                // TODO:
+                // no hook for getting the data, yet
                 console.log(dataString);
                 break;
             case 'initial-information':
@@ -164,19 +164,18 @@ Object.subclass('lively.net.StreamingConnection',
                 this.updateAvailableStreams(availableStreams);
                 break;
             case 'new-clients':
-                var clients = message.clients;
+                // nothing to do for now
                 break;
             case 'stream-id':
-                console.log('received id ' + message.id);
                 var callback = this.idRequestCallbacks.shift();
                 if (callback) callback(message.id);
                 break;
             case 'stream-changes':
                 var streams = message.streams;
-                show('stream changes');
+                Global.alertOK('stream changes');
                 var removedStreams = this.updateAvailableStreams(streams);
                 this.deactivateStreams(removedStreams);
-                
+                // trigger event
                 $(this).trigger('stream-changes', [streams]);
                 break;
             case 'recorded-data':
@@ -206,13 +205,16 @@ Object.subclass('lively.net.StreamingConnection',
                     return record.streamId === streamId;
                 });
                 
+                var idx = this.takeoverCallbacks.indexOf(callbackRecord);
+                this.takeoverCallbacks.splice(idx, 1);
+                
                 callbackRecord.callback(response);
-                // TODO remove callback from array?
                 break;
             case 'continue-streaming':
                 var streamId = message.streamId;
                 Global.alertOK('continue stream ' + streamId);
-                this.continueStreaming(streamId);
+                // not ported to module yet
+                // this.continueStreaming(streamId);
                 break;
             case 'progress-update':
                 this.relateProgressInformation(message.streamId, message.timestamps);
@@ -677,6 +679,7 @@ Object.subclass('lively.net.StreamingConnection',
         config.mediatype = config.mediatype || 'unknown';
         config.steptime = config.steptime || 100;
         config.streaming = config.streaming || function() { return true; };
+        config.record = config.record || false;
         config.compressionParameters = config.compressionParameters || {};
         
         // set defaults for media-specific properties
@@ -794,6 +797,9 @@ Object.subclass('lively.net.StreamingConnection',
         this.trafficStats.downstreamFps = this.receiveCount;
         this.receiveCount = 0;
     },
+    getTrafficStats: function() {
+        return this.trafficStats;
+    },
 },
 'data loading', {
 
@@ -838,31 +844,45 @@ Object.subclass('lively.net.Stream',
     initialize: function(id, streamingConnection) {
         this.streamId = id;
         this.streamingConnection = streamingConnection;
-        this.viewer = null;
+        this.viewer = [];
         this.active = false;
     },
 },
 'frame handling', {
     'newFrame': function(data, timestamp) {
         this.active = true;
-        if (!this.viewer) return;
+        if (this.viewer.length === 0) return;
         
         var frameRecord = {
             timestamp: timestamp,
             data: data
         }
         
-        this.viewer.render(frameRecord);
+        this.viewer.forEach(function(viewer) {
+            viewer.render(frameRecord);
+        });
     },
 },
 'viewer handling', {
     'openViewerInHand': function() {
         var viewer = $world.loadPartItem('SimpleScreen', 'PartsBin/MediaStreaming');
-        this.viewer = viewer;
+        this.registerViewer(viewer);
         
         viewer.openInHand();
         
         return viewer;
+    },
+    registerViewer: function(viewer) {
+        var idx = this.viewer.indexOf(viewer);
+        if (idx >= 0) return;
+        
+        this.viewer.push(viewer);
+    },
+    removeViewer: function(viewer) {
+        var idx = this.viewer.indexOf(viewer);
+        if (idx < 0) return;
+        
+        this.viewer.splice(idx, 1);
     },
 },
 'stream handling', {
@@ -909,9 +929,9 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         
         this.recentBuffer.push(frameRecord);
         
-        if (this.viewer) {
-            this.viewer.newFrame(frameRecord);
-        }
+        this.viewer.forEach(function(viewer) {
+            viewer.newFrame(frameRecord);
+        });
         
         this.ensureRecentBufferSize();
         this.ensureFullHistory();
@@ -1068,6 +1088,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
     'openViewerInHand': function() {
         show('subclass responsibility');
     },
+
 },
 'frame access', {
     'getFrameAtMillisecond': function(ms, loadingStats) {
@@ -1116,7 +1137,7 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
             return this.recentBuffer.last();
         }
         
-        // requestedTime falls before recentBuffer
+        // requestedTime falls before recentBuffer, find appropriate chunk
         var i = 0;
         while (this.availableBufferChunks[i] <= requestedTime) i++;
         var chunkTime = this.availableBufferChunks[i-1];
@@ -1151,6 +1172,8 @@ lively.net.Stream.subclass('lively.net.BackInTimeStream',
         // look for best match in chunk data
         // recently loaded chunks might not be available yet, but they will be 
         // for later requests
+        // there is always more than one frame in the chunk, otherwise the previous
+        // if-block would have been executed
         for (var i = 1; i < chunk.data.length; i++) {
             if (chunk.data[i].timestamp > requestedTime) {
                 return chunk.data[i-1];
@@ -1200,9 +1223,8 @@ lively.net.BackInTimeStream.subclass('lively.net.BackInTimeVideoStream',
 'viewer handling', {
     'openViewerInHand': function() {
         var viewer = $world.loadPartItem('BackInTimeVideoStreamPlayer', 'PartsBin/MediaStreaming');
-        // var viewer = $world.loadPartItem('SimpleScreen', 'PartsBin/MediaStreaming');
         viewer.stream = this;
-        this.viewer = viewer;
+        this.registerViewer(viewer);
         
         viewer.openInHand();
         
@@ -1215,7 +1237,7 @@ lively.net.BackInTimeStream.subclass('lively.net.BackInTimeAudioStream',
     'openViewerInHand': function() {
         var viewer = $world.loadPartItem('BackInTimeAudioStreamPlayer', 'PartsBin/MediaStreaming');
         viewer.stream = this;
-        this.viewer = viewer;
+        this.registerViewer(viewer);
         
         viewer.openInHand();
         

@@ -1,10 +1,9 @@
 module('lively.net.MediaStreaming').requires().toRun(function() {
 Object.subclass('lively.net.StreamingConnection',
 'initializing', {
-    'initialize': function() {
+    'initialize': function(serverUrl) {
         // constants
-        this.serverUrl = 'ws://localhost:1234';
-        // this.serverUrl = 'ws://104.131.62.171:1234';
+        this.serverUrl = serverUrl || 'ws://localhost:1234';
         
         // arrays
         this.sendingBuffer = [];
@@ -17,6 +16,7 @@ Object.subclass('lively.net.StreamingConnection',
         this.streamedObjects = {};
         this.downstreams = {};
         this.trafficStats = {};
+        this.steppingFunctions = {};
         
         // counters
         this.upstreamData = 0;
@@ -24,12 +24,14 @@ Object.subclass('lively.net.StreamingConnection',
         this.sendCount = 0;
         this.receiveCount = 0;
         
-        // setup functions
+        // setup-functions
         var _this = this;
         function init(err, session) {
             _this.session = session;
             _this.openSocketConnection();
+            _this.assignDefaultSteppingFunctions();
         }
+        
         
         // retrieve l2l session
         this.withLively2LivelySessionDo(5000, init);
@@ -39,6 +41,114 @@ Object.subclass('lively.net.StreamingConnection',
         this.statsInterval = Global.setInterval(function() {
             _this.generateMonitoringData();
         }, 1000);
+    },
+    assignDefaultSteppingFunctions: function() {
+        var connection = this;
+        var session = this.session;
+        
+        // in all those functions, this will be bound to the streamed morph
+        this.steppingFunctions['image'] = function(dataString, force) {
+            // lookup the config at time of execution, so that it can be
+            // changed dynamically during steaming
+            var config = this.streamingConfig;
+            
+            console.log(this.name);
+            
+            // Check if the morph wants to be streamed at the moment.
+            // Although, it can be forced when the flag is set.
+            if (!force && !config.streaming()) return;
+            
+            var compressionParams = config.compressionParameters;
+            
+            // aquire compression parameters for each frame from the params
+            var encoding = compressionParams.imgCompression;
+            var quality = compressionParams.imgQuality;
+            var compression = compressionParams.lzwCompression;
+            
+            // capture a video frame
+            var imageURL = dataString || this.captureFrame(encoding, quality);
+            
+            // apply lzw compression, if desired
+            if (compression) {
+                imageURL = connection.lzwEncode(imageURL);
+            }
+            
+            // create a data packet
+            var obj = {
+                type: config.mediatype,
+                senderId: session.sessionId,
+                streamId: config.streamId,
+                senderName: session.username,
+                data: imageURL,
+                record: !!config.record,
+                size: {
+                    width: this.getExtent().x,
+                    height: this.getExtent().y
+                },
+                lzwEncoded: compression
+            }
+            
+            // send it out into the universe
+            connection.send(obj);
+        }
+        
+        this.steppingFunctions['audio'] = function(typedArray, force) {
+            // lookup the config at time of execution, so that it can be
+            // changed dynamically during steaming
+            var config = this.streamingConfig;
+            
+            // Check if the morph wants to be streamed at the moment.
+            // It can be forced when the flag is set.
+            if (!force && !config.streaming()) return;
+            
+            var audioString
+            if (typedArray) {
+                audioString = connection.arraybufferToString(typedArray.buffer);
+            } else {
+                audioString = this.captureFrame();
+            }
+            
+            var obj = {
+                type: config.mediatype,
+                senderId: session.sessionId,
+                streamId: config.streamId,
+                senderName: session.username,
+                data: audioString,
+                record: !!config.record,
+                lzwEncoded: false,
+                reducedBitDepth: config.compressionParameters.reducedBitDepth
+            }
+            
+            connection.send(obj);
+        }
+        
+        this.steppingFunctions['data'] = function(dataString, force) {
+            // lookup the config at time of execution, so that it can be
+            // changed dynamically during steaming
+            var config = this.streamingConfig;
+            
+            // Check if the morph wants to be streamed at the moment.
+            // Although, it can be forced when the flag is set.
+            if (!force && !config.streaming()) return;
+            
+            dataString = dataString || this.captureFrame();
+            
+            if (config.compressionParameters.lzwCompression) {
+                dataString = connection.lzwEncode(dataString);
+            }
+            
+            var obj = {
+                type: config.mediatype,
+                senderId: session.sessionId,
+                streamId: config.streamId,
+                senderName: session.username,
+                data: dataString,
+                record: !!config.record,
+                lzwEncoded: !!config.compressionParameters.lzwCompression
+            }
+            
+            connection.send(obj);
+        }
     },
     openSocketConnection: function() {
         // open a connection to the socket server
@@ -78,7 +188,9 @@ Object.subclass('lively.net.StreamingConnection',
             message = JSON.parse(message);
             
             // all media frames have a timestamp
-            if (message.timestamp) message.timestamp = Number.parseInt(message.timestamp);
+            if (message.timestamp) {
+                message.timestamp = Number.parseInt(message.timestamp);
+            }
             
             _this.handleMessage(message);
         }
@@ -195,6 +307,7 @@ Object.subclass('lively.net.StreamingConnection',
                 var streamId = message.streamId;
                 var requesterId = message.requesterId;
                 var requesterName = message.requesterName;
+                
                 this.decideTakeover(streamId, requesterId, requesterName);
                 break;
             case 'response-takeover':
@@ -230,12 +343,13 @@ Object.subclass('lively.net.StreamingConnection',
     updateAvailableStreams: function(streams) {
         var _this = this;
         
-        // TODO: could find be exchanged with indexOf?
-        
         // substract streams from known items to detect removed streams
         var removedStreams = this.availableStreams.slice();
         streams.forEach(function(stream) {
-            var idx = -1; 
+            // this cannot be done using indexOf, because the objects
+            // in streams and in removedStreams are not identical (although they
+            // have the same values)
+            var idx = -1;
             removedStreams.find(function(item, i) {
                 idx = i;
                 return item.id === stream.id;
@@ -291,6 +405,7 @@ Object.subclass('lively.net.StreamingConnection',
 },
 'compression', {
     lzwDecode: function(string) {
+        // found on stackoverflow, does its job
         var dict = {};
         var data = (string + "").split("");
         var currChar = data[0];
@@ -316,6 +431,7 @@ Object.subclass('lively.net.StreamingConnection',
         return out.join("");
     },
     lzwEncode: function(string) {
+        // found on stackoveflow, does its job
         var dict = {};
         var data = (string + "").split("");
         var out = [];
@@ -360,8 +476,15 @@ Object.subclass('lively.net.StreamingConnection',
         var buffer16Bit = new Global.Uint32Array(buffer);
         var tmpBuffer = new Global.Uint32Array(buffer16Bit.length * 2);
         
+        // the 16 bit buffer is also a 32 bit buffer, but it holds two 16 bit
+        // numbers in one 32 bit field
+        
         for (var i = 0; i < buffer16Bit.length; i++) {
+            // read IEEE-754 to see why this doesn't change the actual numbers
+            
+            // put the MSBs from the 16 bit buffer into on 32 bit field
             tmpBuffer[2*i] = buffer16Bit[i] & 0xffff0000;
+            // put the LSBs into the next field.
             tmpBuffer[2*i + 1] = (buffer16Bit[i] & 0x0000ffff) << 16;
         }
         
@@ -400,9 +523,7 @@ Object.subclass('lively.net.StreamingConnection',
 },
 'stream handling', {
     'deactivateStreams': function(streams) {
-        streams.forEach(function(stream) {
-            // TODO: do something useful
-        });
+        // nothing to do yet
     },
     publish: function(morph) {
         if (!this.socket || this.socket.readyState !== this.socket.OPEN) {
@@ -476,119 +597,15 @@ Object.subclass('lively.net.StreamingConnection',
         morph.streamingFunction = steppingFunction;
     },
     lookupSteppingFunction: function(morph) {
-        var _this = this;
-        var session = this.session;
+        var fun = this.steppingFunctions[morph.streamingConfig.mediatype];
         
-        function lookupStreamingConfig() {
-            return morph.streamingConfig;
+        if (!fun) {
+            show('Unknown mediatype!');
+            return;
         }
         
-        switch (morph.streamingConfig.mediatype) {
-            case 'image':
-                return function(dataString, force) {
-                    // lookup the config at time of execution, so that it can be
-                    // changed dynamically during steaming
-                    var config = lookupStreamingConfig();
-                    
-                    // Check if the morph wants to be streamed at the moment.
-                    // Although, it can be forced when the flag is set.
-                    if (!force && !config.streaming()) return;
-                    
-                    var compressionParams = config.compressionParameters;
-                    
-                    // aquire compression parameters for each frame from the params
-                    var encoding = compressionParams.imgCompression;
-                    var quality = compressionParams.imgQuality;
-                    var compression = compressionParams.lzwCompression;
-                    
-                    // capture a video frame
-                    var imageURL = dataString || morph.captureFrame(encoding, quality);
-                    
-                    // apply lzw compression, if desired
-                    if (compression) {
-                        imageURL = _this.lzwEncode(imageURL);
-                    }
-                    
-                    // create a data packet
-                    var obj = {
-                        type: config.mediatype,
-                        senderId: session.sessionId,
-                        streamId: config.streamId,
-                        senderName: session.username,
-                        data: imageURL,
-                        record: !!config.record,
-                        size: {
-                            width: morph.getExtent().x,
-                            height: morph.getExtent().y
-                        },
-                        lzwEncoded: compression
-                    }
-                    
-                    // send it out into the universe
-                    _this.send(obj);
-                }
-            case 'audio':
-                return function(typedArray, force) {
-                    // lookup the config at time of execution, so that it can be
-                    // changed dynamically during steaming
-                    var config = lookupStreamingConfig();
-                    
-                    // Check if the morph wants to be streamed at the moment.
-                    // It can be forced when the flag is set.
-                    if (!force && !config.streaming()) return;
-                    
-                    var audioString
-                    if (typedArray) {
-                        audioString = _this.arraybufferToString(typedArray.buffer);
-                    } else {
-                        audioString = morph.captureFrame();
-                    }
-                    
-                    var obj = {
-                        type: config.mediatype,
-                        senderId: session.sessionId,
-                        streamId: config.streamId,
-                        senderName: session.username,
-                        data: audioString,
-                        record: !!config.record,
-                        lzwEncoded: false,
-                        reducedBitDepth: config.compressionParameters.reducedBitDepth
-                    }
-                    
-                    _this.send(obj);
-                }
-            case 'data':
-                return function(dataString, force) {
-                    // lookup the config at time of execution, so that it can be
-                    // changed dynamically during steaming
-                    var config = lookupStreamingConfig();
-                    
-                    // Check if the morph wants to be streamed at the moment.
-                    // Although, it can be forced when the flag is set.
-                    if (!force && !config.streaming()) return;
-                    
-                    dataString = dataString || morph.captureFrame();
-                    
-                    if (config.compressionParameters.lzwCompression) {
-                        dataString = _this.lzwEncode(dataString);
-                    }
-                    
-                    var obj = {
-                        type: config.mediatype,
-                        senderId: session.sessionId,
-                        streamId: config.streamId,
-                        senderName: session.username,
-                        data: dataString,
-                        record: !!config.record,
-                        lzwEncoded: !!config.compressionParameters.lzwCompression
-                    }
-                    
-                    _this.send(obj);
-                }
-            default:
-                show('No steppingFunction registered for this mediatype. Either put one into the streamingConfig or write one into lookupSteppingFunction of the MediaStreaming module');
-                return;
-        }
+        fun.bind(morph);
+        return fun;
     },
     startStreaming: function(morph) {
         var steptime = morph.streamingConfig.steptime;
@@ -705,6 +722,7 @@ Object.subclass('lively.net.StreamingConnection',
     'decideTakeover': function(streamId, requesterId, requesterName) {
         Global.alertOK(requesterName + ' wants to take over');
     
+        // we always allow it atm
         var decision = 'ok';
         var message = {
             type: 'response-takeover',
@@ -887,7 +905,7 @@ Object.subclass('lively.net.Stream',
 },
 'stream handling', {
     'deactivate': function() {
-        // TODO: do something useful
+        // nothing to do yet
         show('Stream ' + this.streamId + ' deactivated');
     },
     unsubscribe: function() {
@@ -1292,7 +1310,7 @@ lively.net.Stream.subclass('lively.net.AudioStream',
         this.playingAudioBuffer = true;
         
         var sampleBuffer = this.audioBuffer.shift().buffer;
-        // create buffer with 1 channel, #buffer.length samples, 11025Hz sampling rate
+        // create buffer with 1 channel, #buffer.length samples, 44100Hz sampling rate
         var audioBuffer = this.audioContext.createBuffer(1, sampleBuffer.length, 44100);
         var channel = audioBuffer.getChannelData(0);
         

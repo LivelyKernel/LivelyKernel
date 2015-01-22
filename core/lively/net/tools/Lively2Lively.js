@@ -1,4 +1,4 @@
-module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions', 'lively.morphic.tools.FilterableList', 'lively.net.tools.MediaStreaming').toRun(function() {
+module('lively.net.tools.Lively2Lively').requires('lively.persistence.BuildSpec', 'lively.net.tools.Functions', 'lively.morphic.tools.FilterableList').toRun(function() {
 
 Object.extend(lively.net.tools.Lively2Lively, {
 
@@ -185,10 +185,6 @@ lively.BuildSpec('lively.net.tools.ConnectionIndicator', {
         }],
         ['open inspector', function() {
             lively.BuildSpec('lively.net.tools.Lively2LivelyInspector').createMorph().openInWorldCenter().comeForward();
-            self.collapse();
-        }],
-        ['open stream list', function() {
-            lively.BuildSpec('lively.net.tools.StreamList').createMorph().openInWorldCenter();
             self.collapse();
         }],
         ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {

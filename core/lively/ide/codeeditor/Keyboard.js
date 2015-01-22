@@ -1103,4 +1103,35 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
   }
 })();
 
+
+(function initializeKeyboardRelatedAceSettings() {
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // no Ctrl-Shift-Space
+  ace.require("ace/autocomplete").Autocomplete.startCommand.bindKey = "Ctrl-Space|Alt-Shift-Space|Alt-Space";
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // tabs
+  var tabSize = lively.Config.get('defaultTabSize');
+  module("lively.ide.CodeEditor").runWhenLoaded(function() {
+    lively.morphic.CodeEditor.prototype.style.tabSize = tabSize; });
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // make paren behavior the default in all modes:
+  lively.module('lively.ide.codeeditor.ace').runWhenLoaded(function() {
+      lively.ide.ace.require('ace/mode/text').Mode.addMethods({
+          // FIXME just overwriting $behaviour property in mode prototype isn't
+          // enough because the mode constructor unfortunately sets the behavior
+          // directly. So we also delete the ownProperty behavior in attach
+          $behaviour: new (lively.ide.ace.require("ace/mode/behaviour/cstyle").CstyleBehaviour)(),
+          attach: function(ed) {
+              // replace "Null-Behavior" only
+              if (this.$behaviour && this.$behaviour.constructor === lively.ide.ace.require("ace/mode/behaviour").Behaviour)
+                  delete this.$behaviour;
+          }
+      });
+  });
+
+})();
+
 }) // end of module

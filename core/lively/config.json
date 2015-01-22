@@ -151,11 +151,11 @@
       "doc": "Optional url to be used for websocket connections. By default the normal nodeJSURL will be used but under certain circumstances it can be blocked for websocket traffic. In this case you can set this aleernate url, e.g. to re-route to a certain port.",
       "get": {
           "type": "function",
-          "code": "function() { return lively.Config._nodeJSWebSocketURL; }"
+          "code": "function() { return Config._nodeJSWebSocketURL; }"
       },
       "set": {
         "type": "function",
-        "code": "function(val) { lively.Config._nodeJSWebSocketURL = val; var sessionTracker = lively.lang.Path('net.SessionTracker').get(lively); if (sessionTracker) { sessionTracker.localSessionTrackerURL = new URL(val.replace(/\\$/, '') + '/SessionTracker/'); if (lively.Config.get('lively2livelyAutoStart')) sessionTracker.resetSession(); } return val; }"
+        "code": "function(val) { Config._nodeJSWebSocketURL = val; var sessionTracker = typeof lively !== 'undefined' && lively.lang && lively.lang.Path('net.SessionTracker').get(lively); if (sessionTracker) { sessionTracker.localSessionTrackerURL = new URL(val.replace(/\\$/, '') + '/SessionTracker/'); if (lively.Config.get('lively2livelyAutoStart')) sessionTracker.resetSession(); } return val; }"
       }
     }
   ],
@@ -283,7 +283,7 @@
           "type": "function",
           "code": "function() { return lively.Config.hasOwnProperty('_defaultTabSize') ? lively.Config._defaultTabSize : 4; }"
       },
-      "set": {"type": "function", "code": "function(v) { lively.Config._defaultTabSize = v; module('lively.ide.CodeEditor').runWhenLoaded(function() { lively.morphic.CodeEditor.prototype.style.tabSize = tabSize; lively.ide.allCodeEditors().invoke('setTabSize', v); }); return v; }"}
+      "set": {"type": "function", "code": "function(v) { lively.Config._defaultTabSize = v; module('lively.ide.CodeEditor').runWhenLoaded(function() { lively.morphic.CodeEditor.prototype.style.tabSize = v; lively.whenLoaded(function() { lively.ide.allCodeEditors().invoke('setTabSize', v); }); }); return v; }"}
     },
     ["disableSyntaxHighlighting", false],
     ["textUndoEnabled", false, "Deprecated. Wether Lively takes care of undoing text changes or leaves it to the browser."]

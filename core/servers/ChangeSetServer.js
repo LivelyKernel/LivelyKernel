@@ -199,14 +199,6 @@ function getBranchAndParentFromChangeId(changeId, repo, cb) {
     });
 }
 
-function getOldFileHash(diff) {
-    return diff.match(/^index ([0-9a-f]+)\.\./m)[1];
-}
-
-function getNewFileHash(diff) {
-    return diff.match(/^index [0-9a-f]+\.\.([0-9a-f]+)/m)[1];
-}
-
 function getOldFilename(diff) {
     var filename = diff.match(/^\-\-\- (.*)$/m)[1].trim();
     return filename != '/dev/null' ? filename.substr(2) : null;
@@ -217,110 +209,16 @@ function getNewFilename(diff) {
     return filename != '/dev/null' ? filename.substr(2) : null;
 }
 
-function removeTempFiles(files, tempDir) {
-    async.each(files, function(file, callback) {
-        fs.unlink(path.join(tempDir, file), callback);
-    },
-    function() {
-        // ignore errors;
-    });
-}
-
-function commitDiffs(diffs, commiter, message, commitObj, cb) {
-    // commitObj has at least:
-    //    .parent -    with parent hash (for commit)
-    //    .repoPath -  with git directory name
-    //    .treeInfos - empty hash table or previously loaded tree info
-    var commitObjects = diffs.reduce(function(list, diff) {
-        var hash = getOldFileHash(diff) + '-' + getNewFileHash(diff) + '-' + (getNewFilename(diff) || '');
-        if (!list.hasOwnProperty(hash))
-            list[hash] = { diffs: [] };
-        list[hash].diffs.push(diff);
-        return list;
-    }, {});
-    var tempFiles = [];
-
-    var relPath = path.relative(process.env.WORKSPACE_LK, commitObj.repoPath),
-        filenames = diffs.map(function(diff) {
-            var filename = getNewFilename(diff) || getOldFilename(diff);
-            if (filename == null) return null;
-            return path.relative(relPath, filename);
-        });
-
-    // assemble tree info
-    async.reduce(filenames, commitObj.treeInfos, function(tree, filename, next) {
-        if (filename == null) return tree;
-        gitHelper.util.getTree(commitObj.repoPath, filename, commitObj.parent, tree, next);
-    },
-    function(err) {
-        if (err) return cb(err);
-
-        async.eachSeries(Object.getOwnPropertyNames(commitObjects),
-        async.seq(
-            function createTempFile(doubleHash, next) {
-                // make sure it exists
-                var hashes = doubleHash.split('-');
-                if ((hashes[0] == '0000000000000000000000000000000000000000') ||
-                    (hashes[1] == '0000000000000000000000000000000000000000'))
-                    return next(null, doubleHash, null);
-                exec('git', ['unpack-file', hashes[0]], { cwd: commitObj.repoPath },
-                function(err, stdout, stderr) {
-                    if (err) return next(err);
-                    var tempFile = stdout.trimRight();
-                    commitObjects[doubleHash].tempFile = tempFile;
-                    tempFiles.push(tempFile);
-                    next(null, doubleHash, tempFile);
-                });
-            },
-            function patchTempFile(doubleHash, tempFile, next) {
-                var args = []
-                if (tempFile == null) {
-                    var hash = doubleHash.split('-')[1];
-                    if (hash == '0000000000000000000000000000000000000000')
-                        return next(null, doubleHash, null);
-                    tempFile = '.merge_file_' + hash.substr(0, 8);
-                    tempFiles.push(tempFile);
-                    args.push('-o');
-                }
-                args.push(tempFile);
-                var patch = spawn('patch', args, { cwd: commitObj.repoPath }),
-                    stderr = '';
-                patch.stderr.on('data', function(buffer) {
-                    stderr += buffer.toString();
-                });
-                patch.on('close', function(code) {
-                    if (code == 0)
-                        next(null, doubleHash, tempFile);
-                    else
-                        next(new Error(stderr));
-                });
-                patch.stdin.end(commitObjects[doubleHash].diffs.join('\n'));
-            },
-            function saveOrDeleteTempFile(doubleHash, tempFile, next) {
-                var newFilename = getNewFilename(commitObjects[doubleHash].diffs[0]);
-                if (newFilename == null && tempFile == null) {
-                    newFilename = getOldFilename(commitObjects[doubleHash].diffs[0]);
-                    newFilename = path.relative(relPath, newFilename);
-                    gitHelper.util.removeObjectFromTree(newFilename, commitObj, next);
-                    return;
-                }
-                newFilename = path.relative(relPath, newFilename);
-                gitHelper.util.createHashObjectFromFile(commitObj.repoPath, tempFile, function(err, hash) {
-                    if (err) return next(err);
-                    commitObjects[doubleHash].fileHash = hash;
-                    gitHelper.util.injectHashObjectIntoTree(newFilename, hash, commitObj.treeInfos);
-                    next(null);
-                });
-            }
-        ), function(err) {
-            removeTempFiles(tempFiles, commitObj.repoPath);
-            if (err) return cb(err);
-
-            async.waterfall([
-                gitHelper.util.createTrees.bind(null, commitObj.repoPath, commitObj),
-                gitHelper.util.createCommit.bind(null, commitObj.repoPath, commiter, message),
-            ], cb);
-        });
+function normalizeDiffFilenames(diffs, repoPath) {
+    var relPath = path.relative(process.env.WORKSPACE_LK, repoPath);
+    return diffs.map(function(diff) {
+        var oldFilename = getOldFilename(diff),
+            newFilename = getNewFilename(diff);
+        if (oldFilename)
+            diff = diff.replace('--- a/' + oldFilename, '--- a/' + path.relative(relPath, oldFilename));
+        if (newFilename)
+            diff = diff.replace('+++ b/' + newFilename, '+++ b/' + path.relative(relPath, newFilename));
+        return diff;
     });
 }
 
@@ -356,11 +254,13 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
             var commitObj = {
                 treeInfos: {},
                 parent: parentHash,
-                repoPath: repo.path
             };
 
+            repo.changes = normalizeDiffFilenames(repo.changes, repo.path);
+            repo.stash = normalizeDiffFilenames(repo.stash, repo.path);
+
             async.waterfall([
-                commitDiffs.bind(null, repo.changes, commiter, message, commitObj),
+                gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.changes, commiter, message, commitObj),
                 function(commitObj, callback) {
                     // clean commitObj
                     repo.commitId = commitObj.commit;
@@ -369,8 +269,8 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
                     delete commitObj.rootTree;
                     callback(null, commitObj);
                 },
-                commitDiffs.bind(null, repo.stash, commiter, null),
-                gitHelper.util.updateBranch.bind(null, branch, commitObj.repoPath)
+                gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.stash, commiter, null),
+                gitHelper.util.updateBranch.bind(null, branch, repo.path)
             ], callback);
         });
     }, function(err) {

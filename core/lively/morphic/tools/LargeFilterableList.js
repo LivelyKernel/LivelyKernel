@@ -251,7 +251,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     var keys = evt.getKeyString();
     var modifierPressed = evt.isCtrlDown() || evt.isCommandKey();
 
-    if (keys.match(/(Command|Alt)(-Shift)?-(`|~|F3|1|À)/i)) {
+    if (keys.match(/(Command|Alt)(-Shift)?-(`|~|F3|1|À|å)/i)) {
         if (evt.isShiftDown())  this.selectPrev();
         else this.selectNext(); evt.stop(); return true;
     }  else if (keys === "Escape") {

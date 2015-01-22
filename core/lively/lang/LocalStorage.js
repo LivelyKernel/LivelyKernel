@@ -12,6 +12,7 @@ lively.LocalStorage = {
     get: function(propName) {
         if (!this.isAvailable()) return null;
         var val = localStorage.getItem('lively' + propName);
+        if (!val) return val;
         if (val === "true") return true;
         if (val === "false") return false;
         if (val.match(/^[0-9\.]+$/)) return parseFloat(val);

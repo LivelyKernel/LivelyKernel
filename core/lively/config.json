@@ -312,7 +312,18 @@
     ["computeCodeEditorCompletionsOnStartup", false, "when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions"],
     ["showDoitErrorMessages", true, "When a doit eval results in an error a error message pops up."],
     ["improvedJavaScriptEval", true, "Eval that changes semantics of how object literals and if statements are evaluated."],
-    ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"]
+    ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"],
+    ["aceDefaultUseIyGotoChar", true, "Quickly jump to next / prev characters using Cmd/Ctrl-, and Cmd/Ctrl-. "],
+    {
+      "name": "useEmacsyKeys",
+      "type": "Boolean",
+      "doc": "Keybindings that resemble what you expect from an emacs.",
+      "get": {
+          "type": "function",
+          "code": "function() { return lively.LocalStorage.get('useEmacsyKeys') || false; }"
+      },
+      "set": {"type": "function", "code": "function(v) { lively.LocalStorage.set('useEmacsyKeys', v); require('lively.ide.CodeEditor').toRun(function() { lively.ide.CodeEditor.KeyboardShortcuts.reinitKeyBindingsForAllOpenEditors(); }); return v; }"}
+    }
   ],
 
   "lively.ide.Search": [

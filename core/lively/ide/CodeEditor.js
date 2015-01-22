@@ -1744,14 +1744,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         function boolItem(itemSpec, items) {
             var enabled = editor["get"+itemSpec.name]();
             var item = [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
-                editor['set'+itemSpec.name](!enabled); }].concat()
+                editor['set'+itemSpec.name](!enabled); }];
             items.push(item);
         }
         var settingsItems = [];
         settingsItems.push(['Show effective keybindings', function() { self.showEffectiveKeybindings(); }]);
         settingsItems.push(['Customize keybindings', function() { self.customizeKeybindingsInteractively(); }]);
-        settingsItems.push(["themes", themeItems]);
+        settingsItems.push([lively.lang.string.format('[%s] use emacs-like keys', lively.Config.get('useEmacsyKeys') ? "X" : " "), function() { lively.Config.set('useEmacsyKeys', !lively.Config.get('useEmacsyKeys')); }]);
         settingsItems.push(["modes", modeItems]);
+        settingsItems.push(["themes", themeItems]);
         boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
         boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
         boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);
@@ -1759,11 +1760,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
         boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
         settingsItems.push(['Change tab width', function() {
-            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
+          $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
         }]);
         boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
         settingsItems.push(['Change line ending mode', function() {
-            $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
+          $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
         }]);
         boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);

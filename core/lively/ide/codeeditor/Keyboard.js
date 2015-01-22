@@ -13,6 +13,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
         codeEditor.withAceDo(function(ed) {
             var kbd = ed.getKeyboardHandler();
             // if (kbd.hasLivelyKeys) return;
+
+            if (!lively.Config.get("useEmacsyKeys") && module('lively.ide.codeeditor.EmacsConfig').isLoaded()) {
+              lively.ide.codeeditor.EmacsConfig.disable(ed);
+              kbd = ed.getKeyboardHandler();
+            }
+
             // so that mutli key shortcuts can be transfered from the global
             // key handler:
             ed.keyBinding.$data.keyChain = "";
@@ -29,6 +35,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupToolSpecificBindings(kbd);
             self.setupUsefulHelperBindings(kbd);
             self.setupJumpChar(kbd);
+
+            if (lively.Config.get("useEmacsyKeys")) {
+              require('lively.ide.codeeditor.EmacsConfig').toRun(function() {
+                lively.ide.codeeditor.EmacsConfig.enable(ed)
+              });
+            }
+
             if (lively.Config.get("aceDefaultUseIyGotoChar")) {
               require('lively.ide.codeeditor.IyGotoChar').toRun(function() {
                 lively.ide.codeeditor.IyGotoChar.setupIyGoToChar(kbd);

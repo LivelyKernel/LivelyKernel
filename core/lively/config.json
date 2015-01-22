@@ -275,7 +275,16 @@
   "lively.morphic.Text": [
     ["useSoftTabs", true],
     ["useElasticTabs", false],
-    ["defaultTabSize", 4],
+    {
+      "name": "defaultTabSize",
+      "type": "Number",
+      "doc": "Tab width",
+      "get": {
+          "type": "function",
+          "code": "function() { return lively.Config.hasOwnProperty('_defaultTabSize') ? lively.Config._defaultTabSize : 4; }"
+      },
+      "set": {"type": "function", "code": "function(v) { lively.Config._defaultTabSize = v; module('lively.ide.CodeEditor').runWhenLoaded(function() { lively.morphic.CodeEditor.prototype.style.tabSize = tabSize; lively.ide.allCodeEditors().invoke('setTabSize', v); }); return v; }"}
+    },
     ["disableSyntaxHighlighting", false],
     ["textUndoEnabled", false, "Deprecated. Wether Lively takes care of undoing text changes or leaves it to the browser."]
   ],

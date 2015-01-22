@@ -814,31 +814,33 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: "describeKey",
                 exec: function(ed) {
-                    function uninstall() {
-                        commandExecHandler && ed.commands.removeEventListener('exec', commandExecHandler);
-                        ed.keyBinding.$callKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers.getOriginal();
-                    }
-                    var origCallKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers,
-                        lastKeys = [],
-                        commandExecHandler = ed.commands.addEventListener('exec', function(e) {
-                            uninstall();
-                            e.stopPropagation(); e.preventDefault();
-                            $world.addCodeEditor({
-                                title: 'describe key "' + lastKeys.join(' ') + '"',
-                                content: Strings.format('"%s" is bound to\n%s',
-                                    lastKeys.join(' '), Objects.inspect(e.command)),
-                                textMode: 'text'
-                            });
-                            return true;
-                        });
-                    ed.keyBinding.$callKeyboardHandlers = ed.keyBinding.$callKeyboardHandlers.wrap(function(proceed, hashId, keyString, keyCode, e) {
-                        if (e) {
-                            lively.morphic.EventHandler.prototype.patchEvent(e);
-                            lastKeys.push(e.getKeyString({ignoreModifiersIfNoCombo: true}));
-                        }
-                        return proceed(hashId, keyString, keyCode, e);
+                  var lastKeys = [], found = false;
+                  var reset = ace.ext.keys.captureEditorCommand(ed,
+                    function(cmd) { withResultDo(null, cmd); },
+                    function(hashId, keyString, keyCode, e) {
+                      if (e) {
+                          lively.morphic.EventHandler.prototype.patchEvent(e);
+                          lastKeys.push(e.getKeyString({ignoreModifiersIfNoCombo: true}));
+                      }
                     });
-                    ed.showCommandLine("Press key(s) to find out what command the key is bound to");
+                  ed.$morph.setStatusMessage("Press key(s) to find out what command the key is bound to");
+
+                  lively.lang.fun.waitFor(15*1000, function() { return !!found; },
+                    function(timeout) {
+                      if (!timeout) return;
+                      reset();
+                      ed.$morph.hideStatusMessage();
+                    })
+
+                  function withResultDo(err, cmd) {
+                    found = true;
+                    $world.addCodeEditor({
+                        title: 'describe key "' + lastKeys.join(' ') + '"',
+                        content: Strings.format('"%s" is bound to\n%s',
+                            lastKeys.join(' '), Objects.inspect(cmd)),
+                        textMode: 'text'
+                    }).getWindow().comeForward();
+                  }
                 }
             }]);
     },

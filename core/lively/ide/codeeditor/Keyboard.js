@@ -1078,7 +1078,7 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
   // user key bindings
   try {
     var cust = JSON.parse(lively.LocalStorage.get("user-key-bindings"));
-    if (cust) ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust);
+    ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust || {});
     var h = ace.require("ace/keyboard/keybinding").KeyBinding.prototype["ace.ext.keys.customized"].detect(function(ea) { return ea.layerName === "user-key-bindings"; })
 
     if (h) {

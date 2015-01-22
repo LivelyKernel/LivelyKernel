@@ -88,7 +88,7 @@ function getCommitsByBranch(branch, cb) {
     branch = BRANCH_PREFIX + branch;
 
     async.map(repos, function(repo, callback) {
-        gitHelper.util.diffCommits(branch, repo, function(err, info) {
+        gitHelper.util.diffCommits(branch, FS_BRANCH, repo, function(err, info) {
             if (err) {
                 if (err.code == 'NOTACOMMIT')
                     return callback(null, { added: [], missing: [] }); // empty result

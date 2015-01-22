@@ -1598,7 +1598,6 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.evalJavaScript': 'm-s-:',
     'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-`", "Command-1", "Alt-À","Alt-à", "Alt-`"], win: ["Alt-à","Alt-À", "Alt-`"]},
     'lively.ide.resizeWindow': 'Alt-F1',
-    'lively.ide.resizeWindow': "cmd-s-l r e s",
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.findFile': {mac: ['Control-X F', 'Control-X Control-F'], win: ['Control-X F', 'Control-X Control-F']},
     'lively.ide.openDirViewer': 'Control-X D',

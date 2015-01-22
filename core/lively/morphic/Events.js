@@ -2281,6 +2281,12 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         return Object.merge([keyInputState, {prevKeys: chain}]);
     },
 
+    mergeKeyChainWithInputState: function(chain, keyInputState) {
+        if (!chain || !chain.length) return keyInputState;
+        chain = this.normalizeCombo([chain]).split(' ');
+        return Object.merge([keyInputState, {prevKeys: chain}]);
+    },
+
     getEditorKeybindings: function(codeEditor) {
         var modifierHashIdMapping = (function() {
             // => {C: 1, C-CMD: 9, C-M: 3...}
@@ -2374,12 +2380,13 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
-        if (transferKeyPrefixFromCodeEditor()) return true;
         if (showPressedKeys(evt, keys)) return true;
         return undefined;
     }
 
     function doGlobalActionsOnBubble(evt) { // 2. bubbling phase, in -> out
+        var h = lively.morphic.KeyboardDispatcher.global();
+        h.keyInputState = h.mergeKeyChainWithInputState(ace.ext.keys.$lastKeyChain, h.keyInputState);
         var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
         if (!result) return false;
         evt.stop(); return true;
@@ -2405,11 +2412,6 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         if (focused) return false;
         world.focus.bind(world).delay();
         return true;
-    }
-
-    function transferKeyPrefixFromCodeEditor() {
-        var handler = lively.morphic.KeyboardDispatcher.global();
-        handler.keyInputState = handler.transferPrefixFromActiveCodeEditor(handler.keyInputState);
     }
 
     function showPressedKeys(evt, keys) {

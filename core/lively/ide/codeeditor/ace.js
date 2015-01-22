@@ -30,7 +30,12 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
     ace.config.set("basePath", URL.root.withFilename("core/lib/ace/").toString());
     ace.config.set("modePath", URL.root.withFilename("core/lib/ace/").toString());
     // disable currently broken worker
-    ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
+
+    (function aceSessionSetup(p) {
+      p.setUseWorker(false);
+      p.__defineGetter__("$useEmacsStyleLineStart", lively.lang.fun.False);
+      p.__defineSetter__("$useEmacsStyleLineStart", function(v) { return false; });
+    })(ace.require('ace/edit_session').EditSession.prototype);
 })();
 
 module('lively.ide');

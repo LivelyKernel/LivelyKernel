@@ -2506,13 +2506,30 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
 
 },
 'event handling', {
+    showResizeMenu: function() {
+        var win = this.getWindow(), world = this.world(), items = [];
+        items.pushAll(["full","left","center","right","top","bottom", "reset"].map(function(how) {
+            return [how, function() {
+              lively.ide.commands.exec('lively.ide.resizeWindow', how, win);
+              win.comeForward();
+            }];
+        }));
+        lively.morphic.Menu.openAtHand("Resize window (Alt-F1)", items);
+    },
+
     onMouseDown: function (evt) {
         //Functions.False,
         // TODO: refactor to evt.hand.clickedOnMorph when everything else is ready for it
         evt.hand.clickedOnMorph = this.windowMorph;
         evt.world.clickedOnMorph = this.windowMorph;
     },
-    onMouseUp: Functions.False
+    onMouseUp: function(evt) {
+      if (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown())) {
+        this.showResizeMenu();
+        evt.stop(); return;
+      }
+      return false;
+    }
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart', 'onDragEnd']}),

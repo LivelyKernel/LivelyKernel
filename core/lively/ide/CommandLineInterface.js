@@ -758,7 +758,8 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (!fullPath.length) fullPath = './core/';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
         var excludes = "-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname '),
-            baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
+            // baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
+            baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a -print0 | xargs -0 grep -IinH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
         if (platform !== 'win32') {
             baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');

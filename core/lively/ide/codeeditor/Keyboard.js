@@ -29,7 +29,14 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             self.setupToolSpecificBindings(kbd);
             self.setupUsefulHelperBindings(kbd);
             self.setupJumpChar(kbd);
+            if (lively.Config.get("aceDefaultUseIyGotoChar")) {
+              require('lively.ide.codeeditor.IyGotoChar').toRun(function() {
+                lively.ide.codeeditor.IyGotoChar.setupIyGoToChar(kbd);
+              });
+            }
+
             self.setupUserKeyBindings(kbd, codeEditor);
+
             kbd.hasLivelyKeys = true;
         });
     },

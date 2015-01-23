@@ -572,7 +572,7 @@ lively.morphic.Morph.addMethods(
     },
     getScrollExtent: function() {
         var node = this.getScrollableNode();
-        return pt(node.clientWidth, node.clientHeight);
+        return node ? pt(node.clientWidth, node.clientHeight) : pt(0,0);
     },
     getScrollBounds: function() {
         var s = this.getScroll(), extent = this.getScrollExtent();

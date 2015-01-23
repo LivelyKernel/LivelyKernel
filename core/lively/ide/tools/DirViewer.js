@@ -283,6 +283,14 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 lively.bindings.connect(this, "selection", this.get("DirViewer"), "applySort", {});
             }
             }, {
+                _Extent: lively.pt(60.0,18.0),
+                className: "lively.morphic.Button",
+                label: "download",
+                name: "downloadDirButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("DirViewer"), "downloadDir", {});
+            }
+            }, {
                 _Extent: lively.pt(50.0,18.0),
                 className: "lively.morphic.Button",
                 label: "set cwd",
@@ -295,7 +303,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _Position: lively.pt(1,0),
                 className: "lively.morphic.Button",
                 label: "add dir",
-                name: "setCwdButton",
+                name: "addDirButton",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("DirViewer"), "createDirInteractively", {});
             }
@@ -304,7 +312,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _Position: lively.pt(2,0),
                 className: "lively.morphic.Button",
                 label: "add file",
-                name: "setCwdButton",
+                name: "addFileButton",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("DirViewer"), "createFileInteractively", {});
             }
@@ -677,6 +685,12 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         var d = this.dirState.path;
         $world.alertOK(d + '\nis now Lively\'s working directory');
         lively.ide.CommandLineInterface.setWorkingDirectory(d);
+    },
+        downloadDir: function downloadDir() {
+          var path = this.dirState.path
+          var url = URL.nodejsBase.withFilename("DownloadDirServer/")
+            .withQuery({path: path});
+          window.open(url, "_blank");
     },
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});

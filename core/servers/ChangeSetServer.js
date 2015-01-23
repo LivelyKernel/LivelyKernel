@@ -172,7 +172,7 @@ function getChanges(b, cb) {
 
         if (repoInfos.length == 0) return cb('Could not find change set "' + b + '"!');
         async.map(repoInfos, function(repoInfo, callback) {
-            gitHelper.util.readCommit(repoInfo.changeHash, repoInfo.path, process.env.WORKSPACE_LK, callback);
+            gitHelper.util.readCommit(repoInfo.path, repoInfo.changeHash, process.env.WORKSPACE_LK, callback);
         }, function(err, changesArr) {
             if (err) return cb(err);
 
@@ -322,7 +322,7 @@ module.exports = function(route, app) {
 
     app.get(route + 'commit/:commitId', function(req, res) {
         var commitId = req.param('commitId');
-        gitHelper.util.readCommit(commitId, process.env.WORKSPACE_LK, function(err, changes) {
+        gitHelper.util.readCommit(process.env.WORKSPACE_LK, commitId, function(err, changes) {
             if (err) res.status(400).json({ error: String(err) });
             else res.json(changes);
         });

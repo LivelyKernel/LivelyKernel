@@ -9,6 +9,7 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 Object.extend(lively.morphic, {
 
     showMarkerFor: function(morph) {
+      if (!morph) return;
       var m = lively._showMarker || (lively._showMarker = $world.loadPartItem("Marker", "PartsBin/Basic"));
       m.setOpacity(1);
       m.openInWorld();

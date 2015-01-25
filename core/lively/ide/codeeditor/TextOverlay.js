@@ -63,19 +63,31 @@ Object.subclass("lively.ide.CodeEditorTextOverlay.Overlay",
             overlays = this.overlays || [],
             classNames = [this.baseClassName];
 
+        var tagsToReplace = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;'
+        };
+
+        function replaceTag(tag) { return tagsToReplace[tag] || tag; }
+
         overlays.forEach(function(overlay) {
             if (overlay.start.row < startRow || overlay.start.row > endRow) return;
             var screenPos = session.documentToScreenPosition(overlay.start.row, overlay.start.column),
-                x = config.padding + (config.characterWidth * screenPos.column),
-                y = config.lineHeight * (screenPos.row-config.firstRowScreen),
+                offs = overlay.offset,
+                x = config.padding + (config.characterWidth * screenPos.column) + (offs ? offs.x : 0),
+                y = config.lineHeight * (screenPos.row-config.firstRowScreen) + (offs ? offs.y : 0),
+                data = overlay.data ? Object.keys(overlay.data).map(function(ea) {
+                  return "data-" + ea + '="' + overlay.data[ea] + '"'; }).join("") : "",
                 classes = classNames.concat(overlay.classNames).join(" ");
             html.pushAll([
                 "<span",
                 " class=\"", classes, "\"",
                 " style=\"", "top:", y, "px;", "left:", x ,"px;"," \"",
+                data,
                 ">",
-                overlay.text,
-                "</span>"])
+                overlay.text.replace(/[&<>]/g, replaceTag),
+                "</span>"]);
         });
     },
     redraw: function(session) {

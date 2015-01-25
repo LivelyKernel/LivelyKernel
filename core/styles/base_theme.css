@@ -274,3 +274,39 @@
 	border-radius: 3px;
 	background: rgba(204,204,0,0.7);
 }
+
+.ace_line .ace_link {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/*for action texts*/
+.ace_link:hover, .ace_action:hover {
+	text-decoration: underline;
+/*font-weight: bold;*/
+}
+
+.ace_line .ace_action {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.text-overlay {
+	pointer-events: auto;
+	cursor: pointer;
+	z-index: 999;
+	font-family: Monaco, monospace;
+	font-size: 10px;
+	position: absolute;
+	color: white;
+	background: #666;
+	padding: 1px;
+	border: 1px #666 solid;
+	box-shadow: none;
+	white-space: pre;
+}
+
+.text-overlay.hidden {
+	display: none;
+}

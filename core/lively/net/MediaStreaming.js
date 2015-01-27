@@ -274,6 +274,8 @@ Object.subclass('lively.net.StreamingConnection',
             case 'initial-information':
                 var availableStreams = message.streams;
                 this.updateAvailableStreams(availableStreams);
+                // trigger event
+                $(this).trigger('stream-changes', [availableStreams]);
                 break;
             case 'new-clients':
                 // nothing to do for now

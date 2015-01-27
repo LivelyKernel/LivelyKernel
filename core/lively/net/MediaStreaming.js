@@ -52,8 +52,6 @@ Object.subclass('lively.net.StreamingConnection',
             // changed dynamically during steaming
             var config = this.streamingConfig;
             
-            console.log(this.name);
-            
             // Check if the morph wants to be streamed at the moment.
             // Although, it can be forced when the flag is set.
             if (!force && !config.streaming()) return;
@@ -269,6 +267,7 @@ Object.subclass('lively.net.StreamingConnection',
                 }
                 // TODO:
                 // no hook for getting the data, yet
+                // until then, just log it
                 console.log(dataString);
                 break;
             case 'initial-information':

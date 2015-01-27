@@ -177,9 +177,9 @@ function getChanges(b, cb) {
             if (err) return cb(err);
 
             var changeSet = changesArr.reduce(function(all, changes, idx) {
-                var subst = '$& ' + repoInfos[idx].changeHash;
+                var subst = '$1 ' + repoInfos[idx].changeHash;
                 changes.forEach(function(change) {
-                    all.push(change.replace(/^@@.*@@$/m, subst));
+                    all.push(change.replace(/^(@@.*@@).*$/m, subst));
                 });
                 return all;
             }, []);

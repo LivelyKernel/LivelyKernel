@@ -318,10 +318,10 @@ lively.morphic.Morph.addMethods(
     },
 },
 'opening', {
-    openInWorld: function(pos, name) {
+    openInWorld: function(pos) {
         var world = lively.morphic.World.current();
         if (!world) {
-            lively.whenLoaded(this.openInWorld.bind(this,pos,name));
+            lively.whenLoaded(this.openInWorld.bind(this, pos));
             return;
         }
         if (world.currentScene) world = world.currentScene;

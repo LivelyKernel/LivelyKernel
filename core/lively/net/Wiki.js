@@ -303,4 +303,64 @@ debugger;
 
 });
 
+(function showChangeSetTestButtons() {
+    JSLoader.getOption('testChangeSet') && lively.whenLoaded(function(world) {
+        var box = new lively.morphic.Box(lively.rect(0, 0, 120, 70)),
+            testOk = new lively.morphic.Button(lively.rect(0, 0, 100, 20), 'Test OK!'),
+            testAbort = new lively.morphic.Button(lively.rect(0, 0, 100, 20), 'Abort!');
+
+        function disableWorld(good) {
+            var text = new lively.morphic.Text(lively.rect(0, 0, 175, 67), 'You may now close this window!');
+            text.applyStyle({
+                allowInput: false,
+                fontSize: 14,
+                padding: lively.rect(0, 10, 10, 0),
+                fill: Color[(good ? 'green' : 'red')].lighter(),
+                borderWidth: 0,
+                align: 'center'
+            });
+            text.ignoreEvents();
+            $world.addModal(text);
+            box.remove();
+        }
+
+        box.setFill(Color.white);
+        box.addMorph(testOk);
+        box.addMorph(testAbort);
+        box.openInWorld();
+        box.isEpiMorph = true;
+        box.setFixed(true);
+        box.setBorderWidth(1);
+        box.setBorderColor(Color.gray);
+
+        testOk.setPosition(lively.pt(10, 10));
+        testOk.setFill(Color.green);
+        testOk.setAppearanceStylingMode(false);
+        testOk.label.setTextStylingMode(false);
+        testOk.label.setFontSize(9);
+        testOk.onClick = function() {
+            // TODO: extract to module?
+            var changeSet = JSLoader.getOption('testChangeSet'),
+                url = URL.nodejsBase.withFilename('ChangeSetServer/finalize/' + changeSet);
+            url.asWebResource().get();
+            disableWorld(true);
+        };
+
+        testAbort.setPosition(lively.pt(10, 40));
+        testAbort.setFill(Color.red);
+        testAbort.label.setTextColor(Color.white);
+        testAbort.setAppearanceStylingMode(false);
+        testAbort.label.setTextStylingMode(false);
+        testAbort.label.setFontSize(9);
+        testAbort.onClick = function() {
+            // TODO: extract to module?
+            var changeSet = JSLoader.getOption('testChangeSet'),
+                url = URL.nodejsBase.withFilename('ChangeSetServer/remove/' + changeSet);
+            url.asWebResource().get();
+
+            disableWorld(false);
+        };
+    });
+})();
+
 }) // end of module

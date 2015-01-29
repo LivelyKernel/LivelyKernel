@@ -8,6 +8,7 @@ var gitHelper = require('lively-git-helper');
 
 var FS_BRANCH = 'master',
     BRANCH_PREFIX = 'lvChangeSet-',
+    TEST_PREFIX = '_test-',
     SUB_REPOS = []; // FIXME: do not hard-code
 
 // determine sub-repos (inside node_mdoules)
@@ -371,6 +372,41 @@ module.exports = function(route, app) {
         else {
             res.json({ merge: { from: fromBranch, to: toBranch }});
         }
+    });
+
+    app.get(route + 'finalize/:branch', function(req, res) {
+        var branch = req.param('branch'),
+            fullBranch = BRANCH_PREFIX + branch,
+            originalBranch = branch.substr(TEST_PREFIX.length),
+            repoPath = process.env.WORKSPACE_LK;
+
+        // TODO: make it work for sub repositories
+        async.waterfall([
+            gitHelper.util.readCommitInfo.bind(null, repoPath, fullBranch),
+            function(info, cb) {
+                if (!info.commitId) return cb(new Error('Could not find test branch "' + branch + '"!'));
+                cb(null, { commit: info.commitId });
+            },
+            gitHelper.util.updateBranch.bind(null, originalBranch, repoPath),
+            function(_, cb) { cb(); }, // remove all return values
+            gitHelper.removeBranch.bind(null, fullBranch, repoPath)
+        ], function(err) {
+            if (err) return res.status(400).json({ error: err.toString() });
+            res.json({ success: true, updated: originalBranch, removed: branch });
+        });
+    });
+
+    app.get(route + 'remove/:branch', function(req, res) {
+        var branch = req.param('branch'),
+            fullBranch = BRANCH_PREFIX + branch;
+        if (branch == FS_BRANCH)
+            return res.status(400).json({ error: 'You cannot remove the main change set (' + FS_BRANCH + ')!'});
+
+        // TODO: make it work for sub repositories
+        var repoPath = process.env.WORKSPACE_LK;
+        gitHelper.removeBranch(fullBranch, repoPath, function() {
+            res.json({ success: true, removed: branch });
+        });
     });
 
 }

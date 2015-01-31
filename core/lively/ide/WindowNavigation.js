@@ -58,9 +58,15 @@ Object.subclass('lively.ide.WindowNavigation.WindowManager',
                 candidates: windowList(),
                 actions: [
                     {name: 'come forward', exec: function(candidate) { winMgr.makeWindowActive(candidate); winMgr.resetList(narrower); }},
-                    {name: 'close', exec: function(candidate) { candidate.initiateShutdown(); narrower.state.allCandidates = windowList(); narrower.filter(narrower.getInput()); }}]
+                    {name: 'close', exec: function(candidate) { candidate.initiateShutdown(); narrower.state.allCandidates = windowList(); narrower.filter(narrower.getInput()); }},
+                    {name: 'close all filtered', exec: function(candidate) {
+                      var s = narrower.state.originalState || narrower.state;
+                      (s.filteredCandidates || []).pluck('value').invoke("initiateShutdown");
+                      narrower.state.allCandidates = windowList(); narrower.filter(narrower.getInput());
+                    }}]
             }
         });
+        
         return this;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

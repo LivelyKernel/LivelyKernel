@@ -10,6 +10,11 @@ Object.extend(lively.ide.tools.ShellCommandRunner, {
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
         runner.attachTo(cmd);
         return runner;
+    },
+    findOrCreateForCommand: function(cmd) {
+      var existing = cmd.getPid() && $world.submorphs.grep(/ShellCommandRunner/).detect(function(ea) {
+          return ea.targetMorph.currentCommand && ea.targetMorph.currentCommand.getPid() === cmd.getPid(); });
+      return existing || this.forCommand(cmd);
     }
 });
 

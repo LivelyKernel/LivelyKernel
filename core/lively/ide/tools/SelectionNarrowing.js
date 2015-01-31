@@ -113,12 +113,12 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
             name: options.name,
             setup: function(narrower) {
                 remove && lively.bindings.connect(narrower, 'deactivate', narrower, 'remove');
-                lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
+                thenDo && lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
             },
             spec: {
                 prompt: options.prompt || 'select item: ',
                 candidates: list.asListItemArray(),
-                actions: [
+                actions: options.actions || [
                     {name: 'with item do', exec: function(candidate) {
                         thenDoCalled = true;
                         thenDo(null, candidate); }},

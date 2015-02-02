@@ -145,10 +145,21 @@ require('lively.ide.CodeEditor').toRun(function() {
                 overlay.redraw(ed.session);
             });
         },
-        removeTextOverlay: function() {
+
+        removeTextOverlay: function(options) {
+            var klass = options && options.className,
+                self = this;
             this.withOverlaySupport(function($overlay, ed) {
-                $overlay.detach(ed.session);
-                delete ed.session.$textOverlay;
+                if (klass) {
+                  $overlay.overlays = $overlay.overlays.filter(function(ea) {
+                    return !ea.classNames || !ea.classNames.include(klass); });
+                }
+                if (klass && $overlay.overlays.length) {
+                  self.redrawTextOverlays();
+                } else {
+                  $overlay.detach(ed.session);
+                  delete ed.session.$textOverlay;
+                }
             });
         },
 

@@ -853,7 +853,7 @@ lively.morphic.World.addMethods(
         textMsg.beLabel(Object.merge([{
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
-            allowInput: false,
+            allowInput: false, selectable: false,
             clipMode: 'visible', whiteSpaceHandling: 'pre'
         }, (options.textStyle || {})]));
 
@@ -900,7 +900,7 @@ lively.morphic.World.addMethods(
             this.stayOpen = true;
             world.statusMessages.remove(this);
             var self = this, text = this.get('messageText');
-            text.applyStyle({allowInput: true, fixedWidth: false });
+            text.applyStyle({allowInput: true, fixedWidth: false, selectable: true});
             text.fit();
             (function() {
                 var ext = text.getTextExtent().addXY(20,20),

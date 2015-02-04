@@ -51,7 +51,7 @@ function defaultKill(pid, cmd, signal, thenDo) {
     debug && console.log('signal pid %s with', pid, signal);
     signal = signal.toUpperCase().replace(/^SIG/, '');
     exec('kill -s ' + signal + " " + pid, function(code, out, err) {
-        debug && console.log('signl result: ', out, err);
+        debug && console.log('signal result: ', out, err);
         thenDo(code, out, err);
     });
 }
@@ -81,20 +81,25 @@ function startSpawn(cmdInstructions) {
     var commandEnv = cmdInstructions.env || {};
     commandEnv.__proto__ = env;
     var options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
-        command = cmdInstructions.command, args = [],
+        commandString = cmdInstructions.command,
         stdin = cmdInstructions.stdin;
-    if (typeof command === 'string') {
-        args = command.split(' ');
-    } else if (util.isArray(command)) {
-        args = command;
+    if (util.isArray(command)) {
+        commandString = commandString.join(" ");
+    } else {
+        commandString = String(commandString);
     }
 
     // hmm (variable) expansion seems not to work with spawn
     // as a quick hack do it manually here
-    args = args.map(function(arg) {
-        return arg.replace(/\$[a-zA-Z0-9_]+/g, function(match) {
-            return process.env[match.slice(1,match.length)] || match; }); });
-    command = args.shift();
+    commandString = commandString.replace(/\$[a-zA-Z0-9_]+/g, function(match) {
+      return process.env[match.slice(1,match.length)] || match; });
+
+    if (!isWindows) {
+      commandString = util.format("source %s/bin/lively.profile; %s", dir, commandString)
+    }
+
+    var command = "/usr/bin/env",
+        args = ["bash", "-c", commandString]
 
     if (debug) console.log('Running command: "%s"', [command].concat(args).join(' '));
     var proc = spawn(command, args, options);

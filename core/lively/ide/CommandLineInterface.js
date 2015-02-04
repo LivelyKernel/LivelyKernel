@@ -286,7 +286,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 },
 'internal', {
     getCommand: function() {
-        return ["/usr/bin/env", "bash", "-c", this._commandString];
+        return this._commandString;
     },
 
     startServerIDLookup: function() {

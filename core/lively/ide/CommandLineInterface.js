@@ -572,6 +572,12 @@ Object.extend(lively.ide.CommandLineInterface, {
         return baseDir + (needsSep ? '/' : '') + path;
     },
 
+    normalizePath: function(path, thenDo) {
+      this.run(lively.lang.string.format('echo `cd "%s"; pwd`;', path), {}, function(err, cmd) {
+        thenDo(err, err ? null : cmd.getStdout().trim());
+      });
+    },
+
     readFile: function(path, options, thenDo) {
         if (typeof options === "function") { thenDo = options; options = null; }
         options = options || {};

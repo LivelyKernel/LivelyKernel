@@ -338,6 +338,14 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 Object.extend(lively.ide.CommandLineInterface, {
 
     rootDirectory: null,
+
+    WORKSPACE_LK: (function() {
+      lively.shell.run("echo $WORKSPACE_LK", {}, function(err, cmd) {
+        if (!cmd.getCode()) lively.ide.CommandLineInterface.WORKSPACE_LK = cmd.getStdout().trim();
+      })
+      return null;
+    })(),
+
     commandQueue: {},
 
     reset: function() {
@@ -544,9 +552,15 @@ Object.extend(lively.ide.CommandLineInterface, {
         } catch(e) { return ''; }
     },
 
-    setWorkingDirectory: function(dir) { return this.rootDirectory = dir; },
+    setWorkingDirectory: function(dir) {
+      this.rootDirectory = dir
+      lively.bindings.signal(lively.shell, 'currentDirectory', dir);
+      return dir;
+    },
 
     cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
+
+    cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
 
     makeAbsolute: function(path) {
         var isAbsolute = !!(path.match(/^\s*[a-zA-Z]:\\/) || path.match(/^\s*\/.*/));

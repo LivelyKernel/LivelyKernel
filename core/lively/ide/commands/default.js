@@ -558,7 +558,7 @@ Object.extend(lively.ide.commands.byName, {
                 {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
                 {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
 
-            if (lively.ide.CommandLineInterface.rootDirectory) {
+            if (!lively.shell.cwdIsLivelyDir()) {
                 // SCB is currently only supported for Lively files
                 actions.shift();
             }

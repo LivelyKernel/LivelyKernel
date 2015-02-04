@@ -451,6 +451,11 @@ Object.extend(lively.net.SessionTracker, {
             session.answer(msg, {message: 'chat message received', error: null});
         },
 
+        changeWorkingDirectory: function(msg, session) {
+          lively.shell.setWorkingDirectory(msg.data.args[0]);
+          session.answer(msg, {status: ""});
+        },
+
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
             session.answer(msg, {error: 'messageNotUnderstood'});

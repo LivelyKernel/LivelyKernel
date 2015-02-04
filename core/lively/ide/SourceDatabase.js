@@ -496,7 +496,7 @@ Object.subclass('AnotherSourceDatabase', {
 
     mapURLToRelativeModulePaths: function(url) {
         var path = url.withRelativePartsResolved().relativePathFrom(URL.root);
-        if (path.startsWith('core/')) {
+        if (path.startsWith('core/') && path != 'core/') {
             path = path.slice('core/'.length);
         } else {
             if (!path.startsWith('/')) path = '/' + path;

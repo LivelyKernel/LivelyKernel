@@ -12,4 +12,45 @@ if (Config.get('useHistoryTracking', true)) {
     module("lively.ide.SystemCodeBrowserAddons").load();
 }
 
+Object.extend(lively.ide, {
+    openFile: function (url, whenDone) {
+        lively.require('lively.ide.tools.TextEditor').toRun(function() {
+            var editor = lively.BuildSpec('lively.ide.tools.TextEditor').createMorph();
+            if (url) {
+                if (String(url).match(/^(\/|.:\\)/)) {
+                    // absolute local path
+                } else if (!String(url).startsWith('http')) {
+                    url = URL.root.withFilename(url).withRelativePartsResolved();
+                }
+                editor.openURL(url);
+            }
+            editor.openInWorld($world.positionForNewMorph(editor)).comeForward();
+            typeof whenDone === 'function' && whenDone(editor);
+        });
+    },
+
+    openFileAsEDITOR: function (file, whenEditDone) {
+        lively.ide.openFile(file, function(editor) {
+            editor.closeVetoed = false;
+            editor.wasStored = false;
+
+            lively.bindings.connect(editor, 'contentStored', whenEditDone, 'call', {
+                updater: function($upd) {
+                    var editor = this.sourceObj;
+                    editor.wasStored = true;
+                    editor.initiateShutdown();
+                    $upd(null,null, "saved");
+                }
+            });
+
+            editor.onOwnerChanged = function(owner) {
+                if (this.wasStored) return;
+                this.closeVetoed = !!owner;
+                if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
+            };
+        });
+    }
+
+});
+
 }); // end of module

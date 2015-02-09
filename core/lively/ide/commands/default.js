@@ -1054,9 +1054,9 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openSystemConsole': {
         description: 'open SystemConsole (to see console logging)',
         exec: function() {
-            lively.require("lively.ide.tools.SystemConsole").toRun(function() {
-                lively.ide.tools.SystemConsole.open();
-            });
+            if ($world.get("LogMessages")) $world.get("LogMessages").comeForward();
+            else lively.require("lively.ide.tools.SystemConsole")
+              .toRun(function() { lively.ide.tools.SystemConsole.open(); });
             return true;
         }
     },

@@ -341,7 +341,9 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     WORKSPACE_LK: (function() {
       lively.ide.CommandLineInterface.run("echo $WORKSPACE_LK", {}, function(err, cmd) {
-        if (!cmd.getCode()) lively.ide.CommandLineInterface.WORKSPACE_LK = cmd.getStdout().trim();
+        if (!cmd.getCode() && cmd.getStdout().trim().length > 3) {
+          lively.ide.CommandLineInterface.WORKSPACE_LK = cmd.getStdout().trim();
+        }
       })
       return null;
     }).delay(0),

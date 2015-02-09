@@ -388,7 +388,7 @@ Object.extend(lively.ide.tools.SystemConsole, {
     },
 
     open: function() {
-        return lively.BuildSpec('lively.ide.tools.SystemConsole')
+        return lively.BuildSpec('lively.ide.tools.LogMessages')
             .createMorph().openInWorld($world.positionForNewMorph()).comeForward();
     }
 });

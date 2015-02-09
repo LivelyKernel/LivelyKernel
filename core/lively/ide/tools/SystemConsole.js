@@ -1,329 +1,386 @@
 module('lively.ide.tools.SystemConsole').requires('lively.persistence.BuildSpec').toRun(function() {
 
-lively.BuildSpec('lively.ide.tools.SystemConsole', {
-    _Extent: lively.pt(493.0,234.0),
-    className: "lively.morphic.Window",
-    contentOffset: lively.pt(3.0,22.0),
-    draggingEnabled: true,
-    name: "SystemConsole",
-    layout: {adjustForNewBounds: true},
-    submorphs: [{
-        _BorderColor: Color.rgb(95,94,95),
-        _ClipMode: "scroll",
-        _Extent: lively.pt(487.0,209.0),
-        _Fill: Color.rgb(255,255,255),
-        _FontSize: 10,
-        _Position: lively.pt(3.0,22.0),
-        _StyleSheet: ".list-item.error {\n\
-    	color: red !important;\n\
-    }\n\
-    \n\
-    .list-item.warn {\n\
-    	color: orange !important;\n\
-    }\n\
-    \n\
-    .list-item.new-log-item {\n\
-    	font-weight: bold;\n\
-    }\n\
-    .list-item.log {\n\
-    }",
-        className: "lively.morphic.List",
-        droppingEnabled: true,
-        grabbingEnabled: false,
-        isMultipleSelectionList: true,
-        itemMorphs: [],
-        layout: {
-            adjustForNewBounds: true,
-            extent: lively.pt(487.0,209.0),
-            listItemHeight: 19,
-            maxExtent: lively.pt(487.0,209.0),
-            maxListItems: 11,
-            noOfCandidatesShown: 1,
-            padding: 0,
-            resizeHeight: true,
-            resizeWidth: true
-        },
-        multipleSelectionMode: "multiSelectWithShift",
-        name: "SystemConsole",
-        sourceModule: "lively.morphic.Lists",
+lively.ide.tools.SystemConsole.ConsoleWrapperFunctions = {
 
-        clear: function clear() {
-            this.setList([]);
-        },
+  install: function install(target, _console, _window) {
+      this.installConsoleWrapper(target, _console);
+      this.installErrorCapture(target, _window);
+  },
+  
+  installConsoleWrapper: function installConsoleWrapper(target, console) {
+      var c = console || Global.console;
+      if (!c.addConsumer) this.prepareConsole(c);
+  
+      target.warn = this.wrapperFunc(target, 'warn');
+      target.error = this.wrapperFunc(target, 'error');
+      target.log = this.wrapperFunc(target, 'log');
+  
+      if (c.consumers && !c.consumers.include(target)) c.addConsumer(target);
+  },
+  
+  
+  installErrorCapture: function installErrorCapture(target, _window) {
+      if (!_window) _window = window;
+      // window.removeEventListener('error', errorHandler)
+  
+      if (target._errorHandler) return;
+  
+      target._errorHandler = (function errorHandler(errEvent, url, lineNumber, column, errorObj) {
+          var err = errEvent.error || errEvent;
+          if (err.stack) {
+              var string = String(err.stack)
+              console.error("%s", string.replace(/\n/g, ''));
+          } else if (err.message) {
+              console.error(err.message);
+          } else console.error("%s  %s:%s", err, url, lineNumber);
+      });
+  
+      _window.addEventListener('error', target._errorHandler);
+  },
+  
+  prepareConsole: function prepareConsole(platformConsole) {
+      var required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'];
+      function emptyFunc() {}
+  
+      for (var i = 0; i < required.length; i++) {
+          if (!platformConsole[required[i]]) platformConsole[required[i]] = emptyFunc;
+      }
+  
+      var consumers = platformConsole.consumers = [];
+      platformConsole.wasWrapped = false;
+  
+      function addWrappers() {
+          if (platformConsole.wasWrapped) return;
+  
+          var props = [];
+          for (var name in platformConsole) props.push(name);
+  
+          for (var i = 0; i < props.length; i++) {
+              (function(name) {
+                  var func = platformConsole[name];
+                  platformConsole['$' + name] = func;
+                  if (typeof func !== 'function') return;
+                  platformConsole[name] = function(/*arguments*/) {
+                      func.apply(platformConsole, arguments);
+                      for (var i = 0; i < consumers.length; i++) {
+                          var consumerFunc = consumers[i][name];
+                          if (consumerFunc) {
+                              consumerFunc.apply(consumers[i], arguments);
+                          }
+                      }
+                  };
+              })(props[i]);
+          }
+          platformConsole.wasWrapped = true;
+      }
+  
+      function removeWrappers() {
+          for (var name in platformConsole) {
+              if (name[0] !== '$') continue;
+              var realName = name.substring(1, name.length);
+              platformConsole[realName] = platformConsole[name];
+              delete platformConsole[name];
+          }
+      }
+  
+      platformConsole.removeWrappers = removeWrappers;
+      platformConsole.addWrappers = addWrappers;
+  
+      platformConsole.addConsumer = function(c) {
+          if (consumers.indexOf(c === -1)) {
+              addWrappers();
+              consumers.push(c);
+          }
+      };
+  
+      platformConsole.removeConsumer = function(c) {
+          var idx = consumers.indexOf(c);
+          if (idx >= 0) consumers.splice(idx, 1);
+          if (consumers.length === 0) removeWrappers();
+      };
+  
+  },
+  
+  uninstall: function uninstall(target) {
+      this.uninstallConsoleWrapper(target);
+      this.uninstallErrorCapture(target);
+  },
+  
+  uninstallConsoleWrapper: function uninstallConsoleWrapper(target) {
+      console.consumers.remove(target);
+  },
+  
+  uninstallErrorCapture: function uninstallErrorCapture(target) {
+      if (!target._errorHandler) return;
+      window.removeEventListener('error', target._errorHandler);
+      delete target._errorHandler;
+  },
+  
+  wrapperFunc: function wrapperFunc(target, type) {
+    return function consoleWrapper(/*args*/) {
+      var string = String(arguments[0]);
+      for (var i = 1; i < arguments.length; i++) {
+          var idx = string.indexOf('%s');
+          if (idx > -1) string = string.slice(0,idx) + String(arguments[i]) + string.slice(idx+2);
+      }
+      // this === target !
+      this.onLogMessage(type, string);
+    }
+  
+  }
+}
 
-        editItems: function editItems(items) {
-            items.pluck('value').map(function(v) {
-                $world.addCodeEditor({
-                    title: 'log item ' + new Date(v.time),
-                    content: v.string,
-                    textMode: 'text'
-                }).getWindow().comeForward();
-            });
-        },
 
-        install: function install(_console, _window) {
-            this.installConsoleWrapper(_console);
-            this.installErrorCapture(_window);
-        },
-
-        installConsoleWrapper: function installConsoleWrapper(console) {
-            var c = console || Global.console;
-            if (!c.addConsumer) this.prepareConsole(c);
-
-            this.warn = this.wrapperFunc('warn');
-            this.error = this.wrapperFunc('error');
-            this.log = this.wrapperFunc('log');
-
-            if (c.consumers && !c.consumers.include(this)) c.addConsumer(this);
-        },
-
-        prepareConsole: function prepareConsole(platformConsole) {
-            var required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'];
-            function emptyFunc() {}
-
-            for (var i = 0; i < required.length; i++) {
-                if (!platformConsole[required[i]]) platformConsole[required[i]] = emptyFunc;
-            }
-
-            var consumers = platformConsole.consumers = [];
-            platformConsole.wasWrapped = false;
-
-            function addWrappers() {
-                if (platformConsole.wasWrapped) return;
-
-                var props = [];
-                for (var name in platformConsole) props.push(name);
-
-                for (var i = 0; i < props.length; i++) {
-                    (function(name) {
-                        var func = platformConsole[name];
-                        platformConsole['$' + name] = func;
-                        if (typeof func !== 'function') return;
-                        platformConsole[name] = function(/*arguments*/) {
-                            func.apply(platformConsole, arguments);
-                            for (var i = 0; i < consumers.length; i++) {
-                                var consumerFunc = consumers[i][name];
-                                if (consumerFunc) {
-                                    consumerFunc.apply(consumers[i], arguments);
-                                }
-                            }
-                        };
-                    })(props[i]);
-                }
-                platformConsole.wasWrapped = true;
-            }
-
-            function removeWrappers() {
-                for (var name in platformConsole) {
-                    if (name[0] !== '$') continue;
-                    var realName = name.substring(1, name.length);
-                    platformConsole[realName] = platformConsole[name];
-                    delete platformConsole[name];
-                }
-            }
-
-            platformConsole.removeWrappers = removeWrappers;
-            platformConsole.addWrappers = addWrappers;
-
-            platformConsole.addConsumer = function(c) {
-                if (consumers.indexOf(c === -1)) {
-                    addWrappers();
-                    consumers.push(c);
-                }
-            };
-
-            platformConsole.removeConsumer = function(c) {
-                var idx = consumers.indexOf(c);
-                if (idx >= 0) consumers.splice(idx, 1);
-                if (consumers.length === 0) removeWrappers();
-            };
-
-        },
-
-        installErrorCapture: function installErrorCapture(_window) {
-            if (!_window) _window = window;
-            // window.removeEventListener('error', errorHandler)
-
-            if (this._errorHandler) return;
-
-            this._errorHandler = (function errorHandler(errEvent, url, lineNumber, column, errorObj) {
-                var err = errEvent.error || errEvent;
-                if (err.stack) {
-                    var string = String(err.stack)
-                    console.error("%s", string.replace(/\n/g, ''));
-                } else if (err.message) {
-                    console.error(err.message);
-                } else console.error("%s  %s:%s", err, url, lineNumber);
-            }).bind(this);
-
-            _window.addEventListener('error', this._errorHandler);
-        },
-
-        morphMenuItems: function morphMenuItems() {
-            var items = $super(),
-                c = lively.Config,
-                logsVerbose = c.get("verboseLogging");
-            return items.concat([
-                ['clear', this.clear.bind(this)],
-                ['[' + (logsVerbose ? 'x' : ' ') + '] allow message popups', toggleVerboseLogging]
-            ]);
-
-            function toggleVerboseLogging() {
-                c.set("verboseLogging", !logsVerbose);
-            }
-        },
-
-        onDoubleClick: function onDoubleClick(evt) {
-            var items = this.getSelectedItems()
-            if (!items || !items.length) return false;
-            this.editItems(items);
-            evt.stop();
-            return true;
-        },
-
-        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-            $super();
-            console.log('System console started successfully.');
-        },
-
-        onKeyDown: function onKeyDown(evt) {
-            var s = evt.getKeyString();
-            if (s === "Enter") {
-                var items = this.getSelectedItems();
-                items.length && this.editItems(items);
-                evt.stop(); return true;
-            }
-            return $super(evt);
-        },
-
-        onLoad: function onLoad() {
-            this.clear();
-            this.install();
-        },
-
-        onLoadFromPartsBin: function onLoadFromPartsBin() {
-            this.onLoad();
-            console.log('System console started successfully.');
-        },
-
-        onOwnerChanged: function onOwnerChanged(newOwner) {
-            this[this.world() ? 'install' : 'uninstall']();
-        },
-
-        onWindowGetsFocus: function onWindowGetsFocus() {
-            this.world() && this.focus();
-        },
-
-        reset: function reset() {
-            this.enableMultipleSelections('multiSelectWithShift');
-            this.uninstall();
-            this.clear();
-            this.getWindow().setTitle('System Console');
-            this.getWindow().name = "SystemConsole";
-            // this.partsBinMetaInfo = meta
-        },
-
-        setupScroll: function setupScroll(noOfItems, layout) {
-            $super(noOfItems, layout);
-            this.setClipMode('scroll');
-        },
-
-        uninstall: function uninstall() {
-            this.uninstallConsoleWrapper();
-            this.uninstallErrorCapture();
-        },
-
-        uninstallConsoleWrapper: function uninstallConsoleWrapper() {
-            console.consumers.remove(this);
-        },
-
-        uninstallErrorCapture: function uninstallErrorCapture() {
-            if (!this._errorHandler) return;
-            window.removeEventListener('error', this._errorHandler);
-            delete this._errorHandler;
-        },
-
-        wrapperFunc: function wrapperFunc(type) {
-
-        var list = this;
-
-        return function consoleWrapper(/*args*/) {
-            var string = String(arguments[0]);
-            for (var i = 1; i < arguments.length; i++) {
-                var idx = string.indexOf('%s');
-                if (idx > -1) string = string.slice(0,idx) + String(arguments[i]) + string.slice(idx+2);
-            }
-
-            var oneLine = string.replace(/\n/g, '');
-
-            keepScrollOrScrollDownAfter(function() {
-                var last = list.getList().last()
-                var repeated = repeatEntry(oneLine, last);
-                if (repeated) {
-                    list.removeItemOrValue(last);
-                    oneLine = repeated;
-                };
-
-                list.addItem({
-                    isListItem: true,
-                    string: oneLine,
-                    value: {string: string, time: Date.now()},
-                    cssClassNames: [type, 'new-log-item']
-                });
-
-                unemphasizeOldItems();
-            });
+lively.BuildSpec("lively.ide.tools.LogMessages", {
+  className: "lively.morphic.Window",
+  contentOffset: lively.pt(3.0,22.0),
+  draggingEnabled: true,
+  droppingEnabled: false,
+  _Extent: lively.pt(623.3,330.0),
+  layout: { adjustForNewBounds: true },
+  name: "LogMessages",
+  submorphs: [{
+      _BorderColor: Color.rgb(95,94,95),
+      _Extent: lively.pt(617.0,305.0),
+      _Fill: Color.rgb(255,255,255),
+      _Position: lively.pt(3.0,22.0),
+      className: "lively.morphic.Box",
+      droppingEnabled: false,
+      layout: {
+          adjustForNewBounds: true,
+          resizeHeight: true,
+          resizeWidth: true
+      },
+      maxMessages: "256KB",
+      maxSize: 262144,
+      name: "LogMessages",
+      submorphs: [{
+          _BorderColor: Color.rgb(95,94,95),
+          _Extent: lively.pt(617.0,285.0),
+          _FontSize: 10,
+          _LineWrapping: false,
+          _ShowActiveLine: false,
+          _ShowGutter: false,
+          _StyleSheet: ".Morph .ace_log {\n\
+      	color: #333;\n\
+      }\n\
+      \n\
+      .Morph .ace_error {\n\
+      	color: red;\n\
+      }\n\
+      \n\
+      .Morph .ace_warning {\n\
+      	color: orange;\n\
+      }",
+          _TabSize: 2,
+          _TextMode: "log",
+          _Theme: "chrome",
+          allowInput: false,
+          className: "lively.morphic.CodeEditor",
+          droppingEnabled: false,
+          grabbingEnabled: false,
+          layout: { resizeHeight: true, resizeWidth: true },
+          name: "logText",
+          textMode: "log",
+          textString: ""
+      },{
+          _Extent: lively.pt(72.3,18.5),
+          _Fill: Color.rgb(255,255,255),
+          _Position: lively.pt(544.0,285.0),
+          className: "lively.morphic.Box",
+          grabbingEnabled: false,
+          layout: {
+              adjustForNewBounds: true,
+              borderSize: 0.265,
+              extentWithoutPlaceholder: lively.pt(100.0,18.0),
+              moveHorizontal: true,
+              moveVertical: true,
+              resizeWidth: false,
+              spacing: 5,
+              type: "lively.morphic.Layout.TightHorizontalLayout"
+          },
+          name: "FollowLogCheckBox",
+          sourceModule: "lively.morphic.Core",
+          submorphs: [{
+              _BorderColor: Color.rgb(204,0,0),
+              _Extent: lively.pt(12.0,18.0),
+              _Position: lively.pt(0.3,0.3),
+              active: true,
+              checked: true,
+              className: "lively.morphic.CheckBox",
+              name: "CheckBox",
+              sourceModule: "lively.morphic.Widgets",
+              connectionRebuilder: function connectionRebuilder() {
+              lively.bindings.connect(this, "checked", this.get("FollowLogCheckBox"), "signalChecked", {});
+          }
+          },{
+              _Extent: lively.pt(55.0,14.0),
+              _FontFamily: "Arial, sans-serif",
+              _FontSize: 8,
+              _HandStyle: "default",
+              _InputAllowed: false,
+              _MaxTextWidth: 120.695652,
+              _MinTextWidth: 120.695652,
+              _Padding: lively.rect(4,2,0,0),
+              _Position: lively.pt(17.0,0.3),
+              _TextColor: Color.rgb(0,0,0),
+              allowInput: false,
+              className: "lively.morphic.Text",
+              fixedHeight: true,
+              fixedWidth: true,
+              grabbingEnabled: false,
+              layout: {
+                  resizeWidth: true
+              },
+              name: "Label",
+              textString: "follow log"
+          }],
+          isChecked: function isChecked() {
+        return this.get("CheckBox").isChecked();
+      },
+          onMouseDown: function onMouseDown(evt) {
+        if (evt.getTargetMorph() == this.get("CheckBox")) return false;
+        if (evt.getTargetMorph() == this.get("Label") && this.get("Label").inputAllowed()) return false;
+      
+        this.setChecked(!this.isChecked());
+        evt.stop(); return true;
+      },
+          ondMouseDown: function ondMouseDown(evt) {
+        if (evt.getTargetMorph() !== this.get("CheckBox")) {
+          this.setChecked(!this.isChecked());
+          evt.stop(); return true;
         }
+        return false;
+      },
+          reset: function reset() {
+        this.connections = {checked: {}};
+        lively.bindings.connect(this.get("CheckBox"), 'checked', this, 'signalChecked');
+      },
+          setChecked: function setChecked(bool) {
+        return this.get("CheckBox").setChecked(bool);
+      },
+          setLabel: function setLabel(string) {
+          this.get('Label').setTextString(string);
+      },
+          signalChecked: function signalChecked(val) {
+        lively.bindings.signal(this, 'checked', val);
+      }
+      },{
+          _BorderColor: Color.rgb(189,190,192),
+          _BorderRadius: 5,
+          _BorderWidth: 1,
+          _Extent: lively.pt(60.0,20.0),
+          _Position: lively.pt(422.0,285.0),
+          className: "lively.morphic.Button",
+          droppingEnabled: false,
+          grabbingEnabled: false,
+          isPressed: false,
+          label: "clear",
+          layout: {
+              moveHorizontal: true,
+              moveVertical: true
+          },
+          name: "Button1",
+          connectionRebuilder: function connectionRebuilder() {
+          lively.bindings.connect(this, "fire", this, "doAction", {});
+      },
+          doAction: function doAction() {
+          this.get("LogMessages").clear();
+      }
+      },{
+          _BorderColor: Color.rgb(189,190,192),
+          _BorderRadius: 5,
+          _BorderWidth: 1,
+          _Extent: lively.pt(60.0,20.0),
+          _Position: lively.pt(481.0,285.0),
+          className: "lively.morphic.Button",
+          droppingEnabled: false,
+          grabbingEnabled: false,
+          label: "reattach",
+          layout: {
+              moveHorizontal: true,
+              moveVertical: true
+          },
+          name: "Button2",
+          connectionRebuilder: function connectionRebuilder() {
+              lively.bindings.connect(this, "fire", this, "doAction", {});
+          },
 
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+          doAction: function doAction() {
+              this.owner.clear();
+              this.owner.uninstall();
+              this.owner.install();
+          }
+      }],
 
-        function repeatEntry(string, item) {
-            if (!item) return null;
-            var repeatRe = /^[0-9]+x\s*/,
-                repeatMatch = item.string.match(repeatRe);
-            if (repeatMatch && repeatMatch[0]) {
-                var repeat = parseInt(repeatMatch[0]);
-                var itemString = item.string.replace(repeatRe, '');
-            } else {
-                var repeat = 1;
-                var itemString = item.string;
-            }
+      clear: function clear() {
+          this.get("logText").textString="";
+          this.get("logText").withAceDo(function(ed) {
+            ed.session.getUndoManager().reset();
+          })
+      },
 
-            return !isNaN(repeat) && itemString === string ?
-                (repeat + 1) + 'x ' + string : null;
+
+      onWindowGetsFocus: function onWindowGetsFocus() {
+          this.world() && this.focus();
+      },
+
+      reset: function reset() {
+        this.maxSize = Math.pow(2,18) // 256KB
+        this.get("logText").textString = "";
+    
+        this.uninstall();
+        this.clear();
+        this.getWindow().setTitle('Log Messages');
+        this.getWindow().name = "LogMessages";
+        
+        this.get("logText").setInputAllowed(false);
+      },
+
+      onLoad: function onLoad() {
+        this.get("FollowLogCheckBox").setChecked(true);
+        this.clear();
+        this.install();
+      },
+
+      onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        this.onLoad()
+      },
+
+      install: function install(_console, _window) {
+        lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.install(this);
+      },
+
+      onOwnerChanged: function onOwnerChanged(newOwner) {
+        var self = this;
+        lively.lang.fun.debounceNamed(this.id+"onOwnerChanged", 300, function() {
+          self[self.world() ? 'install' : 'uninstall']();
+        })();
+      },
+
+      uninstall: function uninstall() {
+        lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.uninstall(this)
+      },
+      
+      onLogMessage: function onLogMessage(type, msg) {
+        this.get("logText").textString += lively.lang.string.format(
+          "[%s] %s\n", type, msg)
+        if (this.get("FollowLogCheckBox").isChecked()) {
+          var self = this;
+          lively.lang.fun.debounceNamed(this.id+"scroll", 200, function() {
+            self.get("logText").withAceDo(function(ed) {
+              ed.gotoLine(ed.session.getLength(), 0, true); });
+          })();
         }
-
-        function keepScrollOrScrollDownAfter(func) {
-            if (!list.world()) { func(); return; }
-
-            var maxScroll = list.getMaxScrollExtent().y;
-            var scroll = list.getScroll();
-            var scrollDown = scroll[1] >= maxScroll - 10;
-
-            func();
-
-            if (scrollDown) list.scrollToBottom();
-            else list.setScroll(scroll[0], scroll[1])
-        }
-
-        function unemphasizeOldItems() {
-            var now = Date.now();
-            var old = 1000*10;
-            list.getList()
-                .filter(function(ea) { return now - ea.value.time > old; })
-                .forEach(function(ea) { ea.cssClassNames.remove('new-log-item'); })
-        }
-    },
-
-    }],
-    titleBar: "System Console"
+      }
+  }],
+  titleBar: "Log Messages",
 });
-
 
 Object.extend(lively.ide.tools.SystemConsole, {
 
     openInContext: function(globalContext) {
-        var win = lively.BuildSpec('lively.ide.tools.SystemConsole')
+        var win = lively.BuildSpec('lively.ide.tools.LogMessages')
             .createMorph().openInWorld($world.positionForNewMorph()).comeForward();
         win.targetMorph.reset();
         win.targetMorph.install(globalContext.console, globalContext);

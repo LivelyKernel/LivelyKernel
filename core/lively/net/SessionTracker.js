@@ -596,7 +596,8 @@ Object.extend(lively.net.SessionTracker, {
         lively.net.SessionTracker.resetSession();
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // start UI
-        if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
+        if ((!lively.Config.get("showMenuBar") || !lively.Config.get("menuBarDefaultEntries").include("lively.net.tools.Lively2Lively"))
+            && lively.Config.get('lively2livelyEnableConnectionIndicator')) {
             lively.require('lively.net.tools.Lively2Lively').toRun(function() {
                 if ($world.get('Lively2LivelyStatus')) $world.get('Lively2LivelyStatus').remove();
                 lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();

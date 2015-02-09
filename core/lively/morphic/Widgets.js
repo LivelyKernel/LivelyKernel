@@ -1170,9 +1170,11 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         handStyle: 'default',
         enableGrabbing: false,
         allowInput: false,
+        selectable: false,
         fontSize: 10.5,
-        padding: Rectangle.inset(20,3),
+        padding: Rectangle.inset(20,4),
         textColor: Config.get('textColor') || Color.black,
+        fontFamily: "Helvetica,Verdana,sans-serif",
         whiteSpaceHandling: 'nowrap'
     },
     defaultTextColor: Config.get('textColor') || Color.black
@@ -1238,9 +1240,7 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
     select: function(evt) {
         this.isSelected = true;
         this.applyStyle({
-            fill: new lively.morphic.LinearGradient([
-                {offset: 0, color: Color.rgb(43, 88, 255)},
-                {offset: 1, color: Color.rgb(42, 87, 192)}]),
+            fill: Color.rgb(43, 88, 255),
             textColor: Color.white,
             borderRadius: 4
         });
@@ -2390,7 +2390,6 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
     style: {
         borderWidth: 0,
         strokeOpacity: 0,
-        padding: lively.rect(0,0,0,0),
         accessibleInInactiveWindow: true
     },
     connections: ['HelpText', 'fire'],
@@ -2398,7 +2397,6 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
 'initializing', {
     initialize: function($super, bnds, inset, labelString, labelOffset/*deprecated*/) {
         $super(bnds, labelString)
-        this.label.setPadding(lively.rect(0,0,0,0));
         this.label.setExtent(this.getExtent());
     },
 });
@@ -2771,6 +2769,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         (function() {
             scrolledMorphs.forEach(function(ea, i) { ea.setScroll(scrolls[i][0], scrolls[i][1]) });
             if (callGetsFocus) { inner.onWindowGetsFocus(this); }
+            lively.bindings.signal(lively.morphic.Window, 'windowActivated', this);
         }).bind(this).delay(0);
         return this;
     },

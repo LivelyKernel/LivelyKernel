@@ -75,17 +75,20 @@ Object.subclass('lively.morphic.Morph',
     },
     getBounds: function() {
         if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
-
+      
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
-
+      
         bounds = tfm.transformRectToRect(bounds);
-
+      
         if (!this.isClip()) {
             var subBounds = this.submorphBounds(tfm);
             if (subBounds) bounds = bounds.union(subBounds);
+        } else {
+          var scroll = this.getScroll();
+          bounds = bounds.translatedBy(pt(scroll[0], scroll[1]));
         }
-
+      
         return this.cachedBounds = bounds;
     },
     globalBounds: function() {

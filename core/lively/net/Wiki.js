@@ -301,6 +301,18 @@ debugger;
         }, thenDo);
     }
 
+},
+'changesets', {
+
+    lastChangeSetTest: null,
+
+    closeLastChangeSetTest: function() {
+        if (this.lastChangeSetTest && !this.lastChangeSetTest.closed) {
+            this.lastChangeSetTest.close();
+        }
+        this.lastChangeSetTest = null;
+    }
+
 });
 
 (function showChangeSetTestButtons() {
@@ -343,7 +355,11 @@ debugger;
             var changeSet = JSLoader.getOption('testChangeSet'),
                 url = URL.nodejsBase.withFilename('ChangeSetServer/finalize/' + changeSet);
             url.asWebResource().get();
+
             disableWorld(true);
+            Global.Config.askBeforeQuit = false;
+            if (window.opener)
+                window.opener.lively.net.Wiki.closeLastChangeSetTest();
         };
 
         testAbort.setPosition(lively.pt(10, 40));
@@ -359,6 +375,9 @@ debugger;
             url.asWebResource().get();
 
             disableWorld(false);
+            Global.Config.askBeforeQuit = false;
+            if (window.opener)
+                window.opener.lively.net.Wiki.closeLastChangeSetTest();
         };
     });
 })();

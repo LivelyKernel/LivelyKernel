@@ -207,6 +207,9 @@ Object.subclass('lively.Main.Loader',
     onFinishLoading: function(world) {
         console.groupEnd("World loading");
         world.hideHostMouseCursor();
+        if (lively.Config.get("showMenuBar")) lively.require("lively.morphic.tools.MenuBar").toRun(function() {
+          (function() { lively.morphic.tools.MenuBar.openOnWorldLoad(); }).delay(0);
+        })
         world.loadingMorph = new lively.morphic.LoadingMorph(rect(0,0,300,200));
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);

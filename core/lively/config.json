@@ -387,5 +387,15 @@
   "Changesets": [
     ["changesetsExperiment", false, "track changes and provide a UI for a changesets-based worlkflow"],
     ["automaticChangesReplay", true, "restore changes automatically on world load"]
+  ],
+  
+  "lively.morphic.tools.MenuBar": [
+    ["showMenuBar", true, "Should a menu bar be opened on world load?"],
+    ["menuBarDefaultEntries", [
+      "lively.net.tools.Lively2Lively",
+      "lively.morphic.tools.LivelyMenuBarEntry",
+      "lively.ide.tools.CurrentDirectoryMenuBarEntry",
+      "lively.ide.tools.JavaScriptToolsMenuBarEntries"
+      ], "Which menu bar entries to add by default? Specifies modules that should implement a getMenuBarEntries() method."]
   ]
 }

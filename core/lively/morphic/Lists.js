@@ -1262,7 +1262,9 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 extent: pt(width, height),
                 fixedHeight: true, fixedWidth: false,
                 resizeWidth: true,
-                whiteSpaceHandling: 'pre'
+                whiteSpaceHandling: 'pre',
+                selectable: false,
+                padding: lively.Rectangle.inset(4,4,0,0)
             });
         text.addScript(function setIsSelected(bool, suppressUpdate) {
             if (!bool && this.selected) {

@@ -430,7 +430,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
             inputLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
             inputLine.name = 'inputLine';
             this.addMorph(inputLine);
-            inputLine.setExtent(pt(this.getExtent().x, layout.inputLineHeight));
+            inputLine.setExtent(pt(this.getExtent().x-20, layout.inputLineHeight));
             inputLine.setTheme('ambiance');
             inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
             lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
@@ -473,6 +473,14 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
                     narrower.selectN(narrower.currentSel + narrower.state.layout.noOfCandidatesShown);
                 }
             });
+            
+            var closeBtn = lively.BuildSpec({
+              className: "lively.morphic.Text", textString: "X",
+              style: {clipMode: "hidden", handStyle: "pointer", textColor: Color.white, fontSize: 8, padding: rect(0,0,0,0),
+                extent: pt(20,20), position: this.getExtent().addXY(-16,-16), toolTip: "close"},
+              onMouseDown: function onMouseDown(evt) { this.get("inputLine").focus(); this.owner.deactivate(); },
+            }).createMorph();
+            this.addMorph(closeBtn);
         }
         inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
         inputLine.setLabel(prompt || '');

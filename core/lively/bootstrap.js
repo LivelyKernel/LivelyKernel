@@ -1127,6 +1127,7 @@
                 if (cookie.substr(0, 20) == 'livelykernel-branch=')
                     onBranch = cookie.substr(20);
             });
+            onBranch = onBranch || loader.getOption('changeSet') || loader.getOption('testChangeSet');
             optimizedLoading = optimizedLoading && !onBranch;
 
             if (runCodeOption) {

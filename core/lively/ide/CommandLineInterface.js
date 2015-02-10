@@ -978,6 +978,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
                 function timeout() { thenDo([]); },
                 function filesFound(files) {
+                    lastSearch = null;
                     thenDo((filterFunc || Functions.K)(files, input, pattern, dir)
                         .uniqBy(filesAreEqual)
                         .sort(sortFiles.curry(input))
@@ -1008,7 +1009,7 @@ Object.extend(lively.ide.CommandLineSearch, {
 
         function extractDirAndPatternFromInput(input) {
             var result = {}, lastSlash = input.lastIndexOf('/');
-            if (!lastSlash) return null; // don't do search
+            if (lastSlash === -1) return null; // don't do search
             result.dir = input.slice(0,lastSlash);
             var pattern = input.slice(lastSlash+1);
             if (pattern.startsWith(' ')) pattern = '*' + pattern.trim();

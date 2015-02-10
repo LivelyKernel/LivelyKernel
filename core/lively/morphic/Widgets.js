@@ -3033,7 +3033,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         this.label = new lively.morphic.Text(bounds, this.message).beLabel({
             fill: Color.white,
             fixedHeight: false, fixedWidth: false,
-            padding: Rectangle.inset(0,0),
+            padding: Rectangle.inset(2,3),
             enableGrabbing: false, enableDragging: false});
         this.panel.addMorph(this.label);
 

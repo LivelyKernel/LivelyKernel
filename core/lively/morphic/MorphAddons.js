@@ -13,8 +13,8 @@ Object.extend(lively.morphic, {
       var m = lively._showMarker || (lively._showMarker = $world.loadPartItem("Marker", "PartsBin/Basic"));
       m.setOpacity(1);
       m.openInWorld();
-      m.setBounds(morph.globalBounds().expandBy(10));
-      m.applyStyle({borderWidth: 7, borderRadius: 10});
+      m.setBounds(morph.globalBounds().expandBy(6));
+      m.applyStyle({borderWidth: 4, borderRadius: 10});
       (function() {
         m.setOpacityAnimated(0, 1000, function() { m.remove(); })
       }).delay(1);

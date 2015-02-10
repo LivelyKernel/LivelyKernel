@@ -134,13 +134,18 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     horizontalPos: 0,
     verticalPos: 0,
     isEpiMorph: true,
-    isHalo: true
+    isHalo: true,
+    iconBaseURL: Global.URL.codeBase + 'media/halos/'
 },
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(this.defaultExtent.extentAsRectangle());
         this.setTarget(targetMorph);
-        this.createLabel();
+        if (typeof this.iconName === 'function') {
+            this.createIcon();
+        } else {
+            this.createLabel(); // Neccessary for NameHalo
+        }
     },
     setTarget: function(morph) {
         this.targetMorph = morph;
@@ -159,7 +164,15 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         }).bind(this).delay(0);
         return this.labelMorph;
     },
-
+    createIcon: function() {
+        this.iconMorph = new lively.morphic.Image(pt(3,3)
+                .extent(this.defaultExtent.subPt(pt(6,6))),
+            this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg')
+        this.addMorph(this.iconMorph);
+        this.iconMorph.ignoreEvents();
+        this.setFill(Global.Color.rgb(240,240,240)); // basic gray
+        this.setBorderWidth(0);
+    },
     ensureInfoLabel: function() {
         // rkrk - better use own class, here we build the halo behavior on the fly
         if (!this.infoLabel) {
@@ -299,6 +312,24 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         target.halos.invoke('alignAtTarget');
     },
 },
+'key events', {
+    onShiftPressed: function() {
+        this.shiftPressedOnTarget();
+    },
+    onShiftReleased: function() {
+        this.shiftReleasedOnTarget();
+    },
+    shiftPressedOnTarget: function() {
+        if (typeof this.toggleIcon === 'function') {
+            this.toggleIcon(true);
+        }
+    },
+    shiftReleasedOnTarget: function() {
+        if (typeof this.toggleIcon === 'function') {
+            this.toggleIcon(false);
+        }
+    },
+},
 'utilities', {
     targetScripts: function() {
         // answer sorted list of targetMorph's script names
@@ -324,6 +355,18 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
     labelText: 'R',
     horizontalPos: 3,
     verticalPos: 3
+},
+'initialization', {
+    setTarget: function($super, morph) {
+        $super(morph);
+        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown());
+    },
+    iconName: function (bool) {
+        return bool ? 'resize_shift' : 'resize'
+    },
+    toggleIcon: function(bool) {
+        this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg')
+    }
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
@@ -360,25 +403,32 @@ lively.morphic.Halo.subclass('lively.morphic.RescaleHalo',
     horizontalPos: 3,
     verticalPos: 3
 },
+'initialization', {
+    iconName: function () {
+        return 'rescale';
+    }
+},
 'halo actions', {
     dragAction: function(evt, moveDelta) {
-        var n = Math.abs(moveDelta.x) > Math.abs(moveDelta.y) ? moveDelta.x : moveDelta.y,
-            sign = n / Math.abs(n);
-        if (this.targetMorph.getScale() > 5) {
-            this.targetMorph.setScale(5);
-            return;
-        }
-        if (this.targetMorph.getScale() < 0.1) {
-            this.targetMorph.setScale(0.1);
-            return;
-        }
-        this.targetMorph.scaleBy(1+ 0.03 * sign)
-        this.targetMorph.halos.invoke('alignAtTarget')
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
+        var nowHandDist = evt.getPosition().subPt(globalPosition).r();
+        var newScale = (this.startScale * nowHandDist / Math.max(this.startHandDist, 40));
+        newScale = newScale.detent(0.1, 0.5);
+        this.setInfo('scale: ' + newScale.toPrecision(5));
+        this.targetMorph.setScale(newScale);
+        this.targetMorph.halos.invoke('alignAtTarget');  // Seems not to be needed?? - Dan
     },
     dragStartAction: function(evt) {
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
+        this.startScale = this.targetMorph.getScale();
+        this.startHandDist = evt.getPosition().subPt(globalPosition).r();
         this.targetMorph.removeHalosWithout(this.world(), [this]);
+        this.haloIsBeingDragged = true;
     },
     dragEndAction: function(evt) {
+        this.haloIsBeingDragged = false;
         this.targetMorph.removeHalos();
         this.targetMorph.showHalos();
     },
@@ -389,6 +439,11 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
     labelText: 'D',
     horizontalPos: 2,
     verticalPos: 0,
+},
+'initialization', {
+    iconName: function () {
+        return 'move'
+    }
 },
 'halo actions', {
     dragAction: function(evt, moveDelta) {
@@ -435,6 +490,11 @@ lively.morphic.Halo.subclass('lively.morphic.GrabHalo',
     horizontalPos: 1,
     verticalPos: 0,
 },
+'initialization', {
+    iconName: function () {
+        return 'grabbinghand'
+    }
+},
 'halo actions', {
     clickAction: function(evt) {
         this.dragStartAction(evt);  // same effect, but with mouse up
@@ -461,6 +521,11 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
     labelText: 'C',
     horizontalPos: 0,
     verticalPos: 1
+},
+'initialization', {
+    iconName: function () {
+        return 'copy'
+    }
 },
 'layout', {
     alignAtTarget: function() {
@@ -515,6 +580,18 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     horizontalPos: 0,
     verticalPos: 3,
 },
+'initialization', {
+    iconName: function (bool) {
+        return bool ? 'scale' : 'rotate';
+    },
+    setTarget: function($super, morph) {
+        $super(morph);
+        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown());
+    },
+    toggleIcon: function(bool) {
+        this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg')
+    }
+},
 'halo actions', {
     dragAction: function(evt, moveDelta) {
         var target = this.targetMorph,
@@ -537,6 +614,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
         this.targetMorph.halos.invoke('alignAtTarget');  // Seems not to be needed?? - Dan
         this.updateAngleIndicator(evt.hand);
     },
+
     dragEndAction: function(evt) {
         this.haloIsBeingDragged = false;
         this.removeAngleIndicator();
@@ -560,12 +638,14 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
         this.prevHandPosForSnappingRotation = evt.getPosition();
         return false;
     },
+
     ensureAngleIndicator: function() {
         // show a red line between the hand and the origin of the target morph
         if (this.lineIndicator) return this.lineIndicator;
         var line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)]).applyStyle({borderColor: Color.red});
         return this.lineIndicator = this.addMorph(line);
     },
+
     removeAngleIndicator: function() {
         this.lineIndicator && this.lineIndicator.remove();
         delete this.lineIndicator;
@@ -594,6 +674,11 @@ lively.morphic.Halo.subclass('lively.morphic.CloseHalo',
     horizontalPos: 3,
     verticalPos: 0,
 },
+'initialization', {
+    iconName: function () {
+        return 'close'
+    }
+},
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
@@ -607,6 +692,11 @@ lively.morphic.Halo.subclass('lively.morphic.MenuHalo',
     labelText: 'M',
     horizontalPos: 0,
     verticalPos: 0,
+},
+'initialization', {
+    iconName: function () {
+        return 'morphmenu'
+    }
 },
 'halo actions', {
     clickAction: function(evt) {
@@ -645,6 +735,12 @@ lively.morphic.Halo.subclass('lively.morphic.RenameHalo',
     labelText: 'N',
     horizontalPos: 1,
     verticalPos: 3
+},
+'initialization', {
+    initialize: function ($super, morph) {
+        $super(morph);
+        this.submorphs[0] && this.submorphs[0].setHandStyle('text');
+    }
 },
 'accessing', {
     setTarget: function($super, morph) {
@@ -704,6 +800,11 @@ lively.morphic.Halo.subclass('lively.morphic.SetImageURLHalo',
     horizontalPos: 4,
     verticalPos: 1
 },
+'initialization', {
+    iconName: function () {
+        return 'link'
+    }
+},
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
@@ -721,6 +822,11 @@ lively.morphic.Halo.subclass('lively.morphic.StyleHalo',
     labelText: 'S',
     horizontalPos: 0,
     verticalPos: 2,
+},
+'initialization', {
+    iconName: function () {
+        return 'styleedit'
+    }
 },
 'halo actions', {
     clickAction: function(evt) {
@@ -741,19 +847,30 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
         $super(morph);
         this.updateStyle();
     },
-    updateStyle: function() {
+    iconName: function () {
         // if targetMorph has scripts, use a colored handle
         // and show script names in tooltip
+        var scripts = this.targetScripts(),
+            connections = this.targetConnections();
+        return scripts.size() > 0 ?
+            (connections.size() > 0 ? // 2 because of onKeyUp onKeyDown
+                'scriptedit_scriptconnection' : 'scriptedit_script') :
+            (connections.size() > 0 ?
+                'scriptedit_connection' : 'scriptedit');
+    },
+    updateStyle: function () {
+        var icon = this.submorphs[0] || this.icon
+        icon && icon.setImageURL(this.iconBaseURL + this.iconName() + '.svg')
         var scripts = this.targetScripts();
         if (scripts.size() > 0) {
-            this.setFill(Color.orange);
             this.setToolTip(this.style.toolTip + '\n' + scripts.join('()\n') + '()');
         } else {
-            this.setFill(Color.gray);
             this.setToolTip(this.style.toolTip);
         };
+    },
+    targetConnections: function () {
+        return (this.targetMorph && this.targetMorph.attributeConnections) ? this.targetMorph.attributeConnections : []; 
     }
-
 },
 'halo actions', {
     clickAction: function(evt) {
@@ -770,9 +887,15 @@ lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
     horizontalPos: 3,
     verticalPos: 2,
 },
+'initialization', {
+    iconName: function () {
+        return 'info'
+    }
+},
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
+        // FIXME: Should be moved to lively.bindings.FRP and only added when module is loaded!
         if (evt.isShiftDown()) {
             module("lively.bindings.FRP").load(true);
             this.targetMorph.openFRPInspector();

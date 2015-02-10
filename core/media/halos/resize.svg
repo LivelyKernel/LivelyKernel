@@ -1,0 +1,27 @@
+<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_1" height="12.8" width="25.7" y="0.75" x="0.75" stroke="#333333" fill="#333333"/>
+      
+  <rect id="svg_2" height="2" width="5.5" y="0.75" x="0.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_3" height="2" width="5.5" y="0.75" x="11.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_4" height="2" width="5.5" y="0.75" x="22.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_5" height="2" width="5.5" y="0.75" x="33.75" stroke="#333333" fill="#333333"/>
+
+  <rect id="svg_6" height="5.5" width="2" y="0.75" x="37.25" stroke="#333333" fill="#333333"/>
+  <rect id="svg_7" height="5.5" width="2" y="11.75" x="37.25" stroke="#333333" fill="#333333"/>
+  <rect id="svg_8" height="5.5" width="2" y="22.75" x="37.25" stroke="#333333" fill="#333333"/>
+  <rect id="svg_9" height="5.5" width="2" y="33.75" x="37.25" stroke="#333333" fill="#333333"/>
+      
+  <rect id="svg_6" height="2" width="5.5" y="37.25" x="0.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_7" height="2" width="5.5" y="37.25" x="11.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_8" height="2" width="5.5" y="37.25" x="22.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_9" height="2" width="5.5" y="37.25" x="33.75" stroke="#333333" fill="#333333"/>
+      
+  <rect id="svg_6" height="5.5" width="2" y="0.75" x="0.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_7" height="5.5" width="2" y="11.75" x="0.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_8" height="5.5" width="2" y="22.75" x="0.75" stroke="#333333" fill="#333333"/>
+  <rect id="svg_9" height="5.5" width="2" y="33.75" x="0.75" stroke="#333333" fill="#333333"/>
+</g>
+</svg>

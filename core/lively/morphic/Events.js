@@ -984,6 +984,10 @@ handleOnCapture);
             }
             evt.hand.clickedOnMorph = null;
             evt.hand.eventStartPos = null;
+            // move hands out of the way
+            if (evt.hand !== evt.world.firstHand()) {
+                evt.hand.setPosition(pt(0,0))
+            }
         }).delay(0);
 
         if (invokeHalos) {
@@ -1078,6 +1082,7 @@ handleOnCapture);
         if (c === Event.KEY_RIGHT) return this.onRightPressed(evt);
         if (c === Event.KEY_UP) return this.onUpPressed(evt);
         if (c === Event.KEY_DOWN) return this.onDownPressed(evt);
+        if (c === Event.KEY_SHIFT) return this.onShiftPressed(evt);
         if (!this.isFocused()) return false;
         if (evt.isCommandKey() && !evt.isShiftDown()) {
             var result = this.processCommandKeys(evt);
@@ -1096,7 +1101,11 @@ handleOnCapture);
         result && evt.stop();
         return result;
     },
-    onKeyUp: Functions.False,
+    onKeyUp: function(evt) {
+        if (this.eventsAreIgnored) { return false; }
+        var c = evt.getKeyCode();
+        if (c === Event.KEY_SHIFT) return this.onShiftReleased(evt);
+    },
     onKeyPress: Functions.False,
     onEnterPressed: function(evt) { return false },
     onEscPressed: function(evt) { return false },
@@ -1128,6 +1137,16 @@ handleOnCapture);
     onDownPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
         return this.interactiveMoveOrResize('down', evt);
+    },
+    onShiftPressed: function() {
+        if (this.showsHalos) {
+            this.halos.invoke('shiftPressedOnTarget');
+        }
+    },
+    onShiftReleased: function() {
+        if (this.showsHalos) {
+            this.halos.invoke('shiftReleasedOnTarget');
+        }
     },
 
     interactiveMoveOrResize: function(keyPressed, evt) {

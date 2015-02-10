@@ -240,7 +240,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     },
 
     isNthSelected: function isNthSelected(n) {
-        var itemMorph = this.submorphs.slice(1)[n];
+        var itemMorph = this.submorphs.slice(2)[n]; // slice: inputline + close button
         return itemMorph && itemMorph.getStyleClassNames().include("selected");
     },
 

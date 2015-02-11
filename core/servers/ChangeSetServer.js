@@ -387,7 +387,7 @@ module.exports = function(route, app) {
                 if (!info.commitId) return cb(new Error('Could not find test branch "' + branch + '"!'));
                 cb(null, { commit: info.commitId });
             },
-            gitHelper.util.updateBranch.bind(null, originalBranch, repoPath),
+            gitHelper.util.updateBranch.bind(null, BRANCH_PREFIX + originalBranch, repoPath),
             function(_, cb) { cb(); }, // remove all return values
             gitHelper.removeBranch.bind(null, fullBranch, repoPath)
         ], function(err) {

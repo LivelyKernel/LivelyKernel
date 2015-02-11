@@ -292,6 +292,110 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
     });
 }
 
+function applyChanges(base, data, temporary, callback) {
+    var refName = (temporary ? TEST_PREFIX : '') + base,
+        branch = BRANCH_PREFIX + base;
+
+    // TODO: handle multiple datasets
+    var changes = data[0].changes,
+        changesByRepos = changes.reduce(function(repos, change) {
+            change.repos = change.repos || {};
+            change.repos['.'] = change.repos['.'] ||  change.commitId; // commitId belongs to changes in main repo
+            Object.getOwnPropertyNames(change.repos).forEach(function(repo) {
+                if (repos[repo] == undefined)
+                    repos[repo] = { changes: [] };
+                repos[repo].changes.push(change.repos[repo]);
+            });
+            return repos;
+        }, {});
+
+    // find all start points for the repos + addition commits
+    if (!data[0].after)
+        data[0].after = { commitId: null, repos: {} };
+    changesByRepos['.'].parent = data[0].after.commitId;
+    async.each(Object.getOwnPropertyNames(changesByRepos), function (repo, cb) {
+        changesByRepos[repo].parent = changesByRepos[repo].parent || (data[0].repos && data[0].repos[repo]);
+        var repoPath = path.resolve(process.env.WORKSPACE_LK, repo);
+
+        function findAdditionalCommits(repo) {
+            gitHelper.util.diffCommits(repo.parent, branch, repoPath, function(err, info) {
+                if (err) return cb(err);
+                var commitIds = info.missing.map(function(commit) {
+                    return commit.commitId;
+                }).reverse();
+                Array.prototype.push.apply(repo.changes, commitIds);
+                cb(null);
+            });
+        }
+
+        if (changesByRepos[repo].parent) {
+            gitHelper.util.readCommitInfo(repoPath, changesByRepos[repo].parent, function(err, info) {
+                if (err) return cb(err);
+                changesByRepos[repo].parent = info.commitId;
+                findAdditionalCommits(changesByRepos[repo]);// cb(null);
+            });
+        } else {
+            gitHelper.util.findCommonBase(branch, FS_BRANCH, repoPath, function(err, parentId) {
+                if (err) return cb(err);
+                changesByRepos[repo].parent = parentId;
+                findAdditionalCommits(changesByRepos[repo]);// cb(null);
+            });
+        }
+    }, function(err) {
+        if (err) return callback(err);
+
+        var processings = Object.getOwnPropertyNames(changesByRepos).reduce(function(procs, repo) {
+            var repoPath = path.resolve(process.env.WORKSPACE_LK, repo);
+            procs[repo] = processChanges.bind(null, changesByRepos[repo], repoPath);
+            return procs;
+        }, {});
+        async.parallel(processings, function(err, commitByRepo) {
+            if (err) return callback(err);
+            updateBranches(commitByRepo, refName, callback);
+        });
+    });
+}
+
+function processChanges(changeObj, repoPath, callback) {
+    async.reduce(changeObj.changes, changeObj.parent, function(parentId, commitId, cb) {
+        async.waterfall([
+            gitHelper.util.readCommit.bind(null, repoPath, commitId),
+            function(diffs, next) {
+                gitHelper.util.readCommitInfo(repoPath, commitId, function(err, info) {
+                    if (err) return next(err);
+                    var commitInfo = {
+                            GIT_AUTHOR_NAME: info.author,
+                            GIT_AUTHOR_EMAIL: info.authorEmail,
+                            GIT_AUTHOR_DATE: info.authorDate.toISOString().substr(0, 19),
+                            GIT_COMMITTER_NAME: info.commiter,
+                            GIT_COMMITTER_EMAIL: info.commiterEmail,
+                            GIT_COMMITTER_DATE: info.commiterDate.toISOString().substr(0, 19)
+                        },
+                        fileInfo = { parent: parentId };
+                    gitHelper.util.createCommitFromDiffs(repoPath, diffs, commitInfo, info.message, fileInfo, next);
+                })
+            }
+        ], function(err, fileInfo) {
+            if (err) return cb(err);
+            cb(null, fileInfo.commit);
+        });
+    }, function(err, commitId) {
+        delete changeObj.parent;
+        changeObj.commit = commitId;
+        callback(err, { commit: commitId });
+    });
+}
+
+function updateBranches(commitByRepo, refName, callback) {
+    async.each(Object.getOwnPropertyNames(commitByRepo), function(repo, cb) {
+        var repoPath = path.resolve(process.env.WORKSPACE_LK, repo);
+        gitHelper.util.updateBranch(BRANCH_PREFIX + refName, repoPath, commitByRepo[repo], cb);
+    }, function(err) {
+        // TODO: on error, remove all the branches already created
+        callback(err, refName);
+    });
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 module.exports = function(route, app) {
@@ -362,15 +466,22 @@ module.exports = function(route, app) {
         }
     });
 
-    app.get(route + 'merge/:branch1/:branch2?', function(req, res) {
-        var toBranch = req.param('branch2') || req.param('branch1'),
-            fromBranch = req.param('branch2') ? req.param('branch1') : req.cookies['livelykernel-branch'];
-        if ((fromBranch == undefined) || (toBranch == undefined))
-            res.status(400).json({ error: 'Could not find changeset to merge from or to.' });
-        else if (fromBranch == toBranch)
-            res.status(400).json({ error: 'Changeset to merge from and to cannot be the same (' + fromBranch + ').' });
+    app.post(route + 'apply-to/:branch', function(req, res) {
+        var branch = req.param('branch'),
+            data = req.body,
+            temporary = (req.param('temporary') == 'false' ? false : true);
+        if (!data || !Array.isArray(data) || data.length == 0)
+            res.status(400).json({ error: 'Could not find changes to apply.' });
+        else if (data.length > 1) // TODO: implement
+            res.status(400).json({ error: 'Applying changes in multiple places is not yet implemented!' });
         else {
-            res.json({ merge: { from: fromBranch, to: toBranch }});
+            applyChanges(branch, data, temporary, function(err, csName) {
+                if (err) {
+                    console.log(err);
+                    res.status(409).json({ error: 'Error applying changes to ' + branch + '!' });
+                } else
+                    res.json({ base: branch, temporary: temporary, branch: csName });
+            });
         }
     });
 

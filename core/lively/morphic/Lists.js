@@ -738,8 +738,8 @@ lively.morphic.Box.subclass('lively.morphic.List',
             listItemContainer.applyStyle({adjustForNewBounds: true, resizeWidth: true});
             listItemContainer.submorphs.forEach(function(ea) { ea.applyStyle({resizeWidth: true})})
         }
-        this.updateView();
         $super();
+        lively.whenLoaded(function() { this.updateView(); }.bind(this));
     },
 
     initializeLayout: function(layoutStyle) {
@@ -798,6 +798,11 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
     onWindowExpand: function() {
       this.updateView();
+    },
+
+    onOwnerChanged: function($super, owner) {
+      $super(owner)
+      if (owner) this.updateView();
     }
 },
 'accessing', {

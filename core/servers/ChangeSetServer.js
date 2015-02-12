@@ -488,20 +488,26 @@ module.exports = function(route, app) {
     app.get(route + 'finalize/:branch', function(req, res) {
         var branch = req.param('branch'),
             fullBranch = BRANCH_PREFIX + branch,
-            originalBranch = branch.substr(TEST_PREFIX.length),
-            repoPath = process.env.WORKSPACE_LK;
+            originalBranch = branch.substr(TEST_PREFIX.length);
 
-        // TODO: make it work for sub repositories
-        async.waterfall([
-            gitHelper.util.readCommitInfo.bind(null, repoPath, fullBranch),
-            function(info, cb) {
-                if (!info.commitId) return cb(new Error('Could not find test branch "' + branch + '"!'));
-                cb(null, { commit: info.commitId });
-            },
-            gitHelper.util.updateBranch.bind(null, BRANCH_PREFIX + originalBranch, repoPath),
-            function(_, cb) { cb(); }, // remove all return values
-            gitHelper.removeBranch.bind(null, fullBranch, repoPath)
-        ], function(err) {
+        var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
+        async.each(repos, function(repoPath, callback) {
+            async.waterfall([
+                gitHelper.util.readCommitInfo.bind(null, repoPath, fullBranch),
+                function(info, cb) {
+                    if (!info.commitId) return cb(new Error('Could not find test branch "' + branch + '"!'));
+                    cb(null, { commit: info.commitId });
+                },
+                gitHelper.util.updateBranch.bind(null, BRANCH_PREFIX + originalBranch, repoPath),
+                function(_, cb) { cb(); }, // remove all return values
+                gitHelper.removeBranch.bind(null, fullBranch, repoPath)
+            ], function(err) {
+                if (err && err.code == 'NOTACOMMIT') // ignore not existing branches
+                    return callback(null);
+                callback(err);
+            });
+        }, function(err) {
+            // put back all the branches that already have been set!
             if (err) return res.status(400).json({ error: err.toString() });
             res.json({ success: true, updated: originalBranch, removed: branch });
         });
@@ -513,9 +519,12 @@ module.exports = function(route, app) {
         if (branch == FS_BRANCH)
             return res.status(400).json({ error: 'You cannot remove the main change set (' + FS_BRANCH + ')!'});
 
-        // TODO: make it work for sub repositories
-        var repoPath = process.env.WORKSPACE_LK;
-        gitHelper.removeBranch(fullBranch, repoPath, function() {
+        var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
+        async.each(repos, function(repoPath, callback) {
+            gitHelper.removeBranch(fullBranch, repoPath, function() {
+                callback(); // ignore errors!
+            });
+        }, function() {
             res.json({ success: true, removed: branch });
         });
     });

@@ -621,7 +621,7 @@ lively.morphic.Morph.addMethods(
     removeOverlay: function() {
         if (this.overlay) this.overlay.remove();
     },
-})
+});
 
 Object.extend(lively.morphic.Morph, {
     makeRectangle: function (/**/) {
@@ -694,7 +694,8 @@ Object.extend(lively.morphic.Morph, {
             return new Rectangle(b.x - lineWidth, b.y - lineWidth, b.width + 2 * lineWidth, b.height + 2 * lineWidth)
         }
         return bezierCurve;
-    }});
+    }
+});
 
 lively.Line.addMethods(
 'conversion', {

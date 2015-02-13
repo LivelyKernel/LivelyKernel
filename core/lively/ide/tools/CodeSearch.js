@@ -314,6 +314,11 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             if (proto === obj)
                 name = obj.constructor.type || obj.constructor.name;
 
+            // class extend
+            if (proto === Function.prototype && obj.qualifiedMethodName) {
+                name = obj.qualifiedMethodName();
+            }
+
             if (type === 'buildspec')
                 name = optParent.buildSpecName;
 
@@ -327,6 +332,9 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
             if (proto !== obj && obj.isMorph)
                 name = obj.name ? obj.name + "(" + String(obj.id).truncate(12) + ")" : String(obj);
+
+            if (name && name.startsWith('Global.'))
+                name = name.substr(7);
 
             if (obj === Global)
                 name = "Global";

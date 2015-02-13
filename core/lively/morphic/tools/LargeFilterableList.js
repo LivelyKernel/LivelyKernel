@@ -433,7 +433,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
             inputLine.setExtent(pt(this.getExtent().x-20, layout.inputLineHeight));
             inputLine.setTheme('ambiance');
             inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
-            lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
+            lively.bindings.connect(inputLine, 'inputChange', this, 'filter');
             lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed', {
                 updater: function($upd) {
                     var n = this.targetObj, inputLine = n.get('inputLine'),

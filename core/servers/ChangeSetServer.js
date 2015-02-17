@@ -7,7 +7,6 @@ var exec  = require('child_process').execFile,
 var gitHelper = require('lively-git-helper');
 
 var FS_BRANCH = 'master',
-    BRANCH_PREFIX = 'lvChangeSet-',
     TEST_PREFIX = '_test-',
     SUB_REPOS = []; // FIXME: do not hard-code
 
@@ -39,11 +38,6 @@ function getBranches(cb) {
     // only list branches of the main repo
     gitHelper.listBranches(process.env.WORKSPACE_LK, function(err, branches) {
         if (err) return cb(err);
-        branches = branches.filter(function(branch) {
-            return branch.substr(0, BRANCH_PREFIX.length) == BRANCH_PREFIX;
-        }).map(function(branch) {
-            return branch.substr(BRANCH_PREFIX.length);
-        });
         cb(null, branches);
     });
 }
@@ -86,7 +80,7 @@ function topologicalSort(arrs, diffProp1, diffProp2) {
 
 function getCommitsByBranch(branch, cb) {
     var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
-    branch = BRANCH_PREFIX + branch;
+    branch = branch;
 
     async.map(repos, function(repo, callback) {
         gitHelper.util.diffCommits(branch, FS_BRANCH, repo, function(err, info) {
@@ -154,7 +148,6 @@ function getCommits(branch, cb) {
 function getChanges(b, cb) {
     var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS),
         branch = b;
-    if (branch) branch = BRANCH_PREFIX + branch;
 
     async.map(repos, function(repoPath, callback) {
         gitHelper.util.getStashHash(branch, repoPath, function(err, changeHash) {
@@ -292,9 +285,8 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
     });
 }
 
-function applyChanges(base, data, temporary, callback) {
-    var refName = (temporary ? TEST_PREFIX : '') + base,
-        branch = BRANCH_PREFIX + base;
+function applyChanges(branch, data, temporary, callback) {
+    var refName = (temporary ? TEST_PREFIX : '') + branch;
 
     // TODO: handle multiple datasets
     var changes = data[0].changes,
@@ -389,7 +381,7 @@ function processChanges(changeObj, repoPath, callback) {
 function updateBranches(commitByRepo, refName, callback) {
     async.each(Object.getOwnPropertyNames(commitByRepo), function(repo, cb) {
         var repoPath = path.resolve(process.env.WORKSPACE_LK, repo);
-        gitHelper.util.updateBranch(BRANCH_PREFIX + refName, repoPath, commitByRepo[repo], cb);
+        gitHelper.util.updateBranch(refName, repoPath, commitByRepo[repo], cb);
     }, function(err) {
         // TODO: on error, remove all the branches already created
         callback(err, refName);
@@ -487,20 +479,19 @@ module.exports = function(route, app) {
 
     app.get(route + 'finalize/:branch', function(req, res) {
         var branch = req.param('branch'),
-            fullBranch = BRANCH_PREFIX + branch,
             originalBranch = branch.substr(TEST_PREFIX.length);
 
         var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
         async.each(repos, function(repoPath, callback) {
             async.waterfall([
-                gitHelper.util.readCommitInfo.bind(null, repoPath, fullBranch),
+                gitHelper.util.readCommitInfo.bind(null, repoPath, branch),
                 function(info, cb) {
                     if (!info.commitId) return cb(new Error('Could not find test branch "' + branch + '"!'));
                     cb(null, { commit: info.commitId });
                 },
-                gitHelper.util.updateBranch.bind(null, BRANCH_PREFIX + originalBranch, repoPath),
+                gitHelper.util.updateBranch.bind(null, originalBranch, repoPath),
                 function(_, cb) { cb(); }, // remove all return values
-                gitHelper.removeBranch.bind(null, fullBranch, repoPath)
+                gitHelper.removeBranch.bind(null, branch, repoPath)
             ], function(err) {
                 if (err && err.code == 'NOTACOMMIT') // ignore not existing branches
                     return callback(null);
@@ -514,14 +505,13 @@ module.exports = function(route, app) {
     });
 
     app.get(route + 'remove/:branch', function(req, res) {
-        var branch = req.param('branch'),
-            fullBranch = BRANCH_PREFIX + branch;
+        var branch = req.param('branch');
         if (branch == FS_BRANCH)
             return res.status(400).json({ error: 'You cannot remove the main change set (' + FS_BRANCH + ')!'});
 
         var repos = [process.env.WORKSPACE_LK].concat(SUB_REPOS);
         async.each(repos, function(repoPath, callback) {
-            gitHelper.removeBranch(fullBranch, repoPath, function() {
+            gitHelper.removeBranch(branch, repoPath, function() {
                 callback(); // ignore errors!
             });
         }, function() {

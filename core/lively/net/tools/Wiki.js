@@ -817,7 +817,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
           var p = this.getPath(),
               all = this.get('allChangeSets').isChecked(),
               changeSet = lively.Config.get('cookie')['livelykernel-branch'];
-          p && lively.net.Wiki.getVersions(p, all || (changeSet ? ['lvChangeSet-' + changeSet] : []), this.showResult.bind(this));
+          p && lively.net.Wiki.getVersions(p, all || (changeSet ? [changeSet] : []), this.showResult.bind(this));
     },
         onLoad: function onLoad() {
         // this.getVersions();
@@ -875,8 +875,6 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 try {
                     var date = new Date(version.date).format('yy/mm/dd HH:MM:ss tt');
                 } catch (e) { show(e); date = 'Invalid date'; }
-                if (version.branch)
-                    version.branch = version.branch.substr(12); // remove prefix: lvChangeSet-
                 return {
                     isListItem: true,
                     string: version.author + ' - ' + date + ' (' + version.change + (version.branch ? ' on ' + version.branch : '') + ')',

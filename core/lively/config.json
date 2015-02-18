@@ -201,7 +201,8 @@
     ["showWorldSave", true],
 
     ["gridSpacing", 10, "determins the pixels to snap to alt-dragging the drag halo"],
-    ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]
+    ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."],
+    ["coloredHaloItems", false, "Halo Items can be made colorful for better recognition."]
   ],
 
   "lively.TestFramework": [

@@ -170,7 +170,9 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
             this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg')
         this.addMorph(this.iconMorph);
         this.iconMorph.ignoreEvents();
-        this.setFill(Global.Color.rgb(240,240,240)); // basic gray
+        if (!Config.coloredHaloItems) {
+            this.setFill(Global.Color.rgb(240,240,240)); // basic gray
+        }
         this.setBorderWidth(0);
     },
     ensureInfoLabel: function() {
@@ -863,8 +865,14 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
         icon && icon.setImageURL(this.iconBaseURL + this.iconName() + '.svg')
         var scripts = this.targetScripts();
         if (scripts.size() > 0) {
+            if (Config.coloredHaloItems) {
+                this.setFill(Color.orange);
+            }
             this.setToolTip(this.style.toolTip + '\n' + scripts.join('()\n') + '()');
         } else {
+            if (Config.coloredHaloItems) {
+                this.setFill(Color.rgb(240, 240, 240));
+            }
             this.setToolTip(this.style.toolTip);
         };
     },

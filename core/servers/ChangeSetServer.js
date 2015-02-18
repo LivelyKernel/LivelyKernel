@@ -8,6 +8,7 @@ var gitHelper = require('lively-git-helper');
 
 var FS_BRANCH = 'master',
     TEST_PREFIX = '_test-',
+    NAMESPACE = 'changeset', // for notes and stash
     SUB_REPOS = []; // FIXME: do not hard-code
 
 // determine sub-repos (inside node_mdoules)
@@ -89,16 +90,27 @@ function getCommitsByBranch(branch, cb) {
                     return callback(null, { added: [], missing: [] }); // empty result
                 return callback(err);
             }
-             // FIXME: not neccessary anymore when every FS access is commited too
-            exec('git', ['ls-files', '-mdso', '--exclude-standard'], { cwd: repo }, function(err, changes) {
+
+            // find commit notes with info what belongs to this changeset
+            async.map(info.added.concat(info.missing), function(change, callback) {
+                gitHelper.util.readCommitInfo(repo, change.commitId, NAMESPACE, function(err, info) {
+                    change.note = info && info.notes;
+                    callback(err, info);
+                });
+            }, function(err) {
                 if (err) return callback(err);
-                if ((branch != FS_BRANCH) && (changes[0].trim() != '')) {
-                    // artificial commit for uncommited changes
-                    info.missing.unshift({
-                        commitId: null, message: '[Filesystem changes]', notes: null
-                    });
-                }
-                callback(null, info);
+
+                // FIXME: not neccessary anymore when every FS access is commited too
+                exec('git', ['ls-files', '-mdso', '--exclude-standard'], { cwd: repo }, function(err, changes) {
+                    if (err) return callback(err);
+                    if ((branch != FS_BRANCH) && (changes[0].trim() != '')) {
+                        // artificial commit for uncommited changes
+                        info.missing.unshift({
+                            commitId: null, message: '[Filesystem changes]', note: null
+                        });
+                    }
+                    callback(null, info);
+                });
             });
         });
     }, function(err, commitInfoByRepo) {
@@ -280,7 +292,7 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
         async.eachSeries(Object.getOwnPropertyNames(reposByChangeId),
         function(changeId, callback) {
             var repo = reposByChangeId[changeId];
-            gitHelper.util.addCommitNote(repo.path, repo.commitId, commitNote, callback);
+            gitHelper.util.addCommitNote(repo.path, repo.commitId, commitNote, NAMESPACE, callback);
         }, cb);
     });
 }
@@ -324,13 +336,13 @@ function applyChanges(branch, data, temporary, callback) {
             gitHelper.util.readCommitInfo(repoPath, changesByRepos[repo].parent, function(err, info) {
                 if (err) return cb(err);
                 changesByRepos[repo].parent = info.commitId;
-                findAdditionalCommits(changesByRepos[repo]);// cb(null);
+                findAdditionalCommits(changesByRepos[repo]);
             });
         } else {
             gitHelper.util.findCommonBase(branch, FS_BRANCH, repoPath, function(err, parentId) {
                 if (err) return cb(err);
                 changesByRepos[repo].parent = parentId;
-                findAdditionalCommits(changesByRepos[repo]);// cb(null);
+                findAdditionalCommits(changesByRepos[repo]);
             });
         }
     }, function(err) {

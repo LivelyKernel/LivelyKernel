@@ -343,6 +343,7 @@ function applyChanges(branch, data, temporary, callback) {
         }, {});
         async.parallel(processings, function(err, commitByRepo) {
             if (err) return callback(err);
+            // TODO: handle notes
             updateBranches(commitByRepo, refName, callback);
         });
     });
@@ -419,6 +420,7 @@ module.exports = function(route, app) {
 
     app.get(route + 'commit/:commitId', function(req, res) {
         var commitId = req.param('commitId');
+        // TODO: Make it work with sub-repo commits
         gitHelper.util.readCommit(process.env.WORKSPACE_LK, commitId, function(err, changes) {
             if (err) res.status(400).json({ error: String(err) });
             else res.json(changes);
@@ -498,7 +500,7 @@ module.exports = function(route, app) {
                 callback(err);
             });
         }, function(err) {
-            // put back all the branches that already have been set!
+            // TODO: put back all the branches that already have been set!
             if (err) return res.status(400).json({ error: err.toString() });
             res.json({ success: true, updated: originalBranch, removed: branch });
         });

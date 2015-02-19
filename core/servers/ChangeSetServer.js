@@ -172,7 +172,7 @@ function getChanges(b, cb) {
 
         var repoInfos = results.reduce(function(res, result, idx) { // filter and zip
             if (!(result instanceof Error))
-            res.push({ path: repos[idx], changeHash: result });
+                res.push({ path: repos[idx], changeHash: result });
             return res;
         }, []);
 
@@ -190,17 +190,6 @@ function getChanges(b, cb) {
                 return all;
             }, []);
             cb(null, changeSet);
-        });
-    });
-}
-
-function getBranchAndParentFromChangeId(changeId, repo, cb) {
-    gitHelper.util.getBranchesByHash(changeId, repo, function(err, branches) {
-        if (err) return cb(err);
-        gitHelper.util.getParentHash(changeId + '^1', repo, function(err, parent) {
-            if (err) return cb(err);
-            // should not be more than one branch!!
-            cb(null, branches && branches[0], parent);
         });
     });
 }
@@ -228,7 +217,7 @@ function normalizeDiffFilenames(diffs, repoPath) {
     });
 }
 
-function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
+function commitChanges(diffsToCommit, diffsToStash, branch, message, commiter, cb) {
     var files = [],
         reposByChangeId = {}; // { CHANGE_ID*: { path: PATH, changes: DIFF*, commitId: HASH } }
 
@@ -253,32 +242,29 @@ function commitChanges(diffsToCommit, diffsToStash, message, commiter, cb) {
 
     async.eachSeries(Object.getOwnPropertyNames(reposByChangeId),
     function(changeId, callback) {
-        var repo = reposByChangeId[changeId];
-        getBranchAndParentFromChangeId(changeId, repo.path, function(err, branch, parentHash) {
-            if (err || branch == undefined) return callback(err || new Error('No branch found!'));
-
-            var commitObj = {
+        var repo = reposByChangeId[changeId],
+            commitObj = {
                 treeInfos: {},
-                parent: parentHash,
+                parent: branch,
             };
 
-            repo.changes = normalizeDiffFilenames(repo.changes, repo.path);
-            repo.stash = normalizeDiffFilenames(repo.stash, repo.path);
+        repo.changes = normalizeDiffFilenames(repo.changes, repo.path);
+        repo.stash = normalizeDiffFilenames(repo.stash, repo.path);
 
-            async.waterfall([
-                gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.changes, commiter, message, commitObj),
-                function(commitObj, callback) {
-                    // clean commitObj
-                    repo.commitId = commitObj.commit;
-                    commitObj.parent = commitObj.commit;
-                    delete commitObj.commit;
-                    delete commitObj.rootTree;
-                    callback(null, commitObj);
-                },
-                gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.stash, commiter, null),
-                gitHelper.util.updateBranch.bind(null, branch, repo.path)
-            ], callback);
-        });
+        async.waterfall([
+            gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.changes, commiter, message, commitObj),
+            gitHelper.util.updateBranch.bind(null, branch, repo.path),
+            function(commitObj, callback) {
+                // clean commitObj
+                repo.commitId = commitObj.commit;
+                commitObj.parent = commitObj.commit;
+                delete commitObj.commit;
+                delete commitObj.rootTree;
+                callback(null, commitObj);
+            },
+            gitHelper.util.createCommitFromDiffs.bind(null, repo.path, repo.stash, commiter, null),
+            gitHelper.util.updateStash.bind(null, branch, repo.path)
+        ], callback);
     }, function(err) {
         if (err) return cb(err);
 
@@ -443,6 +429,7 @@ module.exports = function(route, app) {
         var commit = req.body && req.body.commit,
             stash = req.body && req.body.stash,
             user = req.body && req.body.user,
+            branch = (req.body && req.body.branch) || req.cookies['livelykernel-branch'],
             email = req.body && req.body.email,
             message = req.body && req.body.message,
             force = req.body && !!(req.body.force);
@@ -463,7 +450,7 @@ module.exports = function(route, app) {
                 GIT_COMMITTER_NAME: 'Lively ChangeSets',
                 GIT_COMMITTER_EMAIL: 'unknown-user@lively-web.local'
             };
-            commitChanges(commit, stash, message, commiter, function(err) {
+            commitChanges(commit, stash, branch, message, commiter, function(err) {
                 if (err)
                     res.status(409).json({ error: 'Files have changed!' });
                 else

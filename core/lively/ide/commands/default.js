@@ -829,18 +829,47 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.changeShellBaseDirectory': {
         description: 'change the base directory for shell commands',
         exec: function() {
-            function setBasePath(candidate) {
-                var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
-                if (result) alertOK('base directory is now ' + result);
-                else alertOK('resetting base directory to default');
-                lively.ide.CommandLineInterface.rootDirectory = result;
-            }
-            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+
+          lively.lang.fun.composeAsync(
+
+            // If there is a list of known dirs first offer to choose from those
+            function chooseFromKnownWorkingDirectories(n) {
+              if (!$world.knownWorkingDirectories && !$world.knownWorkingDirectories.length)
+                return n();
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
+                  spec: {
+                    candidates: ['choose different directory...'].concat($world.knownWorkingDirectories),
+                    preselect: 1,
+                    actions: [function select(c) {
+                      n(null,c === 'choose different directory...' ? null : c);
+                    }]
+                  }
+                })
+            },
+
+            // Otherwise choose by navigating the fs
+            function chooseNewDir(dir, n) {
+              if (dir) return n(null, dir);
+              lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
                 'choose directory: ',
                 lively.shell.exec('pwd', {sync:true}).resultString(),
                 function(files) { return files.filterByKey('isDirectory'); },
                 "lively.ide.browseFiles.baseDir.NarrowingList",
-                [setBasePath]);
+                [function(c) { n(null, c); }]);
+            },
+            
+            // ...and change the base dir for real
+            function setBasePath(candidate, n) {
+              if (!candidate) return n(new Error("No directory choosen"));
+              var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+              if (result) alertOK('base directory is now ' + result);
+              else alertOK('resetting base directory to default');
+              lively.shell.setWorkingDirectory(result);
+              n(null, result);
+            }
+          )(function(err, dir) { });
+          return true;
         }
     },
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {

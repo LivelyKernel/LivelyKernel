@@ -913,7 +913,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         return options.sync ? result : cmd;
     },
 
-    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
+    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
         //     'choose directory: '
@@ -933,8 +933,14 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (!rootDir) rootDir = lively.shell.exec("pwd", {sync: true}).getStdout().trim();
         if (rootDir) rootDir = rootDir.replace(/\/?$/, "/");
         var lastSearch;
-        var initialCandidates = rootDir ? [rootDir] : [];
+        var initialCandidates = initialCandidates ? initialCandidates : (rootDir ? [rootDir] : []);
+        var showsInitialCandidates = true;
         var searchForMatching = Functions.debounce(300, function(input, callback) {
+            if (showsInitialCandidates) {
+              showsInitialCandidates = false;
+              if (initialCandidates.length)
+                return callback(initialCandidates);
+            }
             // var candidates = [input].compact(),
             var candidates = [],
                 patternAndDir = extractDirAndPatternFromInput(input);

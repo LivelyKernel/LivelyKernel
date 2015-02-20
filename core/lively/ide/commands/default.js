@@ -408,10 +408,10 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.WindowNavigation.start': {
         description: 'open window navigator',
-        exec: function() {
-          lively.require("lively.ide.WindowNavigation").toRun(function() {
+        exec: function exec() {
+          if (module("lively.ide.WindowNavigation").isLoaded())
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
-          });
+          else lively.require("lively.ide.WindowNavigation").toRun(exec);
           return true;
         }
     },
@@ -557,7 +557,6 @@ Object.extend(lively.ide.commands.byName, {
                 {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
                 {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
                 {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
-
             if (!lively.shell.cwdIsLivelyDir()) {
                 // SCB is currently only supported for Lively files
                 actions.shift();
@@ -1631,6 +1630,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.findFile': {mac: ['Control-X F', 'Control-X Control-F'], win: ['Control-X F', 'Control-X Control-F']},
     'lively.ide.openDirViewer': 'Control-X D',
+    'lively.ide.CommandLineInterface.changeShellBaseDirectory': {mac: 'cmd-s-l d i r', win: 'ctrl-s-l d i r'},
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     "lively.tests.mocha.runAll": "Control-C t",

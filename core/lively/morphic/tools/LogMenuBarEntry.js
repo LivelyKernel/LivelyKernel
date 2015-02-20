@@ -4,7 +4,7 @@ lively.BuildSpec('lively.morphic.tools.LogMenuBarEntry', lively.BuildSpec("livel
 
   name: "LogMenuBarEntry",
   menuBarAlign: "right",
-  maxLogMessages: 999,
+  maxLogMessages: 299,
   logMessages: [],
   textString: "0",
   normalColor: Color.parseHex("#333"),

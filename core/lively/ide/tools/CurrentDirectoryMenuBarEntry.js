@@ -12,13 +12,24 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     textColor: Color.gray.darker(),
     toolTip: "Shows the directory all operating system commands work with. Click to change and browse."
   }),
-  
+
   actions: function actions() {
     var self = this;
 
     return {
+      clear: function() {
+        var dir = lively.shell.WORKSPACE_LK;
+        if (dir) {
+          $world.knownWorkingDirectories = self.dirs = [cmd.resultString().trim()];
+        } else {
+          var cmd = lively.shell.exec('echo $WORKSPACE_LK', {sync:true})
+          $world.knownWorkingDirectories = self.dirs = cmd.getCode() ? [] : [cmd.resultString().trim()];
+        }
+        self.update();
+      },
+
       changeDir: function() {
-        var cwd = lively.shell.exec('pwd', {sync:true}).resultString();    
+        var cwd = lively.shell.exec('pwd', {sync:true}).resultString();
         lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
             'choose directory: ',
             cwd,
@@ -32,28 +43,28 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
             lively.ide.tools.DirViewer.on(lively.shell.cwd());
           })
       },
-      
+
       runShellCommand: function doAction() {
         Global.require('lively.ide.commands.default').toRun(function() {
                   lively.ide.commands.exec('lively.ide.execShellCommandInWindow') })
       },
-      
+
       showOsProcesses: function doAction() {
         Global.require('lively.ide.tools.ServerProcessViewer').toRun(function() {
           lively.ide.tools.ServerProcessViewer.open();
         });
       },
-      
+
       searchInFiles: function doAction() {
         lively.require('lively.ide.commands.default').toRun(function() {
                   lively.ide.commands.exec("lively.ide.CommandLineInterface.doGrepSearch") })
       },
-      
+
       searchForFiles: function doAction() {
         lively.require('lively.ide.commands.default').toRun(function() {
                   lively.ide.commands.exec('lively.ide.browseFiles') })
       },
-      
+
       openGit: function doAction() {
         lively.require('lively.ide.commands.default').toRun(function() {
                   lively.ide.commands.exec('lively.ide.openGitControl') })
@@ -68,7 +79,9 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
           ["change...",
             this.dirs.map(function(ea) {
               return [ea, self.addDir.bind(self, ea)]; })
-                .concat([["choose...", actions.changeDir]])
+                .concat([{isMenuItem: true, isDivider: true},
+                         ["clear...", actions.clear],
+                         ["choose...", actions.changeDir]])
           ],
           ["browse directory...", actions.openDirViewer],
           ["find files...", actions.searchForFiles],
@@ -87,7 +100,9 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     d = d && d.path ? d.path : (d || "");
     lively.shell.run('cd "'+d+'"; pwd', function(err, cmd) {
       var newD = !err && cmd.getStdout().trim().length ?
-        cmd.getStdout().trim() : dirBefore;
+        cmd.getStdout().trim() : d.trim();
+      if (newD.length === 0 || newD == "searching...") newD = dirBefore;
+      newD = newD.replace(/\/$/, "");
       this.dirs.pushIfNotIncluded(newD);
       if (!$world.knownWorkingDirectories) $world.knownWorkingDirectories = [];
       $world.knownWorkingDirectories.pushIfNotIncluded(newD);

@@ -563,6 +563,16 @@ Object.extend(lively.ide.CommandLineInterface, {
     cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
+    
+    initWORKSPACE_LK: function(sync) {
+      var webR = URL.nodejsBase.withFilename("CommandLineServer/").asWebResource();
+      webR.withJSONWhenDone(function(json, status) {
+        if (status.isSuccess())
+          lively.ide.CommandLineInterface.WORKSPACE_LK = json.cwd;
+      });
+      if (!sync) webR.beAsync();
+      webR.get();
+    },
 
     makeAbsolute: function(path) {
         var isAbsolute = !!(path.match(/^\s*[a-zA-Z]:\\/) || path.match(/^\s*\/.*/));
@@ -747,6 +757,10 @@ Object.extend(lively.ide.CommandLineInterface, {
         return lively.ide.tools.ShellCommandRunner.run(cmd, options);
     }
 });
+
+(function WORKSPACE_LK() {
+  lively.ide.CommandLineInterface.initWORKSPACE_LK(false);
+})();
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // file search related

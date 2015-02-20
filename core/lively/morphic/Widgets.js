@@ -3006,6 +3006,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 
     openIn: function($super, owner, pos, focusedMorph) {
         this.lastFocusedMorph = focusedMorph || lively.morphic.Morph.focusedMorph();
+        this.focus.bind(this).delay(0);
         return $super(owner, pos);
     },
 
@@ -3041,7 +3042,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
         // determine its extent
         this.label.fit();
         (function fit() {
-        this.label.cachedBounds=null
+            this.label.cachedBounds=null
             var labelBoundsFit = this.label.bounds(),
                 origPanelExtent = this.panel.getExtent(),
                 panelExtent = origPanelExtent;
@@ -3049,10 +3050,11 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
                 panelExtent = panelExtent.withX(labelBoundsFit.width + 2*this.inset);
             }
             if (labelBoundsFit.height > bounds.height) {
-                var morphsBelowLabel = this.panel.submorphs.without(this.label).select(function(ea) {
-                        return ea.bounds().top() <= labelBoundsFit.bottom(); }),
+                var morphsBelowLabel = this.panel.submorphs
+                      .without(this.label)
+                      .select(function(ea) { return ea.bounds().top() <= labelBoundsFit.bottom(); }),
                     diff = labelBoundsFit.height - bounds.height;
-                morphsBelowLabel.invoke('moveBy', panelExtent.subPt(origPanelExtent));
+                // morphsBelowLabel.invoke('moveBy', panelExtent.subPt(origPanelExtent));
                 panelExtent = panelExtent.addXY(0, diff);
             }
             this.panel.setExtent(panelExtent);

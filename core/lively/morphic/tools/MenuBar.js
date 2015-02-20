@@ -14,13 +14,13 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
     },
     layout: { adjustForNewBounds: true, resizeHeight: false, resizeWidth: true },
     name: "MenuBar",
-    
+
     leftsAndRights: function leftsAndRights() {
       var mid = this.innerBounds().center().x;
       return this.submorphs
         .sortBy(function(ea) { return ea.getPosition().x; })
         .partition(function(ea) { return ea.bounds().topRight().x < mid; });
-    
+
     },
 
     relayout: function relayout() {
@@ -38,7 +38,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
     add: function add(morph) {
       var align = morph.menuBarAlign || "left";
       var posGroups = this.leftsAndRights();
-    
+
       if (align === "right") {
         var rightMorph = posGroups[1].first();
         var pos = rightMorph ? rightMorph.bounds().topLeft() : this.innerBounds().topRight();
@@ -47,7 +47,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
         var leftMorph = posGroups[0].last();
         var pos = leftMorph ? leftMorph.bounds().topRight() : this.innerBounds().topLeft();
       }
-    
+
       this.addMorph(morph);
       morph.setExtent(morph.getExtent().withY(this.getExtent().y-1));
       morph.align(morph.bounds()[align === "right" ? "topRight" : "topLeft"](), pos);
@@ -71,7 +71,6 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
     },
 
     onWorldResize: function onWorldResize() {
-      show("??")
       lively.lang.fun.debounceNamed(this.id + '-onWorldResize', 300,
         this.alignInWorld.bind(this))();
     },
@@ -84,7 +83,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
     reset: function reset() {
       this.removeAllMorphs();
       this.disableGrabbing();
-      this.disableDragging()
+      this.disableDragging();
     },
 
     onLoad: function onLoad() {
@@ -136,7 +135,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBarEntry", {
     if (this.changeColorForMenu)
       this.applyStyle({fill: Color.rgb(43, 88, 255), textColor: Color.white});
     var items = this.morphMenuItems();
-    this.menu = lively.morphic.Menu.openAt(this.globalBounds().bottomLeft(), null, items)
+    this.menu = lively.morphic.Menu.openAt(this.globalBounds().bottomLeft(), null, items);
     lively.bindings.connect(this.menu, 'remove', this, 'removeMenu');
   },
 
@@ -176,124 +175,9 @@ lively.BuildSpec("lively.morphic.tools.MenuBarEntry", {
   onFromBuildSpecCreated: function onFromBuildSpecCreated() {
     this.onLoad();
   }
-})
+});
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.BuildSpec("lively.morphic.tools.MenuBarEntry").customize({
-
-  name: "lively2livelyStatusLabel",
-  menuBarAlign: "right",
-  changeColorForMenu: false,
-
-  style: lively.lang.obj.merge(lively.BuildSpec("lively.morphic.tools.MenuBarEntry").attributeStore.style, {
-    extent: lively.pt(130,20),
-    textColor: Color.rgb(127,230,127),
-    toolTip: "Shows the connection status to the cloxp (Lively) server environment. If the indicator is red this means that the server currently cannot be reached."
-  }),
-
-  morphMenuItems: function morphMenuItems() {
-    var self = this,
-        items = [],
-        isConnected = lively.net.SessionTracker.isConnected(),
-        allowRemoteEval = !!lively.Config.get('lively2livelyAllowRemoteEval');
-    if (!isConnected) {
-        items.push(['show login info', function() {
-            lively.net.Wiki.showLoginInfo();
-        }]);
-        items.push(['connect', function() {
-            lively.net.SessionTracker.resetSession();
-            self.update.bind(self).delay(0.2);
-        }]);
-    } else {
-        items = [
-        ['show login info', function() {
-            lively.net.Wiki.showLoginInfo();
-        }],
-        ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {
-            lively.Config.set('lively2livelyAllowRemoteEval', !allowRemoteEval);
-        }],
-        ['reset connection', function() {
-            lively.net.SessionTracker.resetSession();
-        }],
-        ['disconnect', function() {
-            lively.net.SessionTracker.closeSessions();
-            self.update.bind(self).delay(0.2);
-        }]];
-    }
-    
-    return items;
-  },
-
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-  messageReceived: function messageReceived(msgAndSession) {
-    var msg = msgAndSession.message, s = msgAndSession.session;
-    if (msg.action === 'remoteEvalRequest') {
-        var msg = Strings.format(
-            'got %s\n%s\n from %s',
-            msg.action,
-            msg.data.expr.replace(/\n/g, '').truncate(100),
-            msg.sender);
-        $world.setStatusMessage(msg, Color.gray);
-    }
-  },
-
-  onConnect: function onConnect(session) {
-    if (!this.informsAboutMessages && lively.Config.get('lively2livelyInformAboutReceivedMessages')) {
-        var self = this;
-        function onClose() {
-            self.informsAboutMessages = false;
-            lively.bindings.disconnect(session, 'message', self, 'messageReceived');
-            lively.bindings.disconnect(session, 'sessionClosed', onClose, 'call');
-        }
-        this.informsAboutMessages = true;
-        lively.bindings.connect(session, 'message', this, 'messageReceived');
-        lively.bindings.connect(session, 'sessionClosed', onClose, 'messageReceived');
-    }
-    this.applyStyle({
-      fill: Global.Color.green,
-      textColor: Global.Color.white
-    });
-    this.textString = '[l2l] connected';
-  },
-
-  onConnecting: function onConnecting(session) {
-    this.informsAboutMessages = false;
-    this.textString = '[l2l] connecting';
-    this.applyStyle({
-      fill: Global.Color.gray,
-      textColor: Global.Color.white
-    });
-  },
-
-  onDisconnect: function onDisconnect(session) {
-    // this.onDisconnect()
-    this.informsAboutMessages = false;
-    this.textString = '[l2l] disconnected'
-    this.applyStyle({
-      fill: Global.Color.red,
-      textColor: Global.Color.white
-    });
-  },
-
-  update: function update() {
-    var s = lively.net.SessionTracker.getSession();
-    switch (s && s.status()) {
-        case null: case undefined:
-        case 'disconnected': this.onDisconnect(s); break;
-        case 'connected': this.onConnect(s); break;
-        case 'connecting': this.onConnecting(s); break;
-    }
-  },
-
-  onLoad: function onLoad() {
-    (function() { this.update(); }).bind(this).delay(0);
-    this.startStepping(5*1000, 'update');
-    this.onConnecting(null);
-  }
-
-}));
 
 Object.extend(lively.morphic.tools.MenuBar, {
 
@@ -303,7 +187,7 @@ Object.extend(lively.morphic.tools.MenuBar, {
       function(ea, _, n) {
         lively.require(ea).toRun(function() {
           var entries = [];
-          try { entries = module(ea).getMenuBarEntries() } catch (e) {}
+          try { entries = module(ea).getMenuBarEntries(); } catch (e) {}
           n(null, entries);
         });
     }, function(err, entries) {
@@ -311,8 +195,8 @@ Object.extend(lively.morphic.tools.MenuBar, {
         bar.removeAllMorphs();
         entries.flatten().forEach(bar.add.bind(bar));
         (function() {bar.relayout();}).delay(0);
-      })
-    
+      });
+
   },
 
   open: function() {
@@ -321,7 +205,7 @@ Object.extend(lively.morphic.tools.MenuBar, {
         .createMorph().openInWorld().onLoad();
   },
 
-  addEntry: function(menuBarEntry) { return this.open().add(menuBarEntry); },
+  addEntry: function(menuBarEntry) { return this.open().add(menuBarEntry); }
 });
 
-}) // end of module
+}); // end of module

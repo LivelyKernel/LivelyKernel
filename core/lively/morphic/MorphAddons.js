@@ -13,8 +13,8 @@ Object.extend(lively.morphic, {
       var m = lively._showMarker || (lively._showMarker = $world.loadPartItem("Marker", "PartsBin/Basic"));
       m.setOpacity(1);
       m.openInWorld();
-      m.setBounds(morph.globalBounds().expandBy(10));
-      m.applyStyle({borderWidth: 7, borderRadius: 10});
+      m.setBounds(morph.globalBounds().expandBy(6));
+      m.applyStyle({borderWidth: 4, borderRadius: 10});
       (function() {
         m.setOpacityAnimated(0, 1000, function() { m.remove(); })
       }).delay(1);
@@ -1051,10 +1051,32 @@ lively.morphic.World.addMethods(
     },
 
     showUserConfig: function() {
-        var url = this.ensureUserConfig();
+      var self = this;
+      var user  = self.getUserName(true);
+      if (user === "null") user = null;
+      
+      lively.lang.fun.composeAsync(
+        user ? function(n) { n(null, user); } : function(n) {
+          $world.askForUserName("No username set yet, please enter your username:", function(input) {
+            n(null, input);
+          });
+        },
+        function(username, n) {
+          if (!username) return n(new Error("Not a valid username: " + username));
+          $world.setCurrentUser(username);
+          n();
+        },
+        showIt
+      )(function(err) {
+        if (err) $world.inform("Could not browser user config because:\n" + err);
+      });
+      
+      function showIt(n) {
+        var url = self.ensureUserConfig();
         url && require('lively.ide').toRun(function() {
             lively.ide.browse(url);
         });
+      }
     }
 
 },

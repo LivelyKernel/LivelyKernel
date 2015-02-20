@@ -105,7 +105,7 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
     checkNewDir: function checkNewDir(dirBefore, d, thenDo) {
     lively.shell.run('cd "'+d+'"; pwd', function(err, cmd) {
       var newD = !err && cmd.getStdout().trim().length ?
-        cmd.getStdout().trim() : dirBefore;
+        cmd.getStdout().trim() : d;
       thenDo(err, newD)
     }.bind(this));
   },

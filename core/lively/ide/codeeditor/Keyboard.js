@@ -1081,24 +1081,23 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
   try {
     var cust = JSON.parse(lively.LocalStorage.get("user-key-bindings"));
     ace.ext.keys.addKeyCustomizationLayer("user-key-bindings", cust || {});
-    var h = ace.require("ace/keyboard/keybinding").KeyBinding.prototype["ace.ext.keys.customized"].detect(function(ea) { return ea.layerName === "user-key-bindings"; })
+    var h = ace.require("ace/keyboard/keybinding").KeyBinding.prototype["ace.ext.keys.customized"].detect(function(ea) {
+      return ea.layerName === "user-key-bindings"; })
 
-    if (h) {
-      h.handleKeyboard = h.handleKeyboard.getOriginal().wrap(function (proceed, data, hashId, keyString, keyCode) {
-        // show(ace.require("ace/lib/keys").KEY_MODS[hashId]+keyString);
-        var cmd = proceed(data, hashId, keyString, keyCode);
-        if (!cmd || !cmd.command || !cmd.command.startsWith("global:")) return cmd;
-        var name = cmd.command.replace('global:', "");
-        var globalCommand = lively.ide.commands.byName[name];
-        if (!globalCommand) return cmd;
-        if (!data.editor.commands[name]) {
-          data.editor.commands.addCommand({
-            name: name, exec: function(ed, args) { lively.ide.commands.exec(name, args); },
-          })
-        }
-        return lively.lang.obj.merge(cmd, {command: name});
-      });
-    }
+    var proto = ace.ext.keys.KeyHandlerForCustomizations.prototype
+    proto.handleKeyboard = proto.handleKeyboard.getOriginal().wrap(function (proceed, data, hashId, keyString, keyCode) {
+      var cmd = proceed(data, hashId, keyString, keyCode);
+      if (!cmd || !cmd.command || !cmd.command.startsWith("global:")) return cmd;
+      var name = cmd.command.replace('global:', "");
+      var globalCommand = lively.ide.commands.byName[name];
+      if (!globalCommand) return cmd;
+      if (!data.editor.commands[name]) {
+        data.editor.commands.addCommand({
+          name: name, exec: function(ed, args) { lively.ide.commands.exec(name, args); },
+        })
+      }
+      return lively.lang.obj.merge(cmd, {command: name});
+    });
 
   } catch (e) {
     console.error("Error setting ace user keys:\n" + e);

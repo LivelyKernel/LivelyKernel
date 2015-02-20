@@ -80,7 +80,7 @@ Object.extend(lively.net.tools.Lively2Lively, {
         }
         return [disconnectedSessions, newSessions];
     },
-    
+
     getMenuBarEntries: function() {
       return [lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry").createMorph()];
     },
@@ -766,7 +766,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
         updateSessions: function updateSessions() {
             var sessionListMorph = this.get('SessionList'),
                 localSession = lively.net.tools.Functions.getLocalSession();
-    
+
             lively.net.tools.Functions.withSessionsDo(localSession, function(err, sessions) {
                 if (err) {
                     sessionListMorph.setList([]);
@@ -914,7 +914,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             onMouseDown: function onMouseDown(evt) {
           if (evt.getTargetMorph() == this.get(/CheckBox/)) return false;
           if (evt.getTargetMorph() == this.get("Label") && this.get("Label").inputAllowed()) return false;
-        
+
           this.setChecked(!this.isChecked());
           evt.stop(); return true;
         },
@@ -993,7 +993,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             onMouseDown: function onMouseDown(evt) {
           if (evt.getTargetMorph() == this.get(/CheckBox/)) return false;
           if (evt.getTargetMorph() == this.get("Label") && this.get("Label").inputAllowed()) return false;
-        
+
           this.setChecked(!this.isChecked());
           evt.stop(); return true;
         },
@@ -1102,7 +1102,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                     doFunc(isError, result);
                 });
             });
-        
+
             function processCode(code) {
               return lively.lang.VM.evalCodeTransform(code, {
                 topLevelVarRecorder: {},
@@ -1136,25 +1136,25 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
         lookForNewerSessionOfSameTarget: function lookForNewerSessionOfSameTarget() {
       // this.startStepping(2000, 'lookForNewerSessionOfSameTarget');
       // this.stopStepping();
-    
+
       // if enabled, we will try to connect to a newer session of the same user / worldURL combo
       if (!this.get("autoConnectToNewerSession").isChecked() || !this._targetSession) return;
-    
+
       var self = this, userName = this._targetSession.user, url = this._targetSession.worldURL;
       var forceUpdate = this.get("forceRefreshCheckBox").isChecked();
-    
+
       withLastActiveSessionOfUserDo(userName, url, function(err, targetSession) {
         if (!targetSession) return;
         self._targetSession = targetSession;
     // show(targetSession)
         lively.bindings.signal(self, "sessionChanged", targetSession);
       });
-    
-    
+
+
       // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    
+
       function withLastActiveSessionOfUserDo(username, url, thenDo) {
-        var localSession = lively.net.SessionTracker.getSession();  
+        var localSession = lively.net.SessionTracker.getSession();
         lively.net.tools.Functions.withSessionsDo(localSession, function(err, sessions) {
           if (err) return show(err.stack || String(err));
           thenDo(null, sessions.filter(function(s) {
@@ -1176,17 +1176,17 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
     },
         reset: function reset() {
       lively.bindings.connect(this.get("sessionChooseButton"), 'fire', this, 'interactivelyChooseSession');
-    
+
       lively.bindings.connect(this, 'sessionChanged', this, 'updateFromTargetSession');
       this.doNotSerialize = ["_targetSession"];
-      
+
       this.get('editor').textString = '// code in here is evaluated in the context of the connected session\n';
     },
         updateFromTargetSession: function updateFromTargetSession() {
         var s = this._targetSession;
         if (s) this.get("sessionChooseButton").setLabel(Strings.format("%s - %s (%s)", s.worldURL, s.user,lively.lang.date.relativeTo(new Date(s.lastActivity), new Date())));
         else this.get("sessionChooseButton").setLabel("No session selected");
-    
+
     },
         withTargetSession: function withTargetSession(func) {
         func.call(null, null, this._targetSession);
@@ -1246,7 +1246,7 @@ lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.Buil
   messageReceived: function messageReceived(msgAndSession) {
     var msg = msgAndSession.message, s = msgAndSession.session;
     if (msg.action === 'remoteEvalRequest') {
-        var msg = Strings.format(
+        msg = Strings.format(
             'got %s\n%s\n from %s',
             msg.action,
             msg.data.expr.replace(/\n/g, '').truncate(100),
@@ -1286,7 +1286,7 @@ lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.Buil
   onDisconnect: function onDisconnect(session) {
     // this.onDisconnect()
     this.informsAboutMessages = false;
-    this.textString = '[l2l] disconnected'
+    this.textString = '[l2l] disconnected';
     this.applyStyle({
       fill: Global.Color.red,
       textColor: Global.Color.white
@@ -1309,5 +1309,6 @@ lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.Buil
     this.onConnecting(null);
   }
 
-}))
-}) // end of module
+}));
+
+}); // end of module

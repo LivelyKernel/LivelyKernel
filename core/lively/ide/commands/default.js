@@ -408,10 +408,10 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.WindowNavigation.start': {
         description: 'open window navigator',
-        exec: function() {
-          lively.require("lively.ide.WindowNavigation").toRun(function() {
+        exec: function exec() {
+          if (module("lively.ide.WindowNavigation").isLoaded())
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
-          });
+          else lively.require("lively.ide.WindowNavigation").toRun(exec);
           return true;
         }
     },
@@ -557,7 +557,6 @@ Object.extend(lively.ide.commands.byName, {
                 {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
                 {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
                 {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
-
             if (!lively.shell.cwdIsLivelyDir()) {
                 // SCB is currently only supported for Lively files
                 actions.shift();
@@ -829,18 +828,47 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.changeShellBaseDirectory': {
         description: 'change the base directory for shell commands',
         exec: function() {
-            function setBasePath(candidate) {
-                var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
-                if (result) alertOK('base directory is now ' + result);
-                else alertOK('resetting base directory to default');
-                lively.ide.CommandLineInterface.rootDirectory = result;
-            }
-            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+
+          lively.lang.fun.composeAsync(
+
+            // If there is a list of known dirs first offer to choose from those
+            function chooseFromKnownWorkingDirectories(n) {
+              if (!$world.knownWorkingDirectories && !$world.knownWorkingDirectories.length)
+                return n();
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
+                  spec: {
+                    candidates: ['choose different directory...'].concat($world.knownWorkingDirectories),
+                    preselect: 1,
+                    actions: [function select(c) {
+                      n(null,c === 'choose different directory...' ? null : c);
+                    }]
+                  }
+                })
+            },
+
+            // Otherwise choose by navigating the fs
+            function chooseNewDir(dir, n) {
+              if (dir) return n(null, dir);
+              lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
                 'choose directory: ',
                 lively.shell.exec('pwd', {sync:true}).resultString(),
                 function(files) { return files.filterByKey('isDirectory'); },
                 "lively.ide.browseFiles.baseDir.NarrowingList",
-                [setBasePath]);
+                [function(c) { n(null, c); }]);
+            },
+            
+            // ...and change the base dir for real
+            function setBasePath(candidate, n) {
+              if (!candidate) return n(new Error("No directory choosen"));
+              var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+              if (result) alertOK('base directory is now ' + result);
+              else alertOK('resetting base directory to default');
+              lively.shell.setWorkingDirectory(result);
+              n(null, result);
+            }
+          )(function(err, dir) { });
+          return true;
         }
     },
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {
@@ -1602,6 +1630,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.findFile': {mac: ['Control-X F', 'Control-X Control-F'], win: ['Control-X F', 'Control-X Control-F']},
     'lively.ide.openDirViewer': 'Control-X D',
+    'lively.ide.CommandLineInterface.changeShellBaseDirectory': {mac: 'cmd-s-l d i r', win: 'ctrl-s-l d i r'},
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     "lively.tests.mocha.runAll": "Control-C t",

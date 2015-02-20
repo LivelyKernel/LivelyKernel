@@ -322,7 +322,7 @@ lively.BuildSpec("lively.ide.tools.LogMessages", {
 
 
       onWindowGetsFocus: function onWindowGetsFocus() {
-          this.world() && this.focus();
+        this.world() && this.get("logText").focus();
       },
 
       reset: function reset() {

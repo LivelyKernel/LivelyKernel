@@ -339,14 +339,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     rootDirectory: null,
 
-    WORKSPACE_LK: (function() {
-      lively.ide.CommandLineInterface.run("echo $WORKSPACE_LK", {}, function(err, cmd) {
-        if (!cmd.getCode() && cmd.getStdout().trim().length > 3) {
-          lively.ide.CommandLineInterface.WORKSPACE_LK = cmd.getStdout().trim();
-        }
-      })
-      return null;
-    }).delay(0),
+    WORKSPACE_LK: null,
 
     commandQueue: {},
 
@@ -563,6 +556,16 @@ Object.extend(lively.ide.CommandLineInterface, {
     cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
+    
+    initWORKSPACE_LK: function(sync) {
+      var webR = URL.nodejsBase.withFilename("CommandLineServer/").asWebResource();
+      webR.withJSONWhenDone(function(json, status) {
+        if (status.isSuccess())
+          lively.ide.CommandLineInterface.WORKSPACE_LK = json.cwd;
+      });
+      if (!sync) webR.beAsync();
+      webR.get();
+    },
 
     makeAbsolute: function(path) {
         var isAbsolute = !!(path.match(/^\s*[a-zA-Z]:\\/) || path.match(/^\s*\/.*/));
@@ -748,6 +751,10 @@ Object.extend(lively.ide.CommandLineInterface, {
     }
 });
 
+(function WORKSPACE_LK() {
+  lively.ide.CommandLineInterface.initWORKSPACE_LK(false);
+})();
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // file search related
 lively.module("lively.ide.CommandLineSearch");
@@ -899,7 +906,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         return options.sync ? result : cmd;
     },
 
-    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions) {
+    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
         //     'choose directory: '
@@ -919,8 +926,14 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (!rootDir) rootDir = lively.shell.exec("pwd", {sync: true}).getStdout().trim();
         if (rootDir) rootDir = rootDir.replace(/\/?$/, "/");
         var lastSearch;
-        var initialCandidates = rootDir ? [rootDir] : [];
+        var initialCandidates = initialCandidates ? initialCandidates : (rootDir ? [rootDir] : []);
+        var showsInitialCandidates = true;
         var searchForMatching = Functions.debounce(300, function(input, callback) {
+            if (showsInitialCandidates) {
+              showsInitialCandidates = false;
+              if (initialCandidates.length)
+                return callback(initialCandidates);
+            }
             // var candidates = [input].compact(),
             var candidates = [],
                 patternAndDir = extractDirAndPatternFromInput(input);
@@ -958,6 +971,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                 // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
                 function timeout() { thenDo([]); },
                 function filesFound(files) {
+                    lastSearch = null;
                     thenDo((filterFunc || Functions.K)(files, input, pattern, dir)
                         .uniqBy(filesAreEqual)
                         .sort(sortFiles.curry(input))
@@ -988,7 +1002,7 @@ Object.extend(lively.ide.CommandLineSearch, {
 
         function extractDirAndPatternFromInput(input) {
             var result = {}, lastSlash = input.lastIndexOf('/');
-            if (!lastSlash) return null; // don't do search
+            if (lastSlash === -1) return null; // don't do search
             result.dir = input.slice(0,lastSlash);
             var pattern = input.slice(lastSlash+1);
             if (pattern.startsWith(' ')) pattern = '*' + pattern.trim();

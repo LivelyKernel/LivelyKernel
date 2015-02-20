@@ -2377,6 +2377,11 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         lively.morphic.KeyboardDispatcher._global = null;
     },
     handleGlobalKeyEvent: function(evt) {
+        // Fix for not creating the copy event under windows...
+        // there seems to be an event handler that stops the event (JL)
+        var key = evt.getKeyChar().toLowerCase()
+        if (evt.isCommandKey() && (key == 'c' || key == 'x'))
+            return false; // don't capture COPY or CUT
         var handler = lively.morphic.KeyboardDispatcher.global();
         return handler.handleKeyEvent(evt, handler.keyInputState);
     }

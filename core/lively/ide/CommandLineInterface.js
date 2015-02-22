@@ -909,7 +909,7 @@ Object.extend(lively.ide.CommandLineSearch, {
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-        //     'choose directory: '
+        //     'choose directory: ',
         //     lively.shell.exec("pwd", {sync: true}).getStdout().trim(),
         //     function(files) { return files.filterByKey('isDirectory'); },
         //     null,
@@ -959,7 +959,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         function candidateBuilder(input, callback) {
-          callback(['searching...']);
+          callback([{isListItem: true, string: 'searching...', value: null}]);
           if (input === "undefined" || input === "searching...") input = "";
           searchForMatching(input, callback);
         };

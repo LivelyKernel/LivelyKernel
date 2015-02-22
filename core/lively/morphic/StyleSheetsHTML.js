@@ -456,7 +456,8 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleClassNamesHTML: function (ctx, classNames) {
-        ctx.shapeNode.className = classNames ? classNames.join(' ') : '';
+        if (ctx.shapeNode)
+          ctx.shapeNode.className = classNames ? classNames.join(' ') : '';
     },
 
     getStyleClassNamesHTML: function (ctx) {
@@ -470,7 +471,8 @@ lively.morphic.Morph.addMethods(
     },
 
     setStyleIdHTML: function (ctx, id) {
-        ctx.shapeNode.setAttribute('id', id || null);
+        if (ctx.shapeNode)
+          ctx.shapeNode.setAttribute('id', id || null);
     },
 
     getIdsForSelector: function(selector) {

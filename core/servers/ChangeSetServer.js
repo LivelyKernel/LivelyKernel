@@ -357,10 +357,10 @@ function processChanges(changeObj, repoPath, callback) {
                     var commitInfo = {
                             GIT_AUTHOR_NAME: info.author,
                             GIT_AUTHOR_EMAIL: info.authorEmail,
-                            GIT_AUTHOR_DATE: info.authorDate.toISOString().substr(0, 19),
+                            GIT_AUTHOR_DATE: gitHelper.util.toLocalISODateString(info.authorDate),
                             GIT_COMMITTER_NAME: info.commiter,
                             GIT_COMMITTER_EMAIL: info.commiterEmail,
-                            GIT_COMMITTER_DATE: info.commiterDate.toISOString().substr(0, 19)
+                            GIT_COMMITTER_DATE: gitHelper.util.toLocalISODateString(info.commiterDate)
                         },
                         fileInfo = { parent: parentId };
                     gitHelper.util.createCommitFromDiffs(repoPath, diffs, commitInfo, info.message, fileInfo, next);

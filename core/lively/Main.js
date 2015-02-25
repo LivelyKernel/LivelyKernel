@@ -62,6 +62,10 @@ Object.extend(lively.Main.WorldDataAccessor, {
     forHTMLDoc: function(doc) {
         // get the first script tag with the x-lively-world type
         var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
+        if (json.startsWith("<![CDATA")) {
+            console.log("MIGRATE: remove sourrounding CDATA in json string")
+            json = json.replace(/\<\!\[CDATA\[(.*)\]\]\>$/g,"$1")
+        }
         return new lively.Main.JSONMorphicData(doc, json);
     }
 });

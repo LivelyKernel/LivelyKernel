@@ -434,6 +434,8 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNo
                                 targetFile = lively.ide.ModuleWrapper.forFile(input);
                             targetFile.setSource(compiled, true);
                             alertOK('... written to ' + targetFile.fileName());
+                            browser.updateFileList();
+                            browser.selectNodeNamed(targetFile.fileName().match('[^/]*$'));
                             browser.allChanged();
                         });
                 },

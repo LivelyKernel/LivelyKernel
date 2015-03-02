@@ -259,6 +259,10 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         klassName && this.inPaneSelectNodeNamed('Pane2', klassName);
         methodName && this.inPaneSelectNodeNamed('Pane4', methodName);
     },
+
+    updateFileList: function() {
+        this.setTargetURL(this.getTargetURL());
+    },
 });
 
 Object.extend(lively.ide.SystemBrowser, {

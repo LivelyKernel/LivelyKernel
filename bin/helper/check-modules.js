@@ -48,10 +48,11 @@ function findMissingNPMPackages(dev, thenDo) {
 }
 
 function filterNPMModulesForReinstall(moduleNames, thenDo) {
+    // FIXME: handle symbolic links!
     var reallyMissing = moduleNames.reduce(function(reallyMissing, name) {
       try {
         var stat = fs.statSync(path.join(lkDir, "node_modules", name));
-        if (stat.isSymbolicLink()) reallyMissing.push(name);
+        if (!stat.isSymbolicLink()) reallyMissing.push(name);
       } catch (e) { reallyMissing.push(name) }
       return reallyMissing;
     }, []);

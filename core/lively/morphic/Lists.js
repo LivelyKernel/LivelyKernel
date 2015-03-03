@@ -798,12 +798,8 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
     onWindowExpand: function() {
       this.updateView();
-    },
-
-    onOwnerChanged: function($super, owner) {
-      $super(owner)
-      if (owner) this.updateView();
     }
+
 },
 'accessing', {
     get selectedLineNo() {

@@ -13,7 +13,7 @@
     "async": "~0.9",
     "colorize": "~0.1",
     "file-fuser": ">=0.0.7",
-    "life_star": ">=0.6.7",
+    "life_star": ">=0.7.0",
     "optparse": "~1.0",
     "shelljs": "~0.2",
     "sqlite3": "~3.0.5",

@@ -727,8 +727,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
     },
 
-
-
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null,
 

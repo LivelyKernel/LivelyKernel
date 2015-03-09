@@ -3050,7 +3050,10 @@ Object.subclass('lively.morphic.TextEmphasis',
                 return this.color == other.color ||
                     (this.color && this.color.isColor && this.color.equals(other.color));
             },
-            apply: function(node) { if (this.hasOwnProperty("color")) node.style.color = this.color; }
+            apply: function(node) {
+              if (this.hasOwnProperty("color"))
+                node.style.color = this.color && this.color.isColor ?
+                  this.color.toCSSString() : this.color; }
         },
 
         backgroundColor: {

@@ -875,6 +875,38 @@ lively.morphic.Box.subclass('lively.morphic.List',
         }
     },
 
+    setListSilently: function(items, options) {
+        options = options || {};
+        var selectByString = options.selectByString || false,
+            self = this,
+            oldSelectionItems = this.getSelectedItems();
+
+        if (!items) items = [];
+        this.itemList = items;
+        this.layout = this.initLayout(items.length, this.layout);
+        this.setupScroll(items.length, this.layout);
+        this.updateView();
+
+        var stringItems = items.map(function(ea) {
+          return !ea || typeof ea === 'string' ? ea : ea.string; });
+
+        var newSelectionIndexes = oldSelectionItems.reduce(function(all, ea, i) {
+            if (selectByString) {
+              var found = stringItems.indexOf(ea ? ea.string : ea);
+              if (found === -1) found = NaN;
+            } else { var found = ea && self.find(ea.hasOwnProperty("value") ? ea.value : ea) ; }
+
+            if (!isNaN(found)) all.push(found);
+            return all;
+        }, []);
+
+        lively.bindings.noUpdate(function() {
+            newSelectionIndexes.forEach(function(i) {
+                self.updateSelectionAndLineNo(i, true); }); });
+
+        return newSelectionIndexes;
+    },
+
     updateList: function(items) { return this.setList(items); },
 
     getList: function() { return this.itemList; },
@@ -949,9 +981,10 @@ lively.morphic.Box.subclass('lively.morphic.List',
         this.saveSelectAt(Object.isNumber(this.selectedLineNo) ? this.selectedLineNo-1 : 0);
     },
 
-    updateSelectionAndLineNo: function(selectionIdx) {
+    updateSelectionAndLineNo: function(selectionIdx, dontScroll) {
         this.addSelectedIndex(selectionIdx);
-        this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
+        if (!dontScroll)
+          this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },
 
     setSelection: function(sel) {

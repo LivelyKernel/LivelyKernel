@@ -1852,16 +1852,16 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             ext = this.getExtent();
 
         // setting 'da message
-        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
-        else sm.textString = msg;
         sm.lastUpdated = Date.now();
         world.addMorph(sm);
         var color = color || Color.white;
-        var fill = (color === Color.green || color === Color.red) ? Color.white : Color.black.lighter()
+        var fill = (color === Color.green || color === Color.red || color === Color.black) ? Color.white : Color.black.lighter()
         sm.applyStyle({
             textColor: color, fill: fill,
             position: this.worldPoint(this.innerBounds().bottomLeft()),
         });
+        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
+        else sm.textString = msg;
 
         // aligning
         sm.fit();

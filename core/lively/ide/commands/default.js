@@ -56,7 +56,7 @@ Object.extend(lively.ide.commands.byName, {
             // Global Escape will drop grabbed morphs, remove menus, close halos
             var world = lively.morphic.World.current(), h = world.firstHand();
             if (h.submorphs.length > 0) { h.dropContentsOn(world); return true; }
-            if (world.worldMenuOpened) { h.removeOpenMenu(event); return true; }
+            if (world.worldMenuOpened) { h.removeOpenMenu(); return true; }
             if (world.hasSelection()) { world.resetSelection(); return true; }
             if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); return true; }
             var narrowers = world.submorphs.filter(function(m) { return m.isNarrowingList && m.isVisible(); })
@@ -346,7 +346,8 @@ Object.extend(lively.ide.commands.byName, {
             function askForHow() {
                 var actions = ['full', 'fullscreen','center','right','left','bottom',
                                'top',"shrinkWidth", "growWidth","shrinkHeight",
-                               "growHeight",'reset'];
+                               "growHeight", 'col1','col2', 'col3', 'col4', 'col5',
+                               'reset'];
                 lively.ide.tools.SelectionNarrowing.chooseOne(
                     actions, function(err, candidate) { doResize(candidate); },
                     {prompt: "How to resize the window?"});
@@ -358,8 +359,15 @@ Object.extend(lively.ide.commands.byName, {
                     case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
                     case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
                     case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
+                    case 'col3': case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
+                    case 'col5': case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
+                    case 'col1': case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
                     case 'bottom': bounds = bounds.withY(bounds.y + bounds.height/2);
                     case 'top': bounds = bounds.withHeight(bounds.height/2); break;
+                    case 'col2': bounds = thirdColBounds.withTopLeft(worldB.topCenter().scaleByPt(pt(.333,1))).withWidth(thirdW); break;
+                    case 'col4': bounds = thirdColBounds.withTopRight(worldB.topCenter().scaleByPt(pt(1.666,1))).withWidth(thirdW); break;
+                    case 'halftop': bounds = winB.withY(bounds.top()).withHeight(bounds.height/2); break;
+                    case 'halfbottom': bounds = winB.withY(bounds.height/2).withHeight(bounds.height/2); break;
                     case 'reset': bounds = win.normalBounds || pt(500,400).extentAsRectangle().withCenter(bounds.center()); break;
                     default: return;
                 }
@@ -372,13 +380,21 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
-    'lively.ide.resizeWindow.reset': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'reset'); }},
-    'lively.ide.resizeWindow.full': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'fullscreen'); }},
-    'lively.ide.resizeWindow.left': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'left'); }},
-    'lively.ide.resizeWindow.center': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'center'); }},
-    'lively.ide.resizeWindow.right': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'right'); }},
-    'lively.ide.resizeWindow.top': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'top'); }},
-    'lively.ide.resizeWindow.bottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'bottom'); }},
+
+    'lively.ide.resizeWindow.reset':      {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'reset'); }},
+    'lively.ide.resizeWindow.full':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'fullscreen'); }},
+    'lively.ide.resizeWindow.left':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'left'); }},
+    'lively.ide.resizeWindow.center':     {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'center'); }},
+    'lively.ide.resizeWindow.right':      {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'right'); }},
+    'lively.ide.resizeWindow.top':        {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'top'); }},
+    'lively.ide.resizeWindow.bottom':     {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'bottom'); }},
+    'lively.ide.resizeWindow.col1':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col1'); }},
+    'lively.ide.resizeWindow.col2':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col2'); }},
+    'lively.ide.resizeWindow.col3':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col3'); }},
+    'lively.ide.resizeWindow.col4':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col4'); }},
+    'lively.ide.resizeWindow.col5':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col5'); }},
+    'lively.ide.resizeWindow.halftop':    {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'halftop'); }},
+    'lively.ide.resizeWindow.halfbottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'halfbottom'); }},
 
     'lively.morphic.Window.resizeVisibleMorphsToFitIntoVisibleBounds': {
         description: 'Resize visible morphs to fit into visible world bounds.',
@@ -904,8 +920,6 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
-            Global.event.stop();
-
             var insertResult   = !args || typeof args.insert === 'undefined' || !!args.insert,
                 insertProgress = args  && !!args.insertProgress,
                 openInWindow   = !codeEditor || (args && args.count !== 4)/*universal argument*/,
@@ -1602,7 +1616,9 @@ Object.extend(lively.ide.commands.byName, {
     'disabled': {
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function() {
-            var evt = Global.event, keys = evt.getKeyString();
+            var evt = Global.LastEvent;
+            if (!evt) return true;
+            var keys = evt.getKeyString();
             lively.morphic.World.current().alert(keys + ' globally disabled');
             return true;
         }

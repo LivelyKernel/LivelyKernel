@@ -25,7 +25,9 @@ var isMozilla = Global.navigator && Global.navigator.userAgent.indexOf("Mozilla"
     isChrome = Global.navigator && Global.navigator.userAgent.indexOf("Chrome") > -1,
     isOpera = Global.navigator && Global.navigator.userAgent.indexOf("Opera") > -1,
     isIE = Global.navigator && Global.navigator.userAgent.indexOf("MSIE") > -1,
-    isMobile = Global.navigator && Global.navigator.userAgent.indexOf("Mobile") > -1,
+    isMobile = (Global.navigator && Global.navigator.userAgent.indexOf("Mobile") > -1) ||
+        (window && window.location && window.location.search && 
+        (window.location.search.indexOf('forceIsMobile=true') > 0)),
     fireFoxVersion = Global.navigator &&
     (Global.navigator.userAgent.split("Firefox/")[1] ||
      Global.navigator.userAgent.split("Minefield/")[1]); // nightly

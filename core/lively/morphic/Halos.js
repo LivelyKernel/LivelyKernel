@@ -169,7 +169,8 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
                 .extent(this.defaultExtent.subPt(pt(6,6))),
             this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg')
         this.addMorph(this.iconMorph);
-        this.iconMorph.ignoreEvents();
+        this.iconMorph.disableEvents();
+        this.iconMorph.disableDropping();
         if (!Config.coloredHaloItems) {
             this.setFill(Global.Color.rgb(240,240,240)); // basic gray
         }

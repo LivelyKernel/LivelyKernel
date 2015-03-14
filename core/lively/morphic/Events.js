@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib({url: Config.codeBase + 'lib/pointerevents/pointerevents.min.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib({url: Config.codeBase + 'lib/pointerevents/pointerevents.dev.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -409,15 +409,15 @@ Object.extend(Event, {
     MOUSE_MIDDLE_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 2 || evt.buttons === 4) } :
-            UserAgent.isMobile ?
-                function(evt) { return false } :
+            // UserAgent.isMobile ?
+            //     function(evt) { return false } :
                 function(evt) { return (evt.which === 2 || evt.buttons === 4) }
     })(),
     MOUSE_RIGHT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 3 || evt.buttons === 2) } :
-            UserAgent.isMobile ?
-                function(evt) { return false } :
+            // UserAgent.isMobile ?
+            //     function(evt) { return false } :
                 function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
 
@@ -1928,7 +1928,7 @@ lively.morphic.World.addMethods(
 
 lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'settings', {
-    style: {enableDropping: false, enableHalos: false}
+    style: {enableDropping: false, enableHalos: false, zIndex: 1100}
 },
 'testing', {
     isHand: true

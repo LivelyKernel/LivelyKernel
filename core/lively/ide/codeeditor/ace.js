@@ -36,6 +36,21 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
       p.__defineGetter__("$useEmacsStyleLineStart", lively.lang.fun.False);
       p.__defineSetter__("$useEmacsStyleLineStart", function(v) { return false; });
     })(ace.require('ace/edit_session').EditSession.prototype);
+    
+    ace.require('ace/editor').Editor.prototype.focus = function () {
+        var _self = this;
+        var x = Global.scrollX, y = Global.scrollY;
+        console.log("%s %s",x,y);
+        setTimeout(function() {
+            _self.textInput.focus();
+            (function() {
+                Global.scrollTo(x, y);
+            }).delay(0);
+        });
+        this.textInput.focus();
+        Global.scrollTo(x, y)
+    }
+
 })();
 
 module('lively.ide');

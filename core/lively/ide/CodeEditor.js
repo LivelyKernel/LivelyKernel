@@ -724,11 +724,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
     },
 
-    onFocus: function($super, evt) {
-        $super(evt);
-        var scroll = evt.world.getScroll();
-        (function() { evt.world.scrollTo(scroll[0], scroll[1]); }).delay(0);
-    },
+
 
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null,
@@ -1098,12 +1094,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph event interface', {
     focus: function() {
+        if (this.aceEditor && this.aceEditor.isFocused()) return;
         if (this.aceEditor) this.aceEditor.focus();
         else this.withAceDo(function(ed) { return ed.focus.bind(ed).delay(0); });
     },
     isFocused: function() { return this._isFocused; },
     requestKeyboardFocus: function(hand) { this.focus(); },
-    onWindowGetsFocus: function(window) { this.focus(); }
+    onWindowGetsFocus: function(window) { if (!this.isFocused()) this.focus(); }
 },
 'text morph selection interface', {
 

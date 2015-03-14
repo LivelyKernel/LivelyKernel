@@ -923,6 +923,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         // /foo/ that match "bar*".
         // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
 
+        actions = actions || [show];
         if (!rootDir) rootDir = lively.shell.exec("pwd", {sync: true}).getStdout().trim();
         if (rootDir) rootDir = rootDir.replace(/\/?$/, "/");
         var lastSearch;
@@ -941,7 +942,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             else callback(candidates.map(fileToListItem));
         });
 
-        lively.ide.tools.SelectionNarrowing.getNarrower({
+        var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
             name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
             spec: {
                 candidates: initialCandidates,
@@ -952,9 +953,14 @@ Object.extend(lively.ide.CommandLineSearch, {
                 keepInputOnReactivate: false,
                 completeInputOnRightArrow: true,
                 completeOnEnterWithMultipleChoices: true,
-                actions: actions || [show]
+                actions: actions
             }
         });
+
+        lively.bindings.connect(narrower, 'escapePressed', onCancel, 'call');
+        lively.bindings.connect(narrower, 'escapePressed', Global, 'show');
+
+        return narrower;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1023,6 +1029,8 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (fileA.path.toLowerCase() > fileB.path.toLowerCase()) return 1;
             return 0;
         }
+
+        function onCancel() { actions[0].call(null,null); }
     }
 
 });

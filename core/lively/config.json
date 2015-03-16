@@ -352,6 +352,7 @@
 
   "Changesets": [
     ["changesetsExperiment", false, "track changes and provide a UI for a changesets-based worlkflow"],
-    ["automaticChangesReplay", true, "restore changes automatically on world load"]
+    ["automaticChangesReplay", true, "restore changes automatically on world load"],
+    ["fileSystemBranch", "master", "Git branch that is checkout in the file system"]
   ]
 }

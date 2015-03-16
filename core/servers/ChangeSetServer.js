@@ -6,7 +6,7 @@ var exec  = require('child_process').execFile,
     spawn = require('child_process').spawn;
 var gitHelper = require('lively-git-helper');
 
-var FS_BRANCH = 'master',
+var FS_BRANCH = (lively && lively.Config && lively.Config.get && lively.Config.get('fileSystemBranch')) || 'master',
     TEST_PREFIX = '_test-',
     NAMESPACE = 'changeset', // for notes and stash
     SUB_REPOS = []; // FIXME: do not hard-code

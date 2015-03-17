@@ -49,6 +49,21 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
         });
         this.textInput.focus();
         Global.scrollTo(x, y)
+    };
+    
+    
+ace.require("ace/virtual_renderer").VirtualRenderer.prototype.screenToTextCoordinates = function (x, y) {
+        var canvasPos = this.scroller.getBoundingClientRect();
+        var scale = lively.morphic.World.current().getScale()
+        x = x / scale;
+        y = y / scale;
+        var col = Math.round(
+            (x + this.scrollLeft - (canvasPos.left / scale) - this.$padding) / this.characterWidth
+        );
+
+        var row = (y + this.scrollTop - (canvasPos.top / scale)) / this.lineHeight;
+
+        return this.session.screenToDocumentPosition(row, Math.max(col, 0));
     }
 
 })();

@@ -482,6 +482,11 @@ var Module = Object.subclass('lively.Module',
       console.warn("loading module %s timed out, trying again...", this.namespaceIdentifier);
       this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
       delete this.loadStartTime;
+      if (typeof $world === "undefined") { // error loading world, abort
+        var err = new Error('Could not load world dependency ' + this.namespaceIdentifier);
+        Global.LivelyLoader.handleStartupError(err);
+        return;
+      }
       JSLoader.forget(this.uri());
       this.load();
     }

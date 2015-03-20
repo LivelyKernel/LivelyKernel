@@ -1023,7 +1023,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.insertAtCursor(replacement, true, true);
     },
 
-    splitText: function() {
+    splitText: function () {
         var selRange = this.getSelectionRange(),
             from = Math.max(selRange[0], selRange[1]),
             to = this.textString.length,
@@ -1033,18 +1033,42 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.owner.addMorph(copy);
 
         // remove text that is splitted
-        this.setSelectionRange(from, to);
+        if (this.textString[from -1] == '\n') {
+            this.setSelectionRange(from - 1, to); // and a trailing newline
+        } else {
+            this.setSelectionRange(from, to);
+        }
+
+        // inserting empty strings is broken and inserts junk...
+        // so we have to insert something here
+        // hack: insert and delete something so that the autolayouting of the CheapWorldLayouter won't break
+        this.insertAtCursor('\u200b', false, true);
+        this.fixChunks();
+        // hack: get rid of the space again
+
+        this.setSelectionRange(this.textString.length - 1 ,this.textString.length);
         this.insertAtCursor('', false, true);
+        this.fixChunks();
 
-        // remove text in copy before splitted text
+        // remove text in copy space splitted text
         copy.setSelectionRange(0, from);
+        copy.insertAtCursor('\u200b', false, true);
+        copy.fixChunks();
+
+        // hack: get rid of the second newline again
+        copy.setSelectionRange(0,1);
         copy.insertAtCursor('', false, true);
+        copy.fixChunks();
+        // set cursor to beginning
 
-        var offset = pt(0,3);
-        copy.align(copy.bounds().topLeft(), this.bounds().bottomLeft().addPt(offset));
-        copy.focus.bind(copy).delay(0)
-
-        copy.fit(); // for layouting
+        (function() {
+            var offset = pt(0,3);
+            this.fit()
+            copy.fit()
+            copy.align(copy.bounds().topLeft(), this.bounds().bottomLeft().addPt(offset));
+            copy.setSelectionRange(0, 0);
+            copy.focus(0)
+        }).bind(this).delay(0)
 
         return copy;
     },

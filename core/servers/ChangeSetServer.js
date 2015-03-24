@@ -391,6 +391,23 @@ function updateBranches(commitByRepo, refName, callback) {
 
 module.exports = function(route, app) {
 
+    app.get(route, function(req, res) {
+        res.json({
+            comment: 'Documentation for the ChangesetServer (interface)',
+            interface: {
+                '/': ['Show this documentation (as JSON)', 'GET only'],
+                '/changesets': ['List all available Changesets', 'GET only'],
+                '/commits': ['List all commits in the (current) Changeset', 'GET only', '(optional argument) /[changesetName]'],
+                '/changes': ['List all the (uncommited) changes in the (current) ChangeSet', 'GET only', '(optional argument) /[changesetName]'],
+                '/commit/[commitId]': ['Inspect a commit by its id/hash', 'GET only'],
+                '/commit': ['Create a new commit from the submitted data', 'POST only'],
+                '/apply-to/[changesetName]': ['Apply a set of commits to a Changeset creating a "test" Changeset', 'POST only'],
+                '/finalize/[changesetName]': ['(Successfully) Finalize a "test" Changset and make it the real thing', 'GET only'],
+                '/remove/[changesetName]': ['Remove a ("test") Changeset', 'GET only'],
+            }
+        });
+    });
+
     app.get(route + 'changesets', function(req, res) {
         getBranches(function(err, branches) {
             if (err) res.status(400).json({ error: String(err) });

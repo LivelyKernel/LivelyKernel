@@ -240,7 +240,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     },
 
     isNthSelected: function isNthSelected(n) {
-        var itemMorph = this.submorphs.slice(1)[n];
+        var itemMorph = this.submorphs.slice(2)[n]; // slice: inputline + close button
         return itemMorph && itemMorph.getStyleClassNames().include("selected");
     },
 
@@ -251,7 +251,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     var keys = evt.getKeyString();
     var modifierPressed = evt.isCtrlDown() || evt.isCommandKey();
 
-    if (keys.match(/(Command|Control)(-Shift)?-(`|~|F3)/)) {
+    if (keys.match(/(Command|Alt)(-Shift)?-(`|~|F3|1|À|å)/i)) {
         if (evt.isShiftDown())  this.selectPrev();
         else this.selectNext(); evt.stop(); return true;
     }  else if (keys === "Escape") {
@@ -430,10 +430,10 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
             inputLine = lively.BuildSpec('lively.ide.tools.CommandLine').createMorph();
             inputLine.name = 'inputLine';
             this.addMorph(inputLine);
-            inputLine.setExtent(pt(this.getExtent().x, layout.inputLineHeight));
+            inputLine.setExtent(pt(this.getExtent().x-20, layout.inputLineHeight));
             inputLine.setTheme('ambiance');
             inputLine.jQuery('.ace-scroller').css({'background-color': 'rgba(32, 32, 32, 0.3)'});
-            lively.bindings.connect(inputLine, 'inputChanged', this, 'filter');
+            lively.bindings.connect(inputLine, 'inputChange', this, 'filter');
             lively.bindings.connect(inputLine, 'input', this, 'onSelectionConfirmed', {
                 updater: function($upd) {
                     var n = this.targetObj, inputLine = n.get('inputLine'),
@@ -459,6 +459,8 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
             // redefine exec code of commands locally so we dan't have to fiddle with keybindings
             inputLine.modifyCommand('golinedown', {exec: function (ed,args) { ed.$morph.owner.selectNext(); }});
             inputLine.modifyCommand('golineup', {exec: function (ed) { ed.$morph.owner.selectPrev(); }});
+            inputLine.modifyCommand('gotostart', {exec: function (ed) { ed.$morph.owner.selectN(0); }});
+            inputLine.modifyCommand('gotoend', {exec: function (ed) { ed.$morph.owner.selectN(ed.$morph.owner.state.filteredCandidates.length); }});
             inputLine.modifyCommand('gotopageup', {
                 exec: function (ed) {
                     var narrower = ed.$morph.owner;
@@ -471,6 +473,14 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
                     narrower.selectN(narrower.currentSel + narrower.state.layout.noOfCandidatesShown);
                 }
             });
+            
+            var closeBtn = lively.BuildSpec({
+              className: "lively.morphic.Text", textString: "X",
+              style: {clipMode: "hidden", handStyle: "pointer", textColor: Color.white, fontSize: 8, padding: rect(0,0,0,0),
+                extent: pt(20,20), position: this.getExtent().addXY(-16,-16), toolTip: "close"},
+              onMouseDown: function onMouseDown(evt) { this.get("inputLine").focus(); this.owner.deactivate(); },
+            }).createMorph();
+            this.addMorph(closeBtn);
         }
         inputLine.setPosition(pt(0, this.getExtent().y-layout.inputLineHeight));
         inputLine.setLabel(prompt || '');
@@ -648,7 +658,10 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
                 showsActions: true,
                 prompt: 'choose action: ',
                 allCandidates: actionCandidates,
-                actions: [function(actionNumber) { narrower.onSelectionConfirmed(originalState, actionNumber, candidate); }]
+                actions: [
+                  function(actionNumber) {
+                    narrower.onSelectionConfirmed(
+                      originalState, actionNumber, candidate); }]
             };
         state.originalState = this.replaceState(state);
     },

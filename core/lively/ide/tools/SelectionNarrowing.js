@@ -87,8 +87,11 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
             setup = options.setup,
             reactivateWithoutInit = options.reactivateWithoutInit,
             narrower = name && this.cachedNarrowers[name];
-        if (narrower) narrower.state.spec.actions = spec.actions;
-        if (narrower && reactivateWithoutInit) { narrower.activate(); return }
+        if (narrower && narrower.state && spec.actions) { // update the actions, they might have changed
+            var s = narrower.state.showsActions ? narrower.state.originalState : narrower.state;
+            s.actions = spec.actions;
+        }
+        if (narrower && reactivateWithoutInit) { narrower.activate(); return narrower; }
         if (!narrower) {
             narrower = lively.BuildSpec('lively.ide.tools.NarrowingList').createMorph();
             if (name) {
@@ -110,12 +113,12 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
             name: options.name,
             setup: function(narrower) {
                 remove && lively.bindings.connect(narrower, 'deactivate', narrower, 'remove');
-                lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
+                thenDo && lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
             },
             spec: {
                 prompt: options.prompt || 'select item: ',
                 candidates: list.asListItemArray(),
-                actions: [
+                actions: options.actions || [
                     {name: 'with item do', exec: function(candidate) {
                         thenDoCalled = true;
                         thenDo(null, candidate); }},

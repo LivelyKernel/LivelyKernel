@@ -197,34 +197,18 @@ function getCompletions(evalFunc, string, thenDo) {
         var completions = completionSpec.completions;
         var prefix = completionSpec.prefix;
         var ed = this.textMorph;
+
         var candidates = completions.reduce(function(candidates, protoGroup) {
             var protoName = protoGroup[0], completions = protoGroup[1];
             return candidates.concat(completions.map(function(completion) {
                 return {
                     isListItem: true,
-                    string: '[' + protoName + '] ' + completion,
+                    string: '[' + protoName.truncate(50) + '] ' + completion,
                     value: complete.curry(completion)
                 }
             }));
         }, []);
-        function complete(completion) {
-            if (prefix && prefix.length) {
-                var sel = ed.aceEditor.selection;
-                if (sel.isBackwards()) sel.setRange(sel.getRange(), false/*reverse*/);
-                sel.clearSelection();
-                var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
-                ed.replace(range, '');
-            }
-            var id = completion.match(/^[^\(]+/)[0];
-            var needsBrackets = !lively.Class.isValidIdentifier(id);
-            if (needsBrackets) {
-                var range = ed.aceEditor.find({needle: '.', backwards: true, preventScroll: true})
-                ed.replace(range, '');
-                if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
-                completion = '[' +  completion + ']';
-            }
-            ed.printObject(ed.aceEditor, completion, true);
-        };
+
         lively.ide.tools.SelectionNarrowing.getNarrower({
             name: 'lively.morphic.Text.ProtocolLister.CompletionNarrower',
             setup: function(narrower) {
@@ -238,6 +222,28 @@ function getCompletions(evalFunc, string, thenDo) {
                 actions: [{name: 'insert completion', exec: function(candidate) { candidate(); }}]
             }
         });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function complete(completion) {
+          if (prefix && prefix.length) {
+              var sel = ed.aceEditor.selection;
+              if (sel.isBackwards()) sel.setRange(sel.getRange(), false/*reverse*/);
+              sel.clearSelection();
+              var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
+              ed.replace(range, '');
+          }
+          var id = completion.match(/^[^\(]+/)[0];
+          var needsBrackets = !lively.Class.isValidIdentifier(id);
+          if (needsBrackets) {
+            var pos = ed.getCursorPositionAce();
+            var beforeRange = {start: lively.lang.obj.merge(pos, {column:pos.column-1}), end: pos};
+            if (ed.getTextRange(beforeRange) === '.') ed.replace(beforeRange, '');
+            if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
+            completion = '[' +  completion + ']';
+          }
+          ed.printObject(ed.aceEditor, completion, true);
+        }
     },
 
     createSubMenuItemForCompletion: function(completionString, optStartLetters, type) {

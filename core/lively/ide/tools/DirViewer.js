@@ -283,6 +283,14 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 lively.bindings.connect(this, "selection", this.get("DirViewer"), "applySort", {});
             }
             }, {
+                _Extent: lively.pt(60.0,18.0),
+                className: "lively.morphic.Button",
+                label: "download",
+                name: "downloadDirButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("DirViewer"), "downloadDir", {});
+            }
+            }, {
                 _Extent: lively.pt(50.0,18.0),
                 className: "lively.morphic.Button",
                 label: "set cwd",
@@ -295,7 +303,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _Position: lively.pt(1,0),
                 className: "lively.morphic.Button",
                 label: "add dir",
-                name: "setCwdButton",
+                name: "addDirButton",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("DirViewer"), "createDirInteractively", {});
             }
@@ -304,7 +312,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _Position: lively.pt(2,0),
                 className: "lively.morphic.Button",
                 label: "add file",
-                name: "setCwdButton",
+                name: "addFileButton",
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("DirViewer"), "createFileInteractively", {});
             }
@@ -344,10 +352,18 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             createListItemMorph: function createListItemMorph(string, i, layout) {
             var m = $super(string, i, layout);
             m.renderContext().textNode.style.pointerEvents = 'none'; // issue with double clk
-            m.addScript(function onDoubleClick(evt) {
+            m.addScript(function onClick(evt) {
+              // FIXME rk 2015-01-13: using onDoubleClick would be better but
+              // for some reason repeated double clicks arent recognized reliably,
+              // so this hack helpes with that
+              if (this._dblClickHelper_wasTarget) {
                 var list = this.owner.owner,
                     value = this.owner.owner.itemList[this.index];
                 lively.bindings.signal(list, 'listItemDoubleClicked', value.value || value);
+              } else {
+                this._dblClickHelper_wasTarget = true;
+                setTimeout(function() { delete  this._dblClickHelper_wasTarget; }.bind(this), 400);
+              }
             });
             return m;
         },
@@ -670,6 +686,12 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         $world.alertOK(d + '\nis now Lively\'s working directory');
         lively.ide.CommandLineInterface.setWorkingDirectory(d);
     },
+        downloadDir: function downloadDir() {
+          var path = this.dirState.path
+          var url = URL.nodejsBase.withFilename("DownloadDirServer/")
+            .withQuery({path: path});
+          window.open(url, "_blank");
+    },
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});
     },
@@ -683,7 +705,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
             },
             function(dirName, next) {
                 var path = lively.lang.string.joinPath(base, dirName);
-                lively.shell.run("mkdir -p " + path, {}, function(cmd) {
+                lively.shell.run("mkdir -p " + path, {}, function(err, cmd) {
                     next(null, dirName); });
             },
             function(dirName, next) {
@@ -710,7 +732,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
 
         $world.confirm("Really delete " + path + "?", function(input) {
             if (!input) return;
-            lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(cmd) {
+            lively.shell.run("rm -rf " + sel.fileName, {cwd: base}, function(err, cmd) {
                 self.fetchAndDisplayDirContent(); });
         });
     },
@@ -1011,6 +1033,9 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
     fileList.applyLayout();
     lively.bindings.signal(this, 'dirContentUpdated');
 },
+selectFileNamed: function selectFileNamed(fn) {
+  this.get("fileList").setSelectionMatching(new RegExp(" " +fn+"$"))
+},
         reset: function reset() {
         this.dirState = {
             files: [],
@@ -1048,6 +1073,17 @@ Object.extend(lively.ide.tools.DirViewer, {
         dirViewer.targetMorph.goto(path || lively.ide.CommandLineInterface.cwd());
         return dirViewer.openInWorldCenter().comeForward();
     },
+    onFile: function(path) {
+        var sep = '/',
+            fileParts = path.split(sep),
+            dirPath = fileParts.slice(0,-1).join(sep),
+            fn = fileParts.last(),
+            d = lively.ide.tools.DirViewer.on(dirPath);
+        lively.bindings.once(d.targetMorph, 'dirContentUpdated', {select: function() {
+          (function() { d.targetMorph.selectFileNamed(fn); }).delay(0);
+        }}, 'select');
+        return d;
+    }
 });
 
 }) // end of module

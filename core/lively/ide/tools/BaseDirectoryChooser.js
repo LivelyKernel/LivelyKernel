@@ -102,20 +102,34 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         var idx = list.addItem({isListItem: true, string: String(dir), value: dir});
         list.selectAt(idx);
     },
+    checkNewDir: function checkNewDir(dirBefore, d, thenDo) {
+    lively.shell.run('cd "'+d+'"; pwd', function(err, cmd) {
+      var newD = !err && cmd.getStdout().trim().length ?
+        cmd.getStdout().trim() : d;
+      thenDo(err, newD)
+    }.bind(this));
+  },
         addDirInteractively: function addDirInteractively() {
+        var cwd = lively.shell.exec('pwd', {sync:true}).resultString(),
+            self = this;;
         lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
             'choose directory: ',
             lively.shell.exec('pwd', {sync:true}).resultString(),
             function(files) { return files.filterByKey('isDirectory'); },
             "lively.ide.browseFiles.baseDirList.NarrowingList",
-            [this.addDir.bind(this)]);
+            [function(sel) {
+              self.checkNewDir(cwd, sel, function(err, newDir) { self.addDir(newDir) })
+            }]);
     },
         changeBaseDir: function changeBaseDir(dir) {
         var path = dir && dir.path ? dir.path : (dir ? String(dir) : null);
-        alertOK(dir ? 'base directory is now ' + path : 'resetting base dir');
-        lively.shell.setWorkingDirectory(path);
-        lively.require("lively.lang.Runtime").toRun(function() {
-            lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
+        if (!path) path = lively.shell.WORKSPACE_LK;
+        if (lively.shell.cwd() !== path) {
+          $world.alertOK(path);
+          lively.shell.setWorkingDirectory(path);
+          lively.require("lively.lang.Runtime").toRun(function() {
+              lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
+        }
     },
         onKeyDown: function onKeyDown(evt) {
         var keys = evt.getKeyString();
@@ -142,9 +156,29 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         lively.bindings.connect(this.get('DirRm'), 'fire', this, 'removeDir');
         lively.bindings.connect(this.get('DirList'), 'selection', this, 'changeBaseDir');
     },
+      update: function update() {
+        var path = lively.shell.cwd();
+        if (!path || path === lively.shell.WORKSPACE_LK) path = "default Lively directory";
+        var dirList = this.get("DirList");
+        if (!dirList) return;
+        if (dirList.getList().pluck("string").include(path))
+          dirList.setSelectionMatching(path)
+        else this.addDir(path);
+      },
+        onOwnerChanged: function onOwnerChanged(owner) {
+          // disconnectAll(lively.shell)
+          lively.bindings[this.world() ? "connect" : "disconnect"]
+            (lively.shell, 'currentDirectory', this, 'update');
+        },
         onLoad: function onLoad() {
+        lively.bindings.connect(lively.shell, 'currentDirectory', this, 'update');
+        lively.shell.setWorkingDirectory()
         var sel = this.get('DirList').selection;
         sel && this.changeBaseDir(sel);
+    },
+        onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+        $super();
+        lively.bindings.connect(lively.shell, 'currentDirectory', this, 'update');
     }
     }],
     titleBar: "BaseDirectoryChooser"

@@ -156,10 +156,7 @@ var browserTests = [
     "lively.morphic.tests.Tree",
 
     // cop
-    "cop.tests.LayerTests",
-
-    // apps
-    "apps.tests.Handlebars"
+    "cop.tests.LayerTests"
 ];
 
 var testList = baseTests;

@@ -1,10 +1,56 @@
-module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({url: Config.codeBase + 'lib/ace/lively-ace.js', loadTest: function() { return typeof ace !== 'undefined';}}).toRun(function() {
+var aceLoaded = false;
+
+var libs = [{
+  url: Config.codeBase + 'lib/ace/lively-ace.js',
+  loadTest: function() { return typeof ace !== 'undefined';}
+}, {
+  url: Config.codeBase + 'lib/ace/ace.improvements.js',
+  loadTest: function() { return Global.ace && ace.improved; }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.lang.ast-commands.js',
+  loadTest: function() { return lively.lang.Path("ext.lang.astCommands").get(ace); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.lang.codemarker.js',
+  loadTest: function() { return lively.lang.Path("ext.lang.codemarker").get(ace); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.custom-text-attributes.js',
+  loadTest: function() { return !!ace.require('ace/mode/attributedtext'); }
+}, {
+  url: Config.codeBase + 'lib/ace/ace.ext.keys.js',
+  loadTest: function() { return ace.ext && !!ace.ext.keys; }
+}];
+
+lively.lang.arr.mapAsyncSeries(libs,
+  function(lib, _, n) { JSLoader.loadJs(lib.url); lively.lang.fun.waitFor(lib.loadTest, n); },
+  function(err) { err && console.error(err); aceLoaded = true; });
+
+module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).requiresLib({loadTest: function() { return !!aceLoaded; }}).toRun(function() {
 
 (function configureAce() {
     ace.config.set("basePath", URL.root.withFilename("core/lib/ace/").toString());
     ace.config.set("modePath", URL.root.withFilename("core/lib/ace/").toString());
     // disable currently broken worker
-    ace.require('ace/edit_session').EditSession.prototype.setUseWorker(false);
+
+    (function aceSessionSetup(p) {
+      p.setUseWorker(false);
+      p.__defineGetter__("$useEmacsStyleLineStart", lively.lang.fun.False);
+      p.__defineSetter__("$useEmacsStyleLineStart", function(v) { return false; });
+    })(ace.require('ace/edit_session').EditSession.prototype);
+    
+    ace.require('ace/editor').Editor.prototype.focus = function () {
+        var _self = this;
+        var x = Global.scrollX, y = Global.scrollY;
+        console.log("%s %s",x,y);
+        setTimeout(function() {
+            _self.textInput.focus();
+            (function() {
+                Global.scrollTo(x, y);
+            }).delay(0);
+        });
+        this.textInput.focus();
+        Global.scrollTo(x, y)
+    }
+
 })();
 
 module('lively.ide');
@@ -24,11 +70,14 @@ Object.extend(lively.ide, {
                 return ea.substring(optPrefix.length); })
         },
 
+        customTextModes: [],
         availableTextModes: function() {
             return lively.ide.ace.modules('ace/mode/', false)
                 .select(function(moduleName) { var mod = ace.require(moduleName); return mod && !!mod.Mode; })
-                .map(function(name) { return name.substring('ace/mode/'.length); });
+                .map(function(name) { return name.substring('ace/mode/'.length); })
+                .concat(ace.customTextModes || []).uniq();
         },
+
 
         moduleNameForTextMode: function(textModeName) {
             return this.availableTextModes().include(textModeName) ?

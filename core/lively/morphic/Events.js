@@ -401,7 +401,7 @@ Object.extend(Event, {
 
     MOUSE_LEFT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
-            function(evt) { return evt.world.clickedOnMorph && (evt.which === 1 || evt.buttons === 1) } :
+            function(evt) { return evt.world.clickedOnMorph && evt.which === 1; } :
             UserAgent.isMobile ?
                 function(evt) { return true } :
                 function(evt) { return (evt.which === 1 || evt.buttons === 1) }
@@ -572,7 +572,7 @@ lively.morphic.Morph.addMethods(
     },
     getScrollExtent: function() {
         var node = this.getScrollableNode();
-        return pt(node.clientWidth, node.clientHeight);
+        return node ? pt(node.clientWidth, node.clientHeight) : pt(0,0);
     },
     getScrollBounds: function() {
         var s = this.getScroll(), extent = this.getScrollExtent();
@@ -935,8 +935,7 @@ handleOnCapture);
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
         if (lively.Config.get("enableHaloItems") && this.halosEnabled && (
-                (evt.isLeftMouseButtonDown() && evt.isCommandKey()) ||
-                (UserAgent.isLinux && evt.isRightMouseButtonDown()))) {
+                (evt.isLeftMouseButtonDown() && evt.isCommandKey()))) {
             evt.hand.haloTarget = this;
             return false;
         }
@@ -985,6 +984,10 @@ handleOnCapture);
             }
             evt.hand.clickedOnMorph = null;
             evt.hand.eventStartPos = null;
+            // move hands out of the way
+            if (evt.hand !== evt.world.firstHand()) {
+                evt.hand.setPosition(pt(0,0))
+            }
         }).delay(0);
 
         if (invokeHalos) {
@@ -993,7 +996,8 @@ handleOnCapture);
             return false;
         }
 
-        if (completeClick && this.showsMorphMenu && evt.isRightMouseButtonDown()) {
+        if (completeClick && this.showsMorphMenu
+         && (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown()))) {
             return evt.world.currentMenu || this.currentMenu || this.showMorphMenu(evt);
         }
 
@@ -1078,6 +1082,7 @@ handleOnCapture);
         if (c === Event.KEY_RIGHT) return this.onRightPressed(evt);
         if (c === Event.KEY_UP) return this.onUpPressed(evt);
         if (c === Event.KEY_DOWN) return this.onDownPressed(evt);
+        if (c === Event.KEY_SHIFT) return this.onShiftPressed(evt);
         if (!this.isFocused()) return false;
         if (evt.isCommandKey() && !evt.isShiftDown()) {
             var result = this.processCommandKeys(evt);
@@ -1096,7 +1101,11 @@ handleOnCapture);
         result && evt.stop();
         return result;
     },
-    onKeyUp: Functions.False,
+    onKeyUp: function(evt) {
+        if (this.eventsAreIgnored) { return false; }
+        var c = evt.getKeyCode();
+        if (c === Event.KEY_SHIFT) return this.onShiftReleased(evt);
+    },
     onKeyPress: Functions.False,
     onEnterPressed: function(evt) { return false },
     onEscPressed: function(evt) { return false },
@@ -1128,6 +1137,16 @@ handleOnCapture);
     onDownPressed: function(evt) {
         if (this.eventsAreIgnored) { return false; }
         return this.interactiveMoveOrResize('down', evt);
+    },
+    onShiftPressed: function() {
+        if (this.showsHalos) {
+            this.halos.invoke('shiftPressedOnTarget');
+        }
+    },
+    onShiftReleased: function() {
+        if (this.showsHalos) {
+            this.halos.invoke('shiftReleasedOnTarget');
+        }
     },
 
     interactiveMoveOrResize: function(keyPressed, evt) {
@@ -1612,7 +1631,7 @@ lively.morphic.World.addMethods(
         var evtTarget = evt.getTargetMorph();
         while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
 
-        if (evt.isAltDown() && evtTarget && !evt.hand.draggedMorph) {
+        if (lively.Config.thatCapture && evt.isAltDown() && evtTarget && !evt.hand.draggedMorph) {
             if (!Global.thats) Global.thats = [];
             // thats: select multiple morphs
             // reset when clicked in world
@@ -1743,7 +1762,7 @@ lively.morphic.World.addMethods(
                         return ea.wantsDroppedMorph(toBeDropped)
                             && toBeDropped.wantsToBeDroppedInto(ea); }); });
         if (!dropTarget) {
-            this.alert('found nothing to drop onto');
+            console.warn('found nothing to drop onto');
             dropTarget = this;
         }
         return evt.hand.dropContentsOn(dropTarget, evt);
@@ -2121,6 +2140,7 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             .concat([parts.last().toLowerCase()]);
         return parts.join('-');
     },
+
     normalizeCombo: function(comboParts) {
         return comboParts.map(function(ea) { return this.normalizeComboPart(ea); }, this).join(' ');
     },
@@ -2253,15 +2273,18 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         // are we typing in a codeeditor?
         if (!focused || !focused.isCodeEditor
          || !focused.aceEditor
-         || !focused.aceEditor.keyBinding.$data
-         // does the codeEditor know about key combos?
-         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return;
+         || !focused.aceEditor.keyBinding.$data) return;
+
         var combo = this.normalizeCombo(prevKeysPressed),
             kbd = focused.aceEditor.keyBinding.$handlers.detect(function(ea) { return ea.isEmacs; });
         // is the current combo a prefix for codeeditor?
-        if (!kbd || kbd.commandKeyBinding[combo] === undefined) return;
+        // if (!kbd || kbd.commandKeyBinding[combo] === undefined) return;
         // the current key will be read in by the editor, just send the last ones
         focused.aceEditor.keyBinding.$data.keyChain = combo;
+        focused.aceEditor.keyBinding.$data.$keyChain = prevKeysPressed.map(function(ea) {
+          return ea.replace(/c-/gi, "ctrl-").replace(/cmd-/gi, "command-")
+            .replace(/s-/gi, "shift-").replace(/m-/gi, "alt-")
+        }).join(" ")
     },
 
     transferPrefixFromActiveCodeEditor: function(keyInputState) {
@@ -2269,11 +2292,16 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
         // are we typing in a codeeditor?
         if (!focused || !focused.isCodeEditor
          || !focused.aceEditor
-         || !focused.aceEditor.keyBinding.$data
-         // does the codeEditor know about key combos?
-         || focused.aceEditor.keyBinding.$data.keyChain === undefined) return keyInputState;
-        var chain = focused.aceEditor.keyBinding.$data.keyChain;
-        if (!chain.length) return keyInputState;
+         || !focused.aceEditor.keyBinding.$data) return keyInputState;
+        var d = focused.aceEditor.keyBinding.$data;
+        var chain = d.keyChain || d.$keyChain;
+        if (!chain || !chain.length) return keyInputState;
+        chain = this.normalizeCombo([chain]).split(' ');
+        return Object.merge([keyInputState, {prevKeys: chain}]);
+    },
+
+    mergeKeyChainWithInputState: function(chain, keyInputState) {
+        if (!chain || !chain.length) return keyInputState;
         chain = this.normalizeCombo([chain]).split(' ');
         return Object.merge([keyInputState, {prevKeys: chain}]);
     },
@@ -2349,6 +2377,11 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         lively.morphic.KeyboardDispatcher._global = null;
     },
     handleGlobalKeyEvent: function(evt) {
+        // Fix for not creating the copy event under windows...
+        // there seems to be an event handler that stops the event (JL)
+        var key = evt.getKeyChar().toLowerCase()
+        if (evt.isCommandKey() && (key == 'c' || key == 'x'))
+            return false; // don't capture COPY or CUT
         var handler = lively.morphic.KeyboardDispatcher.global();
         return handler.handleKeyEvent(evt, handler.keyInputState);
     }
@@ -2371,12 +2404,13 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
-        if (transferKeyPrefixFromCodeEditor(evt, keys)) return true;
         if (showPressedKeys(evt, keys)) return true;
         return undefined;
     }
 
     function doGlobalActionsOnBubble(evt) { // 2. bubbling phase, in -> out
+        var h = lively.morphic.KeyboardDispatcher.global();
+        h.keyInputState = h.mergeKeyChainWithInputState(ace.ext.keys.$lastKeyChain, h.keyInputState);
         var result = lively.morphic.KeyboardDispatcher.handleGlobalKeyEvent(evt);
         if (!result) return false;
         evt.stop(); return true;
@@ -2402,11 +2436,6 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         if (focused) return false;
         world.focus.bind(world).delay();
         return true;
-    }
-
-    function transferKeyPrefixFromCodeEditor() {
-        var handler = lively.morphic.KeyboardDispatcher.global();
-        handler.keyInputState = handler.transferPrefixFromActiveCodeEditor(handler.keyInputState);
     }
 
     function showPressedKeys(evt, keys) {

@@ -147,7 +147,8 @@ Object.extend(lively, {
 
 var Module = Object.subclass('lively.Module',
 'properties', {
-    isLivelyModule: true
+    isLivelyModule: true,
+    networkTimeout: 60*1000,
 },
 'initializing', {
     initialize: function(context, nsName) {
@@ -448,9 +449,15 @@ var Module = Object.subclass('lively.Module',
             return;
         }
         if (this.isLoading() || this.wasDefined) {
+            if (this.loadStartTime && (Date.now() - this.loadStartTime) > this.networkTimeout) {
+              this.timeoutLoad();
+              return;
+            }
             this.loadRequirementsFirst();
             return;
         }
+        this.loadStartTime = Date.now();
+        this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
         JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
         if (loadSync) this.constructor.loadSync = prevWasSync;
     },
@@ -467,6 +474,16 @@ var Module = Object.subclass('lively.Module',
               + this.namespaceIdentifier
               + ' instead of expected ' + m.namespaceIdentifier);
         }
+    },
+
+    timeoutLoad: function() {
+      if (this.timeoutProcess) clearTimeout(this.timeoutProcess);
+      if (this.isLoaded()) return;
+      console.warn("loading module %s timed out, trying again...", this.namespaceIdentifier);
+      this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
+      delete this.loadStartTime;
+      JSLoader.forget(this.uri());
+      this.load();
     }
 },
 'removing', {
@@ -475,6 +492,7 @@ var Module = Object.subclass('lively.Module',
         var ownerNamespace = lively.Class.namespaceFor(this.namespaceIdentifier),
             ownName = lively.Class.unqualifiedNameFor(this.namespaceIdentifier);
         JSLoader.removeAllScriptsThatLinkTo(this.uri());
+        JSLoader.loadedURLs && JSLoader.loadedURLs.remove(this.uri());
         delete ownerNamespace[ownName];
     },
 

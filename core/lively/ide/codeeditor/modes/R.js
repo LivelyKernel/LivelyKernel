@@ -1,6 +1,6 @@
-module('lively.ide.codeeditor.modes.R').requires('lively.ide.codeeditor.ace').toRun(function() {
+module('lively.ide.codeeditor.modes.R').requires('lively.ide.codeeditor.ace').requiresLib({loadTest: function() { return ace.require('ace/mode/r') || ace.config.loadModule(["mode", "ace/mode/r"]); }}).toRun(function() {
 
-var RMode = lively.ide.ace.require('ace/mode/r').Mode
+var RMode = ace.require('ace/mode/r').Mode
 
 RMode.addMethods({
 

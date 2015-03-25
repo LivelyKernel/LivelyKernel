@@ -1,0 +1,12 @@
+<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Layer 1</title>
+  <line id="svg_1" y2="20" x2="32.920513" y1="20" x1="7.079488" stroke-width="4" stroke="#333333" fill="none"/>
+  <line transform="rotate(90 20,20.000000000000004) " id="svg_2" y2="20" x2="32.920512" y1="20" x1="7.079487" stroke-width="4" stroke="#333333" fill="none"/>
+  <path id="svg_3" d="m30.107832,23.518251l3.519152,-3.519026l-3.519152,-3.519188l2.011408,-2.011288l5.530952,5.530476l-5.530952,5.532024" stroke-linecap="null" stroke-linejoin="null" stroke="#333333" fill="#333333"/>
+  <path transform="rotate(90 19.999999999999996,33.87500000000001) " id="svg_4" d="m16.228821,37.39325l3.51915,-3.51902l-3.51915,-3.51919l2.01141,-2.01129l5.530949,5.530479l-5.530949,5.532021" stroke-linecap="null" stroke-linejoin="null" stroke="#333333" fill="#333333"/>
+  <path id="svg_5" transform="rotate(180 6.129010200500489,20) " d="m2.35783,23.51825l3.51915,-3.51902l-3.51915,-3.51919l2.01141,-2.01129l5.530951,5.530479l-5.530951,5.532021" stroke-linecap="null" stroke-linejoin="null" stroke="#333333" fill="#333333"/>
+  <path id="svg_6" transform="rotate(-90 20.000000000000004,6.124999999999999) " d="m16.228821,9.64325l3.51915,-3.51902l-3.51915,-3.51919l2.01141,-2.01129l5.530949,5.530479l-5.530949,5.532021" stroke-linecap="null" stroke-linejoin="null" stroke="#333333" fill="#333333"/>
+ </g>
+</svg>

@@ -66,6 +66,7 @@ Object.extend(lively.MochaTests, {
     var suites = lively.MochaTests.registeredSuites;
     var reporter = new lively.MochaTests.Reporter();
     var m = new (mocha.constructor)({reporter: reporter.reporterFunc(), ui: "bdd"})
+    if (mocha.options.grep) { m.grep(mocha.options.grep); mocha.options.grep = null; }
     lively.lang.obj.values(suites).forEach(m.suite.addSuite.bind(m.suite));
     m.run(function() { thenDo && thenDo(null, reporter); });
   },
@@ -73,7 +74,8 @@ Object.extend(lively.MochaTests, {
   run: function(suite, thenDo) {
     var reporter = new lively.MochaTests.Reporter();
     var m = new (mocha.constructor)({reporter: reporter.reporterFunc(), ui: "bdd"})
-    m.suite.addSuite(suite)
+    m.suite.addSuite(suite);
+    if (mocha.options.grep) { m.grep(mocha.options.grep); mocha.options.grep = null; }
     m.run(function() { thenDo && thenDo(null, reporter); });
   }
 

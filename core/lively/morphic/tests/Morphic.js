@@ -310,6 +310,21 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         this.assertEquals(o, r.owner, 'owner');
         this.assertEquals(pt(30,30), r.getPosition(), 'position');
         this.assertEquals(1, o.submorphs.indexOf(r), 'index in owner');
+    },
+
+    testSwapMorphs: function() {
+        var o = lively.morphic.newMorph({bounds: lively.rect(0,0, 100, 100)}),
+            m1 = lively.morphic.newMorph({bounds: lively.rect(20,20, 20,20), style: {fill: Color.blue}}),
+            m2 = lively.morphic.newMorph({bounds: lively.rect(30,30, 20, 20), style: {fill: Color.red}}),
+            m3 = lively.morphic.newMorph({bounds: lively.rect(40,40, 20, 20), style: {fill: Color.yellow}});
+        this.world.addMorph(o);
+        o.addMorph(m1); o.addMorph(m2); m2.addMorph(m3);
+        
+        m1.swapWith(m3);
+        this.assertEquals(o, m3.owner, 'm3 owner');
+        this.assertEquals(m2, m1.owner, 'm1 owner');
+        this.assertEquals(pt(40,40), m1.getPosition(), '1 position');
+        this.assertEquals(pt(20,20), m3.getPosition(), '3 position');
     }
 
 });
@@ -805,13 +820,26 @@ lively.morphic.tests.TestCase.subclass('lively.morphic.tests.HaloTests',
 
 });
 
+AsyncTestCase.subclass('lively.morphic.tests.ImageTests',
+'running', {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
+  setUp: function($super) {
+    $super();
+    this.world = lively.morphic.World.current();
+  }
+
+},
 'testing', {
+
     testImageMorphHTML: function() {
-        var url = 'http://lively-kernel.org/repository/webwerkstatt/media/hpi_logo.png',
+        this.assertNodeMatches = lively.morphic.tests.MorphTests.prototype.assertNodeMatches;
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png",
             morph = new lively.morphic.Image(new Rectangle(0,0,100,100), url)
+
         this.world.addMorph(morph);
+        this.onTearDown(function() { morph.remove(); });
+
         var expected = {
             tagName: 'div',
             childNodes: [{
@@ -819,8 +847,41 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.ImageTests',
                 childNodes: [{tagName: 'img', attributes: {src: url}}]
             }]
         };
-        this.assertNodeMatches(expected, morph.renderContext().getMorphNode());
+
+        lively.bindings.connect(morph.shape, 'isLoaded', onLoad, 'call');
+        function onLoad() {
+          test.assertNodeMatches(expected, morph.renderContext().getMorphNode());
+          test.done();
+        }
+    },
+
+    testNativeExtent: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, function(err, morph) {
+          test.assertEquals(pt(605,139), morph.getExtent());
+          test.done();
+        });
+    },
+
+    testSetURLAndConstrainExtent: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, lively.rect(0,0,100,100), function(err, morph) {
+          test.assertEquals(pt(100,100), morph.getExtent());
+          test.done();
+        });
+    },
+
+    testSetURLAndConstrainWidth: function() {
+        var test = this,
+            url = "http://lively-web.org/core/media/lively-web-logo.png";
+        lively.morphic.Image.fromURL(url, {maxWidth: 100}, function(err, morph) {
+          test.assertEquals(pt(100,23), morph.getExtent());
+          test.done();
+        });
     }
+
 });
 
 AsyncTestCase.subclass('lively.morphic.tests.MenuTests',

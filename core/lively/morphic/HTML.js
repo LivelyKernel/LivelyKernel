@@ -435,7 +435,8 @@ lively.morphic.Text.addMethods(
         setDisplay: 'setDisplayHTML',
         setWhiteSpaceHandling: 'setWhiteSpaceHandlingHTML',
         setWordBreak: 'setWordBreakHTML',
-        setInputAllowed: 'setInputAllowedHTML'
+        setInputAllowed: 'setInputAllowedHTML',
+        setIsSelectable: 'setIsSelectableHTML'
     }
 },
 'rendering', {
@@ -453,6 +454,7 @@ lively.morphic.Text.addMethods(
         this.setWhiteSpaceHandlingHTML(ctx, this.getWhiteSpaceHandling());
         this.setWordBreakHTML(ctx, this.getWordBreak());
         this.setInputAllowedHTML(ctx, this.inputAllowed());
+        this.setIsSelectableHTML(ctx, this.isSelectable());
         this.setExtent(this.getExtent());
         this.fit();
         if (this.textChunks) {
@@ -580,6 +582,9 @@ lively.morphic.Text.addMethods(
         if (!ctx.textNode) return;
         ctx.textNode.contenteditable = bool;
         ctx.textNode.setAttribute('contenteditable', bool);
+    },
+    setIsSelectableHTML: function(ctx, bool) {
+        if (!ctx.textNode) return;
         var cssClasses = ctx.textNode.className,
             hasVisibleSelectionClass = cssClasses.include('visibleSelection');
         if (bool && !hasVisibleSelectionClass) {

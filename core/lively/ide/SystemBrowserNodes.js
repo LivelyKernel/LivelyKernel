@@ -428,16 +428,18 @@ lively.ide.CompleteFileFragmentNode.subclass('lively.ide.CompleteOmetaFragmentNo
                     world.prompt(
                         'Additional requirements (comma separated)?',
                         function(requirementsString) {
-                            var requirments = requirementsString ? requirementsString.split(',') : null,
+                            var requirements = requirementsString ? requirementsString.split(',') : null,
                                 source = lively.ide.ModuleWrapper.forFile(fileName).getSource(),
-                                compiled = OMetaSupport.translate(source, requirments, input),
+                                compiled = OMetaSupport.translate(source, requirements, input),
                                 targetFile = lively.ide.ModuleWrapper.forFile(input);
                             targetFile.setSource(compiled, true);
                             alertOK('... written to ' + targetFile.fileName());
+                            browser.updateFileList();
+                            browser.selectNodeNamed(targetFile.fileName().match('[^/]*$'));
                             browser.allChanged();
                         });
                 },
-                fileName.slice(0, fileName.indexOf('.'))
+                fileName.replace(/^\.\.\//, '').replace(/\.[^.]+$/, '.js')
             ) }]);
             return menu;
     },

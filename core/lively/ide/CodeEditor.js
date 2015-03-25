@@ -74,7 +74,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
     },
-    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString'],
+    doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString', '_statusMorph'],
     _aceInitialized: false,
     evalEnabled: false,
     isAceEditor: true,
@@ -468,7 +468,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                     console.log("Ace mode %s loaded", modeString);
                     ed.session.setMode(lively.ide.ace.moduleNameForTextMode(modeName));
                 })
-            } else { ed.session.setMode(aceModeName); }
+            } else {
+              lively.ide.codeeditor.Modes.ensureModeExtensionIsLoaded("ace/mode/" + modeString, function() {
+                ed.session.setMode(aceModeName);
+              });
+            }
             ed.session.$astType = astType;
         });
         return this._TextMode = modeString;
@@ -720,14 +724,94 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
     },
 
-    onFocus: function($super, evt) {
-        $super(evt);
-        var scroll = evt.world.getScroll();
-        (function() { evt.world.scrollTo(scroll[0], scroll[1]); }).delay(0);
-    },
+
 
     doKeyCopy: Functions.Null,
-    doKeyPaste: Functions.Null
+    doKeyPaste: Functions.Null,
+
+    commandKeyName: function() {
+      return !!UserAgent.isMacOS ? "command" : "ctrl";
+    },
+
+    showEffectiveKeybindings: function() {
+      return this.withAceDo(function(ed) {
+        var all = ace.ext.keys.allEditorCommands(ed);
+        var cmdNames = Object.keys(all).sort();
+        var spec = cmdNames.reduce(function(spec, cmdName) {
+          var boundCommands = all[cmdName];
+          var keys = boundCommands
+            .map(function(ea) { return ea.key.include("input") ? null : ea.key; })
+            .uniq().compact().join("|");
+          if (!keys.length) return spec;
+          spec[cmdName] = keys
+          return spec;
+        }, {});
+        var winEd = $world.addCodeEditor({
+          title: "bound keys",
+          content: JSON.stringify(spec, null, 2),
+          textMode: "json"
+        });
+        winEd.setInputAllowed(false);
+        winEd.getWindow().comeForward();
+        return winEd;
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        // var colWidth = cmdNames.reduce(function(colWidth, cmdName) {
+        //   return Math.max(cmdName.length, colWidth); }, 0);
+        // var spec = cmdNames.reduce(function(spec, cmdName) {
+        //   var boundCommands = all[cmdName];
+        //   var keys = boundCommands
+        //     .map(function(ea) { return ea.key.include("input") ? null : ea.key; })
+        //     .uniq().compact().join("|");
+        //   var string = lively.lang.string.pad(cmdName, colWidth+1-cmdName.length, false) + keys;
+        //   return spec.concat([
+        //       [string, {type: "text", boundCommands: boundCommands}],
+        //       ["\n"]])
+        // }, [])
+        //
+        // var winEd = $world.addCodeEditor({
+        //   title: "bound keys",
+        //   content: "",
+        //   textMode: "attributedtext"
+        // });
+        // winEd.setInputAllowed(false);
+        // winEd.withAceDo(function(ed) { ed.session.getMode().set(ed, spec); })
+        // winEd.getWindow().comeForward();
+        // return winEd;
+      });
+    },
+
+    customizeKeybindingsInteractively: function() {
+      var existing = ace.ext.keys.getKeyCustomizationLayer("user-key-bindings") || {commandKeyBinding: {}};
+      var editor = $world.addCodeEditor({
+        title: "user key customizations",
+        content: (JSON.stringify(existing, null, 2)),
+        textMode: "json",
+      });
+
+      editor.setStatusMessage("Press " + this.commandKeyName() + "-s to save\n"
+                            + "customizations should have the form\n{\"command-name\": \"key\"}\n", null, 10);
+
+      editor.addScript(function doSave() {
+        var key = "user-key-bindings";
+        var s = this.textString;
+        if (!s.length) {
+          ace.ext.keys.removeKeyCustomizationLayer(key, cust);
+          lively.LocalStorage.remove(key);
+          this.setStatusMessage("User key customization removed");
+        } else {
+          try {
+            var cust = JSON.parse(this.textString);
+            if (!cust.priority) cust.priority = 100;
+            ace.ext.keys.addKeyCustomizationLayer(key, cust);
+            lively.LocalStorage.set(key, JSON.stringify(cust));
+            this.setStatusMessage("user key customization saved");
+          } catch (e) {
+            this.setStatusMessage("Error setting key customization:\n"+e, Color.red);
+          }
+        }
+      });
+    }
 },
 'text morph eval interface', {
 
@@ -981,7 +1065,8 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     doListProtocol: function() {
         lively.require("lively.ide.codeeditor.Completions").toRun(function() {
-            new lively.ide.codeeditor.Completions.ProtocolLister(this).evalSelectionAndOpenNarrower();
+            new lively.ide.codeeditor.Completions.ProtocolLister(this)
+              .evalSelectionAndOpenNarrower();
         }.bind(this));
     },
 
@@ -1009,12 +1094,13 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'text morph event interface', {
     focus: function() {
+        if (this.aceEditor && this.aceEditor.isFocused()) return;
         if (this.aceEditor) this.aceEditor.focus();
         else this.withAceDo(function(ed) { return ed.focus.bind(ed).delay(0); });
     },
     isFocused: function() { return this._isFocused; },
     requestKeyboardFocus: function(hand) { this.focus(); },
-    onWindowGetsFocus: function(window) { this.focus(); }
+    onWindowGetsFocus: function(window) { if (!this.isFocused()) this.focus(); }
 },
 'text morph selection interface', {
 
@@ -1082,9 +1168,11 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     },
 
     getSelectionRange: function() {
+      return this.withAceDo(function(ed) {
         var range = this.getSelectionRangeAce(),
             doc = this.getDocument();
         return [doc.positionToIndex(range.start), doc.positionToIndex(range.end)];
+      }) || [0,0];
     },
 
     getSelectionRangeAce: function() {
@@ -1203,6 +1291,28 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 preventScroll: true
             });
             ed.selection.addRange(foundRange);
+        });
+    },
+
+    multiSelectJump: function(dir) {
+        // When multiple ranges are active, one of them is the "current" that
+        // is returned by `this.aceEditor.getRange()` and that gets the cursor
+        // when the selections are deactivated. This method can be used to
+        // cycle back and forth between the current range.
+        this.withAceDo(function(ed) {
+          var sel = ed.selection,
+              ranges = sel.getAllRanges(),
+              range = sel.getRange(),
+              multiRange = ranges.detect(function(r) { return r.isEqual(range); }),
+              i = ranges.indexOf(multiRange),
+              nextI = dir === "next" ?
+                (i+1) % ranges.length :
+                i === 0 ? ranges.length-1 : i-1,
+              newRange = ranges[nextI];
+          ed.exitMultiSelectMode();
+          sel.setRange(newRange);
+          ranges.without(newRange).forEach(function(ea) { sel.addRange(ea, true); });
+          ed.centerSelection();
         });
     },
 
@@ -1535,69 +1645,80 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     }
 },
 'rendering', {
-    setClipMode: Functions.Null
+    setClipMode: Functions.Null,
+
+    onOwnerChanged: function($super, newOwner) {
+      if (!newOwner && this._statusMorph) this._statusMorph.remove();
+      return $super(newOwner);
+    }
 },
 'morph menu', {
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
-            range = this.getSelectionRangeAce();
-        // eval marker
-        var evalMarkerItems = ['eval marker', []];
-        items.push(evalMarkerItems);
-        if (!range.isEmpty()) {
-            var selectedText = this.getSelectionOrLineString();
-            var indexOfDot = selectedText.lastIndexOf('.')
-            if(indexOfDot + 1 !== selectedText.length) {
-                var firstChar = selectedText.charAt(indexOfDot + 1);
-                if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
-                    var selectorItems = ['Selector...', []];
-                    items.push(selectorItems);
-                    selectorItems[1].push(['Implementors', function() {
-                        self.doBrowseImplementors(); }]);
-                    selectorItems[1].push(['Senders', function() {
-                        self.doBrowseSenders(); }]);
-                } else {
-                    if(firstChar.toUpperCase() === firstChar) {
-                        try {
-                            var potentialClass = this.boundEval(selectedText);
-                            if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
-                                var classItems = ['Class...', []];
-                                items.push(classItems);
-                                classItems[1].push(['Browse', function() {
-                                    self.browseClass(potentialClass); }]);
-                                classItems[1].push(['Browse Hierarchy', function() {
-                                    self.browseHierarchy(potentialClass); }]);
-                                classItems[1].push(['References', function() {
-                                    self.browseReferencesTo(potentialClass); }]);
-                            }
-                        } catch(e) {
-                        }
-//                        Global.classes(true);
-                    }
-                }
-            }
-            evalMarkerItems[1].push(['Mark expression', function() {
-                self.addEvalMarker(); }]);
-        }
-        evalMarkerItems[1].push(['Remove eval marker', function() {
-            self.removeEvalMarker(); }]);
+            range = this.getSelectionRangeAce(),
+            mode = this.getTextMode(),
+            isJs = mode.match(/javascript/);
 
-        var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
-        if (marker) {
-            if (marker.doesContinousEval()) {
-                evalMarkerItems[1].push(['Disable eval interval', function() {
-                    marker.stopContinousEval();
-                }]);
-            } else {
-                evalMarkerItems[1].push(['Set eval interval', function() {
-                    world.prompt('Please enter the interval time in milliseconds', function(input) {
-                        input = Number(input);
-                        marker.startContinousEval(input);
-                        self.evalMarkerDelay = input || null;
-                    }, '200');
-                }]);
-            }
+        if (isJs) {
+          // eval marker
+          var evalMarkerItems = ['eval marker', []];
+          items.push(evalMarkerItems);
+          if (!range.isEmpty()) {
+              var selectedText = this.getSelectionOrLineString();
+              var indexOfDot = selectedText.lastIndexOf('.')
+              if(indexOfDot + 1 !== selectedText.length) {
+                  var firstChar = selectedText.charAt(indexOfDot + 1);
+                  if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
+                      var selectorItems = ['Selector...', []];
+                      items.push(selectorItems);
+                      selectorItems[1].push(['Implementors', function() {
+                          self.doBrowseImplementors(); }]);
+                      selectorItems[1].push(['Senders', function() {
+                          self.doBrowseSenders(); }]);
+                  } else {
+                      if(firstChar.toUpperCase() === firstChar) {
+                          try {
+                              var potentialClass = this.boundEval(selectedText);
+                              if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
+                                  var classItems = ['Class...', []];
+                                  items.push(classItems);
+                                  classItems[1].push(['Browse', function() {
+                                      self.browseClass(potentialClass); }]);
+                                  classItems[1].push(['Browse Hierarchy', function() {
+                                      self.browseHierarchy(potentialClass); }]);
+                                  classItems[1].push(['References', function() {
+                                      self.browseReferencesTo(potentialClass); }]);
+                              }
+                          } catch(e) {
+                          }
+  //                        Global.classes(true);
+                      }
+                  }
+              }
+              evalMarkerItems[1].push(['Mark expression', function() {
+                  self.addEvalMarker(); }]);
+          }
+          evalMarkerItems[1].push(['Remove eval marker', function() {
+              self.removeEvalMarker(); }]);
+
+          var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
+          if (marker) {
+              if (marker.doesContinousEval()) {
+                  evalMarkerItems[1].push(['Disable eval interval', function() {
+                      marker.stopContinousEval();
+                  }]);
+              } else {
+                  evalMarkerItems[1].push(['Set eval interval', function() {
+                      world.prompt('Please enter the interval time in milliseconds', function(input) {
+                          input = Number(input);
+                          marker.startContinousEval(input);
+                          self.evalMarkerDelay = input || null;
+                      }, '200');
+                  }]);
+              }
+          }
         }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // themes
         var currentTheme = this.getTheme(),
@@ -1616,17 +1737,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                                                  mode);
                 return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
-        items.push(["themes", themeItems]);
-        items.push(["modes", modeItems]);
-
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         function boolItem(itemSpec, items) {
             var enabled = editor["get"+itemSpec.name]();
             var item = [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
-                editor['set'+itemSpec.name](!enabled); }].concat()
+                editor['set'+itemSpec.name](!enabled); }];
             items.push(item);
         }
         var settingsItems = [];
+        settingsItems.push(['Show effective keybindings', function() { self.showEffectiveKeybindings(); }]);
+        settingsItems.push(['Customize keybindings', function() { self.customizeKeybindingsInteractively(); }]);
+        settingsItems.push([lively.lang.string.format('[%s] use emacs-like keys', lively.Config.get('useEmacsyKeys') ? "X" : " "), function() { lively.Config.set('useEmacsyKeys', !lively.Config.get('useEmacsyKeys')); }]);
+        settingsItems.push(["modes", modeItems]);
+        settingsItems.push(["themes", themeItems]);
         boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
         boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
         boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);
@@ -1634,17 +1757,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
         boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
         settingsItems.push(['Change tab width', function() {
-            $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
+          $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
         }]);
         boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
         settingsItems.push(['Change line ending mode', function() {
-            $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
+          $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
         }]);
         boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
         boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
-        boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
-        boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
+        if (isJs) {
+          boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
+          boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
+        }
         items.push(['settings', settingsItems]);
 
         var mac = UserAgent.isMacOS;
@@ -1661,11 +1786,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 if (options.focusAfter) editor.focus();
             }]);
         }
+
         cmdBinding({name: 'save', cmdName: 'doSave', shortcut: {win: 'CTRL-s', mac: 'CMD-s'}});
-        cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
-        cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
-        cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
-        cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
+        if (isJs) {
+          cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
+          cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
+          cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
+          cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
+        }
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // modes
@@ -1682,45 +1810,74 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
     },
     showMorphMenu: function ($super, evt) {
-        if (!evt || !evt.isRightMouseButtonDown()) return $super(evt);
-        lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
-        evt && evt.stop();
-        return true;
+        if (evt && (evt.isRightMouseButtonDown()
+         || (evt.isLeftMouseButtonDown() && (UserAgent.isMacOS && evt.isCtrlDown())))) {
+          lively.morphic.Menu.openAtHand('', this.codeEditorMenuItems());
+          evt && evt.stop();
+          return true;
+         } else  return $super(evt);
     }
 },
 'messaging', {
+
+    ensureStatusMessageMorph: function() {
+      if (this._statusMorph) return this._statusMorph;
+      var ext = this.getExtent();
+      var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
+      sm.applyStyle({
+          fontFamily: 'Monaco,monospace',
+          borderWidth: 0, borderRadius: 6,
+          fontSize: this.getFontSize()-2,
+          inputAllowed: false,
+          fixedWidth: true, fixedHeight: false,
+      });
+      sm.isEpiMorph = true;
+      return sm;
+    },
+
     setStatusMessage: function (msg, color, delay) {
-        console.log("%s status: %s", this, msg)
         var world = this.world();
         if (!world) return;
-        var sm = this._statusMorph;
-        if (!sm) {
-            this._statusMorph = sm = new lively.morphic.Text(this.getExtent().withY(80).extentAsRectangle());
-            sm.applyStyle({
-                fontFamily: 'Monaco,monospace',
-                borderWidth: 0, borderRadius: 6,
-                fill: Color.gray.lighter(),
-                fontSize: this.getFontSize() + 1,
-                fixedWidth: true, fixedHeight: false
-            });
-            sm.isEpiMorph = true;
-            this._sm = sm;
-        }
-        sm.textString = msg;
-        sm.ignoreEvents();
+        var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
+            ext = this.getExtent();
+
+        // setting 'da message
+        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
+        else sm.textString = msg;
+        sm.lastUpdated = Date.now();
         world.addMorph(sm);
+        var color = color || Color.white;
+        var fill = (color === Color.green || color === Color.red) ? Color.white : Color.black.lighter()
         sm.applyStyle({
-            textColor: color || Color.black,
+            textColor: color, fill: fill,
             position: this.worldPoint(this.innerBounds().bottomLeft()),
         });
+
+        // aligning
         sm.fit();
         (function() {
-            var world = sm.world(), visibleBounds = world.visibleBounds(),
-                overlapY = sm.bounds().bottom() - visibleBounds.bottom();
-            if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+          var visibleBounds = world.visibleBounds(),
+              overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+          if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+          sm.setExtent(sm.getExtent().withX(ext.x));
         }).delay(0);
-        if (sm._removeTimer) clearTimeout(sm._removeTimer);
-        sm._removeTimer = setTimeout(sm.remove.bind(sm), 1000*(delay||4))
+
+        // either remove via timeout or when curs/selection changes occur. Note
+        // that via onOwnerChanged the statusMorph also is removed when the
+        // editors owner is null
+        (function() {
+          function removeStatusMessage() {
+            sm.remove();
+            self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
+          }
+
+          if (sm._removeTimer) clearTimeout(sm._removeTimer);
+          if (typeof delay === "number") {
+            sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
+          } else {
+            self.withAceDo(function(ed) { ed.once("changeSelection", removeStatusMessage); });
+          }
+        }).delay(0);
     },
     hideStatusMessage: function () {
         if (this._statusMorph && this._statusMorph.owner) this._statusMorph.remove();
@@ -1795,11 +1952,23 @@ lively.morphic.CodeEditor.addMethods(
 });
 
 Object.extend(lively.ide, {
+
     newCodeEditor: function (initialBounds, defaultText) {
         var bounds = initialBounds.extent().extentAsRectangle(),
             text = new lively.morphic.CodeEditor(bounds, defaultText || '');
         text.accessibleInInactiveWindow = true;
         return text;
+    },
+
+    allCodeEditors: function() {
+      // returns all codeeditor morphs in the world, also those which are
+      // inside collapsed windows
+      var eds = $world.withAllSubmorphsSelect(function(ea) { return ea.isCodeEditor; }),
+          hiddenEds = $world.withAllSubmorphsSelect(function(ea) { return ea.isWindow && ea.isCollapsed(); })
+            .pluck('targetMorph')
+            .invoke('withAllSubmorphsSelect', function(ea) { return ea.isCodeEditor; })
+            .flatten();
+      return eds.concat(hiddenEds);
     }
 });
 

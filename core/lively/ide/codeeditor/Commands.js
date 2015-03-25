@@ -6,9 +6,10 @@ var JavaScriptCommandHelper = {
       var ast = codeEditorMorph.withASTDo(function(ast) { return ast; })
              || lively.ast.acorn.parse(codeEditorMorph.textString, {}),
           token = codeEditorMorph.tokenAfterPoint();
+      var identfierTypes = ["identifier", "entity.name.function", "variable.parameter"];
+      if (token && !identfierTypes.include(token.type)) token = codeEditorMorph.tokenAtPoint();
+      if (token && !identfierTypes.include(token.type)) token = null;
 
-      if (token && (token.type !== "identifier" && token.type !== "entity.name.function")) token = codeEditorMorph.tokenAtPoint();
-      if (token && (token.type !== "identifier" && token.type !== "entity.name.function")) token = null;
       var refName = codeEditorMorph.getSelection().isEmpty() ?
         token && token.value : codeEditorMorph.getTextRange();
       return {ast: ast, name: refName}
@@ -61,7 +62,7 @@ var JavaScriptCommands = {
           cursorindex = codeEditor.positionToIndex(cursorPos),
           scope = lively.ast.query.scopeAtIndex(idInfo.ast, cursorindex),
           refs = lively.ast.query.findReferencesAndDeclsInScope(scope, idInfo.name);
-    
+
       // 3. map the AST ref / decl nodes to actual text ranges
       var Range = lively.ide.ace.require('ace/range').Range,
           sel = codeEditor.getSelection(),

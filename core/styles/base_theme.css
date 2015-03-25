@@ -72,7 +72,8 @@
 }
 
 .Menu {
-	box-shadow: 0px 4px 15px #666;
+	background-color: #FFF !important;
+	box-shadow: 0px 2px 6px #666;
 }
 
 .PartsBinItem {
@@ -81,13 +82,13 @@
 
 .Window {
 	background-color: rgb(244, 244, 244);
-	box-shadow: 0px 4px 15px #666;
+	box-shadow: 0px 2px 6px #666;
 	border-radius: 3px;
 }
 
 .Window.highlighted {
 	background-color: rgb(222, 222, 222);
-	box-shadow: 0px 5px 20px #000;
+	box-shadow: 0px 2px 6px #333;
 	border: 1px solid white;
 }
 
@@ -109,12 +110,12 @@
 }
 
 .Window .Text.window-title {
+	padding-top: 2px !important;
 	font-size: 10pt;
 	text-align: left;
 	margin-left: 2px;
 	color: #555;
 }
-
 .Window.highlighted .Text.window-title {
 	font-weight: bold;
 	color: #333;
@@ -125,6 +126,10 @@
 	border-radius: 2px;
 	background: #EEE;
 	font-weight: normal;
+}
+
+.Button.WindowControl span {
+	padding-top: 1px !important;
 }
 
 .Button.WindowControl.close {
@@ -144,7 +149,7 @@
 }
 
 .List .list-item.selected {
-	background: rgb(42, 87, 192) !important;
+	background: rgb(43, 88, 255) !important;
 	color: white !important;
 }
 
@@ -273,4 +278,40 @@
 	position: absolute;
 	border-radius: 3px;
 	background: rgba(204,204,0,0.7);
+}
+
+.ace_line .ace_link {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/*for action texts*/
+.ace_link:hover, .ace_action:hover {
+	text-decoration: underline;
+/*font-weight: bold;*/
+}
+
+.ace_line .ace_action {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.text-overlay {
+	pointer-events: auto;
+	cursor: pointer;
+	z-index: 999;
+	font-family: Monaco, monospace;
+	font-size: 10px;
+	position: absolute;
+	color: white;
+	background: #666;
+	padding: 1px;
+	border: 1px #666 solid;
+	box-shadow: none;
+	white-space: pre;
+}
+
+.text-overlay.hidden {
+	display: none;
 }

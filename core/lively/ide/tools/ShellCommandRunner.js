@@ -1,8 +1,8 @@
 module('lively.ide.tools.ShellCommandRunner').requires('lively.persistence.BuildSpec', 'lively.ide.CommandLineInterface', 'lively.ide.tools.CommandLine').toRun(function() {
 
 Object.extend(lively.ide.tools.ShellCommandRunner, {
-    run: function(cmdString, options) {
-        var cmd = lively.ide.CommandLineInterface.run(cmdString, options, function(cmd) { });
+    run: function(cmdString, options, thenDo) {
+        var cmd = lively.shell.run(cmdString, options, thenDo);
         return lively.ide.tools.ShellCommandRunner.forCommand(cmd)
             .openInWorldCenter().comeForward();
     },
@@ -10,6 +10,11 @@ Object.extend(lively.ide.tools.ShellCommandRunner, {
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
         runner.attachTo(cmd);
         return runner;
+    },
+    findOrCreateForCommand: function(cmd) {
+      var existing = cmd.getPid() && $world.submorphs.grep(/ShellCommandRunner/).detect(function(ea) {
+          return ea.targetMorph.currentCommand && ea.targetMorph.currentCommand.getPid() === cmd.getPid(); });
+      return existing || this.forCommand(cmd);
     }
 });
 

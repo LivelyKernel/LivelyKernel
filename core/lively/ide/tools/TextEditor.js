@@ -247,8 +247,9 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 });
             },
             function(next) {
-                lively.lang.Runtime.resourceChanged(
-                  String(loc), self.get('editor').textString, next);
+              var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
+              rt && lively.lang.Runtime.resourceChanged(
+                String(loc), self.get('editor').textString, next);
             }
         )();
     },

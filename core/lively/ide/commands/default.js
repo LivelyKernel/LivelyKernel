@@ -1,5 +1,7 @@
 module('lively.ide.commands.default').requires().toRun(function() {
 
+lively.module("lively.ide.tools.SelectionNarrowing").load();
+
 Object.extend(lively.ide.commands, {
     byName: {},
     defaultBindings: {},
@@ -155,6 +157,7 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.copy': {
         description: 'copy morph',
         exec: function() {
@@ -173,6 +176,30 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
+    'lively.morphic.Morph.swapMorphs': {
+        description: 'swap morphs',
+        exec: function() {
+            var morph1;
+            lively.lang.fun.composeAsync(
+              function(next) {
+                $world.alertOK("select first morph");
+                $world.selectMorphWithNextClick({useMenu: true}, next);
+            },
+              function(_morph1, next) {
+                morph1 = _morph1;
+                $world.alertOK("select second morph");
+                $world.selectMorphWithNextClick({useMenu: true}, next);
+              }
+            )(function(err, morph2) {
+              if (err) { $world.logError(err); return; }
+              $world.alertOK("Swapping " + morph1 + "\nwith" + morph2);
+              morph1.swapWith(morph2);
+            });
+            return true;
+        }
+    },
+
     'lively.morphic.Morph.openObjectEditor': {
         description: 'open ObjectEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
@@ -381,9 +408,11 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.WindowNavigation.start': {
         description: 'open window navigator',
-        exec: function() {
+        exec: function exec() {
+          if (module("lively.ide.WindowNavigation").isLoaded())
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
-            return true;
+          else lively.require("lively.ide.WindowNavigation").toRun(exec);
+          return true;
         }
     },
 
@@ -403,6 +432,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'reset key bindings',
         exec: function() {
             lively.ide.CodeEditor.KeyboardShortcuts.reinitKeyBindingsForAllOpenEditors();
+            ace.require('ace/edit_session').EditSession.prototype.$modes = {};
             lively.ide.WindowNavigation.WindowManager.reset();
             lively.morphic.KeyboardDispatcher.reset();
             lively.ide.tools.SelectionNarrowing.resetCache();
@@ -527,8 +557,7 @@ Object.extend(lively.ide.commands.byName, {
                 {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
                 {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
                 {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
-
-            if (lively.ide.CommandLineInterface.rootDirectory) {
+            if (!lively.shell.cwdIsLivelyDir()) {
                 // SCB is currently only supported for Lively files
                 actions.shift();
             }
@@ -799,18 +828,47 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.changeShellBaseDirectory': {
         description: 'change the base directory for shell commands',
         exec: function() {
-            function setBasePath(candidate) {
-                var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
-                if (result) alertOK('base directory is now ' + result);
-                else alertOK('resetting base directory to default');
-                lively.ide.CommandLineInterface.rootDirectory = result;
-            }
-            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+
+          lively.lang.fun.composeAsync(
+
+            // If there is a list of known dirs first offer to choose from those
+            function chooseFromKnownWorkingDirectories(n) {
+              if (!$world.knownWorkingDirectories && !$world.knownWorkingDirectories.length)
+                return n();
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
+                  spec: {
+                    candidates: ['choose different directory...'].concat($world.knownWorkingDirectories),
+                    preselect: 1,
+                    actions: [function select(c) {
+                      n(null,c === 'choose different directory...' ? null : c);
+                    }]
+                  }
+                })
+            },
+
+            // Otherwise choose by navigating the fs
+            function chooseNewDir(dir, n) {
+              if (dir) return n(null, dir);
+              lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
                 'choose directory: ',
                 lively.shell.exec('pwd', {sync:true}).resultString(),
                 function(files) { return files.filterByKey('isDirectory'); },
                 "lively.ide.browseFiles.baseDir.NarrowingList",
-                [setBasePath]);
+                [function(c) { n(null, c); }]);
+            },
+            
+            // ...and change the base dir for real
+            function setBasePath(candidate, n) {
+              if (!candidate) return n(new Error("No directory choosen"));
+              var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+              if (result) alertOK('base directory is now ' + result);
+              else alertOK('resetting base directory to default');
+              lively.shell.setWorkingDirectory(result);
+              n(null, result);
+            }
+          )(function(err, dir) { });
+          return true;
         }
     },
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {
@@ -826,7 +884,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'Print directory hierarchy',
         exec: function() {
             function printIt(dir) {
-                lively.shell.run("find " + dir.path + "", {}, function(cmd) {
+                lively.shell.run("find " + dir.path + "", {}, function(err, cmd) {
                     lively.require('lively.data.DirectoryUpload').toRun(function() {
                         var files = cmd.getStdout().split('\n')
                         new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
@@ -886,7 +944,7 @@ Object.extend(lively.ide.commands.byName, {
                 ed.mergeUndosOf(function(triggerMerge) {
                     mergeUndos = triggerMerge;
 
-                    var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(cmd) {
+                    var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(err, cmd) {
                         if (!insertProgress && insertResult)
                             ed.printObject(null, cmd.resultString(true));
 
@@ -1024,9 +1082,9 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openSystemConsole': {
         description: 'open SystemConsole (to see console logging)',
         exec: function() {
-            lively.require("lively.ide.tools.SystemConsole").toRun(function() {
-                lively.ide.tools.SystemConsole.open();
-            });
+            if ($world.get("LogMessages")) $world.get("LogMessages").comeForward();
+            else lively.require("lively.ide.tools.SystemConsole")
+              .toRun(function() { lively.ide.tools.SystemConsole.open(); });
             return true;
         }
     },
@@ -1388,6 +1446,7 @@ Object.extend(lively.ide.commands.byName, {
 
     // lively-2-lively
     'lively.net.lively2lively.openWorkspace': {description: 'open Lively2LivelyWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace").createMorph().openInWorldCenter().comeForward(); }); return true; }},
+    'lively.net.tools.openLively2LivelyInspector': {description: 'open Lively2Lively inspector', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { lively.require('lively.net.tools.Lively2Lively').toRun(function() { lively.BuildSpec("lively.net.tools.Lively2LivelyInspector").createMorph().openInWorldCenter().comeForward(); }); return true; }},
     'lively.net.lively2lively.listSessions': {
         description: 'list lively-2-lively sessions',
         exec: function(withSelectedSessionDo, forceRefresh) {
@@ -1566,17 +1625,12 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Morph.copy': {mac: 'cmd-s-l c o p y', win: 'ctrl-s-l c o p y'},
     'lively.morphic.Morph.showSceneGraph': 'm-m',
     'lively.ide.evalJavaScript': 'm-s-:',
-    'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-~", "Command-1", "Command-`", "Control-1"], win: "ctrl-à"},
-    'lively.ide.resizeWindow.reset': {mac: "cmd-s-l r e s q", win: "ctrl-s-l r e s q"},
-    'lively.ide.resizeWindow.full': {mac: "cmd-s-l r e s f", win: "ctrl-s-l r e s f"},
-    'lively.ide.resizeWindow.left': {mac: "cmd-s-l r e s l", win: "ctrl-s-l r e s l"},
-    'lively.ide.resizeWindow.center': {mac: "cmd-s-l r e s c", win: "ctrl-s-l r e s c"},
-    'lively.ide.resizeWindow.right': {mac: "cmd-s-l r e s r", win: "ctrl-s-l r e s r"},
-    'lively.ide.resizeWindow.top': {mac: "cmd-s-l r e s t", win: "ctrl-s-l r e s t"},
-    'lively.ide.resizeWindow.bottom': {mac: "cmd-s-l r e s b", win: "ctrl-s-l r e s b"},
+    'lively.ide.WindowNavigation.start': {mac: ["Command-F3", "Command-`", "Command-1", "Alt-À","Alt-à", "Alt-`"], win: ["Alt-à","Alt-À", "Alt-`"]},
+    'lively.ide.resizeWindow': 'Alt-F1',
     'lively.ide.browseFiles': 'Alt-t',
     'lively.ide.findFile': {mac: ['Control-X F', 'Control-X Control-F'], win: ['Control-X F', 'Control-X Control-F']},
     'lively.ide.openDirViewer': 'Control-X D',
+    'lively.ide.CommandLineInterface.changeShellBaseDirectory': {mac: 'cmd-s-l d i r', win: 'ctrl-s-l d i r'},
     'lively.ide.SystemCodeBrowser.browseModuleStructure': {mac: "m-s-t", win: 'm-s-t'},
     'lively.ide.commands.keys.reset': 'F8',
     "lively.tests.mocha.runAll": "Control-C t",
@@ -1585,7 +1639,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.codeSearch': {mac: ["Command-Shift-C", "Command-Shift-F"], win: ["Control-Shift-C", 'Control-Shift-G', 'Control-Shift-F']},
-    'lively.ide.execShellCommandInWindow': "m-s-!",
+    'lively.ide.execShellCommandInWindow': ["Alt-Shift-!", "Alt-Shift-1"],
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x",
     // normally browser fwd/bwd shortcut:

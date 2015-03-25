@@ -70,6 +70,7 @@ Object.extend(lively.ide.CodeEditor.DocumentChangeHandler, {
         return new lively.ide.CodeEditor.DocumentChangeHandler(this.plugins);
     },
     registerModeHandler: function(handlerClass) {
+      // lively.ide.CodeEditor.DocumentChangeHandler.plugins[0].
         if (!this.plugins.pluck('constructor').include(handlerClass))
             this.plugins.push(new handlerClass());
     }
@@ -94,8 +95,7 @@ Object.subclass('lively.ide.codeeditor.ModeChangeHandler',
     ensureLivelyCodeMarker: function(session) {
         var marker = session.$livelyCodeMarker;
         if (!marker) {
-            marker = session.$livelyCodeMarker = new lively.ide.CodeEditor.CodeMarker();
-            marker.attach(session);
+            marker = session.$livelyCodeMarker = ace.ext.lang.codemarker.ensureIn(session);
         }
         return marker;
     },
@@ -162,55 +162,6 @@ Object.subclass('lively.ide.codeeditor.ModeChangeHandler',
         marker.redraw(sess);
     },
     onDocumentChange: function(evt) {}
-});
-
-Object.subclass('lively.ide.CodeEditor.CodeMarker',
-// used as a "dynamic marker" inside an ace editor. The update method draws
-// into the ace rendering area
-"initializing", {
-    initialize: function() {
-        this.markerRanges = [];
-    },
-    attach: function(session) {
-        if (!this.id || !(this.id in session.$backMarkers))
-            session.addDynamicMarker(this);
-    },
-    detach: function(session) {
-        this.markerRanges.length = 0;
-        session._signal('changeBackMarker');
-        session.removeMarker(this);
-        session.$astFeedbackMarker = null;
-    }
-},
-"rendering", {
-    update: function(html, markerLayer, session, config) {
-        var Range = lively.ide.ace.require("ace/range").Range;
-        var screenStartRow = config.firstRow, screenEndRow = config.lastRow;
-        this.markerRanges.forEach(function(range) {
-            var start, end;
-            if ("pos" in range) {
-                start = session.doc.indexToPosition(range.pos-1),
-                end = session.doc.indexToPosition(range.pos+1);
-            } else if ("start" in range && "end" in range) {
-                start = session.doc.indexToPosition(range.start);
-                end = session.doc.indexToPosition(range.end);
-            } else if ("startPos" in range && "endPos" in range) {
-                start = range.startPos;
-                end = range.endPos;
-            } else {
-                console.warn('lively.morphic.CodeMarker cannot render %s', range);
-                return;
-            }
-            if (start.row < screenStartRow || end.row > screenEndRow) return;
-            var realRange = Range.fromPoints(start, end);
-            var method = start.row === end.row ? 'drawSingleLineMarker' : 'drawTextMarker';
-            markerLayer[method](html, realRange.toScreenRange(session), range.cssClassName || "lively-ace-codemarker", config);
-        });
-    },
-
-    redraw: function(session) {
-        session._signal('changeBackMarker');
-    }
 });
 
 }) // end of module

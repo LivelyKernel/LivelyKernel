@@ -451,6 +451,11 @@ Object.extend(lively.net.SessionTracker, {
             session.answer(msg, {message: 'chat message received', error: null});
         },
 
+        changeWorkingDirectory: function(msg, session) {
+          lively.shell.setWorkingDirectory(msg.data.args[0]);
+          session.answer(msg, {status: ""});
+        },
+
         messageNotUnderstood: function(msg, session) {
             show('Lively2Lively message not understood:\n%o', msg);
             session.answer(msg, {error: 'messageNotUnderstood'});
@@ -548,8 +553,19 @@ Object.extend(lively.net.SessionTracker, {
                 sess = lively.net.SessionTracker.getSession();
                 return sess && sess.isConnected();
             }, function(err) { thenDo(err, sess); });
-    }
+    },
 
+    start: function(thenDo) {
+        lively.whenLoaded(function(world) {
+            Functions.composeAsync(
+                lively.net.SessionTracker.serverLogin,
+                lively.net.SessionTracker.setupSessionTrackerConnection
+            )(function(err) {
+              console.log("lively.set.SessionTracker setup done");
+              thenDo && thenDo();
+            });
+        });
+    }
 });
 
 Object.extend(lively.net.SessionTracker, {
@@ -580,7 +596,8 @@ Object.extend(lively.net.SessionTracker, {
         lively.net.SessionTracker.resetSession();
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // start UI
-        if (lively.Config.get('lively2livelyEnableConnectionIndicator')) {
+        if ((!lively.Config.get("showMenuBar") || !lively.Config.get("menuBarDefaultEntries").include("lively.net.tools.Lively2Lively"))
+            && lively.Config.get('lively2livelyEnableConnectionIndicator')) {
             lively.require('lively.net.tools.Lively2Lively').toRun(function() {
                 if ($world.get('Lively2LivelyStatus')) $world.get('Lively2LivelyStatus').remove();
                 lively.BuildSpec('lively.net.tools.ConnectionIndicator').createMorph();
@@ -608,12 +625,7 @@ Object.extend(lively.net.SessionTracker, {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // initialization, at load time
 (function serverLogin() {
-    lively.whenLoaded(function(world) {
-        Functions.composeAsync(
-            lively.net.SessionTracker.serverLogin,
-            lively.net.SessionTracker.setupSessionTrackerConnection
-        )(function(err) { console.log("lively.set.SessionTracker setup done"); });
-    });
+  lively.net.SessionTracker.start();
 })();
 
 }) // end of module

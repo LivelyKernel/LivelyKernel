@@ -48,9 +48,9 @@ Object.subclass('lively.morphic.Morph',
 
 },
 'accessing -- morph properties', {
-    setPosition: function(value) {
+    setPosition: function(pt) {
         this.cachedBounds = null;
-        return this.morphicSetter('Position', value);
+        return this.morphicSetter('Position', pt);
     },
     getPosition: function () {
         var pos = this.morphicGetter('Position') || pt(0,0);
@@ -75,17 +75,20 @@ Object.subclass('lively.morphic.Morph',
     },
     getBounds: function() {
         if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
-
+      
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
-
+      
         bounds = tfm.transformRectToRect(bounds);
-
+      
         if (!this.isClip()) {
             var subBounds = this.submorphBounds(tfm);
             if (subBounds) bounds = bounds.union(subBounds);
+        } else {
+          var scroll = this.getScroll();
+          bounds = bounds.translatedBy(pt(scroll[0], scroll[1]));
         }
-
+      
         return this.cachedBounds = bounds;
     },
     globalBounds: function() {
@@ -335,7 +338,7 @@ Object.subclass('lively.morphic.Morph',
     },
 
     getMorphById: function(id) {
-        return this.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
+        return $world.withAllSubmorphsDetect(function(morph) { return morph.id === id; });
     },
 
     submorphBounds: function(tfm) {
@@ -428,6 +431,21 @@ Object.subclass('lively.morphic.Morph',
         otherMorph.setPosition(pos);
         o.addMorph(otherMorph, nextMorph);
         return otherMorph;
+    },
+
+    swapWith: function(morph2) {
+      var morph1 = this;
+
+      var owner1 = morph1.owner, idx1 = owner1.submorphs.indexOf(morph1),
+          next1 = owner1.submorphs[idx1+1], pos1 = morph1.bounds().center();
+      var owner2 = morph2.owner, idx2 = owner2.submorphs.indexOf(morph2),
+          next2 = owner2.submorphs[idx2+1], pos2 = morph2.bounds().center();
+      morph1.align(pos1, pos2);
+      morph2.align(pos2, pos1);
+      if (owner1 !== owner2) {
+        morph1.remove(); morph2.remove()
+        owner1 && owner1.addMorph(morph2, next1);
+        owner2 && owner2.addMorph(morph1, next2); }
     }
 
 },
@@ -732,8 +750,10 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 'accessing', {
     world: function() { return this },
     firstHand: function() {
-        return this.hands && (this.hands.find(function(hand) { return typeof hand.pointerId !== 'undefined' }) || this.hands[0])
+        return this.hands && (this.hands.find(function(hand) {
+          return typeof hand.pointerId !== 'undefined' }) || this.hands[0])
     },
+
     windowBounds: function(optWorldDOMNode) {
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
         var canvas = optWorldDOMNode || this.renderContext().getMorphNode(),

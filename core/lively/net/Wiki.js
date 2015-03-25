@@ -123,7 +123,7 @@ Object.extend(lively.net.Wiki, {
     openResourceList: function(resources, options, thenDo) {
         if (!thenDo && typeof options === 'function') { thenDo = options; options = {}; }
         options = options || {};
-debugger;
+
         var title = options.title || resources.join(", ").truncate(80);
         var nGroups = 0;
         var grouped = groupResources(resources);

@@ -62,6 +62,10 @@ Object.extend(lively.Main.WorldDataAccessor, {
     forHTMLDoc: function(doc) {
         // get the first script tag with the x-lively-world type
         var json = lively.$(doc).find('script[type="text/x-lively-world"]').text();
+        if (json.startsWith("<![CDATA")) {
+            console.log("MIGRATE: remove sourrounding CDATA in json string")
+            json = json.replace(/\<\!\[CDATA\[(.*)\]\]\>$/g,"$1")
+        }
         return new lively.Main.JSONMorphicData(doc, json);
     }
 });
@@ -207,6 +211,9 @@ Object.subclass('lively.Main.Loader',
     onFinishLoading: function(world) {
         console.groupEnd("World loading");
         world.hideHostMouseCursor();
+        if (lively.Config.get("showMenuBar")) lively.require("lively.morphic.tools.MenuBar").toRun(function() {
+          (function() { lively.morphic.tools.MenuBar.openOnWorldLoad(); }).delay(0);
+        })
         world.loadingMorph = new lively.morphic.LoadingMorph(rect(0,0,300,200));
         this.browserSpecificFixes()
         lively.bindings.signal(this, 'finishLoading', world);

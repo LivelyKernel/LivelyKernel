@@ -207,6 +207,8 @@ Global.Config = {
             spec.get.call() : (typeof this[name] === "function" ? this[name].call() : this[name]);
     },
 
+    toggle: function(name) { this.set(name, !this.get(name)); },
+
     lookup: function(name) {
         // retrieve the Config value. If its a function: don't call it.
         var spec = this._options[name];

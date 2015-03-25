@@ -3,6 +3,21 @@ module('lively.ide.codeeditor.modes.Clojure').requires('lively.ide.codeeditor.ac
 
 lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment = {};
 
+Object.extend(lively.ide.codeeditor.modes.Clojure, {
+  updateRuntime: function() {
+    var cljEds = lively.ide.allCodeEditors()
+      .filter(function(ea) { return ea.getTextMode() === 'clojure'; });
+    // cljEds.length
+    var aceEds = cljEds.pluck("aceEditor").compact();
+    aceEds.pluck("commands")
+          .invoke('addCommands', lively.ide.codeeditor.modes.Clojure.Commands);
+    aceEds.pluck("session")
+          .invoke("getMode")
+          .invoke("getKeyhandler").invoke("update");
+    $world.alertOK("updated clojure editors")
+  }
+});
+
 Object.extend(lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment, {
 
     currentEnv: function(codeEditor) {
@@ -157,7 +172,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
             function stopRunningServer(next) {
                 var cmdString = Strings.format(
                     "lsof -i tcp:%s -a -c ^node -a -c ^Google -t | xargs kill -9 ", port);
-                lively.shell.run(cmdString, {group: cmdQueueName}, function(cmd) { next(); });
+                lively.shell.run(cmdString, {group: cmdQueueName}, function(err, cmd) { next(); });
             }
         )(thenDo);
     },
@@ -172,7 +187,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
         var  livelyLeinProfile = this.livelyLeinProfile;
         Functions.composeAsync(
             function(next) {
-                lively.shell.run("echo $HOME", {}, function(cmd) {
+                lively.shell.run("echo $HOME", {}, function(err, cmd) {
                     if (cmd.getCode()) next(cmd.resultString(true));
                     else {
                         var home = cmd.getStdout().trim()
@@ -183,7 +198,7 @@ Object.extend(lively.ide.codeeditor.modes.Clojure.ReplServer, {
                 });
             },
             function(next) {
-                lively.shell.run("mkdir -p " + profilesDir, {}, function(cmd) { next(); });
+                lively.shell.run("mkdir -p " + profilesDir, {}, function(err, cmd) { next(); });
             },
             function(next) {
                 lively.ide.CommandLineInterface.writeFile(
@@ -368,7 +383,11 @@ Object.extend(lively.ide.codeeditor.modes.Clojure, {
         }
     }
 
-});
+  }
+
+};
+
+lively.ide.codeeditor.modes.Clojure.Mode = lively.ide.ace.require('ace/mode/clojure').Mode;
 
 var ClojureMode = lively.ide.ace.require('ace/mode/clojure').Mode;
 
@@ -433,25 +452,6 @@ ClojureMode.addMethods({
         "Command-.": "evalInterrupt"
     },
 
-    keyhandler: null,
-
-    initKeyHandler: function() {
-        this.keyhandler = new (lively.ide.ace.require("ace/keyboard/hash_handler")).HashHandler();
-        this.keyhandler.addCommands(this.commands);
-        return this.keyhandler;
-    },
-
-    attach: function(ed) {
-        this.initKeyHandler();
-        ed.keyBinding.addKeyboardHandler(this.keyhandler);
-        lively.ide.codeeditor.modes.Clojure.RuntimeEnvironment.ensureClojureStateInEditor(ed.$morph);
-    },
-
-    detach: function(ed) {
-        ed.keyBinding.removeKeyboardHandler(this.keyhandler);
-        this.keyhandler = null;
-    },
-
     morphMenuItems: function(items, editor) {
         var mode = this;
         items.push(['Clojure',[
@@ -486,66 +486,93 @@ ClojureMode.addMethods({
     
     printInspect: function(codeEditor, options) {
         return this.evalAndPrint(codeEditor, true, true, options.depth || 4);
-    }
-});
-
-lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Clojure.ChangeHandler',
-"settings", {
-    targetMode: "ace/mode/clojure"
-},
-"parsing", {
-    parse: function(src, session) {
-        var options = {};
-        return null;
-        // return closer.parse(src, options);
-    }
-},
-'rendering', {
-
-    onDocumentChange: function(evt) {
-        this.updateAST(evt)
     },
 
-    updateAST: function(evt) {
-        var codeEditor = evt.codeEditor,
-            session = evt.session,
-            src = evt.codeEditor.textString,
-            ast;
+    doListProtocol: function(codeEditor) {
+      // codeEditor=that
+      var term = this.helper.identfierBeforeCursor(codeEditor);
+      var src = '(do (require \'clojure.data.json)'
+              + '    (clojure.data.json/json-str (user/get-completions "%s")))';
+      var sourceString = lively.lang.string.format(src, term),
+          env = clojure.Runtime.currentEnv(codeEditor),
+          options = {env: env, catchError: false, passError: true, resultIsJSON: true};
+      lively.ide.codeeditor.modes.Clojure.doEval(sourceString, options, function(err, result) {
 
-        // 1. parse
-        try {
-            ast = session.$ast = this.parse(src, session);
-        } catch(e) { ast = session.$ast = e; }
+        if (err) {
+          var msg = "Completion error " + String(err);
+          codeEditor.setStatusMessage(msg, Color.red, 8);
+          show(msg);
+          return;
+        }
 
-        // 2. update lively codemarker
-        var marker = this.ensureLivelyCodeMarker(session);
-        marker.modeId = this.targetMode;
-        marker.markerRanges.length = 0;
+        var maxNameLength = 0;
+        var displaySpec = Object.keys(result).map(function(ea) {
+          var doc = result[ea].trim() || "",
+              docLines = doc.length ? lively.lang.string.lines(doc) : [ea];
+          maxNameLength = Math.max(maxNameLength, docLines[0].length);
+          return {
+            insertion: ea,
+            doc: result[ea],
+            docFirst: docLines.shift(),
+            docRest: docLines.join("\ ").truncate(120),
+          }
+        });
 
-        // if (codeEditor.getShowWarnings()) {
-        //     marker.markerRanges.pushAll(
-        //         lively.ast.query.findGlobalVarRefs(ast, {jslintGlobalComment: true}).map(function(ea) {
-        //             ea.cssClassName = "ace-global-var"; return ea; }));
-        // }
+        var candidates = displaySpec.map(function(ea) {
+          var string = lively.lang.string.pad(ea.docFirst, maxNameLength+1 - ea.docFirst.length)
+                     + ea.docRest;
+          return {isListItem: true,string: string,value: ea};
+        });
 
-        // if (ast.parseError && codeEditor.getShowErrors()) {
-        //     ast.parseError.cssClassName = "ace-syntax-error";
-        //     marker.markerRanges.push(ast.parseError);
-        // }
+        var n = lively.ide.tools.SelectionNarrowing.getNarrower({
+          spec: {
+            candidates: candidates,
+            actions: [
+              function insert(candidate) {
+                var slice = candidate.insertion.slice(candidate.insertion.indexOf(term)+term.length);
+                codeEditor.collapseSelection("end");
+                codeEditor.insertAtCursor(slice, false);
+              },
+              function openDoc(candidate) {
+                $world.addCodeEditor({
+                  title: "Clojure doc for " + candidate.insertion,
+                  textMode: "text",
+                  content: candidate.doc
+                }).getWindow().openInWorld().comeForward();
+              }
+            ]
+          }
+        })
+      });
+    },
 
-        // marker.redraw(session);
-
-        // 3. emit session astChange event
-        var astChange = {ast: ast, docChange: evt.data, codeEditor: codeEditor};
-        session._signal('astChange', astChange);
+    doSave: function(codeEditor) {
+      var ed = codeEditor.aceEditor;
+      ed.execCommand("clojureLoadFile");
+      codeEditor.doSave();
     }
-
 });
 
-(function registerModeHandler() {
-    lively.module('lively.ide.codeeditor.DocumentChange').runWhenLoaded(function() {
-        lively.ide.CodeEditor.DocumentChangeHandler.registerModeHandler(lively.ide.codeeditor.modes.Clojure.ChangeHandler);
-    });
+
+(function pareditSetup() {
+  var cljCmds = lively.ide.codeeditor.modes.Clojure.Commands;
+  var cmdsToAdd = Object.keys(cljCmds).reduce(function(cmds, name) {
+    cljCmds[name].name = name;
+    return cmds.concat([cljCmds[name]]);
+  }, [])
+  ace.ext.lang.paredit.commands = ace.ext.lang.paredit.commands
+    .filter(function(cmd) { return  !(cmd.name in cljCmds) })
+    .concat(cmdsToAdd);
+    
+  Object.extend(ace.ext.lang.paredit.keybindings, {
+    "Command-Shift-\/":                             "clojurePrintDoc",
+    "Alt-Shift-\/":                                 "clojurePrintDoc",
+    "¿":                                            "clojurePrintDoc",
+    "Ctrl-Shift-\\":                                "clojurePrettyPrint",
+    "Escape":                                       "clojureEvalInterrupt",
+    "Command-e":                                    "clojureChangeEnv"
+  });
+
 })();
 
 }) // end of module

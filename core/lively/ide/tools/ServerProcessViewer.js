@@ -1,4 +1,4 @@
-module("lively.ide.tools.ServerProcessViewer").requires("lively.persistence.BuildSpec", "lively.ide.CommandLineInterface").toRun(function() {
+module("lively.ide.tools.ServerProcessViewer").requires("lively.persistence.BuildSpec", "lively.ide.CommandLineInterface", 'lively.ide.tools.CommandLine').toRun(function() {
 
 lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
     _Extent: lively.pt(553.0,225.0),
@@ -15,11 +15,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
         className: "lively.morphic.Box",
         layout: {
             adjustForNewBounds: true,
-            borderSize: 0,
-            extentWithoutPlaceholder: lively.pt(680,200),
             resizeHeight: true, resizeWidth: true,
-            spacing: 0,
-            type: "lively.morphic.Layout.VerticalLayout"
         },
         name: "ServerProcesses",
         submorphs: [{
@@ -36,13 +32,6 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
             itemList: [],
             itemMorphs: [],
             layout: {
-                adjustForNewBounds: true,
-                extent: lively.pt(547.0,180.0),
-                listItemHeight: 19,
-                maxExtent: lively.pt(547.0,180.0),
-                maxListItems: 10,
-                noOfCandidatesShown: 3,
-                padding: 0,
                 resizeHeight: true,
                 resizeWidth: true
             },
@@ -56,6 +45,7 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
             _Position: lively.pt(0.0,180.0),
             className: "lively.morphic.Button",
             label: "kill",
+            layout: { moveVertical: true },
             name: "killButton",
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this, "doAction", {});
@@ -65,14 +55,22 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
             if (!item) { show("nothing selected!"); return;  }
             var useSudo = event.isCommandKey() || event.isShiftDown();
             var cmd = (useSudo ? "sudo -A" : "") + "kill " + item.pid;
-            lively.shell.run(cmd, {}, function(cmd) {
+            lively.shell.run(cmd, {}, function(err, cmd) {
                 show("kill result "
                     + item.pid + ":\n"
                     + cmd.getStdout()
                     + "\n" + cmd.getStderr())
             });
         }
-        }],
+        },
+        lively.BuildSpec('lively.ide.tools.CommandLine').customize({
+          name: "filter",
+          labelString: 'filter: ',
+          _Position: lively.pt(110.0,182.0),
+          _Extent: lively.pt(435, 18),
+          layout: { moveVertical: true, resizeWidth: true}
+        })
+        ],
         onFromBuildSpecCreated: function onFromBuildSpecCreated() {
         this.onLoad();
     },
@@ -86,15 +84,22 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
     },
         update: function update() {
         var cmd, list = this.get("List"), oldSel = list.getSelectedIndexes()[0];
-        lively.shell.run("ps -aux", {}, function(cmd) {
+        var filterString = this.get("filter").getInput();
+        var filterRe = filterString.trim() ? new RegExp(filterString, "i") : null;
+        var widthPerChar = 7.5;
+        var infoLength = 30; // chars
+        var cmdCharsLength = (this.getExtent().x - infoLength*widthPerChar)/widthPerChar;
+        lively.shell.run("ps aux", {}, function(err, cmd) {
             if (cmd.getCode() > 0) {
-                list.setList(["Error in ps -aux",
+                list.setList(["Error in ps aux",
                               cmd.getStdout(),
                               cmd.getStderr()]);
                 return;
             }
             try {
-                var items = Global.Grid.toObjects(psOutputToTable(cmd)).map(asListItem)
+                var items = lively.lang.grid.toObjects(psOutputToTable(cmd))
+                  .filter(filter)
+                  .map(asListItem)
                 items = removePSCommand(items, cmd);
                 items = prettyList(items);
                 list.setList(items);
@@ -119,10 +124,12 @@ lively.BuildSpec("lively.ide.tools.ServerProcessViewer", {
                     .concat([parts.slice(headers.length-1).join(" ")])
             }).compact();
         }
-    
+
+        function filter(ea) { return !filterRe ? ea : ea.command.match(filterRe); }
+
         function shortCommand(psEntry) {
             var cmd = psEntry.command;
-            psEntry.shortCommand = cmd.length < 40 ? cmd : cmd.slice(0, 20) + '...' + cmd.slice(-20);
+            psEntry.shortCommand = cmd.length < cmdCharsLength ? cmd : cmd.slice(0, cmdCharsLength-20) + '...' + cmd.slice(-20);
             return psEntry;
         }
     

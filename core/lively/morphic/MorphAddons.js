@@ -8,7 +8,25 @@ module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.mor
 
 Object.extend(lively.morphic, {
 
+    showMarkerFor: function(morph) {
+      if (!morph) return;
+      var m = lively._showMarker || (lively._showMarker = $world.loadPartItem("Marker", "PartsBin/Basic"));
+      m.setOpacity(1);
+      m.openInWorld();
+      m.setBounds(morph.globalBounds().expandBy(6));
+      m.applyStyle({borderWidth: 4, borderRadius: 10});
+      (function() {
+        m.setOpacityAnimated(0, 1000, function() { m.remove(); })
+      }).delay(1);
+    },
+
     show: function(obj) {
+
+        function showText(text) {
+          $world.setStatusMessage(text, Color.gray);
+          return text;
+        }
+
         function newShowPt(/*pos or x,y, duration, extent*/) {
             var args = Array.from(arguments);
             // pos either specified using point object or two numbers
@@ -50,6 +68,7 @@ Object.extend(lively.morphic, {
                 b.setBounds(bounds);
                 b.applyStyle({fill: null, borderWidth: 2, borderColor: Color.red})
                 b.ignoreEvents();
+                b.setZIndex(1);
                 return b;
             }
             function createMarkerForCorners() {
@@ -65,9 +84,7 @@ Object.extend(lively.morphic, {
                         r.bottomRight(). addXY(-markerLength, -2). extent(pt(markerLength, 0)),
                         r.bottomLeft().  addXY(0,-2).              extent(pt(markerLength, 0)),
                         r.bottomLeft().  addXY(0, -markerLength).  extent(pt(0, markerLength))],
-                    markers = boundsForMarkers.collect(function(bounds) {
-                        return createMarkerMorph(bounds);
-                    });
+                    markers = boundsForMarkers.map(createMarkerMorph);
                 return markers;
             }
             return newShowThenHide(createMarkerForCorners(), duration);
@@ -94,7 +111,7 @@ Object.extend(lively.morphic, {
         }
 
         if (!obj && !Object.isString(obj)) { return lively.morphic.show(String(obj)); }
-        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); return lively.morphic.alert(msg); }
+        else if (Object.isString(obj)) { var msg = Strings.format.apply(Strings, arguments); return showText(msg); }
         else if (Object.isArray(obj)) return obj.map(function(ea) { return lively.morphic.show(ea) });
         else if (obj instanceof lively.Point) return newShowPt(obj);
         else if (obj instanceof lively.Line) return newShowLine(obj);
@@ -102,7 +119,7 @@ Object.extend(lively.morphic, {
         else if (obj.isMorph) return newShowMorph(obj);
         else if (obj instanceof Global.HTMLElement) return newShowElement(obj);
         else if (obj instanceof Global.Element && obj.getBoundingClientRect) { var b = obj.getBoundingClientRect(); return newShowRect(lively.rect(b.left,b.top,b.width,b.height)); }
-        else { var msg = Strings.format("%o", obj); return lively.morphic.alert(msg); }
+        else { var msg = Strings.format("%o", obj); return showText(msg); }
     },
 
     alertDbg: function(msg) {
@@ -166,6 +183,7 @@ Object.extend(lively.morphic, {
 });
 
 Object.extend(lively, {
+    showMarkerFor:     lively.morphic.showMarkerFor,
     show:     lively.morphic.show,
     log:      lively.morphic.log,
     newMorph: lively.morphic.newMorph
@@ -173,6 +191,7 @@ Object.extend(lively, {
 
 Object.extend(Global, {
     show:     lively.morphic.show,
+    showMarkerFor:     lively.morphic.showMarkerFor,
     alertDbg: lively.morphic.alertDbg,
     alert:    lively.morphic.alert,
     alertOK:  lively.morphic.alertOK,
@@ -299,10 +318,10 @@ lively.morphic.Morph.addMethods(
     },
 },
 'opening', {
-    openInWorld: function(pos, name) {
+    openInWorld: function(pos) {
         var world = lively.morphic.World.current();
         if (!world) {
-            lively.whenLoaded(this.openInWorld.bind(this,pos,name));
+            lively.whenLoaded(this.openInWorld.bind(this, pos));
             return;
         }
         if (world.currentScene) world = world.currentScene;
@@ -817,7 +836,7 @@ lively.morphic.World.addMethods(
         // Example:
         // $world.createStatusMessage("Hello :)", {openAt: 'leftCenter'});
         options = options || {};
-        var msgMorph = lively.newMorph({extent: options.extent || pt(200, 68)});
+        var msgMorph = lively.newMorph({extent: options.extent || pt(240, 68)});
         msgMorph.isEpiMorph = true;
         msgMorph.openInWorld()
         msgMorph.applyStyle({
@@ -834,7 +853,7 @@ lively.morphic.World.addMethods(
         textMsg.beLabel(Object.merge([{
             fixedWidth: true, fixedHeight: true,
             resizeWidth: true, resizeHeight: true,
-            allowInput: false,
+            allowInput: false, selectable: false,
             clipMode: 'visible', whiteSpaceHandling: 'pre'
         }, (options.textStyle || {})]));
 
@@ -881,7 +900,7 @@ lively.morphic.World.addMethods(
             this.stayOpen = true;
             world.statusMessages.remove(this);
             var self = this, text = this.get('messageText');
-            text.applyStyle({allowInput: true, fixedWidth: false });
+            text.applyStyle({allowInput: true, fixedWidth: false, selectable: true});
             text.fit();
             (function() {
                 var ext = text.getTextExtent().addXY(20,20),
@@ -1032,10 +1051,32 @@ lively.morphic.World.addMethods(
     },
 
     showUserConfig: function() {
-        var url = this.ensureUserConfig();
+      var self = this;
+      var user  = self.getUserName(true);
+      if (user === "null") user = null;
+      
+      lively.lang.fun.composeAsync(
+        user ? function(n) { n(null, user); } : function(n) {
+          $world.askForUserName("No username set yet, please enter your username:", function(input) {
+            n(null, input);
+          });
+        },
+        function(username, n) {
+          if (!username) return n(new Error("Not a valid username: " + username));
+          $world.setCurrentUser(username);
+          n();
+        },
+        showIt
+      )(function(err) {
+        if (err) $world.inform("Could not browser user config because:\n" + err);
+      });
+      
+      function showIt(n) {
+        var url = self.ensureUserConfig();
         url && require('lively.ide').toRun(function() {
             lively.ide.browse(url);
         });
+      }
     }
 
 },
@@ -1247,8 +1288,16 @@ Object.extend(lively.morphic.Panel, {
 
 Object.extend(Global, {
     // deprecated interface!
-    newTextPane: lively.morphic.Panel.prototype.newTextPane,
-    newDragnDropListPane: lively.morphic.Panel.prototype.newDragnDropListPane
+    newTextPane:          lively.morphic.Panel.prototype.newTextPane,
+    newDragnDropListPane: lively.morphic.Panel.prototype.newDragnDropListPane,
+    show:                 lively.morphic.show,
+    showMarkerFor:        lively.morphic.showMarkerFor,
+    alertDbg:             lively.morphic.alertDbg,
+    alert:                lively.morphic.alert,
+    alertOK:              lively.morphic.alertOK,
+    inspect:              lively.morphic.inspect,
+    edit:                 lively.morphic.edit,
+    log:                  lively.morphic.log
 });
 
 lively.morphic.Text.addMethods(
@@ -1328,13 +1377,19 @@ lively.morphic.Morph.addMethods(
 
     },
 
-
     moveByAnimated: function(delta, time, callback) {
-        this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);
+        if (delta.eqPt(pt(0,0))) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.moveBy.curry(delta), time, callback);
+    },
+
+    alignAnimated: function(posA, posB, time, callback) {
+        if (posA.eqPt(posB)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.align.bind(this, posA, posB), time, callback);
     },
 
     setPositionAnimated: function(position, time, callback) {
-        this.withCSSTransitionDo(this.setPosition.curry(position), time, callback);
+        if (this.getPosition().eqPt(position)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setPosition.curry(position), time, callback);
     },
 
     setOpacityAnimated: function(opacity, time, callback) {
@@ -1342,11 +1397,13 @@ lively.morphic.Morph.addMethods(
     },
 
     setScaleAnimated: function(scale, time, callback) {
-        this.withCSSTransitionDo(this.setScale.curry(scale), time, callback);
+        if (this.getScale() == scale) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setScale.curry(scale), time, callback);
     },
 
     setExtentAnimated: function(extent, time, callback) {
-        this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
+        if (this.getExtent().eqPt(extent)) callback && callback.call(this);
+        else this.withCSSTransitionDo(this.setExtent.curry(extent), time, callback);
     }
 });
 

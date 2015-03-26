@@ -2507,7 +2507,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
 'event handling', {
     showResizeMenu: function() {
         var win = this.getWindow(), world = this.world(), items = [];
-        items.pushAll(["full","left","center","right","top","bottom", "reset"].map(function(how) {
+        items.pushAll(["fullscreen","left","center","right","top","bottom", "reset"].map(function(how) {
             return [how, function() {
               lively.ide.commands.exec('lively.ide.resizeWindow', how, win);
               win.comeForward();

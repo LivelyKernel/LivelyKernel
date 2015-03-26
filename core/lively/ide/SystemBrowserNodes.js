@@ -474,7 +474,10 @@ ometaNodes.forEach(function(ea) { console.log(ea.target.name) });
         console.log('Successfully evaluated OMeta definition');
         return true;
     },
+
     onSelect: function($super) { this.browser.currentModuleName = null; $super(); },
+
+    getSourceCodeMode: function() { return 'text'; }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.OMetaGrammarNode', {
@@ -490,6 +493,7 @@ lively.ide.FileFragmentNode.subclass('lively.ide.OMetaGrammarNode', {
 
     evalSource: lively.ide.CompleteOmetaFragmentNode.prototype.evalSource,
 
+    getSourceCodeMode: function() { return 'text'; }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.OMetaRuleNode', {
@@ -498,10 +502,11 @@ lively.ide.FileFragmentNode.subclass('lively.ide.OMetaRuleNode', {
 
     evalSource: function(newSource) {
         var def = this.target.buildNewFileString(newSource);
-        lively.ide.CompleteOmetaFragmentNode.prototype.evalSource(def);
+        lively.ide.CompleteOmetaFragmentNode.prototype.evalSource.call(this, def);
         return true;
     },
 
+    getSourceCodeMode: function() { return 'text'; }
 });
 
 lively.ide.FileFragmentNode.subclass('lively.ide.CategorizedClassFragmentNode', {

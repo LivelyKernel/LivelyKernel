@@ -673,19 +673,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'event handling', {
 
     onMouseDownEntry: function($super, evt) {
-        // ace installs a pointerup event handler on the document level and
+        // ace installs a Global.Event.INPUT_TYPE_UP event handler on the document level and
         // stops the event so it never reaches our Morphic event handlers. To
         // still dispatch the event properly we install an additional pointerup
         // handler that is removed immediately thereafter
         var self = this;
         function upHandler(evt) {
-            document.removeEventListener("pointerup", upHandler, true);
+            document.removeEventListener(Global.Event.INPUT_TYPE_UP, upHandler, true);
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             evt.hand.clickedOnMorph = self;
             [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
                 ea.onMouseUpEntry(evt); });
         }
-        document.addEventListener("pointerup", upHandler, true);
+        document.addEventListener(Global.Event.INPUT_TYPE_UP, upHandler, true);
         evt.hand.clickedOnMorph = this;
         return $super(evt);
     },

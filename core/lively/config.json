@@ -262,7 +262,9 @@
     ["hideSystemCursor", false],
     ["handleOnCapture", true],
     ["globalGrabbing", true],
-    ["touchBeMouse", false, "Dynamically determined."]
+    ["touchBeMouse", false, "Dynamically determined."],
+    ["usePointerevents", true, "Switch between native event handling and Googles Pointerevents library"],
+    ["useSingleHand", false, "Enforce the use of only one hand on mobile devices"]
   ],
 
   "lively.debugging": [

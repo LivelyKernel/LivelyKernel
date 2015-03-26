@@ -34,7 +34,7 @@ lively.morphic.Morph.addMethods(
 
         for (var i = 0; i < this.submorphs.length; i++) {
             var morph = this.submorphs[i], spec = morph.layout;
-            if (!spec) continue;
+            if (!spec || morph.isInLayoutCycle) continue;
             var moveX = 0, moveY = 0, resizeX = 0, resizeY = 0;
 
             if (spec.centeredHorizontal)
@@ -624,7 +624,7 @@ lively.morphic.Layout.VerticalLayout.subclass('lively.morphic.Layout.JournalLayo
             aMorph.setExtent(pt(aMorph.getExtent().x, minHeight));
         }
     },
-    
+
     onSubmorphAdded: function($super, newOwner, morph, newOwnerSubmorphs) {
         if (morph.placeholder) {
             morph.setPosition(morph.placeholder.getPosition()
@@ -781,6 +781,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
             distanceToTop += this.rowHeights[y];
         }
     },
+
 
     removeOldPlaceholders: function() {
         this.getContainer().submorphs.forEach(function(ea) {

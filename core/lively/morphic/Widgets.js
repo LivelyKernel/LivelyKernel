@@ -787,7 +787,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         borderWidth: 1,
         borderRadius: 4,
         opacity: 0.95,
-        clipMode: 'visible'
+        clipMode: 'visible',
+        zIndex: 1000
     },
 
     paddingLeft: 20,

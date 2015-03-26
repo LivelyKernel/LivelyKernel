@@ -2,17 +2,17 @@ module('lively.store.SQLiteInterface').requires('lively.Network').toRun(function
 
 Object.extend(lively.store.SQLiteInterface, {
 
-    ensureDB: function(name, fileName, thenDo) {
+    ensureDB: function(dbAccessorCode, fileName, thenDo) {
         URL.nodejsBase.withFilename('SQLiteServer/ensureDB').asWebResource()
-            .beAsync().post(JSON.stringify({dbAccessor: name, fileName: fileName}), 'application/json')
+            .beAsync().post(JSON.stringify({dbAccessor: dbAccessorCode, fileName: fileName}), 'application/json')
             .whenDone(function(content, status) {
                 thenDo(status.isSuccess() ? null : content || status, content);
             });
     },
 
-    removeDB: function(name, thenDo) {
+    removeDB: function(dbAccessorCode, thenDo) {
         URL.nodejsBase.withFilename('SQLiteServer/removeDB').asWebResource()
-            .beAsync().post(JSON.stringify({dbAccessor: name}), 'application/json')
+            .beAsync().post(JSON.stringify({dbAccessor: dbAccessorCode}), 'application/json')
             .whenDone(function(content, status) {
                 thenDo(status.isSuccess() ? null : content || status, content);
             });

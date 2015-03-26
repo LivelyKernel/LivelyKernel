@@ -71,6 +71,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         elasticTabs: Config.get('useElasticTabs'),
         tabSize: Config.get('defaultTabSize'),
         autocompletion: Config.get('aceDefaultEnableAutocompletion'),
+        behaviors: Config.get('aceDefaultEnableBehaviors'),
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
     },
@@ -120,6 +121,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
         if (spec.softTabs !== undefined)       this.setSoftTabs(spec.softTabs);
         if (spec.autocompletion !== undefined) this.setAutocompletionEnabled(spec.autocompletion);
+        if (spec.behaviors !== undefined)      this.setBehaviorsEnabled(spec.behaviors);
         if (spec.showWarnings !== undefined)   this.setShowWarnings(spec.showWarnings);
         if (spec.showErrors !== undefined)     this.setShowErrors(spec.showErrors);
         if (spec.tabSize !== undefined)        this.setTabSize(spec.tabSize);
@@ -194,6 +196,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (this.getElasticTabs()) this.setElasticTabs(true);
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
+        this.setBehaviorsEnabled(this.getBehaviorsEnabled());
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
 
@@ -1601,6 +1604,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     getAutocompletionEnabled: function() {
         return this.hasOwnProperty("_AutocompletionEnabled") ? this._AutocompletionEnabled : this.withAceDo(function(ed) {
             return ed.getOption("enableBasicAutocompletion"); });
+    },
+
+    setBehaviorsEnabled: function(bool) {
+        this.withAceDo(function(ed) { ed.setOption("behaviorsEnabled", bool); });
+        return this._BehaviorsEnabled = bool;
+    },
+    getBehaviorsEnabled: function() {
+        return this.hasOwnProperty("_BehaviorsEnabled") ? this._BehaviorsEnabled : this.withAceDo(function(ed) {
+            return ed.getOption("behaviorsEnabled"); });
     },
 
     setShowWarnings: function(bool) { return this._ShowWarnings = bool; },

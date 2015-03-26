@@ -2,8 +2,12 @@ module('lively.net.MediaStreaming').requires().toRun(function() {
 Object.subclass('lively.net.StreamingConnection',
 'initializing', {
     'initialize': function(serverUrl) {
+        // Don't use this method to create a new connection. 
+        // Better use lively.net.StreamingConnection.getInstance(...)
+        
         // constants
         this.serverUrl = serverUrl || 'ws://localhost:1234';
+        this.timeout = 10 * 1000;
         
         // arrays
         this.sendingBuffer = [];
@@ -54,7 +58,8 @@ Object.subclass('lively.net.StreamingConnection',
             
             // Check if the morph wants to be streamed at the moment.
             // Although, it can be forced when the flag is set.
-            if (!force && !config.streaming()) return;
+            var streaming = config.streaming.bind(this);
+            if (!force && !streaming()) return;
             
             var compressionParams = config.compressionParameters;
             
@@ -97,7 +102,8 @@ Object.subclass('lively.net.StreamingConnection',
             
             // Check if the morph wants to be streamed at the moment.
             // It can be forced when the flag is set.
-            if (!force && !config.streaming()) return;
+            var streaming = config.streaming.bind(this);
+            if (!force && !streaming()) return;
             
             var audioString
             if (typedArray) {
@@ -127,7 +133,8 @@ Object.subclass('lively.net.StreamingConnection',
             
             // Check if the morph wants to be streamed at the moment.
             // Although, it can be forced when the flag is set.
-            if (!force && !config.streaming()) return;
+            var streaming = config.streaming.bind(this);
+            if (!force && !streaming()) return;
             
             dataString = dataString || this.captureFrame();
             
@@ -156,6 +163,10 @@ Object.subclass('lively.net.StreamingConnection',
         }
         var socket = new Global.WebSocket(this.serverUrl);
         socket.binaryType = 'arraybuffer';
+        
+        this.connectingTimeout = setTimeout(function() {
+            Global.alert('Timeout while setting up streaming connection. Maybe the server is down?');
+        }, this.timeout);
         
         var _this = this;
         
@@ -197,6 +208,10 @@ Object.subclass('lively.net.StreamingConnection',
     },
     onClose: function() {
         Global.clearInterval(this.statsInterval);
+        var _this = this;
+        Object.keys(this.streamedObjects).forEach(function(id) {
+            _this.streamedObjects[id].stopStepping();
+        });
     },
     close: function() {
         this.socket.close();
@@ -265,16 +280,23 @@ Object.subclass('lively.net.StreamingConnection',
                 if (message.lzwEncoded) {
                     dataString = this.lzwDecode(dataString);
                 }
-                // TODO:
-                // no hook for getting the data, yet
-                // until then, just log it
-                console.log(dataString);
+                this.relateToStream(message, dataString);
                 break;
             case 'initial-information':
+                // clear the timeout, since we have established a connection
+                clearTimeout(this.connectingTimeout);
                 var availableStreams = message.streams;
                 this.updateAvailableStreams(availableStreams);
                 // trigger event
+                $(this).trigger('open');
                 $(this).trigger('stream-changes', [availableStreams]);
+                break;
+            case 'heartbeat':
+                var response = {
+                    type: 'heartbeat',
+                    senderId: this.session.sessionId
+                }
+                this.send(response);
                 break;
             case 'new-clients':
                 // nothing to do for now
@@ -558,6 +580,11 @@ Object.subclass('lively.net.StreamingConnection',
         
         morph.isBeingStreamed = false;
         
+        if (morph.streamingConfig.usesDefaultFunction) {
+            delete morph.streamingConfig.steppingFunction;
+            delete morph.streamingConfig.usesDefaultFunction;
+        }
+        
         var mediatype = morph.streamingConfig.mediatype;
         switch (mediatype) {
             case 'image':
@@ -591,6 +618,7 @@ Object.subclass('lively.net.StreamingConnection',
             return;
         }
         
+        morph.streamingConfig.usesDefaultFunction = true;
         var steppingFunction = this.lookupSteppingFunction(morph);
         morph.streamingConfig.steppingFunction = steppingFunction;
         
@@ -635,7 +663,9 @@ Object.subclass('lively.net.StreamingConnection',
         
         this.send(message);
         
-        return this.createNewDownstream(streamId);
+        var stream = this.createNewDownstream(streamId);
+        
+        return stream;
     },
     deactivateDownstream: function(streamId) {
         var stream = this.downstreams[streamId];
@@ -858,6 +888,30 @@ Object.subclass('lively.net.StreamingConnection',
     },
 });
 
+Object.extend(lively.net.StreamingConnection, 
+'accessing', {
+    getInstance: function(then) {
+        var conn = $world.streamingConnection;
+        if (conn && conn.socket.readyState === conn.socket.OPEN) {
+            // there is a connection already, return immediately
+            if (then) then (conn);
+        } else if (conn && conn.socket.readyState === conn.socket.CONNECTING) {
+            // there is a connection, but it is still connecting, so wait for it to finish
+            $(conn).on('open', function() {
+                if (then) then(conn);
+            });
+        } else {
+            // there is no usable connection yet, so setup a new one
+            conn = new lively.net.StreamingConnection('ws://104.131.62.171:1234');
+            // conn = new lively.net.StreamingConnection();
+            $world.streamingConnection = conn;
+            $(conn).on('open', function() {
+                if (then) then(conn);
+            });
+        }
+    },
+})
+
 Object.subclass('lively.net.Stream',
 'initializing', {
     initialize: function(id, streamingConnection) {
@@ -870,16 +924,18 @@ Object.subclass('lively.net.Stream',
 'frame handling', {
     'newFrame': function(data, timestamp) {
         this.active = true;
-        if (this.viewer.length === 0) return;
+        // if (this.viewer.length === 0) return;
         
         var frameRecord = {
             timestamp: timestamp,
             data: data
         }
-        
+        console.log(data);
         this.viewer.forEach(function(viewer) {
             viewer.render(frameRecord);
         });
+        
+        $(this).trigger('data', [data]);
     },
 },
 'viewer handling', {

@@ -909,7 +909,7 @@ lively.morphic.Shapes.Shape.addMethods(
         if (!ctx.shapeNode) return;
         if ((fill instanceof Color) && opacity) fill = fill.withA(opacity);
         if (!fill) fill = Color.rgba(0,0,0,0);
-        ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + width + 'px ' +
+        ctx.shapeNode.style['border'] = this.getBorderStyle() + ' ' + parseInt(width) + 'px ' +
             fill.toCSSString(this.getBounds(), ctx.domInterface.html5CssPrefix);
         if (ctx.originNode) {
             this.compensateShapeNode(ctx);

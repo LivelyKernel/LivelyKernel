@@ -344,26 +344,33 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         this.sourceOnlyPanel.sourcePane = this.sourceOnlyPanel.addMorph(sourcePane);
         sourcePane.setPosition(lively.pt(0, 0));
+        sourcePane.setExtent(this.panel.getExtent());
 
         this.panel.remove();
-        this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        // this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        // this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        
         this.view.addMorph(this.sourceOnlyPanel);
         this.view.targetMorph = this.sourceOnlyPanel;
+
 
         this.isNavigationCollapsed = true;
     },
     expandNavigation: function() {
+        if (this.isNavigationCollapsed == false) return;
         var originalSourceEditHeight = this.panel.bounds().height - this.navigationHeight(),
             vResizing = this.sourceOnlyPanel.bounds().height / originalSourceEditHeight,
             newHeight = this.panel.bounds().height * vResizing,
             newWidth = this.sourceOnlyPanel.bounds().width;
         this.panel.setExtent(lively.pt(newWidth, newHeight));
         
-        this.panel.addMorph(this.getSourcePane());
-        this.getSourcePane().setPosition(this.panel.midResizer.getBounds().bottomLeft());
-        
+        var sourcePane = this.getSourcePane()
+        this.panel.addMorph(sourcePane);
+        sourcePane.setPosition(this.panel.midResizer.getBounds().bottomLeft());
+        sourcePane.setExtent(this.panel.getExtent().subPt(sourcePane.getPosition()));
+
         this.sourceOnlyPanel.remove();
-        this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
+        // this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
         this.view.addMorph(this.panel);
         this.view.targetMorph = this.panel;
         

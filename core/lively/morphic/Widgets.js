@@ -2242,16 +2242,25 @@ lively.morphic.World.addMethods(
         return this.openDialog(new lively.morphic.PasswordPromptDialog(message, callback, options));
     },
 
-    listPrompt: function(message, callback, list, defaultInput, optExtent) {
+    listPrompt: function(message, callback, list, optionsOrDefaultInput, optExtent) {
+        // defaultInput, optExtent
+        // message, callback, list, defaultInput, optExtent
         // $world.listPrompt('test', alert, [1,2,3,4], 3, pt(400,300));
+        var defaultInput = typeof optionsOrDefaultInput === "number" || Array.isArray(optionsOrDefaultInput) ?
+          optionsOrDefaultInput : null;
+        var options = !defaultInput && optionsOrDefaultInput && typeof optionsOrDefaultInput === "object" ? optionsOrDefaultInput : {};
+        options.defaultInput = defaultInput || options.defaultInput;
+        if (typeof options.defaultInput === "number") options.defaultInput = [options.defaultInput];
+        options.extent = optExtent || options.extent;
         var self = this;
         lively.require('lively.morphic.tools.ConfirmList').toRun(function() {
             var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
             listPrompt.promptFor({
                 prompt: message,
                 list: list,
-                selection: defaultInput,
-                extent: optExtent
+                selections: options.defaultInput,
+                extent: options.extent,
+                multiselect: options.multiselect
             });
             (function() { listPrompt.get('target').focus(); }).delay(0);
             lively.bindings.connect(listPrompt, 'result', {cb: callback}, 'cb');

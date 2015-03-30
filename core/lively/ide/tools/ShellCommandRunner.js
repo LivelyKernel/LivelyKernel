@@ -4,7 +4,7 @@ Object.extend(lively.ide.tools.ShellCommandRunner, {
     run: function(cmdString, options, thenDo) {
         var cmd = lively.shell.run(cmdString, options, thenDo);
         return lively.ide.tools.ShellCommandRunner.forCommand(cmd)
-            .openInWorldCenter().comeForward();
+          .openInWorldCenter().comeForward();
     },
     forCommand: function(cmd) {
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
@@ -66,9 +66,16 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             storedString: "",
             theme: Config.get('aceWorkspaceTheme'),
             focus: function focus() {
-            this.get("ShellCommandRunner").lastFocused = this;
-            return $super();
-        },
+              this.get("ShellCommandRunner").lastFocused = this;
+              return $super();
+            },
+
+            detectMode: function detectMode() {
+              var mode = this.getTextMode(), newMode;
+              if (this.textString.startsWith('diff ')) newMode = "diff";
+              else newMode = "text";
+              if (mode !== newMode) this.setTextMode(newMode);
+            }
         },
         lively.BuildSpec('lively.ide.tools.CommandLine').customize({
             _Extent: lively.pt(579.0,19.0),
@@ -209,6 +216,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
     },
         print: function print(string) {
         this.get('output').append(string);
+        this.get('output').detectMode();
     },
         onKeyDown: function onKeyDown(evt) {
         if (this.showsHalos) return $super(evt);
@@ -266,6 +274,7 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                 show('%s cannot reattach because a current command is still running.', this);
                 return;
             }
+            this.get('commandLine').addCommandToHistory(cmd.getCommand());
             this.currentCommand = cmd;
             this.listenForEvents(cmd);
             if (cmd.isRunning()) this.updateTitleBar(cmd);

@@ -14,6 +14,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBar", {
     },
     layout: { adjustForNewBounds: true, resizeHeight: false, resizeWidth: true },
     name: "MenuBar",
+    isGlobalMenuBar: true,
 
     leftsAndRights: function leftsAndRights() {
       var mid = this.innerBounds().center().x;
@@ -200,8 +201,11 @@ Object.extend(lively.morphic.tools.MenuBar, {
   },
 
   open: function() {
-    return $world.get(/^MenuBar/)
-      || lively.BuildSpec("lively.morphic.tools.MenuBar")
+    var menuBar = $world.get(/^MenuBar/);
+    if (menuBar && !menuBar.isGlobalMenuBar)
+      menuBar = null;
+
+    return menuBar || lively.BuildSpec("lively.morphic.tools.MenuBar")
         .createMorph().openInWorld().onLoad();
   },
 

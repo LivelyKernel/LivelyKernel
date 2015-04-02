@@ -16,10 +16,10 @@ lively.BuildSpec('lively.ide.tools.JavaScriptToolsMenuBarEntry', lively.BuildSpe
   morphMenuItems: function morphMenuItems() {
     function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
     return [
+      ['PartsBin', cmd("lively.PartsBin.open")],
       ['JavaScript Workspace', cmd('lively.ide.openWorkspace')],
       ['JavaScript Browser', cmd('lively.ide.openSystemCodeBrowser')],
-      ['JavaScript Log', cmd('lively.ide.openSystemConsole')],
-      ['Subserver Viewer', cmd('lively.ide.openSubserverViewer')],
+      ['Subserver Viewer', cmd('lively.ide.openSubserverViewer')]
     ]
   },
 

@@ -15,7 +15,7 @@ lively.BuildSpec('lively.morphic.tools.LivelyMenuBarEntry', lively.BuildSpec("li
     return [
         ['My user config', lively.ide.commands.exec.bind(null, 'lively.ide.SystemCodeBrowser.openUserConfig')],
         ['Run command... (alt-x)', cmd('lively.ide.commands.execute')],
-        ['Save world as ...', $world.interactiveSaveWorldAs.bind($world)]];
+        ['Save world ...', $world.interactiveSaveWorldAs.bind($world)]];
   },
 
   update: function update() {},

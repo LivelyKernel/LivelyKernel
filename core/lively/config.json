@@ -399,6 +399,7 @@
       "lively.net.tools.Lively2Lively",
       "lively.morphic.tools.LivelyMenuBarEntry",
       "lively.ide.tools.CurrentDirectoryMenuBarEntry",
+      "lively.morphic.tools.LogMenuBarEntry",
       "lively.ide.tools.JavaScriptToolsMenuBarEntries"
       ], "Which menu bar entries to add by default? Specifies modules that should implement a getMenuBarEntries() method."]
   ]

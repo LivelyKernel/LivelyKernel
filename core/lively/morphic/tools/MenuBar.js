@@ -116,7 +116,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBarEntry", {
     fontFamily: "Geneva,Helvetica,sans-serif",
     whiteSpaceHandling: "pre",
     handStyle: "pointer",
-    fill: Color.white,
+    fill: null,
     textColor: Color.gray.darker()
   },
 
@@ -143,7 +143,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBarEntry", {
     var self = this;
     lively.lang.fun.debounceNamed(this.id+"removemenu", 100, function() {
       if (self.changeColorForMenu)
-        self.applyStyle({fill: Color.white, textColor: Color.gray.darker()});
+        self.applyStyle({fill: null, textColor: Color.gray.darker()});
       self.menu && self.menu.remove();
       self.menu = null;
     })();

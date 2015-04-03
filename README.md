@@ -17,9 +17,11 @@ development follow the steps below.
 
 ### Windows
 
-1. Download [this package](http://lively-kernel.org/other/lively-core-install/LivelyWeb.windows.latest.zip).
+1. Download [the windows-2015-04-03 release zip](https://github.com/LivelyKernel/LivelyKernel/releases/tag/windows-2015-04-03).
 2. Unzip it.
 3. Double click / start `start-lively-server.cmd`.
+
+Lively should now be running at [localhost:9001](http://localhost:9001/welcome.html).
 
 ### Mac OS and Linux
 

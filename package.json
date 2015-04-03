@@ -13,14 +13,14 @@
     "async": "~0.9",
     "colorize": "~0.1",
     "file-fuser": ">=0.0.8",
-    "life_star": ">=0.7.3",
+    "life_star": ">=0.8.0",
     "optparse": "~1.0",
     "shelljs": "~0.2",
     "sqlite3": "~3.0.5",
     "watch": "~0.8.0",
     "websocket": "1.0.17",
-    "lively-loader": "https://github.com/LivelyKernel/node-lively-loader/tarball/master",
-    "lively.lang": "git://github.com/LivelyKernel/lively.lang.git#master"
+    "lively-loader": ">=0.2.4",
+    "lively.lang": ">=0.4.1"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

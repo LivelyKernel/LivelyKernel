@@ -344,7 +344,7 @@ Object.extend(lively.ide.commands.byName, {
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
             function askForHow() {
-                var actions = ['fullscreen','center','right','left','bottom',
+                var actions = ['full', 'fullscreen','center','right','left','bottom',
                                'top',"shrinkWidth", "growWidth","shrinkHeight",
                                "growHeight",'reset'];
                 lively.ide.tools.SelectionNarrowing.chooseOne(
@@ -354,7 +354,7 @@ Object.extend(lively.ide.commands.byName, {
 
             function doResize(how) {
                 switch(how) {
-                    case 'fullscreen': break;
+                    case 'full': case 'fullscreen': break;
                     case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
                     case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
                     case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;

@@ -182,7 +182,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
         var morph = new lively.morphic.Morph.makeRectangle(0,0,50,50);
         this.world.addMorph(morph);
         morph.setBorderColor(Color.green);
-        morph.setBorderWidth(2.5);
+        morph.setBorderWidth(2);
         morph.setStrokeOpacity(0.5);
         var expected = {
             tagName: 'div',
@@ -191,7 +191,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Morphic.BasicFunc
                 style: {
                     // FIXME float conversion in style makes it hard to test directly
                     'border': function(result) {  // "2.5px solid rgba(0,204,0,0.5)"
-                        return result.include('2.5px') && result.include('solid') && result.include('rgba(0,204')
+                        return result.include('2px') && result.include('solid') && result.include('rgba(0,204')
                     }
                 }
             }]

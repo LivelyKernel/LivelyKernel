@@ -1,6 +1,6 @@
 module('lively.morphic.tests.Text').requires('lively.morphic.tests.Helper').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTests',
+AsyncTestCase.subclass('lively.morphic.tests.Text.TextMorphTests', lively.morphic.tests.MorphTests.prototype,
 'testing', {
     test01TextMorphHTML: function() {
         var m = new lively.morphic.Text()
@@ -14,6 +14,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
                 }
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
+        this.done();
     },
 
     test02TextMorphSVG: function() {
@@ -28,6 +29,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
                 {tagName: 'text', textContent: 'Foo'} // text node
             ]};
         this.assertNodeMatches(expected, m.renderContext().getMorphNode());
+        this.done();
     },
 
     test03TextStringIsConnectable: function() {
@@ -37,6 +39,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         connect(m, 'textString', resultObj, 'result');
         m.setTextString('Foo');
         this.assertEquals('Foo', resultObj.result);
+        this.done();
     },
 
     test04GrowToFit: function() {
@@ -45,6 +48,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.setTextString('a really long string longer than 10px')
         m.applyStyle({fixedWidth: false});
         this.assert(m.getExtent().x > 10, 'did not grow to fit text ' + m.bounds().width);
+        this.done();
     },
 
     test04bFitReallyShrinksMorphinHTML: function() {
@@ -54,6 +58,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.applyStyle({fixedWidth: false});
         m.fit();
         this.assert(m.getExtent().x < 100, 'did not shrink to fit text');
+        this.done();
     },
 
     test05SetSelectionRange: function() {
@@ -67,6 +72,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assertEquals('123', m.selectionString());
         m.setSelectionRange(-99,m.textString.length+10);
         this.assertEquals('123\t567\n9', m.selectionString());
+        this.done();
     },
 
     test05bSetSelectionRangeRightToLeft: function() {
@@ -77,6 +83,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.setSelectionRange(3, 0);
         this.assertEquals('123', m.selectionString());
         this.assertEqualState([3,0], m.getSelectionRange());
+        this.done();
     },
 
     test05cCorrectNewlinesInSelection: function() {
@@ -86,6 +93,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         m.setTextString('This\nis\na\ntest');
         m.setSelectionRange(0,9);
         this.assert(m.textString.indexOf(m.selectionString()) != -1);
+        this.done();
     },
 
     test06ModifySelectedLinesInsertsAtCorrectPosition: function() {
@@ -96,6 +104,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assertEquals('This\nis\na', m.selectionString())
         m.modifySelectedLines(function(ea) { return '+' + ea });
         this.assertEquals('+This\n+is\n+a\ntest', m.textString);
+        this.done();
     },
 
     test07aSplitText: function() {
@@ -111,7 +120,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assertEquals(m, newText.splittedFrom, 'spittedFrom field no correct');
         this.assertEquals('test', newText.textString, 'spittedFrom string');
         this.assertEquals('This is a ', m.textString, 'former text string not OK');
-        this.assert(newText.bounds().top() > m.bounds().bottom(), 'not below old text');
+        this.delay(function() {
+          this.assert(newText.bounds().top() > m.bounds().bottom(), 'not below old text');
+          this.done();
+        }, 20);
     },
 
     test07bMergeText: function() {
@@ -126,6 +138,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assert(!splitted.owner, 'splitted not removed');
         this.assertEquals('This is a test', m.textString, 'spittedFrom string');
         this.assertMatches({fontWeight: 'bold'}, m.getEmphasisAt(11))
+        this.done();
     },
 
     test08CopyTextWithConnection: function() {
@@ -134,6 +147,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         connect(m, 'textString', m, 'someOtherField')
         var copy = m.duplicate()
         this.assert(copy.textString == '', 'copy is broken')
+        this.done();
     },
 
     test09TextStringOfTextOutsideSceneGraphIsSerialized: function() {
@@ -146,6 +160,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         s = lively.persistence.Serializer.serialize(m);
         d = lively.persistence.Serializer.deserialize(s);
         this.assertEquals(d.hiddenTextMorph.textString, 'Hello', 'serialization of removed text should preserve its contents');
+        this.done();
     },
 
     test10PasteIntoEmptyTextEnsuresSelection: function() {
@@ -159,6 +174,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             stop: function() {}
         });
         this.assertEquals(m.textString, "foo", "string was not pasted into empty text");
+        this.done();
     },
 
     test11SetAllowInput: function() {
@@ -166,6 +182,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
         this.assert(m.inputAllowed(), 'inputAllows == true is not default');
         m.setInputAllowed(false);
         this.assert(!m.inputAllowed(), 'setInputAllowed not working');
+        this.done();
     },
 
     test12CleanVarDeclaration: function() {
@@ -175,6 +192,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             expected = ['    var x = this.text(),', '        bla = this.bar.foo();'],
             result = [cleaner(lines[0], 0, lines), cleaner(lines[1], 1, lines)];
         this.assertEqualState(expected, result);
+        this.done();
     },
 
     testCharBoundsWithRichText: function() {
@@ -200,6 +218,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Text.TextMorphTes
             bigHeight = bounds.slice(6,9).pluck('height').uniq();
         this.assertEquals(expectedHeight, smallHeight, 'smallHeight');
         this.assert(smallHeight < bigHeight, 'smallHeight < bigHeight ?');
+        this.done();
     }
 
 });

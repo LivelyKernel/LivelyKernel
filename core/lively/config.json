@@ -394,7 +394,7 @@
   ],
 
   "lively.morphic.tools.MenuBar": [
-    ["showMenuBar", false, "Should a menu bar be opened on world load?"],
+    ["showMenuBar", true, "Should a menu bar be opened on world load?"],
     ["menuBarDefaultEntries", [
       "lively.net.tools.Lively2Lively",
       "lively.morphic.tools.LivelyMenuBarEntry",

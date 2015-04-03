@@ -1,6 +1,4 @@
-module('lively.morphic.Events')
-    .requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default')
-    .requiresLib(Config.usePointerevents && {url: Config.codeBase + 'lib/pointerevents/pointerevents.dev.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib(Config.usePointerevents && {url: Config.codeBase + 'lib/pointerevents/pointerevents.dev.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -880,12 +878,13 @@ handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
         if (this.onHTML5Drop) this.registerForEvent('drop', this, 'onHTML5Drop', handleOnCapture);
-
     },
+
     registerForOtherEvents: function(handleOnCapture) {
         if (this.onChange) this.registerForEvent('change', this, 'onChange', handleOnCapture);
         if (this.onScroll) this.registerForEvent('scroll', this, 'onScroll', handleOnCapture);
     },
+
     registerForTouchEvents: function(handleOnCapture) {
         if (!UserAgent.isTouch || true) return;
         if (this.onTouchStart)

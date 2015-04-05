@@ -3,12 +3,14 @@ module('lively.ide.tools.ShellCommandRunner').requires('lively.persistence.Build
 Object.extend(lively.ide.tools.ShellCommandRunner, {
     run: function(cmdString, options, thenDo) {
         var cmd = lively.shell.run(cmdString, options, thenDo);
-        return lively.ide.tools.ShellCommandRunner.forCommand(cmd)
+        return lively.ide.tools.ShellCommandRunner.forCommand(cmd, options)
           .openInWorldCenter().comeForward();
     },
-    forCommand: function(cmd) {
+    forCommand: function(cmd, options) {
+        options = options || {};
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
         runner.attachTo(cmd);
+        if (options.extent) runner.setExtent(options.extent);
         return runner;
     },
     findOrCreateForCommand: function(cmd) {
@@ -205,18 +207,19 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.updateTitleBar(cmd);
     },
         onStderr: function onStderr(string) {
-        this.print(string);
+          if (string.trim()) this.print(string);
     },
         onStdout: function onStdout(string) {
-        this.print(string);
+          if (string.trim()) this.print(string);
     },
         onWindowGetsFocus: function onWindowGetsFocus() {
         if (!this.lastFocused) this.lastFocused = this.get('commandLine')
         this.lastFocused.focus();
     },
         print: function print(string) {
-        this.get('output').append(string);
-        this.get('output').detectMode();
+          var ed = this.get('output');
+        ed.append(string);
+        ed.withAceDo(function() { ed.detectMode(); })
     },
         onKeyDown: function onKeyDown(evt) {
         if (this.showsHalos) return $super(evt);
@@ -279,8 +282,9 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             this.listenForEvents(cmd);
             if (cmd.isRunning()) this.updateTitleBar(cmd);
             else this.updateTitleBar(cmd);
-            this.print(cmd.getStdout() || '');
-            this.print(cmd.getStderr() || '');
+            var out = cmd.getStdout() || '';
+            var err = cmd.getStderr() || '';
+            this.print((out + (err ? "\n" + err : "")).trim());
         },
         listenForEvents: function listenForEvents(cmd) {
             var self = this, listener = {

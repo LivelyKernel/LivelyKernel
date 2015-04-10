@@ -192,6 +192,18 @@ Object.extend(lively.morphic.tools.MenuBar, {
 
   openOnWorldLoad: function() {
     // lively.morphic.tools.MenuBar.openOnWorldLoad();
+    if (typeof $world === "undefined") {
+      return lively.whenLoaded(function() {
+        lively.morphic.tools.MenuBar.openOnWorldLoad();
+      })
+      return;
+    }
+
+    if ($world._MenuBarHidden) {
+      lively.morphic.tools.MenuBar.remove();
+      return;
+    }
+
     lively.lang.arr.mapAsyncSeries(lively.Config.get("menuBarDefaultEntries"),
       function(ea, _, n) {
         lively.require(ea).toRun(function() {
@@ -205,7 +217,6 @@ Object.extend(lively.morphic.tools.MenuBar, {
         entries.flatten().forEach(bar.add.bind(bar));
         (function() {bar.relayout();}).delay(0);
       });
-
   },
 
   open: function() {
@@ -218,6 +229,11 @@ Object.extend(lively.morphic.tools.MenuBar, {
         .createMorph().openInWorld().onLoad();
   },
 
+  remove: function() {
+    var menuBar = $world.get(/^MenuBar/);
+    if (menuBar && menuBar.isGlobalMenuBar) menuBar.remove();
+  },
+  
   addEntry: function(menuBarEntry) { return this.open().add(menuBarEntry); }
 });
 

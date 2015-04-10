@@ -100,6 +100,26 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() { $world.setScale(1); }
     },
 
+    'lively.morphic.MenuBar.hide': {
+        description: 'hide the menu bar',
+        exec: function() {
+          $world._MenuBarHidden = true;
+          lively.require('lively.morphic.tools.MenuBar').toRun(function() {
+            lively.morphic.tools.MenuBar.remove();
+          });
+        }
+    },
+
+    'lively.morphic.MenuBar.show': {
+        description: 'show the menu bar',
+        exec: function() {
+          $world._MenuBarHidden = false;
+          lively.require('lively.morphic.tools.MenuBar').toRun(function() {
+            lively.morphic.tools.MenuBar.openOnWorldLoad();
+          });
+        }
+    },
+
     // morphic
     'lively.morphic.Halos.show': {
         description: 'morphic: show halo',

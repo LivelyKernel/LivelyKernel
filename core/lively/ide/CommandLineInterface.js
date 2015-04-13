@@ -39,16 +39,17 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     getGroup: function() { return this._options.group || null; },
 
     kill: function(signal, thenDo) {
-        if (this._done) {
-            thenDo && thenDo();
-        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
-            this._killed = true;
-            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
-            thenDo && thenDo();
-        } else {
-            this._killed = true;
-            lively.ide.CommandLineInterface.kill(this, thenDo);
-        }
+      var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+      if (this._done) {
+          thenDo && thenDo();
+      } else if (lively.ide.CommandLineInterface.isScheduled(this, group)) {
+          this._killed = true;
+          lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+          thenDo && thenDo();
+      } else {
+          this._killed = true;
+          lively.ide.CommandLineInterface.kill(this, thenDo);
+      }
     },
 
     resultString: function(bothErrAndOut) {
@@ -228,6 +229,8 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         this._code = exitCode;
         this._done = true;
         lively.bindings.signal(this, 'end', this);
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+        if (lively.shell.isScheduled(this, group)) lively.shell.unscheduleCommand(this, group);
         if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,null,this);
     },
     checkIfCommandIsStillAttachedAndRunning: function(thenDo) {
@@ -264,11 +267,14 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 
     kill: function(signal, thenDo) {
         thenDo = Functions.once(thenDo);
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+        var isScheduled = lively.ide.CommandLineInterface.isScheduled(this, group);
         if (this._done) {
+            isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
         } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
             this._killed = true;
-            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+            isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
         } else {
             var pid = this.getPid();
@@ -279,6 +285,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 if (err) console.warn("stopShellCommand: " + err);
                 var running = answer && answer.commandIsRunning;
                 self._killed = !running; // hmmmmm
+                isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(self, group);
                 thenDo && thenDo(err, answer);
             });
         }
@@ -343,6 +350,8 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     commandQueue: {},
 
+    defaultGroup: "ungrouped-command",
+
     reset: function() {
         this.rootDirectory = null,
         this.commandQueue && Properties.forEachOwn(this.commandQueue,
@@ -360,13 +369,21 @@ Object.extend(lively.ide.CommandLineInterface, {
         lively.bindings.connect(cmd, 'end', lively.ide.CommandLineInterface, 'unscheduleCommand', {
             updater: function($upd, cmd) { $upd(cmd, cmd.getGroup()); }});
         var queue = group && this.getGroupCommandQueue(group);
-        if (queue) { queue.push(cmd); }
+        if (queue) {
+          queue.push(cmd);
+          queue.forEach(function(cmd) { if (cmd.isDone()) queue.remove(cmd); })
+          if (queue.indexOf(cmd) === 0) cmd.startRequest();
+          else if (queue[0] && !queue[0].isRunning()) queue[0].startRequest();
+        } else { cmd.startRequest() }
         if (!queue || queue.indexOf(cmd) === 0) cmd.startRequest();
     },
     unscheduleCommand: function(cmd, group) {
-        var queue = group && this.getGroupCommandQueue(group);
-        if (queue) queue.remove(cmd);
-        if (group) this.startCommandFromQueue(group);
+      group = group || lively.shell.defaultGroup
+      var queue = group && this.getGroupCommandQueue(group);
+      if (queue) { queue.remove(cmd); }
+      if (group) this.startCommandFromQueue(group);
+      if (!lively.shell.commandQueue[group] || !lively.shell.commandQueue[group].length)
+        delete lively.shell.commandQueue[group];
     },
     startCommandFromQueue: function(group) {
         if (!group) return null;
@@ -427,6 +444,8 @@ Object.extend(lively.ide.CommandLineInterface, {
         }
         if (thenDo) options.whenDone = thenDo;
 
+        if (!options.group) options.group = lively.shell.defaultGroup + Strings.newUUID();
+
         var session = lively.net.SessionTracker.getSession(),
             lively2LivelyShellAvailable = session && session.isConnected(),
             commandClass = lively2LivelyShellAvailable && !options.sync ?
@@ -435,7 +454,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
         // prepare for askpass command
         if (lively2LivelyShellAvailable) {
-            var env = options
+            var env = options;
             options.env = Object.extend(options.env || {}, {
                 "L2L_ASKPASS_SSL_CA_FILE": lively.Config.askpassSSLcaFile || "",
                 "L2L_ASKPASS_SSL_KEY_FILE": lively.Config.askpassSSLkeyFile || "",
@@ -508,11 +527,14 @@ Object.extend(lively.ide.CommandLineInterface, {
          ], function(err, commands) { show(Object.values(commands).invoke('resultString').join('\n')); })
         lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."}], function(err, commands) { show(commands.cmd1.resultString()); });
         */
+
         thenDo = thenDo || Functions.Null;
-        var results = {};
+        var results = {}, group = lively.shell.defaultGroup + Strings.newUUID();
         commands.doAndContinue(function(next, ea, i) {
             // run either with exec by setting ea.isExec truthy, otherwise with run (spawn)
             var cmd = ea.command, runCommand;
+            var opts = ea.options || {};
+            if (!opts.group) opts.group = group;
             if (ea.isExec) runCommand = this.exec;
             else if (ea.readFile) { runCommand = this.readFile; cmd = ea.readFile; }
             else if (ea.writeFile) { runCommand = this.writeFile; cmd = ea.writeFile; ea.options = ea.options || {}; if (ea.content) ea.options.content = ea.content; }
@@ -522,7 +544,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                     return results[variable] && results[variable].isShellCommand ?
                         results[variable].resultString() : (results[variable] || ''); });
             }
-            runCommand.call(this, cmd, ea.options || {}, function(cmd) {
+            runCommand.call(this, cmd, opts, function(cmd) {
                 var name = ea.name || String(i);
                 results[name] = ea.transform ? ea.transform(cmd) : cmd;
                 next();

@@ -1830,20 +1830,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'messaging', {
 
-    ensureStatusMessageMorph: function() {
-      if (this._statusMorph) return this._statusMorph;
-      var ext = this.getExtent();
-      var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
-      sm.applyStyle({
-          fontFamily: 'Monaco,monospace',
-          borderWidth: 0, borderRadius: 6,
-          fontSize: this.getFontSize()-2,
-          inputAllowed: false,
-          fixedWidth: true, fixedHeight: false,
-      });
-      sm.isEpiMorph = true;
-      return sm;
-    },
+    ensureStatusMessageMorph: Trait('lively.morphic.SetStatusMessageTrait').def.ensureStatusMessageMorph,
 
     setStatusMessage: function (msg, color, delay) {
         var world = this.world();
@@ -1851,26 +1838,26 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
             ext = this.getExtent();
 
+        sm.bringToFront();
         // setting 'da message
         sm.lastUpdated = Date.now();
         world.addMorph(sm);
         var color = color || Color.white;
         var fill = (color === Color.green || color === Color.red || color === Color.black) ? Color.white : Color.black.lighter()
-        sm.applyStyle({
-            textColor: color, fill: fill,
-            position: this.worldPoint(this.innerBounds().bottomLeft()),
-        });
+        sm.applyStyle({textColor: color, fill: fill});
         if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
         else sm.textString = msg;
 
         // aligning
-        sm.fit();
-        (function() {
+
+        sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
+        sm.fitThenDo(function() {
           var visibleBounds = world.visibleBounds(),
               overlapY = sm.bounds().bottom() - visibleBounds.bottom();
           if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
-          sm.setExtent(sm.getExtent().withX(ext.x));
-        }).delay(0);
+          var cb = sm.get("closeButton");
+          if (cb) cb.alignInOwner();
+        });
 
         // either remove via timeout or when curs/selection changes occur. Note
         // that via onOwnerChanged the statusMorph also is removed when the

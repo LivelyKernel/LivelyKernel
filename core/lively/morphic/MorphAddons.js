@@ -1575,4 +1575,81 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
     }
 });
 
+Trait('lively.morphic.SetStatusMessageTrait', {
+
+  ensureStatusMessageMorph: function() {
+    if (this._statusMorph) return this._statusMorph;
+
+    var ext = this.getExtent();
+    var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
+    sm.applyStyle({
+      fontFamily: 'Monaco,monospace',
+      padding: lively.Rectangle.inset(4, 2, 8, 2),
+      borderWidth: 0, borderRadius: 6,
+      fontSize: 10,
+      allowInput: false, selectable: true,
+      fixedWidth: true, fixedHeight: false,
+    });
+    sm.isEpiMorph = true;
+    (function() {
+      var closeBtn = new lively.morphic.Button(lively.rect(0,0,18,18), "X");
+      closeBtn.name = "closeButton";
+      lively.bindings.connect(closeBtn, 'fire', sm, 'remove');
+      sm.addMorph(closeBtn);
+      sm.addScript(function onMouseMove(evt) {
+        var closeBtn = this.get("closeButton");
+        if (closeBtn.innerBoundsContainsWorldPoint(evt.getPosition())) {
+          closeBtn.bringToFront();
+          closeBtn.focus();
+        }
+      });
+      closeBtn.addScript(function onMouseMove(evt) { this.focus(); });
+      closeBtn.addScript(function alignInOwner() {
+        this.align(this.bounds().topRight(), this.owner.innerBounds().topRight().addXY(-2,2));
+      });
+      closeBtn.alignInOwner();
+    }).delay(0);
+    return sm;
+  },
+
+  setStatusMessage: function(msg, color, delay) {
+    var world = this.world();
+    if (!world) return;
+    var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
+        ext = this.getExtent();
+
+    sm.bringToFront();
+    // setting 'da message
+    sm.lastUpdated = Date.now();
+    world.addMorph(sm);
+    var color = color || Global.Color.white;
+    var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
+    sm.applyStyle({textColor: color, fill: fill});
+    if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
+    else sm.textString = msg;
+
+    // aligning
+    sm.fitThenDo(function() {
+      var visibleBounds = world.visibleBounds(),
+          overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+      if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+      sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
+      var cb = sm.get("closeButton");
+      if (cb) cb.alignInOwner();
+    });
+
+    (function() {
+      function removeStatusMessage() {
+        sm.remove();
+        // self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
+      }
+
+      if (sm._removeTimer) clearTimeout(sm._removeTimer);
+      if (typeof delay === "number") {
+        sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
+      }
+    }).delay(0);
+  }
+});
+
 }) // end of module

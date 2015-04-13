@@ -565,7 +565,106 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.browseFiles': {
         description: 'browse files',
-        exec: function() {
+        exec: true ?
+          function browseFilesWIthFind() {
+
+            var actions = [
+                {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
+                {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
+                {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
+                {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
+                {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
+            if (!lively.shell.cwdIsLivelyDir()) {
+                // SCB is currently only supported for Lively files
+                actions.shift();
+            }
+
+            var showsInitialCandidates = true;
+            var initialCandidates = [];
+            var searchForMatchingDebounced = Functions.debounce(1000, searchForMatching);
+            var lastSearchInput = null, lastFiles;
+
+            var dir,
+              narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+                // name: 'lively.ide.browseFiles.NarrowingList2',
+                spec: {
+                  candidates: initialCandidates,
+                  prompt: 'filename: ',
+                  // init: update.curry(candidates),
+                  maxItems: 25,
+                  keepInputOnReactivate: true,
+                  candidatesUpdater: candidateBuilder,
+                  actions: actions
+                }
+            });
+
+            return true;
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+            function candidateBuilder(input, callback) {
+              // callback([{isListItem: true, string: 'searching...', value: null}]);
+              // if (input === "undefined" || input === "searching...") input = "";
+              searchForMatching(input, callback);
+            };
+
+            function searchForMatching(input, callback) {
+              if (showsInitialCandidates) {
+                showsInitialCandidates = false;
+                if (initialCandidates.length)
+                  return callback(initialCandidates);
+              }
+              if (!input || input === "") callback([]);
+              var parts = input.split(" ");
+              var matchParts = parts.slice(1).compact().map(function(ea) { return new RegExp(ea, "i"); });
+              var searchAgain = lastSearchInput !== parts[0];
+              lastSearchInput = parts[0];
+              doSearch(searchAgain, parts[0], matchParts, callback);
+            }
+
+            function makeCandidates(dir, files) {
+                return files.map(function(fullPath) {
+                    var relativePath = fullPath.slice(dir.length+1).replace(/\\/g, '/');
+                    if (relativePath.length === 0) return null;
+                    return {
+                        string: relativePath,
+                        value: {dir: dir, fullPath: fullPath, relativePath: relativePath},
+                        isListItem: true
+                    }
+                }).compact();
+            }
+
+            function doSearch(searchAgain, input, matchParts, thenDo) {
+                lively.lang.fun.composeAsync(
+                    function withDirDo(func) { func(null, narrower.dir || lively.shell.cwd()); },
+                    function fetchFiles(dir, next) {
+                      if (!searchAgain && lastFiles) return next(null, lastFiles, dir);
+                      var opts = {sync: false, matchPath: true}
+                      if (input.length < 3) opts.depth = 2;
+                      input = "*" + input.replace(/^\*?|\*?$/g, "") + "*";
+                      lively.ide.CommandLineSearch.findFiles(
+                        input, opts, function(err, files) {
+                          if (err) next(new Error('Cannot fetch files for ' + dir + ":\n" + err));
+                          else { lastFiles = files; next(null, files, dir); }
+                      });
+                    },
+                    function(files, dir, next) {
+                      var paths = files
+                        .filter(function(ea) { return !ea.isDirectory; })
+                        .map(function(ea) { return lively.lang.string.joinPath(dir, ea.fileName); })
+                        .filter(function(ea) { return matchParts.every(function(match) { return match.test(ea); })});
+                      next(null, paths, dir);
+                    },
+                    function(files, dir, next) { next(null, makeCandidates(dir, files)); }
+                )(function(err, candidates) {
+                    if (err) show("Error browsing files: %s", err);
+                    else thenDo(candidates);
+                });
+            }
+
+        } :
+
+          function browseFilesWithDirWatcher() {
 
             var actions = [
                 {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
@@ -912,7 +1011,7 @@ Object.extend(lively.ide.commands.byName, {
                 'choose directory: ',
                 lively.ide.CommandLineInterface.cwd(),
                 function(files) { return files.filterByKey('isDirectory'); },
-                "lively.ide.browseFiles.baseDir.NarrowingList",
+                "lively.ide.CommandLineInterface.printDirectory.NarrowingList",
                 [printIt]);
         }
     },
@@ -1270,7 +1369,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.findFile': {
-        'description': 'find file',
+        description: 'find file',
         exec: function() {
             // This is the emacs "find-file" equivalent.
             // Lists all the files at the current dir defined by
@@ -1291,92 +1390,13 @@ Object.extend(lively.ide.commands.byName, {
                     }
                 }
             }
+
             lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-                        'open file: ',
-                        null,
-                        function(files, input) {
-                            return files.length ? files : [{isDirectory: false, path: input}]; },
-                        "lively.ide.findFiles.Narrower",
-                        [open]);
-
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // FIXME As a test to how well #interactivelyChooseFileSystemItem
-            // works let's use the above solution for now
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            return true;
-
-            var candidates, narrower, dir, searchDir, slash = '/';
-
-            function splitInput(input) {
-                // split input in basedir and filename
-                var inputParts = input.split(slash),
-                    filePattern = inputParts.pop();
-                return {dir: inputParts.join(slash), filePattern: filePattern || ''}
-            }
-
-            var searcher = Functions.debounce(200, function(input, callback) {
-
-                if (!dir) dir = lively.ide.CommandLineInterface.cwd();
-
-                var dirParts = dir.split(slash),
-                    splitted = splitInput(input);
-                searchDir = dirParts.concat(splitted.dir).join(slash);
-
-                lively.ide.CommandLineSearch.findFiles("*", {cwd: searchDir, depth: 1}, function(files) {
-
-                    candidates = files.map(function(ea) {
-                        return {isListItem: true, string: String(ea.fileName) + (ea.isDirectory ? '/' : ''), value: ea}
-                    });
-
-                    var filePattern = splitted.filePattern;
-                    var filtered = narrower.doFilter(candidates, filePattern).filtered;
-
-                    if (filtered.length !== 1 && filePattern.trim().length) {
-                        filtered.unshift({
-                            isListItem: true,
-                            string: filePattern,
-                            value: {isDirectInput: true, fileName: filePattern}
-                        })
-                    }
-
-                    callback(filtered);
-                });
-            });
-
-            function candidateBuilder(input, callback) {
-                callback([input]);
-                searcher(input, callback);
-            };
-
-            narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: 'lively.ide.findFile.Narrower',
-                reactivateWithoutInit: true,
-                setup: function(n) {
-                    n.deactivate = n.deactivate.wrap(function(proceed) { dir = null; proceed(); });
-                },
-                spec: {
-                    prompt: 'search for something: ',
-                    candidates: [],
-                    maxItems: 25,
-                    candidatesUpdater: candidateBuilder,
-                    keepInputOnReactivate: true,
-                    completeInputOnRightArrow: function(candidate) {
-                        var splitted = splitInput(narrower.getInput())
-                        return (splitted.dir ? splitted.dir + slash : '') + candidate.string;
-                    },
-                    actions: [{
-                        name: 'open file item',
-                        exec: function(candidate) {
-                            var fullpath = searchDir + slash + candidate.fileName;
-                            if (!candidate.isDirectory) {
-                                lively.ide.commands.byName['lively.ide.openTextEditor'].exec(fullpath);
-                            } else if (candidate.isDirectory) {
-                                lively.ide.commands.byName['lively.ide.openDirViewer'].exec(fullpath);
-                            }
-                        }
-                    }]
-                }
-            });
+              'open file: ',
+              null,
+              function(files, input) { return files.length ? files : [{isDirectory: false, path: input}]; },
+              "lively.ide.findFiles.Narrower",
+              [open]);
 
             return true;
         }

@@ -129,7 +129,7 @@ Object.extend(lively.ast.Rewriting, {
         }
 
         function removeExistingDebugFiles(thenDo) {
-            lively.ide.CommandLineSearch.findFiles('DBG_*.js*', {}, function(files) {
+            lively.ide.CommandLineSearch.findFiles('DBG_*.js*', {}, function(err, files) {
                 lively.shell.exec('rm ' + files.join(' '), {}, thenDo);
             });
         }

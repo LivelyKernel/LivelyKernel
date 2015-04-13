@@ -628,7 +628,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     ls: function(path, thenDo) {
-      return lively.ide.CommandLineSearch.findFiles("*", {cwd: path, depth: 1}, function(result) {
+      return lively.ide.CommandLineSearch.findFiles("*", {cwd: path, depth: 1}, function(err, result) {
         thenDo && thenDo(null, result); });
     },
 
@@ -875,7 +875,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                           + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
                           + "fi && ",
             excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
-            searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
+            searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : (options.matchPath ? '-ipath' : '-iname'), pattern),
             depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',
             // use GMT for time settings by default so the result is comparable
             // also force US ordering of date/time elements, to help with the parsing
@@ -889,7 +889,7 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     findFiles: function(pattern, options, callback) {
         // lively.ide.CommandLineSearch.findFiles('*html',
-        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
+        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING, matchPath: BOOL});
         options = options || {};
         var commandString = this.findFilesCommandString(pattern, options),
             rootDirectory = options.rootDirectory,
@@ -898,9 +898,11 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (lastFind) lastFind.kill();
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(err, cmd) {
-                if (cmd.getCode() != 0) console.warn(cmd.getStderr());
-                result = parseDirectoryList(cmd.getStdout(), rootDirectory);
-                callback && callback(result);
+              lively.ide.CommandLineSearch.lastFind = null;
+              var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
+              if (err) console.warn(err);
+              result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);
+              callback && callback(err, result || []);
             });
         lively.ide.CommandLineSearch.lastFind = cmd;
         return options.sync ? result : cmd;
@@ -943,7 +945,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         });
 
         var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-            name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
+            name: narrowerName || 'lively.ide.interactivelyChooseFileSystemItem.NarrowingList',
             spec: {
                 candidates: initialCandidates,
                 prompt: prompt,
@@ -976,7 +978,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             var continueAction = Functions.either(
                 // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
                 function timeout() { thenDo([]); },
-                function filesFound(files) {
+                function filesFound(err, files) {
                     lastSearch = null;
                     thenDo((filterFunc || Functions.K)(files, input, pattern, dir)
                         .uniqBy(filesAreEqual)
@@ -1000,10 +1002,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             var path = String(file.path);
             if (!path.length) return null;
             if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
-            return {
-                isListItem: true,
-                string: path,
-                value: file}
+            return {isListItem: true, string: path, value: file};
         }
 
         function extractDirAndPatternFromInput(input) {

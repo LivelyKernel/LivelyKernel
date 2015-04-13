@@ -416,7 +416,16 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             self.get('sortBySelector').selection = selection;
             self.applySort();
         })
-    }
+    },
+    
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+      this.filterState = {
+        filterTimeout: 100,
+        items: [],
+        sortKey: null,
+        filters: []
+      }
+    },
 })
 
 }) // end of module

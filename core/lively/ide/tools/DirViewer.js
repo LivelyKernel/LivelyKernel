@@ -766,7 +766,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         };
         lively.ide.CommandLineSearch.findFiles('*',
             {cwd: this.dirState.path, excludes: '-false', depth: 1},
-            function(files) {
+            function(err, files) {
                 self.dirState.files = [parentDir].concat(files);
                 lively.bindings.connect(
                   self, 'dirContentUpdated',

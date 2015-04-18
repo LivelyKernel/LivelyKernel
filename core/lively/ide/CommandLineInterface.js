@@ -368,14 +368,14 @@ Object.extend(lively.ide.CommandLineInterface, {
     scheduleCommand: function(cmd, group) {
         lively.bindings.connect(cmd, 'end', lively.ide.CommandLineInterface, 'unscheduleCommand', {
             updater: function($upd, cmd) { $upd(cmd, cmd.getGroup()); }});
-        var queue = group && this.getGroupCommandQueue(group);
+        if (!group) group = lively.shell.defaultGroup + Strings.newUUID();
+        var queue = this.getGroupCommandQueue(group);
         if (queue) {
           queue.push(cmd);
           queue.forEach(function(cmd) { if (cmd.isDone()) queue.remove(cmd); })
           if (queue.indexOf(cmd) === 0) cmd.startRequest();
           else if (queue[0] && !queue[0].isRunning()) queue[0].startRequest();
-        } else { cmd.startRequest() }
-        if (!queue || queue.indexOf(cmd) === 0) cmd.startRequest();
+        } else cmd.startRequest();
     },
     unscheduleCommand: function(cmd, group) {
       group = group || lively.shell.defaultGroup

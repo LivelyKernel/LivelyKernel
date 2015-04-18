@@ -302,7 +302,6 @@
 	cursor: pointer;
 	z-index: 999;
 	font-family: Monaco, monospace;
-	font-size: 10px;
 	position: absolute;
 	color: white;
 	background: #666;

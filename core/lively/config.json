@@ -373,6 +373,10 @@
     ["propertyPreservation", null, "When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked."]
   ],
 
+  "lively.ide.tools.SelectionNarrowing": [
+    ["selectionNarrowerInputLineAtTop", true, "Show the input line at top or bottom?"]
+  ],
+
   "askpass": [
     ["askpassSSLcaFile", "", ""],
     ["askpassSSLkeyFile", "", ""],

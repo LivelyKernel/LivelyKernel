@@ -75,6 +75,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         var input = text;
         if (this.labelString) text = this.labelString + text;
         this.textString = text;
+        this.setCursorPosition({x: text.length, y: 1});
         return input;
     },
 

@@ -20,7 +20,8 @@ var path             = require('path'),
 // -=-=-=-=-=-=-=-=-=-=-
 var options = args.options([
     ['-h', '--help', 'Show this help.'],
-    ['-p', '--port NUMBER', "On which port to run."],
+    ['-p', '--port NUMBER', "On which port to run, default is 9001."],
+    [      '--host STRING', "Hostname, default is localhost."],
     [      '--log-level STRING', 'Log level, accepted values: error, warning, info, debug.'],
     [      '--lk-dir DIR', 'The directory of the Lively Kernel core repository (git).'],
     [      '--no-version-control', 'Don\'t version objects and files, this overrides --db-config.'],
@@ -58,7 +59,7 @@ var options = args.options([
     "Starts a Lively Kernel server.");
 
 var port = options.port || env.LIFE_STAR_PORT,
-    host = env.LIFE_STAR_HOST,
+    host = options.port || env.LIFE_STAR_HOST,
     subservers = {};
 
 if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {

@@ -64,44 +64,45 @@ Object.extend(lively.ide.commands.byName, {
             return false;
         }
     },
+
     'lively.morphic.World.save': {
-        description: 'save world',
+        description: 'Lively: save world',
         exec: function() {
             $world.saveWorld(); return true;
         }
     },
     'lively.morphic.World.saveAs': {
-        description: 'save world as',
+        description: 'Lively: save world as',
         exec: function() {
             $world.interactiveSaveWorldAs(); return true;
         }
     },
 
     'lively.morphic.World.changeUserName': {
-        description: 'change user name',
+        description: 'user: change user name',
         exec: function() {
             $world.askForUserName(); return true;
         }
     },
 
     'lively.morphic.World.setExtent': {
-        description: 'set world extent',
+        description: 'morphic: set world extent',
         exec: function() { $world.askForNewWorldExtent(); }
     },
 
     'lively.morphic.World.setExtentToWindowBounds': {
-        description: 'set world extent to fit into window bounds',
+        description: 'morphic: set world extent to fit into window bounds',
         exec: function() { $world.setExtent($world.windowBounds().extent()); }
     },
 
     'lively.morphic.World.resetScale': {
-        description: 'reset world scale',
+        description: 'morphic: reset world scale',
         exec: function() { $world.setScale(1); }
     },
 
     // morphic
     'lively.morphic.Halos.show': {
-        description: 'show halo',
+        description: 'morphic: show halo',
         exec: function() {
             var focused = lively.morphic.Morph.focusedMorph(),
                 morph = $world.getActiveWindow() || focused;
@@ -112,8 +113,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.showSceneGraph': {
-        description: 'show scene graph',
+        description: 'morphic: show scene graph',
         exec: function() {
             // withAllSubmorphsDo isn't good enough for ignoring certain morphs and their
             // submorphs
@@ -159,7 +161,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.copy': {
-        description: 'copy morph',
+        description: 'morphic: copy morph',
         exec: function() {
             var morph = $world.getActiveWindow();
             if (!morph) morph = lively.morphic.Morph.focusedMorph();
@@ -178,7 +180,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.swapMorphs': {
-        description: 'swap morphs',
+        description: 'morphic: swap morphs',
         exec: function() {
             var morph1;
             lively.lang.fun.composeAsync(
@@ -201,7 +203,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.openObjectEditor': {
-        description: 'open ObjectEditor for focused Morph',
+        description: 'morphic: open ObjectEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function(target) {
             var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
@@ -209,8 +211,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.openStyleEditor': {
-        description: 'open StyleEditor for focused Morph',
+        description: 'tools: open StyleEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function(target) {
             var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
@@ -220,7 +223,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.alignFlapsInWorld': {
-        description: 'align flaps in world',
+        description: 'morphic: align flaps in world',
         exec: function() {
             $world.submorphs
                 .filter(function(ea) { return ea.hasFixedPosition() && ea.alignInWorld; })
@@ -230,7 +233,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.setGridSpacing': {
-        description: 'set grid spacing',
+        description: 'morphic: set grid spacing',
         exec: function(spacing) {
             if (spacing) lively.Config.set("gridSpacing", spacing);
             else {
@@ -268,7 +271,7 @@ Object.extend(lively.ide.commands.byName, {
 
     // windows
     'lively.morphic.Window.rename': {
-        description: 'rename active window',
+        description: 'windows: rename active window',
         exec: function() {
             var focused = lively.morphic.Morph.focusedMorph(),
                 win = focused && focused.getWindow();
@@ -279,8 +282,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.toggleCollapse': {
-        description: 'collapse/uncollapse window',
+        description: 'windows: collapse/uncollapse window',
         exec: function() {
             var win = $world.getActiveWindow();
             if (!win) { show('Cannot find active window!'); return; }
@@ -289,8 +293,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.gather': {
-        description: 'gather all windows at mouse cursor',
+        description: 'windows: gather all windows at mouse cursor',
         exec: function() {
             function restack(parent, filter) {
                 var morphs = parent.submorphs.select(filter),
@@ -304,8 +309,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.rearrangeSelectedIntoVisibleBounds': {
-        description: 'Rearrange selected morphs to fit into visible world bounds.',
+        description: 'morphic: Rearrange selected morphs to fit into visible world bounds.',
         exec: function() {
             function fitMorphsIntoBounds(morphs, bounds) {
                 // Unions the bounds of morphs together and moves them so that the top left
@@ -325,6 +331,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.resizeWindow': {
+        description: "windows: resize active window",
         exec: function(how, window) {
             var win = window || $world.getActiveWindow();
             if (!win) return;
@@ -397,7 +404,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.resizeWindow.halfbottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'halfbottom'); }},
 
     'lively.morphic.Window.resizeVisibleMorphsToFitIntoVisibleBounds': {
-        description: 'Resize visible morphs to fit into visible world bounds.',
+        description: 'morphic: Resize visible morphs to fit into visible world bounds.',
         exec: function() {
             $world.submorphs.forEach(function(ea) {
                 var vB = $world.visibleBounds(), b = ea.bounds();
@@ -407,23 +414,26 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.selectAll': {
-        description: 'Select all windows',
+        description: 'windows: Select all windows',
         exec: function() {
             var windows = $world.submorphs.select(function(ea) { return ea.isWindow; });
             $world.setSelectedMorphs(windows);
             return true;
         }
     },
+
     'lively.morphic.Window.close': {
-        description: 'close active window',
+        description: 'windows: close active window',
         exec: function() {
             $world.closeActiveWindow();
             return true;
         }
     },
+
     'lively.ide.WindowNavigation.start': {
-        description: 'open window navigator',
+        description: 'windows: open window navigator to switch windows',
         exec: function exec() {
           if (module("lively.ide.WindowNavigation").isLoaded())
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
@@ -433,7 +443,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.WindowNavigation.reopenClosedWindows': {
-        description: 'recover closed windows',
+        description: 'windows: recover closed windows',
         exec: function() {
             var narrower = $world.submorphs.detect(function(morph) { return morph.name && morph.name.include('lively.ide.WindowNavigation.NarrowingList'); });
             if (narrower) {
@@ -1193,7 +1203,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
     'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function(path) { lively.ide.openFile(path || URL.source.toString()); return true; }},
     'lively.ide.openSystemConsole': {
-        description: 'open SystemConsole (to see console logging)',
+        description: 'logging: open JavaScript log (system console)',
         exec: function() {
             if ($world.get("LogMessages")) $world.get("LogMessages").comeForward();
             else lively.require("lively.ide.tools.SystemConsole")
@@ -1212,9 +1222,9 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
-    'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
+    'lively.ide.openOMetaWorkspace': {description: 'tools: open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
     'lively.ide.openSubserverViewer': {
-        description: 'open SubserverViewer',
+        description: 'tools: open JavaScript subserver viewer',
         exec: function(options) {
             options = options || {};
             var serverName = options.serverName,
@@ -1226,15 +1236,16 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
-    'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
-    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'pastel_on_dark', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
-    'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
-    'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
-    'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
-    'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
+
+    'lively.ide.openServerWorkspace': {description: 'tools: open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
+    'lively.ide.openShellWorkspace': {description: 'tools: open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'clouds', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
+    'lively.ide.openVersionsViewer': {description: 'tools: open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
+    'lively.ide.openGitControl': {description: 'tools: open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
+    'lively.ide.openServerLog': {description: 'logging: open JavaScript server log', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
+    'lively.ide.openDiffer': {description: 'tools: open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 
     "lively.tests.mocha.runAll": {
-      description: "run all mocha tests",
+      description: "testing: run all mocha tests",
       exec: function runMochaTests(thenDo, mochaSuites) {
         lively.require('lively.MochaTests').toRun(function() {
           if (mochaSuites) lively.MochaTests.run(mochaSuites)
@@ -1243,8 +1254,9 @@ Object.extend(lively.ide.commands.byName, {
         return true;
       }
     },
+
     "lively.tests.mocha.reset": {
-      description: "reset mocha test suites",
+      description: "testing: reset mocha test suites",
       exec: function runMochaTests(thenDo, mochaSuites) {
         lively.require('lively.MochaTests').toRun(function() {
           lively.MochaTests.registeredSuites = {};

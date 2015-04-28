@@ -863,7 +863,79 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
 
         if (this.removeOnMouseOut) this.remove();
         return this.removeOnMouseOut;
+    },
+
+    onKeyDown: function($super, evt) {
+      if (this.subMenu) return this.subMenu.onKeyDown(evt);
+
+      var keys         = evt.getKeyString(),
+          handled      = false;
+  
+      switch (keys) {
+        case "Down": this.selectNext(evt); handled = true; break;
+        case "Up": this.selectPrev(evt); handled = true; break;
+        case "Right": this.openSubmenuForItem(evt); handled = true; break;
+        case "Left": if (this.ownerMenu); { this.ownerMenu.removeSubMenu(); handled = true; } break;
+        case "Escape": case "Esc": this.remove(); handled = true; break;
+        case "Enter": var item = this.overItemMorph && this.overItemMorph.item;
+          if (item && item.onClickCallback) {
+            this.remove();
+            item.onClickCallback(evt);
+          }
+          handled = true;
+          break;
+      }
+  
+      if (!handled) return $super(evt);
+      evt.stop(); return true;
+  }
+
+},
+'selecting', {
+
+  select: function(n, evt) {
+    var itemMorphs = this.itemMorphs;
+    if (n < 0) n = 0;
+    if (n >= itemMorphs.length) n = itemMorphs.length-1;
+    if (itemMorphs[n]) {
+      itemMorphs.without(itemMorphs[n]).invoke("deselect");
+      itemMorphs[n].select();
+      this.overItemMorph = itemMorphs[n];
+      itemMorphs[n].item.onMouseOverCallback && itemMorphs[n].item.onMouseOverCallback(evt);
     }
+  },
+
+  selectNext: function(evt) {
+    var itemMorphs = this.itemMorphs;
+    var selected = itemMorphs.detect(function(ea) { return ea.isSelected; });
+    var n = 0;
+    if (selected) {
+      var n = itemMorphs.indexOf(selected)+1;
+      n = itemMorphs[n] ? n : 0;
+    }
+    this.select(n, evt);
+  },
+
+  selectPrev: function(evt) {
+    var itemMorphs = this.itemMorphs;
+    var selected = itemMorphs.detect(function(ea) { return ea.isSelected; });
+    var n = itemMorphs.length-1;
+    if (selected) {
+      var n = itemMorphs.indexOf(selected)-1;
+      n = itemMorphs[n] ? n : itemMorphs.length-1;
+    }
+    this.select(n, evt);
+  },
+
+  openSubmenuForItem: function(evt) {
+    var itemMorphs = this.itemMorphs;
+    var selected = itemMorphs.detect(function(ea) { return ea.isSelected; });
+    var item = selected && selected.item;
+    if (!item || !item.isSubMenu) return;
+    selected.select();
+    item.onMouseOverCallback();
+  }
+
 },
 'opening', {
 
@@ -1009,8 +1081,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
             m.fitToItems.bind(m).delay(0);
             this.subMenu = m;
             m.ownerMenu = this;
-            var evtTarget = evt.getTargetMorph();
-            if (evtTarget.isMenuItemMorph) m.ownerItemMorph = this.overItemMorph;
+            var evtTarget = evt && evt.getTargetMorph();
+            if (evtTarget && evtTarget.isMenuItemMorph) m.ownerItemMorph = this.overItemMorph;
 
             // delayed so we can use the real text extent
             (function() {
@@ -1045,6 +1117,10 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
         $super();
         this.removeSubMenu();
         this.removeOwnerMenu();
+        if (this.lastFocusedMorph) {
+          this.lastFocusedMorph.focus();
+          delete this.lastFocusedMorph;
+        }
     }
 },
 'bounds calculation', {
@@ -1172,6 +1248,8 @@ Object.extend(lively.morphic.Menu, {
     },
     openAt: function(pos, title, items) {
         var menu = new lively.morphic.Menu(title, items);
+        menu.lastFocusedMorph = lively.morphic.Morph.focusedMorph();
+        (function() { if (!menu.ownerMenu) menu.focus(); }).delay(0);
         return menu.openIn(lively.morphic.World.current(), pos, false);
     },
 });

@@ -880,23 +880,26 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {
-            var greper = Functions.debounce(500, function(input, callback) {
-                lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
-                    var candidates = lines.map(function(line) {
-                        return line.trim() === '' ? null : {
-                            isListItem: true,
-                            string: line.slice(baseDir.length),
-                            value: {baseDir: baseDir, match: line}
-                        };
-                    }).compact();
-                    if (candidates.length === 0) candidates = ['nothing found'];
-                    callback(candidates);
-                });
-            });
+            var lastSearchTime,
+                greper = lively.lang.fun.debounce(500, function(t, input, callback) {
+                  lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
+                      if (t < lastSearchTime) return;
+                      var candidates = lines.map(function(line) {
+                          return line.trim() === '' ? null : {
+                              isListItem: true,
+                              string: line.slice(baseDir.length),
+                              value: {baseDir: baseDir, match: line}
+                          };
+                      }).compact();
+                      if (candidates.length === 0) candidates = ['nothing found'];
+                      callback(candidates);
+                  });
+              });
 
             function candidateBuilder(input, callback) {
+              lastSearchTime = Date.now();
               callback(['searching...']);
-              greper(input, callback);
+              greper(lastSearchTime, input, callback);
             };
 
             function openInTextEditor(candidate) {

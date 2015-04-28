@@ -584,6 +584,7 @@ Object.extend(lively.ide.CommandLineInterface, {
       webR.withJSONWhenDone(function(json, status) {
         if (status.isSuccess())
           lively.ide.CommandLineInterface.WORKSPACE_LK = json.cwd;
+          lively.ide.CommandLineInterface.PLATFORM = json.platform;
       });
       if (!sync) webR.beAsync();
       webR.get();
@@ -608,7 +609,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     readFile: function(path, options, thenDo) {
         if (typeof options === "function") { thenDo = options; options = null; }
         options = options || {};
-        path = '"' + path + '"';
+        if (this.PLATFORM !== 'win32') path = '"' + path + '"';
         var cmd = this.run('cat ' + path, options);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
@@ -627,7 +628,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (typeof options === "string") options = {content: options};
         options = options || {};
         options.content = options.content || '';
-        path = '"' + path + '"';
+        if (this.PLATFORM !== 'win32') path = '"' + path + '"';
         var cmd = this.run('tee ' + path, {stdin: options.content});
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
@@ -888,23 +889,31 @@ Object.extend(lively.ide.CommandLineSearch, {
     findFilesCommandString: function(pattern, options) {
         options = options || {};
         var rootDirectory = options.rootDirectory || '.';
-        if (!rootDirectory.endsWith('/')) rootDirectory += '/';
+        var P = lively.ide.CommandLineInterface.PLATFORM;
+        var slash = P === 'win32' ? '\\' : '/'
+        if (P !== 'win32' && !rootDirectory.endsWith(slash)) rootDirectory += slash;
         options.rootDirectory = rootDirectory;
+
         // we expect an consistent timeformat across OSs to parse the results
         var timeFormatFix = "if [ \"`uname`\" = \"Darwin\" ]; "
                           + "  then timeformat='-T'; "
                           + "else "
                           + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-                          + "fi && ",
-            excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+                          + "fi && ";
+        var excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
             searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : (options.matchPath ? '-ipath' : '-iname'), pattern),
             depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',
             // use GMT for time settings by default so the result is comparable
             // also force US ordering of date/time elements, to help with the parsing
-            commandString = timeFormatFix + Strings.format(
+            commandString = P === 'win32' ?
+              Strings.format(
+              "find %s %s ( %s ) -prune -o "
+              + "%s %s -print0 | xargs -0 -I{} ls -lLd --time-style=locale {}",
+                rootDirectory, (options.re ? '-E ' : ''), excludes.replace(/"/g, ''), searchPart.replace(/"/g, ''), depth) :
+              timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
-              + "%s %s -print0 | xargs -0 -I{} ls -lLd \"$timeformat\" \"{}\"",
+              + "%s %s -print0 | xargs -0 -I{} ls -lLd \"%timeformat%\" \"{}\"",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },

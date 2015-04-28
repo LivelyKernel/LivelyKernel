@@ -98,8 +98,13 @@ function startSpawn(cmdInstructions) {
       commandString = util.format("source %s/bin/lively.profile; %s", dir, commandString)
     }
 
-    var command = "/usr/bin/env",
-        args = ["bash", "-c", commandString]
+    if (!isWindows) {
+      var command = "/bin/bash",
+          args = ["-c", commandString];
+    } else {
+      var command = "cmd",
+          args = ["/C", commandString];
+    }
 
     if (debug) console.log('Running command: "%s"', [command].concat(args).join(' '));
     var proc = spawn(command, args, options);
@@ -304,7 +309,7 @@ module.exports = d.bind(function(route, app) {
     });
 
     app.get(route, function(req, res) {
-        res.json({cwd: dir});
+        res.json({platform: process.platform, cwd: dir});
     });
 
     app.delete(route, function(req, res) {

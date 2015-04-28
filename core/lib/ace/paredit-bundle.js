@@ -577,8 +577,8 @@
 
     'ns', 'in-ns', /^([^\/]+\/)?def/,/^if/,/^when/,/->/, "while", "for",
     /(^|\/)with/, "testing", "while", "cond", "condp", "apply",
-    "binding",
-    
+    "binding", "locking", "proxy", "reify", /^extend/,
+
     // midje
     "facts"];
 
@@ -879,13 +879,13 @@
       if (!left.length || !right.length) return null;
 
       var l = last(left), r = right[0],
-          insertion = " " + w.source(src, l);
+          insertion = src.slice(l.end, r.start) + w.source(src, l);
 
       return {
         changes: [
           ['insert', r.end, insertion],
           ['remove', l.start, r.start-l.start]],
-        newIndex: l.start + (r.end-r.start)+insertion.length
+        newIndex: idx - (l.end-l.start)+(r.end-r.start)
       };
 
     },

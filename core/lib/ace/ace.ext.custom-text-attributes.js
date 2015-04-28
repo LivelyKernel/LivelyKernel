@@ -38,7 +38,8 @@ ace.define('ace/mode/attributedtext', function(require, exports, module) {
     this.$id = "ace/mode/attributedtext";
 
     this.attachToEditor = function(ed) {
-      ed.once("changeMode", this.detach.bind(this, ed))
+      ed.once("changeMode", this.detach.bind(this, ed));
+      ed.setReadOnly(true);
     };
 
     this.detach = function(ed) {
@@ -61,13 +62,7 @@ ace.define('ace/mode/attributedtext', function(require, exports, module) {
         var pos = evt.$pos || ed.renderer.screenToTextCoordinates(evt.x,evt.y)
         var attr = mode.textAttributeOfPosition(ed, pos);
         if (!attr || !attr.onClick) return;
-        if (typeof attr.onClick === "function") {
-          return attr.onClick(evt, ed, attr);
-        } else if (typeof attr.onClick === "string") {
-          var cmd = ed.session.$attributedtext.keyhandler.commands[attr.onClick];
-          cmd.exec(ed, {attr: attr, evt: evt});
-        } else { /*...*/ }
-
+        handleOnClick(ed, evt, attr);
       };
       ed.on("mouseup", ed.session.$attributedtext.clickHandler);
     }
@@ -88,11 +83,10 @@ ace.define('ace/mode/attributedtext', function(require, exports, module) {
       var h;
       if (!ed.session.$attributedtext.keyhandler) {
         h = ed.session.$attributedtext.keyhandler = new PositionAwareKeyHandler();
-        ed.setKeyboardHandler(h);
+        ed.keyBinding.setDefaultHandler(h);
       } else { h = ed.session.$attributedtext.keyhandler; }
 
       h.addCommands(cmds);
-    // ed.session.setUndoSelect(false);
     };
 
     this.textAttributeOfPosition = function(ed, pos) {
@@ -161,6 +155,19 @@ function modifyBgTokenizer(session, tokenizer) {
   session.bgTokenizer.setDocument(session.getDocument());
 }
 
+function handleOnClick(ed, evt, attr) {
+  if (evt) {
+    evt.stopPropagation && evt.stopPropagation();
+    evt.preventDefault && evt.preventDefault();
+  }
+  if (typeof attr.onClick === "function") {
+    return attr.onClick(evt, ed, attr);
+  } else if (typeof attr.onClick === "string") {
+    var cmd = ed.session.$attributedtext.keyhandler.commands[attr.onClick];
+    cmd.exec(ed, {attr: attr, evt: evt});
+  } else { /*...*/ }
+}
+
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // key control
 
@@ -177,16 +184,22 @@ oop.inherits(PositionAwareKeyHandler, HashHandler);
 
   this.isAttributedtextKeyboardHandler = true;
 
-  this.handleKeyboard = function (data, hashId, keyString, keyCode) {
+  this.handleKeyboard = function(data, hashId, keyString, keyCode) {
       // ed = that.aceEditor
       // ed.keyBinding.$callKeyboardHandlers
       // ed.getKeyboardHandler().commandKeyBinding
       var cmd = HashHandler.prototype.handleKeyboard.call(this, data, hashId, keyString, keyCode);
-      if (!cmd || !cmd.command) return cmd;
-
       var attr = data.editor.session.getMode().textAttributeOfPosition(
         data.editor, data.editor.getCursorPosition());
       var stop = {command: "null"};
+
+      if (!cmd || !cmd.command) {
+        if (keyCode === 13 && attr.onClick) { // Enter
+          handleOnClick(data.editor, null, attr);
+          return stop;
+        } else return cmd;
+      }
+
       if (!attr || !attr.commands) return stop;
       if (attr.commands.indexOf(cmd.command) >= 0) return cmd;
       return stop;

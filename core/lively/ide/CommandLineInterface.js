@@ -913,7 +913,7 @@ Object.extend(lively.ide.CommandLineSearch, {
               timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
-              + "%s %s -print0 | xargs -0 -I{} ls -lLd \"%timeformat%\" \"{}\"",
+              + "%s %s -print0 | xargs -0 -I{} ls -lLd \"$timeformat\" \"{}\"",
                 rootDirectory, (options.re ? '-E ' : ''), excludes, searchPart, depth);
         return commandString;
     },

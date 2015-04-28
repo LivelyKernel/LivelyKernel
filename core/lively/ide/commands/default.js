@@ -1212,6 +1212,15 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    'lively.ide.logging.toggleVerbosity': {
+        description: 'logging: toggle verbosity',
+        exec: function() {
+          lively.Config.toggle("verboseLogging");
+          show("verbose logging %sactivated", lively.Config.get("verboseLogging") ? "" : "de");
+          return true;
+        }
+    },
+
     'lively.ide.openServerProcessViewer': {
         description: 'open server process viewer',
         exec: function() {

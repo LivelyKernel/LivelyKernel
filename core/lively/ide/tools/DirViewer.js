@@ -951,7 +951,6 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 wasHandled = false;
             break;
         case 'Shift-^': this.gotoParentDir(); break;
-        case 'Shift-D': if (fileListFocused) this.deleteSelectedFileInteractively(); break;
         case 'Control-N': case 'Down': fl.selectNext(); break;
         case 'Control-P': case 'Up': fl.selectPrev(); break;
         case "Alt-V": case "PageUp": fl.scrollPage('up'); ensureSelectionIsInView('top'); break;

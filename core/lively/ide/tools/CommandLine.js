@@ -81,7 +81,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
 
     initializeAce: function initializeAce() {
         this.withAceDo(function(ed) { this.makeEditorLabelAware(ed); });
-        lively.bindings.connect(this, 'textString', this, 'inputChange', {
+        lively.bindings.connect(this, 'textString', this, 'inputChanged', {
             converter: function() { return this.sourceObj.getInput(); }
         });
         return $super();
@@ -190,7 +190,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
             this.setLabel(this.labelString);
             this.setCursorPosition(pt(this.labelString.length, 0));
         }.bind(this));
-        lively.bindings.connect(this, 'textString', this, 'inputChange', {
+        lively.bindings.connect(this, 'textString', this, 'inputChanged', {
             converter: function() { return this.sourceObj.getInput(); }
         });
     }

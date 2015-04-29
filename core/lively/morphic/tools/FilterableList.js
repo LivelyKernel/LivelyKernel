@@ -51,7 +51,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         },
 
         connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "inputChange", this.get("FilterableList"), "inputChange", {});
+            lively.bindings.connect(this, "inputChanged", this.get("FilterableList"), "inputChanged", {});
         }
     }), {
         _BorderColor: Color.rgb(202,202,202),
@@ -189,7 +189,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             return [ac.description, ac.exec]; })
     },
 
-    inputChange: function inputChange() {
+    inputChanged: function inputChanged() {
         var self = this,
             input = this.get('filter').getInput(),
             filters = this.parseInput(input);

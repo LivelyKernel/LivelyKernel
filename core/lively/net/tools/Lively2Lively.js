@@ -613,10 +613,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             name: "SessionList",
             connectionRebuilder: function connectionRebuilder() {
                 var connectionToMorphNamedFilterableList = this.get('filter').attributeConnections.find(function(ea) {
-                    return ea.sourceAttrName === 'inputChange'
+                    return ea.sourceAttrName === 'inputChanged';
                 })
                 connectionToMorphNamedFilterableList && connectionToMorphNamedFilterableList.disconnect();
-                lively.bindings.connect(this.get('filter'),"inputChange", this, "inputChange", {})
+                lively.bindings.connect(this.get('filter'),"inputChanged", this, "inputChanged", {});
                 lively.bindings.connect(this.get('list'), "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
             }
         }),{

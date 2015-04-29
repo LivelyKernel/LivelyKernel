@@ -1,5 +1,5 @@
 module('lively.ide.tools.SelectionNarrowing').requires("lively.morphic.tools.LargeFilterableList").toRun(function() {
-    
+
 lively.persistence.BuildSpec.Registry.set('lively.ide.tools.NarrowingList', lively.BuildSpec("lively.morphic.tools.LargeFilterableList").customize({
     isNarrowingList: true,
     _Extent: lively.pt(900.0,138.0),

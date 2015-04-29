@@ -81,7 +81,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             },
 
             parseInput: function parseInput(input) {
-                // this.inputChange()
+                // this.inputChanged()
                 // this.parseInput('foo')
                 // this.parseInput('foo bar')
                 // this.parseInput('/foo/ bar')
@@ -196,7 +196,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
     titleBar: "CodeSearch",
     doSearch: function doSearch(searchTerm, thenDo) {
-    // this.reset(); this.get('filter').setInput('indica'); this.inputChange()
+    // this.reset(); this.get('filter').setInput('indica'); this.inputChanged()
     false && show('doing search');
 
     if (!searchTerm || searchTerm === '') { this.reset(); return; }

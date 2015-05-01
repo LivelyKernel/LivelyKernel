@@ -486,7 +486,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         addText: function addText(string) {
         var messages = this.get('MessageList')
         var y = messages.submorphs.length ? messages.submorphs.last().bounds().bottom() : 0;
-        if (messages.submorphs.last().textString === string) {
+        var lastMessage = messages.submorphs.last();
+        if (lastMessage && lastMessage.textString === string) {
             // UGLY HACK: Muss anders, geht aber jetzt nicht,
             return;
         }

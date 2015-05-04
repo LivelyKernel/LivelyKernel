@@ -274,6 +274,7 @@ Object.subclass('lively.PartsBin.PartItem',
         }
         if (url.pathname.match(/\/PartsBin\//)) { // we can make a smarkt guess? Or can't we? #JensLincke
             return url.withPath(url.pathname.replace("PartsBin.*"))
+            return url.withPath(url.pathname.replace(/PartsBin.*/, ""))
         }
         // this captures only the current url... but we migth be a general Approach finding the root
         // can we be sure that it contains the partsbin?

@@ -164,7 +164,7 @@ Object.subclass('lively.PartsBin.PartItem',
 
 },
 'upload and download', {
-	load: function (isAsync, rev) {
+    load: function (isAsync, rev) {
 
         if(!isAsync){
             var webR = new WebResource(this.getFileURL()).noProxy().forceUncached();
@@ -247,7 +247,7 @@ Object.subclass('lively.PartsBin.PartItem',
         return this;
     },
 
-	loadPartVersions: function (isAsync) {
+    loadPartVersions: function (isAsync) {
         // FIXME, what if PartsBin is not at root?
         var url = this.getFileURL(),
             root = this.guessRootForURL(url),
@@ -268,9 +268,12 @@ Object.subclass('lively.PartsBin.PartItem',
         return this;
     },
 
-	guessRootForURL: function (url) {
-        if (url.isIn(Global.URL.root)) {
-            return Global.URL.root
+    guessRootForURL: function (url) {
+        if (url.isIn(URL.root)) {
+            return URL.root
+        }
+        if (url.pathname.match(/\/PartsBin\//)) { // we can make a smarkt guess? Or can't we? #JensLincke
+            return url.withPath(url.pathname.replace("PartsBin.*"))
         }
         // this captures only the current url... but we migth be a general Approach finding the root
         // can we be sure that it contains the partsbin?
@@ -280,7 +283,7 @@ Object.subclass('lively.PartsBin.PartItem',
         return url.withPath("/") // fallback that works for simple localhost and lively-web etc..
     },
 
-	loadPartMetaInfo: function (isAsync, rev) {
+    loadPartMetaInfo: function (isAsync, rev) {
         if (!isAsync) {
             var webR = new WebResource(this.getMetaInfoURL()).beSync();
             webR.forceUncached().get();

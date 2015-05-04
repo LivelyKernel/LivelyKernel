@@ -89,7 +89,7 @@ Object.subclass('lively.store.CouchDBStorage',
 Object.subclass("lively.store.ObjectRepository",
 "initializing", {
 
-	initialize: function (url) {
+    initialize: function (url) {
         this.repoURL = url ? url : URL.root;
     }
 
@@ -103,7 +103,7 @@ Object.subclass("lively.store.ObjectRepository",
 },
 "querying", {
 
-	getRecords: function (querySpec, thenDo)  {
+    getRecords: function (querySpec, thenDo)  {
         // new lively.store.ObjectRepository().getRecords()
         var res = this.getServerInterfaceURL()
             .withQuery({getRecords: encodeURIComponent(JSON.stringify(querySpec))})

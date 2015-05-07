@@ -1837,26 +1837,37 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (!world) return;
         var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
             ext = this.getExtent();
-
+      
         sm.bringToFront();
         // setting 'da message
         sm.lastUpdated = Date.now();
+        if (!sm.owner) sm.setVisible(false); // to avoid flickering
         world.addMorph(sm);
-        var color = color || Color.white;
-        var fill = (color === Color.green || color === Color.red || color === Color.black) ? Color.white : Color.black.lighter()
-        sm.applyStyle({textColor: color, fill: fill});
-        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
-        else sm.textString = msg;
-
+        var color = color || Global.Color.white;
+        var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
+        var ext = this.getExtent(), maxX = ext.x, maxY = Math.max(40, Math.min(ext.y-100, 250));
+        sm.applyStyle({textColor: color, fill: fill, fixedHeight: false, fixedWidth: false, clipMode: 'visible'});
+        if (!Array.isArray(msg)) {
+          msg = [
+            ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
+            ['\n'],
+            [String(msg)]
+          ]
+        }
+        sm.setRichTextMarkup(msg);
+      
         // aligning
-
-        sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
+        sm.setTextExtent(pt(maxX, 10));
         sm.fitThenDo(function() {
+          sm.setVisible(true);
+          sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
           var visibleBounds = world.visibleBounds(),
               bounds = sm.bounds(),
               height = Math.min(bounds.height+3, maxY),
-              overlapY = bounds.top() + height - visibleBounds.bottom();
+              overlapY = bounds.bottom() - visibleBounds.bottom();
           if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+          sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
+          sm.setExtent(pt(maxX, height));
           var cb = sm.get("closeButton");
           if (cb) cb.alignInOwner();
         });

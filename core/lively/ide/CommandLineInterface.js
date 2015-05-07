@@ -570,12 +570,15 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     setWorkingDirectory: function(dir) {
+      if (typeof $world !== "undefined") $world.currentWorkingDirectory = dir;
       this.rootDirectory = dir
       lively.bindings.signal(lively.shell, 'currentDirectory', dir);
       return dir;
     },
 
-    cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
+    cwd: function() {
+      return (this.rootDirectory || this.getWorkingDirectory() || "").replace(/(\/|\\)?$/, "");
+    },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
     
@@ -939,7 +942,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         return options.sync ? result : cmd;
     },
 
-    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates) {
+    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates, offerCreation) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
         //     'choose directory: ',
@@ -976,7 +979,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         });
 
         var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-            name: narrowerName || 'lively.ide.interactivelyChooseFileSystemItem.NarrowingList',
+            name: narrowerName || '_lively.ide.interactivelyChooseFileSystemItem.NarrowingList',
             spec: {
                 candidates: initialCandidates,
                 prompt: prompt,
@@ -1030,10 +1033,14 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
 
         function fileToListItem(file) {
-            var path = String(file.path);
-            if (!path.length) return null;
-            if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
-            return {isListItem: true, string: path, value: file};
+            var name = file.name;
+            if (!name) {
+              var path = String(file.path);
+              if (!path.length) return null;
+              if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
+              name = path;
+            }
+            return {isListItem: true, string: name, value: file};
         }
 
         function extractDirAndPatternFromInput(input) {
@@ -1047,7 +1054,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
 
         function filesAreEqual(fileA, fileB) {
-            return fileA.path.replace(/\/$/, '') == fileB.path.replace(/\/$/, '');
+            return fileA.path.replace(/(\/|\\)$/, '') == fileB.path.replace(/(\/|\\)$/, '');
         }
 
         function sortFiles(input, fileA, fileB) {
@@ -1060,7 +1067,10 @@ Object.extend(lively.ide.CommandLineSearch, {
             return 0;
         }
 
-        function onCancel() { actions[0].call(null,null); }
+        function onCancel() {
+          lively.bindings.disconnectAll(narrower);
+          actions[0].call(null,null);
+        }
     }
 
 });

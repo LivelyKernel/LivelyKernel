@@ -596,47 +596,47 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.browseFiles': {
         description: 'browse files',
         exec: true ?
-          function browseFilesWIthFind() {
+          function browseFilesWithFind() {
 
             var actions = [
-                {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
+                {name: 'open in system browser', exec: function(candidate) {
+                  if (isSaveForSCB(candidate)) lively.ide.browse(URL.root.withFilename(candidate.relativePath));
+                  else lively.ide.openFile(candidate.fullPath);
+                }},
                 {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
                 {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
                 {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
                 {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
-            if (!lively.shell.cwdIsLivelyDir()) {
-                // SCB is currently only supported for Lively files
-                actions.shift();
-            }
 
-            var showsInitialCandidates = true;
-            var initialCandidates = [];
-            var searchForMatchingDebounced = Functions.debounce(1000, searchForMatching);
-            var lastSearchInput = null, lastFiles;
+            // SCB is currently only supported for Lively files
+            if (!lively.shell.cwdIsLivelyDir()) { actions.shift(); }
+
+            var showsInitialCandidates = true,
+                initialCandidates = [],
+                searchForMatchingDebounced = lively.lang.fun.debounce(1000, searchForMatching),
+                lastSearchInput = null, lastFiles;
 
             var dir,
-              narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                // name: 'lively.ide.browseFiles.NarrowingList2',
-                spec: {
-                  candidates: initialCandidates,
-                  prompt: 'filename: ',
-                  // init: update.curry(candidates),
-                  maxItems: 25,
-                  keepInputOnReactivate: true,
-                  candidatesUpdater: candidateBuilder,
-                  actions: actions
-                }
-            });
+                narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.browseFiles.NarrowingList',
+                  spec: {
+                    candidates: initialCandidates,
+                    candidatesUpdaterMinLength: 2,
+                    prompt: 'filename: ',
+                    maxItems: 25,
+                    keepInputOnReactivate: true,
+                    candidatesUpdater: searchForMatching,
+                    actions: actions
+                  }
+              });
 
             return true;
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-            function candidateBuilder(input, callback) {
-              // callback([{isListItem: true, string: 'searching...', value: null}]);
-              // if (input === "undefined" || input === "searching...") input = "";
-              searchForMatching(input, callback);
-            };
+            function isSaveForSCB(candidate) {
+              return (candidate.fullPath || "").endsWith(".js");
+            }
 
             function searchForMatching(input, callback) {
               if (showsInitialCandidates) {
@@ -645,9 +645,9 @@ Object.extend(lively.ide.commands.byName, {
                   return callback(initialCandidates);
               }
               if (!input || input === "") callback([]);
-              var parts = input.split(" ");
-              var matchParts = parts.slice(1).compact().map(function(ea) { return new RegExp(ea, "i"); });
-              var searchAgain = lastSearchInput !== parts[0];
+              var parts = input.split(" "),
+                  matchParts = parts.slice(1).compact().map(function(ea) { return new RegExp(ea, "i"); }),
+                  searchAgain = lastSearchInput !== parts[0];
               lastSearchInput = parts[0];
               doSearch(searchAgain, parts[0], matchParts, callback);
             }
@@ -900,6 +900,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {
+
             var lastSearchTime,
                 greper = lively.lang.fun.debounce(500, function(t, input, callback) {
                   lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
@@ -936,7 +937,7 @@ Object.extend(lively.ide.commands.byName, {
             }
 
             var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
+                name: 'lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
                 reactivateWithoutInit: true,
                 spec: {
                     prompt: 'search for: ',
@@ -986,7 +987,7 @@ Object.extend(lively.ide.commands.byName, {
                 lively.ide.tools.SelectionNarrowing.getNarrower({
                   name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
                   spec: {
-                    candidates: ['choose different directory...'].concat($world.knownWorkingDirectories),
+                    candidates: ['choose different directory...'].concat(knownDirectories()),
                     preselect: 1,
                     actions: [function select(c) {
                       n(null,c === 'choose different directory...' ? null : c);
@@ -1017,6 +1018,14 @@ Object.extend(lively.ide.commands.byName, {
             }
           )(function(err, dir) { });
           return true;
+
+          function knownDirectories() {
+            return ($world.knownWorkingDirectories || []).uniqBy(function(a,b) {
+              var aPath = a ? (typeof a === "string" ? a : a.path) : "";
+              var bPath = b ? (typeof b === "string" ? b : b.path) : "";
+              return aPath.replace(/(\/|\\)$/, "") === bPath.replace(/(\/|\\)$/, "");
+            });
+          }
         }
     },
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {

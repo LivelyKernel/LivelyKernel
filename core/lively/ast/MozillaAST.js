@@ -407,7 +407,7 @@ lively.ast.MozillaAST.Cache = {
       + "    type: \"XMLProcessingInstruction\";\n"
       + "    target: string;\n"
       + "    contents: string | null;\n"
-      + "}",
+      + "}\n",
 
       // rk 2014-09-28 adding preliminary es6 class interfaces
         "interface ClassDeclaration <: Declaration {\n"
@@ -427,7 +427,72 @@ lively.ast.MozillaAST.Cache = {
       + "  kind: \"\";\n"
       + "  key: Identifier;\n"
       + "  value: FunctionExpression;\n"
-      + "}"]
+      + "}\n",
+
+      // rk 2015-05-07 addition for jsx processing, see
+      // https://github.com/facebook/jsx/blob/master/AST.md
+        "interface JSXIdentifier <: Identifier {\n"
+      + "  type: \"JSXIdentifier\";\n"
+      + "}\n",
+
+        "interface JSXMemberExpression <: Expression {\n"
+      + "  type: \"JSXMemberExpression\";\n"
+      + "  object: JSXMemberExpression | JSXIdentifier;\n"
+      + "  property: JSXIdentifier;\n"
+      + "}\n",
+
+        "interface JSXNamespacedName <: Expression {\n"
+      + "  type: \"JSXNamespacedName\";\n"
+      + "  namespace: JSXIdentifier;\n"
+      + "  name: JSXIdentifier;\n"
+      + "}\n",
+
+        "interface JSXEmptyExpression <: Node {\n"
+      + "  type: \"JSXEmptyExpression\";\n"
+      + "}\n",
+
+        "interface JSXExpressionContainer <: Node {\n"
+      + "  type: \"JSXExpressionContainer\";,\n"
+      + "  expression: Expression | JSXEmptyExpression;\n"
+      + "}\n",
+
+        "interface JSXBoundaryElement <: Node {\n"
+      + "  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;\n"
+      + "}\n",
+
+        "interface JSXOpeningElement <: JSXBoundaryElement {\n"
+      + "  type: \"JSXOpeningElement\";\n"
+      + "  attributes: [ JSXAttribute | JSXSpreadAttribute ];\n"
+      + "  selfClosing: boolean;\n"
+      + "}\n",
+
+        "interface JSXClosingElement <: JSXBoundaryElement {\n"
+      + "  type: \"JSXClosingElement\";\n"
+      + "}\n",
+
+        "interface JSXAttribute <: Node {\n"
+      + "  type: \"JSXAttribute\";\n"
+      + "  name: JSXIdentifier | JSXNamespacedName;\n"
+      + "  value: Literal | JSXExpressionContainer | JSXElement | null;\n"
+      + "}\n",
+
+        "interface SpreadElement <: Node {\n"
+      + "  type: \"SpreadElement\";\n"
+      + "  argument: Expression;\n"
+      + "}\n",
+
+        "interface JSXSpreadAttribute <: SpreadElement {\n"
+      + "  type: \"JSXSpreadAttribute\";\n"
+      + "}\n",
+
+        "interface JSXElement <: Expression {\n"
+      + "  type: \"JSXElement\";\n"
+      + "  openingElement: JSXOpeningElement;\n"
+      + "  children: [ Literal | JSXExpressionContainer | JSXElement ];\n"
+      + "  closingElement: JSXClosingElement | null;\n"
+      + "}\n"
+
+      ]
 
 }
 

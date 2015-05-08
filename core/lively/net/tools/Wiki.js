@@ -1,4 +1,33 @@
-module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec').toRun(function() {
+module('lively.net.tools.Wiki').requires('lively.morphic.Complete', 'lively.persistence.BuildSpec', 'lively.morphic.tools.MenuBar').toRun(function() {
+
+Object.extend(lively.net.tools.Wiki, {
+
+    getMenuBarEntries: function() {
+        return [lively.BuildSpec('lively.wiki.MenuBarEntry').createMorph()];
+    }
+
+});
+
+lively.BuildSpec('lively.wiki.MenuBarEntry', lively.BuildSpec('lively.morphic.tools.MenuBarEntry').customize({
+
+    name: 'LivelyWikiMenuBarEntry',
+    menuBarAlign: 'right',
+    textString: 'wiki',
+
+    style: lively.lang.obj.merge(lively.BuildSpec('lively.morphic.tools.MenuBarEntry').attributeStore.style, {
+        extent: lively.pt(40, 22),
+        toolTip: 'Versioning & co.'
+    }),
+
+    morphMenuItems: function morphMenuItems() {
+        function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
+        return [
+            ['Show login info', cmd('lively.net.wiki.tools.showLoginInfo')],
+            ['World versions', cmd('lively.ide.openVersionsViewer')]
+        ];
+    }
+
+}));
 
 lively.BuildSpec("lively.wiki.LoginInfo", {
     _BorderColor: null,

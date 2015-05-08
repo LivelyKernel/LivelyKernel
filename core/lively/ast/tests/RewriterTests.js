@@ -1098,7 +1098,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
 
         // can we access the original ast, needed for resuming?
         var capturedAst = frame.getOriginalAst(),
-            generatedAst = lively.ast.acorn.parseFunction(String(code));
+            generatedAst = lively.ast.parseFunction(String(code));
         generatedAst.type = capturedAst.type;
         this.assertASTNodesEqual(generatedAst, capturedAst);
 
@@ -1128,10 +1128,10 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assertEquals(Global, continuation.currentFrame.getThis(), 'val of this');
 
         // captured asts
-        var expectedAst = lively.ast.acorn.parseFunction('function() { debugger; return x * 2; }'),
+        var expectedAst = lively.ast.parseFunction('function() { debugger; return x * 2; }'),
             actualAst = frame1.getOriginalAst();
         this.assertASTNodesEqual(expectedAst, actualAst);
-        this.assertASTNodesEqual(lively.ast.acorn.parseFunction(String(code)), frame2.getOriginalAst());
+        this.assertASTNodesEqual(lively.ast.parseFunction(String(code)), frame2.getOriginalAst());
 
         // access the node where execution stopped
         var resumeNode = frame1.getPC(),
@@ -1513,7 +1513,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         this.assert(runResult.isContinuation, 'no continuation');
 
         var capturedAst = frame.getOriginalAst(),
-            generatedAst = lively.ast.acorn.parseFunction(String(code));
+            generatedAst = lively.ast.parseFunction(String(code));
         generatedAst.type = capturedAst.type;
         this.assertASTNodesEqual(generatedAst, capturedAst);
         this.assertIdentity(capturedAst.body.body[1].argument, frame.getPC(), 'pc');

@@ -4,7 +4,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
 'helper', {
 
     parse: function(src) {
-        return lively.ast.acorn.parse(src);
+        return lively.ast.parse(src);
     },
 
     interpret: function(node, optMapping) {
@@ -693,7 +693,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 'helper', {
 
     parse: function(src) {
-        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
+        return acorn.walk.addAstIndex(lively.ast.parse(src));
     },
 
     resumeWithMapping: function(resumeNode, contextNode, mapping) {
@@ -856,7 +856,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
 'helper', {
 
     parse: function(src) {
-        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
+        return acorn.walk.addAstIndex(lively.ast.parse(src));
     }
 
 },

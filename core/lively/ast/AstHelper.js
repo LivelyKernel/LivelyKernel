@@ -1,5 +1,7 @@
 module('lively.ast.AstHelper').requires("lively.ast.acorn").toRun(function() {
 
+return;
+
 Object.subclass("lively.ast.MozillaAST.BaseVisitor",
 // This code was generated with:
 // lively.ast.MozillaAST.createVisitorCode({pathAsParameter: true, asLivelyClass: true, parameters: ["depth","state"], name: "lively.ast.MozillaAST.BaseVisitor", useReturn: true, openWindow: true});

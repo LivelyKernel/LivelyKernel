@@ -4,7 +4,7 @@ var JavaScriptCommandHelper = {
 
   withIdentifierAtPointOrSelection: function(codeEditorMorph) {
       var ast = codeEditorMorph.withASTDo(function(ast) { return ast; })
-             || lively.ast.acorn.parse(codeEditorMorph.textString, {}),
+             || lively.ast.parse(codeEditorMorph.textString, {}),
           token = codeEditorMorph.tokenAfterPoint();
       var identfierTypes = ["identifier", "entity.name.function", "variable.parameter"];
       if (token && !identfierTypes.include(token.type)) token = codeEditorMorph.tokenAtPoint();

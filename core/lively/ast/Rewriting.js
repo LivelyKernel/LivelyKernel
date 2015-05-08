@@ -121,7 +121,7 @@ Object.extend(lively.ast.Rewriting, {
         }
 
         function parse(source) {
-            return lively.ast.acorn.parse(source, { locations: true });
+            return lively.ast.parse(source, { locations: true });
         }
 
         function rewrite(ast, namespace) {

@@ -6,42 +6,13 @@
 // right now is to support both schemes here
 var acornLibsLoaded = false;
 var acornLibs = [
-    Config.codeBase + 'lib/acorn/acorn.js',
-    Config.codeBase + 'lib/acorn/acorn-loose.js',
-    Config.codeBase + 'lib/acorn/acorn-walk.js',
-    Config.codeBase + 'lib/escodegen.browser.js'
+    Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn + escodegen, defines lively.ast
+    Config.codeBase + 'lib/babel-browser.js'
 ];
-(function loadAcornLibs() {
-    if (typeof requirejs !== "undefined") loadAcornWithRequireJS()
-    else loadAcornManually();
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    function loadAcornManually() {
-        var dependencies = [
-            {url: acornLibs[0], loadTest: function() { return typeof acorn !== 'undefined'; }},
-            {url: acornLibs[1], loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.parse_dammit !== 'undefined'; }},
-            {url: acornLibs[2], loadTest: function() { return typeof acorn !== 'undefined' && typeof acorn.walk !== 'undefined'; }},
-            {url: acornLibs[3], loadTest: function() { return typeof escodegen !== 'undefined'; }}
-        ];
-        dependencies.doAndContinue(function(next, lib) {
-            JSLoader.loadJs(lib.url);
-            var interval = Global.setInterval(function() {
-                if (!lib.loadTest()) return;
-                Global.clearInterval(interval);
-                next();
-            }, 50);
-        }, function() { acornLibsLoaded = true; });
-    }
-    function loadAcornWithRequireJS() {
-        // FIXME how to access requirejs' require cleanly?
-        requirejs.s.contexts._.require(['core/lib/acorn/acorn.js', 'core/lib/acorn/acorn-loose.js', 'core/lib/acorn/acorn-walk.js'], function(acorn, acornLoose, acornWalk) {
-            Global.acorn = acorn;
-            Object.extend(acorn, acornLoose);
-            acorn.walk = acornWalk;
-            acornLibsLoaded = true; });
-    }
-})();
 
-module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }}).toRun(function() {
+module("lively.ast.acorn").requires().requiresLib({url: Config.codeBase + 'lib/lively.ast.dev.js', loadTest: function() { return lively.ast && lively.ast.parse; }}).requiresLib({url: Config.codeBase + 'lib/babel-browser.js', loadTest: function() { return typeof babel !== "undefined"; }}).toRun(function() {
+
+return;
 
 module('lively.ast.AstHelper').load();
 

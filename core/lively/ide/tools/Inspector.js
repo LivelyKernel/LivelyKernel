@@ -195,7 +195,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                         var __evalStatement = str;
                         var str = '"use strict";\n' + str;
                         try {
-                            var programNode = lively.ast.acorn.parse(str);
+                            var programNode = lively.ast.parse(str);
                         } catch (e) {
                             //Just in case the input is an object literal
                             //It must be a more than one property object,
@@ -204,7 +204,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                             //we only fix the top-level ones.
                             str = '"use strict";(\n' + __evalStatement + ')';
                             try {
-                                lively.ast.acorn.parse(str);
+                                lively.ast.parse(str);
                             } catch (e1) {
                                 //report the original exception
                                 if(e instanceof Error) {
@@ -272,7 +272,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                                     ')' + str.substring(node.end);
                         }
 //Recheck
-//                      lively.ast.acorn.parse(str);
+//                      lively.ast.parse(str);
                         var ctx = item.data;
                         var isFunc = typeof ctx == 'function';
                         var protoParentItem = tree.parent.item.parentItem;

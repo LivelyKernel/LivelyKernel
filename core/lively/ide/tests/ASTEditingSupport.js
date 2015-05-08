@@ -199,13 +199,13 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.MethodParser',
 'testing', {
     testParsingMethodSourceWithoutParseError: function() {
         var src = "foo: function() {},",
-            result = lively.ast.acorn.fuzzyParse(src, {type: 'LabeledStatement', verbose: true, addSource: true});
+            result = lively.ast.fuzzyParse(src, {type: 'LabeledStatement', verbose: true, addSource: true});
         this.assert(!result.parseError, 'result has parse error ' + Objects.inspect(result));
         this.assertEquals(src.length, result.end, 'end index not ok');
     },
     testParseMethodSourceErrorWithCorrectIndex: function() {
         var src = "foo: function() { a a },",
-            result = lively.ast.acorn.fuzzyParse(src, {type: 'LabeledStatement'});
+            result = lively.ast.fuzzyParse(src, {type: 'LabeledStatement'});
         this.assert(result.parseError, 'result has no parse error');
         this.assertEquals(20, result.parseError.pos, 'error pos');
     }

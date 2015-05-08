@@ -176,7 +176,7 @@ Object.extend(JSLoader, {
                 rewrittenSource = source;
             else
                 if (!reuse) {
-                    ast = lively.ast.acorn.parse(source, { locations: true, directSourceFile: relUrl });
+                    ast = lively.ast.parse(source, { locations: true, directSourceFile: relUrl });
                     rewrittenAst = lively.ast.Rewriting.rewrite(ast, LivelyDebuggingASTRegistry, relUrl);
                     rewrittenSource = Strings.format(
                         '(function() {\n%s\n%s\n})();',

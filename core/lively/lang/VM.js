@@ -30,7 +30,7 @@ Object.extend(lively.lang.VM, {
         // evaluated consists just out of a single expression we will wrap it in
         // parens to allow for those cases
         try {
-            var ast = lively.ast.acorn.fuzzyParse(code);
+            var ast = lively.ast.fuzzyParse(code);
             if (ast.body.length === 1 &&
                (ast.body[0].type === 'FunctionDeclaration'
              || ast.body[0].type === 'BlockStatement')) {

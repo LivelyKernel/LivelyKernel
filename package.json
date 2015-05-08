@@ -11,16 +11,19 @@
   "main": "core/lively/bootstrap.js",
   "dependencies": {
     "async": "~0.9",
+    "babel-core": "^5.2.17",
     "colorize": "~0.1",
+    "escodegen": "^1.6.1",
     "file-fuser": ">=0.0.8",
     "life_star": ">=0.8.0",
+    "lively.ast": "^0.2.1",
     "optparse": "~1.0",
     "shelljs": "~0.2",
     "sqlite3": "~3.0.5",
     "watch": "~0.8.0",
     "websocket": "1.0.17",
-    "lively-loader": ">=0.2.4",
-    "lively.lang": ">=0.4.1"
+    "lively.lang": ">=0.4.1",
+    "lively-loader": "^0.2.5"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

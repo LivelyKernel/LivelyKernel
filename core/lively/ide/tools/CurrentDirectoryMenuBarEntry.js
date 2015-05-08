@@ -142,7 +142,7 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     var dChooser = $world.get(/^BaseDirectoryChooser/)
     if (dChooser)
       this.dirs = this.dirs.concat(dChooser.get("DirList").getList().pluck("value").compact()).uniq();
-    $world.knownWorkingDirectories = $world.knownWorkingDirectories.concat($world.knownWorkingDirectories);
+    $world.knownWorkingDirectories = ($world.knownWorkingDirectories||[]).concat(this.dirs);
     $world.knownWorkingDirectories = this.knownDirectories();
     this.dirs = this.knownDirectories();
     if ($world.currentWorkingDirectory) this.addDir($world.currentWorkingDirectory);

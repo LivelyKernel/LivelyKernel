@@ -982,7 +982,7 @@ Object.extend(lively.ide.commands.byName, {
 
             // If there is a list of known dirs first offer to choose from those
             function chooseFromKnownWorkingDirectories(n) {
-              if (!$world.knownWorkingDirectories && !$world.knownWorkingDirectories.length)
+              if (!$world.knownWorkingDirectories || !$world.knownWorkingDirectories.length)
                 return n();
                 lively.ide.tools.SelectionNarrowing.getNarrower({
                   name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',

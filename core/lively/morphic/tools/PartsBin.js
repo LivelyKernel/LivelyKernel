@@ -1104,8 +1104,11 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         return new Global.URL(Global.Config.rootPath).withFilename('PartsBin/');
     },
         doSearch: function doSearch() {
+        var serverRoot = Global.URL.root;
         if (Global.URL.root.hostname !== this.partsBinURL().hostname) {
-            show('Search not available.'); return; }
+            // FIXME: assuming parent directory
+            serverRoot = this.partsBinURL().withFilename('..').withRelativePartsResolved();
+        }
     
         this.showMsg("searching...");
         var pb = this;
@@ -1113,7 +1116,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         if (!searchString || searchString.length === 0) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // find parts via cmdline
-        var partsBinPath = this.partsBinURL().relativePathFrom(Global.URL.root),
+        var partsBinPath = this.partsBinURL().relativePathFrom(serverRoot),
             findPath = "$WORKSPACE_LK/" + partsBinPath.replace(/\/\//g, '\/');
         doCommandLineSearch(processResult.curry(listPartItems), searchString);
     

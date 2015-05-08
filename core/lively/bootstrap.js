@@ -627,7 +627,11 @@
             var parentNode = this.findParentScriptNode(),
                 xmlNamespace = parentNode.namespaceURI,
                 script = document.createElementNS(xmlNamespace, 'script');
-            script.setAttributeNS(null, 'type', 'text/ecmascript');
+            if (Config.useBabelJsForScriptLoad && typeof babel !== "undefined") {
+              script.setAttribute('type', "text/babel");
+            } else {
+              script.setAttribute('type', 'text/ecmascript');
+            }
             parentNode.appendChild(script);
             script.setAttributeNS(null, 'id', url);
             if (script.namespaceURI === this.SVGNamespace) {
@@ -652,6 +656,9 @@
                 try {
                     // adding sourceURL improves debugging as it will be used
                     // in stack traces by some debuggers
+                    if (Config.useBabelJsForScriptLoad && typeof babel !== "undefined") {
+                      source = babel.transform(source).code;
+                    }
                     Global.eval(source + "\n\n//# sourceURL=" + url);
                 } catch (e) {
                     console.error('Error when evaluating %s: %s\n%s', url, e, e.stack);

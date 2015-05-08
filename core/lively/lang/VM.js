@@ -53,7 +53,14 @@ Object.extend(lively.lang.VM, {
             options.dontTransform, options.topLevelDefRangeRecorder);
         code = vm.transformSingleExpression(code);
 
-        if (options.sourceURL) code += "\n//# sourceURL=" + options.sourceURL.replace(/\s/g, "_"); 
+        if (options.sourceURL) code += "\n//# sourceURL=" + options.sourceURL.replace(/\s/g, "_");
+
+        // es6 / jsx transformer
+        var useBabeljs = typeof babel !== "undefined"
+                      && options.hasOwnProperty('useBabelJs') ?
+                          options.useBabelJs :
+                          Config.get("useBabelJsForEval");
+        if (useBabeljs) code = babel.transform(code).code;
 
         return code;
     },

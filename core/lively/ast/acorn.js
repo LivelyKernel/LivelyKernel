@@ -97,7 +97,7 @@ Object.extend(acorn.walk, {
 
     addSource: function(ast, source, completeSrc, forceNewSource) {
         source = Object.isString(ast) ? ast : source;
-        ast = Object.isString(ast) ? acorn.parse(ast) : ast;
+        ast = Object.isString(ast) ? acorn.parse(ast, {plugins: {jsx: true}}) : ast;
         completeSrc = !!completeSrc;
         return acorn.walk.forEachNode(ast, function(node) {
             if (node.source && !forceNewSource) return;
@@ -108,7 +108,7 @@ Object.extend(acorn.walk, {
 
     inspect: function(ast, source) {
         source = Object.isString(ast) ? ast : null;
-        ast = Object.isString(ast) ? acorn.parse(ast) : ast;
+        ast = Object.isString(ast) ? acorn.parse(ast, {plugins: {jsx: true}}) : ast;
         source && acorn.walk.addSource(ast, source);
         return Objects.inspect(ast);
     },
@@ -841,6 +841,7 @@ Object.extend(lively.ast.acorn, {
 
         options = options || {};
         options.ecmaVersion = 6;
+        options.plugins = {jsx: true};
 
         if (options.withComments) {
             // record comments
@@ -934,7 +935,7 @@ Object.extend(lively.ast.acorn, {
         options = options || {};
         options.ecmaVersion = 6;
         var src = '(' + source + ')',
-            ast = acorn.parse(src);
+            ast = acorn.parse(src, {plugins: {jsx: true}});
         /*if (options.addSource) */acorn.walk.addSource(ast, src);
         return ast.body[0].expression;
     },

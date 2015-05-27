@@ -871,6 +871,12 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
       var keys         = evt.getKeyString(),
           handled      = false;
   
+      if (keys.match(/^[0-9]$/)) {
+        var n = Number(keys);
+        this.select(n-1, evt);
+        handled = true;
+      }
+
       switch (keys) {
         case "Down": this.selectNext(evt); handled = true; break;
         case "Up": this.selectPrev(evt); handled = true; break;

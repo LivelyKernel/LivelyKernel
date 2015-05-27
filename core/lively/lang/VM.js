@@ -60,7 +60,7 @@ Object.extend(lively.lang.VM, {
                       && options.hasOwnProperty('useBabelJs') ?
                           options.useBabelJs :
                           Config.get("useBabelJsForEval");
-        if (useBabeljs) code = babel.transform(code).code;
+        if (useBabeljs) code = babel.transform(code, {blacklist: ["strict"]}).code;
 
         return code;
     },

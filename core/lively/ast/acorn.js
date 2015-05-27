@@ -10,13 +10,13 @@ var acornLibsLoaded = false,
         acornLibsLoaded = true;
     } else {
         acornLibs = [
-            Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn, defines lively.ast
             Config.codeBase + 'lib/escodegen.browser.js',
+            Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn, defines lively.ast
             Config.codeBase + 'lib/babel-browser.js'
         ];
         dependencies = [
-            {url: acornLibs[0], loadTest: function() { return lively.ast && lively.ast.acorn; }},
-            {url: acornLibs[1], loadTest: function() { return typeof escodegen !== 'undefined'; }},
+            {url: acornLibs[0], loadTest: function() { return typeof escodegen !== 'undefined'; }},
+            {url: acornLibs[1], loadTest: function() { return lively.ast && lively.ast.acorn; }},
             {url: acornLibs[2], loadTest: function() { return typeof babel !== 'undefined'; }}
         ];
         module("lively.ast.acorn").requires().requiresLib({urls: acornLibs, loadTest: function() { return !!acornLibsLoaded; }});

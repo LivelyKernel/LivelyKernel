@@ -1631,7 +1631,9 @@ Trait('lively.morphic.SetStatusMessageTrait', {
     // aligning
     sm.fitThenDo(function() {
       var visibleBounds = world.visibleBounds(),
-          overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+          bounds = sm.bounds(),
+          height = Math.min(bounds.height+3, maxY),
+          overlapY = bounds.top() + height - visibleBounds.bottom();
       if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
       sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
       var cb = sm.get("closeButton");

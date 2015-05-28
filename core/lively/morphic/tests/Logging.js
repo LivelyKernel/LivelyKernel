@@ -1,11 +1,11 @@
 module('lively.morphic.tests.Logging').requires('lively.morphic.tests.Helper','lively.morphic.GlobalLogger').toRun(function() {
 
-lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LoggingTests.SimpleLogging',
+lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.Logging.SimpleLogging',
 'running', {
     setUp: function($super) {
         $super();
         var self = this;
-        this.testMorph = Morph.makeRectangle(pt(0,0).extent(pt(100,100)))
+        this.testMorph = lively.morphic.Morph.makeRectangle(pt(0,0).extent(pt(100,100)))
         this.testMorph.isLoggable = true;
         this.testMorph.shape.isLoggable = true;
         this.dummyAction = {
@@ -73,7 +73,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LoggingTests.Simp
 'customized logging functions', {
     testUndoAddMorph: function () {
         $world.GlobalLogger.disableLogging();
-        var container = $world.addMorph(Morph.makeRectangle(pt(0,0).extent(pt(100,100))));
+        var container = $world.addMorph(lively.morphic.Morph.makeRectangle(pt(0,0).extent(pt(100,100))));
         $world.GlobalLogger.enableLogging();
         container.isLoggable = true;
         container.shape.isLoggable = true;
@@ -83,7 +83,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.LoggingTests.Simp
     },
     testUndoRemove: function () {
         $world.GlobalLogger.disableLogging();
-        var container = $world.addMorph(Morph.makeRectangle(pt(0,0).extent(pt(100,100))));
+        var container = $world.addMorph(lively.morphic.Morph.makeRectangle(pt(0,0).extent(pt(100,100))));
         container.isLoggable = true;
         container.addMorph(this.testMorph);
         this.testMorph.isLoggable = true;

@@ -255,7 +255,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         var wArgs = args ? args.map(function(ea) {
                 return {
                     key: this.newNode('Literal', {value: ea.name}),
-                    kind: 'init', value: ea
+                    type: "Property", kind: 'init', value: ea
                 };
             }, this) : [],
             wDecls = decls || [];
@@ -305,6 +305,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                     if ((scope.localVars.indexOf(n.id.name) == -1) && (n.id.name != 'arguments')) {
                         state[n.id.name] = {
                             key: that.newNode('Literal', {value: n.id.name}),
+                            type: "Property",
                             kind: 'init',
                             value: that.newNode('Identifier', {name: 'undefined'})
                         };
@@ -325,6 +326,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             if (node.type == 'FunctionDeclaration') {
                 node = {
                     key: that.newNode('Literal', {value: node.id.name}),
+                    type: "Property",
                     kind: 'init',
                     value: that.rewriteFunctionDeclaration(node, visitor.registryIndex)
                 }
@@ -410,6 +412,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             declarations: [
                 this.newVariable('_' + scopeIdx, this.newNode('ObjectExpression', {
                     properties: [{
+                        type: "Property",
                         key: this.newNode('Literal', {value: catchVar}),
                         kind: 'init', value: this.newNode('ConditionalExpression', {
                             test: this.newMemberExp(catchVar + '.isUnwindException'),
@@ -442,6 +445,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         if ((scopeRef === undefined) && (withScopes.length > 0)) {
             // mr 2014-02-05: the reference is a global one - should throw error?
             scopeRef = this.newNode('ObjectExpression', { properties: [{
+                type: "Property",
                 kind: 'init',
                 key: this.newNode('Literal', { value: name }),
                 value: this.newNode('Identifier', { name: name })
@@ -642,6 +646,40 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitFunction: function(node, state) {
+        if (node.id) {
+            // id is a node of type Identifier
+            node.id = this.accept(node.id, state);
+        }
+
+        node.params = node.params.map(function(ea) {
+            // ea is of type Pattern
+            return this.accept(ea, state);
+        }, this);
+
+        if (node.defaults) {
+            node.defaults = node.defaults.map(function(ea) {
+                // ea is of type Expression
+                return this.accept(ea, state);
+            }, this);
+        }
+
+        if (node.rest) {
+            // rest is a node of type Identifier
+            node.rest = this.accept(node.rest, state);
+        }
+
+        // body is a node of type BlockStatement
+        node.body = this.accept(node.body, state);
+
+        // node.generator has a specific type that is boolean
+        if (node.generator) {/*do stuff*/}
+
+        // node.expression has a specific type that is boolean
+        if (node.expression) {/*do stuff*/}
+        return node;
+    },
+
     visitStatement: function(node, state) {
         return node;
     },
@@ -655,6 +693,12 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
             // ea is of type Statement
             return this.accept(ea, state);
         }, this);
+        return node;
+    },
+
+    visitExpressionStatement: function(node, state) {
+        // expression is a node of type Expression
+        node.expression = this.accept(node.expression, state);
         return node;
     },
 
@@ -720,6 +764,14 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitReturnStatement: function(node, state) {
+        if (node.argument) {
+            // argument is a node of type Expression
+            node.argument = this.accept(node.argument, state);
+        }
+        return node;
+    },
+
     visitThrowStatement: function(node, state) {
         // argument is a node of type Expression
         node.argument = this.accept(node.argument, state);
@@ -765,6 +817,42 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitForStatement: function(node, state) {
+        if (node.init) {
+            // init is a node of type VariableDeclaration
+            node.init = this.accept(node.init, state);
+        }
+
+        if (node.test) {
+            // test is a node of type Expression
+            node.test = this.accept(node.test, state);
+        }
+
+        if (node.update) {
+            // update is a node of type Expression
+            node.update = this.accept(node.update, state);
+        }
+
+        // body is a node of type Statement
+        node.body = this.accept(node.body, state);
+        return node;
+    },
+
+    visitForInStatement: function(node, state) {
+        // left is a node of type VariableDeclaration
+        node.left = this.accept(node.left, state);
+
+        // right is a node of type Expression
+        node.right = this.accept(node.right, state);
+
+        // body is a node of type Statement
+        node.body = this.accept(node.body, state);
+
+        // node.each has a specific type that is boolean
+        if (node.each) {/*do stuff*/}
+        return node;
+    },
+
     visitForOfStatement: function(node, state) {
         // left is a node of type VariableDeclaration
         node.left = this.accept(node.left, state);
@@ -797,6 +885,38 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitFunctionDeclaration: function(node, state) {
+        // id is a node of type Identifier
+        node.id = this.accept(node.id, state);
+
+        node.params = node.params.map(function(ea) {
+            // ea is of type Pattern
+            return this.accept(ea, state);
+        }, this);
+
+        if (node.defaults) {
+            node.defaults = node.defaults.map(function(ea) {
+                // ea is of type Expression
+                return this.accept(ea, state);
+            }, this);
+        }
+
+        if (node.rest) {
+            // rest is a node of type Identifier
+            node.rest = this.accept(node.rest, state);
+        }
+
+        // body is a node of type BlockStatement
+        node.body = this.accept(node.body, state);
+
+        // node.generator has a specific type that is boolean
+        if (node.generator) {/*do stuff*/}
+
+        // node.expression has a specific type that is boolean
+        if (node.expression) {/*do stuff*/}
+        return node;
+    },
+
     visitVariableDeclarator: function(node, state) {
         // id is a node of type Pattern
         node.id = this.accept(node.id, state);
@@ -813,6 +933,16 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
     },
 
     visitThisExpression: function(node, state) {
+        return node;
+    },
+
+    visitArrayExpression: function(node, state) {
+        node.elements = node.elements.map(function(ea) {
+            if (ea) {
+                // ea can be of type Expression or 
+                return this.accept(ea, state);
+            }
+        }, this);
         return node;
     },
 
@@ -874,6 +1004,88 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
 
         // right is a node of type Expression
         node.right = this.accept(node.right, state);
+        return node;
+    },
+
+    visitAssignmentExpression: function(node, state) {
+        // node.operator is an AssignmentOperator enum:
+        // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
+
+        // left is a node of type Pattern
+        node.left = this.accept(node.left, state);
+
+        // right is a node of type Expression
+        node.right = this.accept(node.right, state);
+        return node;
+    },
+
+    visitUpdateExpression: function(node, state) {
+        // node.operator is an UpdateOperator enum:
+        // "++" | "--"
+
+        // argument is a node of type Expression
+        node.argument = this.accept(node.argument, state);
+
+        // node.prefix has a specific type that is boolean
+        if (node.prefix) {/*do stuff*/}
+        return node;
+    },
+
+    visitLogicalExpression: function(node, state) {
+        // node.operator is an LogicalOperator enum:
+        // "||" | "&&"
+
+        // left is a node of type Expression
+        node.left = this.accept(node.left, state);
+
+        // right is a node of type Expression
+        node.right = this.accept(node.right, state);
+        return node;
+    },
+
+    visitConditionalExpression: function(node, state) {
+        // test is a node of type Expression
+        node.test = this.accept(node.test, state);
+
+        // alternate is a node of type Expression
+        node.alternate = this.accept(node.alternate, state);
+
+        // consequent is a node of type Expression
+        node.consequent = this.accept(node.consequent, state);
+        return node;
+    },
+
+    visitNewExpression: function(node, state) {
+        // callee is a node of type Expression
+        node.callee = this.accept(node.callee, state);
+
+        node.arguments = node.arguments.map(function(ea) {
+            // ea is of type Expression
+            return this.accept(ea, state);
+        }, this);
+        return node;
+    },
+
+    visitCallExpression: function(node, state) {
+        // callee is a node of type Expression
+        node.callee = this.accept(node.callee, state);
+
+        node.arguments = node.arguments.map(function(ea) {
+            // ea is of type Expression
+            return this.accept(ea, state);
+        }, this);
+        return node;
+    },
+
+    visitMemberExpression: function(node, state) {
+        // object is a node of type Expression
+        node.object = this.accept(node.object, state);
+
+        // property is a node of type Identifier
+        node.property = this.accept(node.property, state);
+
+        // node.computed has a specific type that is boolean
+        if (node.computed) {/*do stuff*/}
         return node;
     },
 
@@ -968,6 +1180,20 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitCatchClause: function(node, state) {
+        // param is a node of type Pattern
+        node.param = this.accept(node.param, state);
+
+        if (node.guard) {
+            // guard is a node of type Expression
+            node.guard = this.accept(node.guard, state);
+        }
+
+        // body is a node of type BlockStatement
+        node.body = this.accept(node.body, state);
+        return node;
+    },
+
     visitComprehensionBlock: function(node, state) {
         // left is a node of type Pattern
         node.left = this.accept(node.left, state);
@@ -980,9 +1206,143 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitComprehensionIf: function(node, state) {
+        // test is a node of type Expression
+        node.test = this.accept(node.test, state);
+        return node;
+    },
+
+    visitIdentifier: function(node, state) {
+        // node.name has a specific type that is string
+        return node;
+    },
+
     visitLiteral: function(node, state) {
         if (node.value) {
             // node.value has a specific type that is string or boolean or number or RegExp
+        }
+        return node;
+    },
+
+    visitClassDeclaration: function(node, state) {
+        // id is a node of type Identifier
+        node.id = this.accept(node.id, state);
+
+        if (node.superClass) {
+            // superClass is a node of type Identifier
+            node.superClass = this.accept(node.superClass, state);
+        }
+
+        // body is a node of type ClassBody
+        node.body = this.accept(node.body, state);
+        return node;
+    },
+
+    visitClassBody: function(node, state) {
+        node.body = node.body.map(function(ea) {
+            // ea is of type MethodDefinition
+            return this.accept(ea, state);
+        }, this);
+        return node;
+    },
+
+    visitMethodDefinition: function(node, state) {
+        // node.static has a specific type that is boolean
+        if (node.static) {/*do stuff*/}
+
+        // node.computed has a specific type that is boolean
+        if (node.computed) {/*do stuff*/}
+
+        // node.kind is ""
+
+        // key is a node of type Identifier
+        node.key = this.accept(node.key, state);
+
+        // value is a node of type FunctionExpression
+        node.value = this.accept(node.value, state);
+        return node;
+    },
+
+    visitJSXIdentifier: function(node, state) {
+        return node;
+    },
+
+    visitJSXMemberExpression: function(node, state) {
+        // object is a node of type JSXMemberExpression
+        node.object = this.accept(node.object, state);
+
+        // property is a node of type JSXIdentifier
+        node.property = this.accept(node.property, state);
+        return node;
+    },
+
+    visitJSXNamespacedName: function(node, state) {
+        // namespace is a node of type JSXIdentifier
+        node.namespace = this.accept(node.namespace, state);
+
+        // name is a node of type JSXIdentifier
+        node.name = this.accept(node.name, state);
+        return node;
+    },
+
+    visitJSXEmptyExpression: function(node, state) {
+        return node;
+    },
+
+    visitJSXBoundaryElement: function(node, state) {
+        // name is a node of type JSXIdentifier
+        node.name = this.accept(node.name, state);
+        return node;
+    },
+
+    visitJSXOpeningElement: function(node, state) {
+        node.attributes = node.attributes.map(function(ea) {
+            // ea is of type JSXAttribute or JSXSpreadAttribute
+            return this.accept(ea, state);
+        }, this);
+
+        // node.selfClosing has a specific type that is boolean
+        if (node.selfClosing) {/*do stuff*/}
+        return node;
+    },
+
+    visitJSXClosingElement: function(node, state) {
+        return node;
+    },
+
+    visitJSXAttribute: function(node, state) {
+        // name is a node of type JSXIdentifier
+        node.name = this.accept(node.name, state);
+
+        if (node.value) {
+            // value is a node of type Literal
+            node.value = this.accept(node.value, state);
+        }
+        return node;
+    },
+
+    visitSpreadElement: function(node, state) {
+        // argument is a node of type Expression
+        node.argument = this.accept(node.argument, state);
+        return node;
+    },
+
+    visitJSXSpreadAttribute: function(node, state) {
+        return node;
+    },
+
+    visitJSXElement: function(node, state) {
+        // openingElement is a node of type JSXOpeningElement
+        node.openingElement = this.accept(node.openingElement, state);
+
+        node.children = node.children.map(function(ea) {
+            // ea is of type Literal or JSXExpressionContainer or JSXElement
+            return this.accept(ea, state);
+        }, this);
+
+        if (node.closingElement) {
+            // closingElement is a node of type JSXClosingElement
+            node.closingElement = this.accept(node.closingElement, state);
         }
         return node;
     }
@@ -1280,9 +1640,11 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                 rewriter.newNode('ThrowStatement', {
                     argument: rewriter.newNode('ObjectExpression', {
                         properties: [{
+                            type: "Property",
                             key: rewriter.newNode('Identifier', { name: 'toString' }),
                             kind: 'init', value: fn
                         }, {
+                            type: "Property",
                             key: rewriter.newNode('Identifier', { name: 'astIndex' }),
                             kind: 'init', value: rewriter.newNode('Literal', {value: astIndex})
                         }]
@@ -1404,6 +1766,7 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                         name: prop.key.name, astIndex: prop.key.astIndex
                     } : this.accept(prop.key, rewriter);
                 return {
+                    type: "Property",
                     key: key,
                     value: (value.type == 'ExpressionStatement') ?
                         value.expression : // unwrap

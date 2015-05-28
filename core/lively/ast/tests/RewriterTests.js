@@ -5,7 +5,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 
     setUp: function($super) {
         $super();
-        this.parser = lively.ast.acorn;
+        this.parser = lively.ast;
         this.rewrite = function(node) {
             return lively.ast.Rewriting.rewrite(node, astRegistry, 'AcornRewriteTests');
         };
@@ -44,6 +44,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
                 type: "ObjectExpression",
                 properties: Object.keys(varMapping).map(function(k) {
                     return {
+                        type: "Property",
                         kind: "init",
                         key: {type: "Literal",value: k},
                         value: {name: varMapping[k],type: "Identifier"}
@@ -160,7 +161,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     },
 
     assertASTNodesEqual: function(node1, node2, msg) {
-        var notEqual = lively.ast.acorn.compareAst(node1, node2);
+        var notEqual = lively.ast.compareAst(node1, node2);
         if (!notEqual) return;
         this.assert(false, 'nodes not equal: ' + (msg ? '\n  ' + msg : '') + '\n  ' + notEqual.join('\n  '));
     },
@@ -465,7 +466,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
         var func = function() { function g() {}; return g(); }, returnStmt;
         func.stackCaptureMode();
         var returns = [];
-        lively.ast.acorn.withMozillaAstDo(func.asRewrittenClosure().ast, returns, function(next, node, state) {
+        lively.ast.withMozillaAstDo(func.asRewrittenClosure().ast, returns, function(next, node, state) {
             if (node.type === 'ReturnStatement') state.push(node); return next();
         });
         this.assertEquals(1, returns.length, "not just one return?")
@@ -872,7 +873,7 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 
     setUp: function($super) {
         $super();
-        this.parser = lively.ast.acorn;
+        this.parser = lively.ast;
         this.rewrite = function(node) {
             return lively.ast.Rewriting.rewrite(node, astRegistry, 'AcornRewriteTests');
         };

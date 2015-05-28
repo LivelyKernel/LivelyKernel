@@ -1744,7 +1744,6 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.commands.keys.reset': 'F8',
     "lively.tests.mocha.runAll": "Control-C t",
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-shift-y",
-    'lively.morphic.Morph.openStyleEditor': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.codeSearch': {mac: ["Command-Shift-C", "Command-Shift-F"], win: ["Control-Shift-C", 'Control-Shift-G', 'Control-Shift-F']},

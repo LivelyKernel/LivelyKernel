@@ -49,16 +49,16 @@ Object.subclass('lively.GlobalLogger',
         // Covers functions added to silentFunctions, silentClasses and loggedFunctions, also all enableFunction and disable Function for Morphs.
         var self = this;
         if (!lively.morphic.World.current().GlobalLogger)
-            lively.morphic.World.current().GlobalLogger = new lively.GlobalLogger()
+            lively.morphic.World.current().GlobalLogger = this;
         this.silentFunctions.each(function (extendableClass) {
             extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
-        })
+        });
         this.silentClasses.each(function (eachClass) {
             self.disableLoggingForClass(eachClass);
-        })
+        });
         this.loggedFunctions.each(function (extendableClass) {
             self.enableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
-        })
+        });
         this.createMorphLoggersForEnablingAndDisabling();
     }
 },
@@ -195,10 +195,13 @@ Object.subclass('lively.GlobalLogger',
     },
     disableLoggingForClass: function (classObject) {
         // Disable every action of a Class (useful e.g. for Halo and HaloItem)
-        var loggableClasses = classObject.localFunctionNames()
-                                .collect(function (ea) {return ea.toString()})
-                                .without('constructor')
-        this.disableLoggingOfFunctionsFromClass(classObject, loggableClasses)
+        var loggableClasses = Object.keys(classObject.prototype)
+                .without("constructor")
+                .filter(function(name) {
+                    return !classObject.prototype.__lookupGetter__(name)
+                        && lively.lang.obj.isFunction(classObject.prototype[name]); })
+                .map(String);
+        this.disableLoggingOfFunctionsFromClass(classObject, loggableClasses);
     },
 }, 'special morphic functions', {
     createActionForAbler: function (functionName) {
@@ -229,7 +232,11 @@ Object.subclass('lively.GlobalLogger',
     createMorphLoggersForEnablingAndDisabling: function () {
         // Morph functions that follow the patter enableSomething and disableSomething are always logged
         var functionsObject = {},
-            functionNames = lively.morphic.Morph.localFunctionNames(),
+            functionNames = Object.keys(lively.morphic.Morph.prototype)
+                .without("constructor")
+                .filter(function(name) {
+                    return !lively.morphic.Morph.prototype.__lookupGetter__(name)
+                        && lively.lang.obj.isFunction(lively.morphic.Morph.prototype[name]); }),
             self = this;
         functionNames.each(function (functionName) {
             if (functionName.startsWith('enable')) {

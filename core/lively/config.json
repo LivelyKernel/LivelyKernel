@@ -276,7 +276,7 @@
   ],
 
   "lively.undo": [
-      ['undoLogging', true],
+      ["undoLogging", true]
   ],
 
   "lively.morphic.Text": [

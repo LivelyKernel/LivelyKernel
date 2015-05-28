@@ -246,20 +246,6 @@ Object.subclass('lively.morphic.Morph',
             return null;
         }
 
-		// TODO: AUA
-		if (morph.isLoggable === false || (!this.isLoggable && !(this instanceof lively.morphic.HandMorph))) {
-			morph.withAllSubmorphsDo(function (ea) {
-				ea.isLoggable = false;
-				ea.shape.isLoggable = false;
-			});
-		}
-		else if (morph.isLoggable === undefined)  morph.isLoggable = true;
-
-        $world.GlobalLogger.logAddMorph(this, morph, optMorphBefore);
-		morph.shape.isLoggable = morph.isLoggable;
-		var loggingEnabled = $world.GlobalLogger.loggingEnabled;
-		$world.GlobalLogger.disableLogging();
-
         var tfm = morph.owner
                && morph.owner !== newOwner
                && morph.transformForNewOwner(newOwner);

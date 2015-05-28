@@ -1,4 +1,4 @@
-Global/*
+/*
  * Copyright (c) 2006-2009 Sun Microsystems, Inc.
  * Copyright (c) 2008-2011 Hasso Plattner Institute
  *

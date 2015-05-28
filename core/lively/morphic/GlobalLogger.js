@@ -50,7 +50,7 @@ Object.subclass('lively.GlobalLogger',
         var self = this;
         if (!lively.morphic.World.current().GlobalLogger)
             lively.morphic.World.current().GlobalLogger = this;
-        this.silentFunctions.each(function (extendableClass) {
+        this.silentFunctions.forEach(function (extendableClass) {
             extendableClass[0] && self.disableLoggingOfFunctionsFromClass(extendableClass[0], extendableClass[1]);
         });
         this.silentClasses.each(function (eachClass) {
@@ -63,6 +63,7 @@ Object.subclass('lively.GlobalLogger',
     }
 },
 'logging', {
+
     logAction: function(action) {
         /*
         ** Writes the action to $world.GlobalLogger.stack, if the target of the action is loggable.
@@ -82,6 +83,7 @@ Object.subclass('lively.GlobalLogger',
         }
         return action
     },
+
     forceNewSlot: function () {
         // enforces to open a new set of undoable actions
         this.stack.last() && (this.stack.last().isFull = true)
@@ -94,6 +96,7 @@ Object.subclass('lively.GlobalLogger',
 
 },
 'undoredo', {
+
     undoLastAction: function () {
         // Reverts the last bulk of actions logged, in reverse order.
         var self = this;
@@ -106,12 +109,14 @@ Object.subclass('lively.GlobalLogger',
             self.undoAction(ea);
         })
     },
+
     undoAction: function (action) {
         // Undos an action without logging the side effects of undoing
         this.disableLogging(true)
         action.undo();
         this.enableLogging()
     },
+
     redoNextAction: function () {
         // re-executes the currently next bulk of actions
         var self = this;
@@ -124,6 +129,7 @@ Object.subclass('lively.GlobalLogger',
         })
         this.counter++;
     },
+
     redoAction: function (action) {
         // Redos an action without logging the side effects of redoing
         this.disableLogging(true)
@@ -132,7 +138,7 @@ Object.subclass('lively.GlobalLogger',
             action.redo();
         }
         this.enableLogging()
-    },
+    }
 },
 'disable and enable', {
     enableLogging: function () {
@@ -148,16 +154,18 @@ Object.subclass('lively.GlobalLogger',
     },
 },
 'disable and enable context', {
+
     enableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
         // Adds a layered function that enables logging of certain functions
         var self = this,
             functionsObject = {};
-        functionNames.each(function (functionName) {
+        functionNames.forEach(function (functionName) {
             // Pattern to work with functionName: beforeLogFunctionName, logFunctionName, afterLogFunctionName
             var beforeLogFunctionName = 'beforeLog' + functionName.capitalize(),
                 logFunctionName = 'log' + functionName.capitalize(),
                 afterLogFunctionName = 'afterLog' + functionName.capitalize();
-            functionsObject[functionName] = function () {
+
+            functionsObject[functionName] = function() {
                 // beforeLogFunctionName
                 var logCondition = Object.isFunction(this[beforeLogFunctionName]) ? this[beforeLogFunctionName].apply(this, arguments) : true;
                 if (logFunctionName && Object.isFunction(this[logFunctionName])) {
@@ -179,11 +187,12 @@ Object.subclass('lively.GlobalLogger',
         })
         LoggerLayer.refineClass(classObject, functionsObject);
     },
+
     disableLoggingOfFunctionsFromClass: function (classObject, functionNames) {
         // Disable logging of certain functions (e.g. Tool functionality)
         var self = this,
             functionsObject = {};
-        functionNames.each(function (functionName) {
+        functionNames.forEach(function (functionName) {
             functionsObject[functionName] = function () {
                 var loggingEnabled = self.disableLogging();
                 var returnValue = cop.proceed.apply(cop, arguments)
@@ -193,6 +202,7 @@ Object.subclass('lively.GlobalLogger',
         })
         LoggerLayer.refineClass(classObject, functionsObject);
     },
+
     disableLoggingForClass: function (classObject) {
         // Disable every action of a Class (useful e.g. for Halo and HaloItem)
         var loggableClasses = Object.keys(classObject.prototype)
@@ -202,8 +212,9 @@ Object.subclass('lively.GlobalLogger',
                         && lively.lang.obj.isFunction(classObject.prototype[name]); })
                 .map(String);
         this.disableLoggingOfFunctionsFromClass(classObject, loggableClasses);
-    },
-}, 'special morphic functions', {
+    }
+},
+'special morphic functions', {
     createActionForAbler: function (functionName) {
         // returns a function that enables logging for functionName
         var functionPieces = functionName.split('able'),
@@ -238,7 +249,7 @@ Object.subclass('lively.GlobalLogger',
                     return !lively.morphic.Morph.prototype.__lookupGetter__(name)
                         && lively.lang.obj.isFunction(lively.morphic.Morph.prototype[name]); }),
             self = this;
-        functionNames.each(function (functionName) {
+        functionNames.forEach(function (functionName) {
             if (functionName.startsWith('enable')) {
                 var suffix = functionName.slice('enable'.length)
                 if (!functionNames.include('disable'+suffix)) return
@@ -278,16 +289,18 @@ Object.subclass('lively.GlobalLogger',
     }
 
 
-}) // end of GlobalLogger
+}); // end of GlobalLogger
 
 lively.morphic.Morph.addMethods(
 'logging', {
-	getLoggability: function () {
-        var unloggableParent = this.ownerChain().find(function (ea) {
-				return ea.isHand || !ea.isLoggable
-			})
-		return !unloggableParent
-	},
+
+  	getLoggability: function () {
+          var unloggableParent = this.ownerChain().find(function (ea) {
+  				return ea.isHand || !ea.isLoggable
+  			})
+  		return !unloggableParent
+  	},
+
     logMorphicSetter: function(propName, value) {
         if (!(Object.isString(propName) && this.isLoggable))
             return false
@@ -309,6 +322,7 @@ lively.morphic.Morph.addMethods(
                 }).bind(this)
         };
     },
+
     beforeLogAddMorph: function (morph, optBeforeMorph) {
         if (morph.isHand)
             return false
@@ -326,6 +340,7 @@ lively.morphic.Morph.addMethods(
         morph.shape && (morph.shape.isLoggable = morph.isLoggable)
         return true
     },
+
     logAddMorph: function (morph, optMorphBefore) {
         var goesToUnloggable = !this.isLoggable && !this.isHand
         if (lively.morphic.World.current().GlobalLogger.loggingEnabled && morph.isLoggable && !goesToUnloggable) {
@@ -586,4 +601,3 @@ Trait('WorldLoggingMenuTrait',
 }).applyTo(lively.morphic.World, {override: 'morphMenuItems'});
 
 }) // end of module
-

@@ -16,7 +16,7 @@
     "escodegen": "^1.6.1",
     "file-fuser": ">=0.0.8",
     "life_star": ">=0.8.2",
-    "lively.ast": "^0.2.2",
+    "lively.ast": "^0.2.3",
     "optparse": "~1.0",
     "shelljs": "~0.2",
     "sqlite3": "~3.0.5",

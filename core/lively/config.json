@@ -70,6 +70,22 @@
     }
   ],
 
+  "auth": [
+    ["userAuthEnabled", false, "Is user authentication enabled?"],
+    ["cookieField", "lvUserData_2013-10-12", "Cookie used for user data"],
+    ["usersFile", null, "File containing the authentication information and access rules"],
+    ["usersDefaultWorld", "/users/%USERNAME%/start.html", "Users' default world placed in their workspace"],
+    ["authPaths", {
+      "login": "/login",
+      "register": "/register",
+      "logout": "/logout",
+      "currentUser": "/current-user",
+      "checkPassword": "/check-password",
+      "userExists": "/user-exists",
+      "listUsers": "/list-users"
+    }, "Routes for user management, e.g. login, logout, registration"]
+  ],
+
   "user": [
     {
       "name": "UserName",

@@ -884,12 +884,12 @@ lively.userData = (function setupUserDataExpt() {
     userData.registerHTTPHandlers = function(app, server) {
         app.post('/login', function(req, res) {
             var data = req.body || {},
-                stored = getLivelySessionData(req);;
+                stored = getLivelySessionData(req);
 
             if (!data) { res.status(400).end('no data'); return; }
             if (!stored) { res.status(400).end('cannot access stored data'); return; }
             // only change credentials if there is no login system in place:
-            if (!lively.server.lifeStar.config.authConf || !lively.server.lifeStar.config.authConf.enabled) {
+            if (!lively.Config || !lively.Config.get('userAuthEnabled')) {
                 stored.username = data.username || stored.username || 'unknown user';
                 stored.email = data.email || stored.email || null;
                 stored.group = data.group || stored.group || null;

@@ -1227,6 +1227,12 @@ lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.Buil
       ]);
     } else {
       return livelyItems.concat([
+        ['open chat...', function() {
+            if ($morph('Lively2LivelyChat'))
+                $morph('Lively2LivelyChat').openInWorldCenter().comeForward();
+            else
+                lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
+        }],
         ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {
             lively.Config.set('lively2livelyAllowRemoteEval', !allowRemoteEval);
         }],

@@ -447,8 +447,8 @@ lively.morphic.Morph.addMethods(
         // See World.undoReadme
         // Note grab/drop involves change in both ownership and transformation
         // Change of origin is handled separately
-        var transform = this.targetMorph.getGlobalTransform();
-        var org = transform.transformPoint(this.targetMorph.getOrigin());
+        var transform = this.getGlobalTransform();
+        var org = transform.transformPoint(this.getOrigin());
         if (phase == null || phase == 'start') {
             // Log the starting state for, eg, grab, drag, etc.
             $world.logMorphicAction({

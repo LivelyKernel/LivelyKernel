@@ -159,7 +159,14 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             }
         }
         if (isNew) {
-            if (this.isNative(func)) return new func();
+            function construct(constructor, args) {
+                function F() {
+                    return constructor.apply(this, args);
+                }
+                F.prototype = constructor.prototype;
+                return new F();
+            }
+            if (this.isNative(func)) return construct(func, argValues);
             recv = this.newObject(origFunc);
         }
 

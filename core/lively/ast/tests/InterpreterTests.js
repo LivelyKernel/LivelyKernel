@@ -558,9 +558,14 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(1, this.interpret(node));
     },
 
-    test39NativeConstructor: function() {
+    test39aNativeConstructor: function() {
         var node = this.parse('(function() { return typeof new Date(); })();');
         this.assertEquals('object', this.interpret(node, Global));
+    },
+
+    test39bNativeConstructorWithArgs: function() {
+        var node = this.parse('var regexp = new RegExp("f[o]+"); regexp.exec("fooobar");');
+        this.assertEquals('fooo', this.interpret(node, Global));
     },
 
     test40aDeleteExistingVar: function() {

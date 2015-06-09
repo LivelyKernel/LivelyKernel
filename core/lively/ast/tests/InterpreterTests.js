@@ -397,6 +397,21 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(1, this.interpret(node));
     },
 
+    test25gReturnObjectInNewExpr: function() {
+        var node = this.parse('function m() { return { a: 23 }; }; new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
+    test25hReturnNonObjectInNewExpr: function() {
+        var node = this.parse('function m() { this.a = 23; return 42 }; new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
+    test25iObjectAsLastResultInNewExpr: function() {
+        var node = this.parse('function m() { this.a = 23; ({ a: 42 }); } new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
     test26InstantiateClass: function() {
         var className = 'Dummy_test26InstantiateClass';
         this.onTearDown(function() { delete Global[className]; })

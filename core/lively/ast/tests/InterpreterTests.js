@@ -226,9 +226,19 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(5, mapping.a);
     },
 
-    test20UnaryOp: function() {
+    test20aUnaryOp: function() {
         var node = this.parse('var a = 4; -a');
         this.assertEquals(-4, this.interpret(node));
+    },
+
+    test20bTypeOfExistent: function() {
+        var node = this.parse('var a = 4; typeof a');
+        this.assertEquals('number', this.interpret(node));
+    },
+
+    test20cTypeOfNonExisting: function() {
+        var node = this.parse('typeof a');
+        this.assertEquals('undefined', this.interpret(node));
     },
 
     test21aBreakInFor: function() {

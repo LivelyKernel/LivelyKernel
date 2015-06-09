@@ -792,6 +792,19 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             } else
                 throw new Error('Delete not yet implemented for ' + node.type + '!');
             return;
+        } else if (node.operator == 'typeof') {
+            try {
+                this.accept(node.argument, state);
+                state.result = typeof state.result;
+            } catch(e) {
+                var ex = (lively.Config.get('loadRewrittenCode') && (e instanceof UnwindException)) ?
+                            e.error : e;
+                if (ex instanceof ReferenceError)
+                    state.result = 'undefined';
+                else
+                    throw e;
+            }
+            return;
         }
 
         this.accept(node.argument, state);
@@ -800,7 +813,6 @@ Object.subclass('lively.ast.AcornInterpreter.Interpreter',
             case '+':       state.result = +state.result; break;
             case '!':       state.result = !state.result; break;
             case '~':       state.result = ~state.result; break;
-            case 'typeof':  state.result = typeof state.result; break;
             case 'void':    state.result = void state.result; break; // or undefined?
             default: throw new Error('No semantics for UnaryExpression with ' + node.operator + ' operator!');
         }

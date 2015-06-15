@@ -85,6 +85,15 @@ TestCase.subclass('lively.tests.NetworkTests.URLTest', {
         result = url2.relativePathFrom(url1);
         this.assertEquals(expected, result.toString());
     },
+
+    testRelativePathFrom3: function() {
+        var url1 = new URL("http://northwestern.itsapirateslife.net:9001/core/lively/bootstrap.js"),
+            url2 = new URL("http://northwestern.itsapirateslife.net:9001//questions/Worlds/unknown_user_1434404507629_original.html?autosave=true"),
+            result = url1.relativePathFrom(url2),
+            expected = "../../core/lively/bootstrap.js";
+        this.assertEquals(expected, result);
+    },
+
     testRelativePathFrom3Identity: function() {
         var url = new URL('http://www.foo.org/bar/'),
             result = url.relativePathFrom(url);

@@ -1038,8 +1038,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           this.printObject(editor, result, false, this.getPrintItAsComment());
           return;
         }
-        if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
+        var isError = result instanceof Error;
+        if (isError && lively.Config.get('showDoitErrorMessages') && this.world()) {
             this.world().logError(result, "doit error");
+        }
+        if (lively.Config.get("showDoitInMessageMorph")) {
+          this.setStatusMessage(String(result), isError ? Color.red : null);
         }
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
@@ -1864,7 +1868,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           var visibleBounds = world.visibleBounds(),
               bounds = sm.bounds(),
               height = Math.min(bounds.height+3, maxY),
-              overlapY = bounds.bottom() - visibleBounds.bottom();
+              overlapY = bounds.top() + height - visibleBounds.bottom();
           if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
           sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
           sm.setExtent(pt(maxX, height));

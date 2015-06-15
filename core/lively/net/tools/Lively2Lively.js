@@ -1063,7 +1063,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                 if (printResult) {
                     self.printObject(editor, msg, false);
                 } else {
-                    if (isError) self.setStatusMessage(msg, Global.Color.red);
+                    self.setStatusMessage(msg, isError ? Global.Color.red : null);
                     var sel = self.getSelection();
                     if (sel && sel.isEmpty()) sel.selectLine();
                 }

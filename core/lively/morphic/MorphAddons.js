@@ -455,7 +455,8 @@ lively.morphic.Morph.addMethods(
                 morph: this, actionName: actionName, phase: phase,
                 undoFunctionName: 'undoRedoTransformationChange',
                 startTransform: this.getTransform(), startExtent: this.getBounds().extent(),
-                startOwner: this.owner, startIndexInSubmorphs: this.owner.submorphs.indexOf(this),
+                startOwner: this.owner,
+                startIndexInSubmorphs: this.owner ? this.owner.submorphs.indexOf(this) : null,
                 startOrigin: org
             });
             return;

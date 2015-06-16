@@ -697,8 +697,44 @@ Object.extend(lively.PartsBin, {
                 }
             )(function(err) { if (err) errors.push(err); files.remove(file); next(); });
         }, function() { thenDo && thenDo(errors.length ? errors : null); });
-    }
+    },
 
+    withAllItemsDo: function(partsBinBaseURL, thenDo) {
+      if (typeof partsBinBaseURL === "function") {
+        thenDo = partsBinBaseURL; partsBinBaseURL = null;
+      }
+      // FIXME: partsBinBaseURL currently not used, defaulting to "the one and
+      // only" PartsBin
+
+      var progressBar = $world.addProgressBar(null, "loading part items");
+      lively.lang.fun.composeAsync(
+        // 1. load parts spaces
+        lively.PartsBin.discoverPartSpaces,
+        
+        // 2. for each space, load items
+        function(spacesByName, next) {
+          var spaces = lively.lang.obj.values(spacesByName);
+          lively.lang.arr.mapAsyncSeries(spaces,
+            function(space, i, next) {
+              lively.bindings.once(space, "partItems", {whenDone: function(items) {
+                progressBar.setValue(i / spaces.length);
+                next(null, space);
+              }}, "whenDone");
+              space.load(true);
+            }, next)
+        },
+        
+        // 3. combine all items
+        function(spaces, next) {
+          progressBar.remove();
+          var itemsPerSpace = spaces.reduce(function(itemsPerSpace, space) {
+            itemsPerSpace[space.name] = space.partItems;
+            return itemsPerSpace;
+          }, {});
+          next(null, itemsPerSpace);
+        }
+      )(thenDo);
+    }
 });
 
 Trait('lively.PartsBin.PartTrait', {

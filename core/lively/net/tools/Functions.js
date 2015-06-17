@@ -12,7 +12,7 @@ Object.extend(lively.net.tools.Functions, {
         var maxLength = 100;
 
         // making the title short enough to fit on the title line...
-        var user = session.user, worldName = session.worldURL;
+        var user = session.user, worldName = session.worldURL || "unknown world location";
 
         // the user name should go on there in every case
         var worldNameMaxLength = maxLength - user.length;

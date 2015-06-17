@@ -3,7 +3,18 @@ var util = require('util'),
     j = require('path').join,
     i = function(obj, depth, showAll) { return util.inspect(obj, showAll, typeof depth === 'number' ? depth : 1); },
     async = require(j(process.env.LK_SCRIPTS_ROOT, 'node_modules/async')),
+    geoip;
+
+try {
     geoip = require('./GeoIPServer');
+} catch(e) {
+    geoip = {
+        getIPLocation: function(ip, thenDo) {
+            thenDo(null, {location: "", ip: ip});
+        }
+    }
+}
+
 
 function uuid() { // helper
     var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

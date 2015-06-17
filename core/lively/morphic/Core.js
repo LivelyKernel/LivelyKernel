@@ -342,6 +342,7 @@ Object.subclass('lively.morphic.Morph',
     },
 
     submorphBounds: function(tfm) {
+        tfm = tfm || this.getTransform();
         var subBounds;
         for (var i = 0; i < this.submorphs.length; i++) {
             var morphBounds = this.submorphs[i].getBounds();

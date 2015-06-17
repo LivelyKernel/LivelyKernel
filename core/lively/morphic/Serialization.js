@@ -260,8 +260,10 @@ lively.morphic.World.addMethods(
 
     visitNewPageAfterSaveAs: function(url) {
         if (!url) return;
-        if (url.toString().indexOf("autosave") >= 0) return;
-        this.confirm("visit " + url + "?", function(yes) {
+        url = url.toString();
+        if (url.indexOf("autosave") >= 0) return;
+        url = new URL(url).withRelativePartsResolved();
+        this.confirm("Visit " + url.toString() + "?", function(yes) {
             if (yes)
                 window.open(url.toString());
         });

@@ -348,7 +348,9 @@ lively.BuildSpec("lively.ide.tools.LogMessages", {
       },
 
       install: function install(_console, _window) {
-        lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.install(this);
+        lively.require("lively.ide.tools.SystemConsole").toRun(function() {
+          lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.install(this);
+        }.bind(this));
       },
 
       onOwnerChanged: function onOwnerChanged(newOwner) {
@@ -359,7 +361,9 @@ lively.BuildSpec("lively.ide.tools.LogMessages", {
       },
 
       uninstall: function uninstall() {
-        lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.uninstall(this)
+        lively.require("lively.ide.tools.SystemConsole").toRun(function() {
+          lively.ide.tools.SystemConsole.ConsoleWrapperFunctions.uninstall(this);
+        }.bind(this));
       },
       
       onLogMessage: function onLogMessage(type, msg) {

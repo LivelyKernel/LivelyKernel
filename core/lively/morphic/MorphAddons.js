@@ -1032,6 +1032,8 @@ lively.morphic.World.addMethods(
 
 },
 'undo', {
+    undoQueue: [],
+    undoRedoPointer: -1,
     enableMorphicUndo: function() {
         // See undoReadme
         // non-null queue means logging is enabled

@@ -2966,8 +2966,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.expandedTransform = this.getTransform();
         this.expandedExtent = this.getExtent();
         this.expandedPosition = this.getPosition();
-        this.targetMorph.remove();
-        this.helperMorphs = this.submorphs.withoutAll([this.targetMorph, this.titleBar]);
+        this.helperMorphs = this.submorphs.without(this.titleBar);
         this.helperMorphs.invoke('remove');
         this.collapsedExtent = this.computeOptimalCollapsedExtent(this.collapsedExtent);
         if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
@@ -2995,7 +2994,6 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             if (self.expandedExtent) self.setExtent(self.expandedExtent);
             if (self.expandedPosition) self.setPosition(self.expandedPosition);
             self.helperMorphs.forEach(function(ea) { self.addMorph(ea); });
-            self.addMorph(self.targetMorph);
         }
         this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {
             self.comeForward();

@@ -3985,10 +3985,14 @@ Trait('SelectionMorphTrait',
             .reverse();
 
         this.selectionMorph.selectedMorphs = selectedMorphs;
-        if (selectedMorphs.length == 0) {
+        if (selectedMorphs.length === 0) {
             this.selectionMorph.removeOnlyIt();
             this.selectionMorph.reset();
-            return
+            return;
+        } else if (selectedMorphs.length == 1) {
+            this.selectionMorph.removeOnlyIt();
+            selectedMorphs[0].showHalos();
+            return;
         }
 
         this.selectionMorph.selectMorphs(selectedMorphs);

@@ -340,41 +340,45 @@ Object.extend(Global, {
 
 Trait('lively.morphic.DraggableBehavior',
 'dragging and dropping', {
+
     onDragEnd: function(evt) {
         evt.hand.removeAllMorphs();
-        var target = evt.world.morphsContainingPoint(evt.getPosition()).first();
-        this.tryToApplyTo(target)
+        var target = evt.world.morphsContainingPoint(evt.getPosition()).detect(function(ea) {
+            return ea.droppingEnabled;
+        });
+        if (target) this.tryToApplyTo(target);
     },
 
     onDragStart: function(evt) {
-        var pos = this.owner.localize(evt.getPosition())
+        var pos = this.owner.localize(evt.getPosition());
         this.icon = this.copy();
-        this.icon.moveBy(pos.negated())
+        this.icon.moveBy(pos.negated());
         evt.hand.grabMorph(this.icon);
     },
+
     dropOn: function(target) {
         // called when the hand drops its carried morphs
-        var applied = this.tryToApplyTo(target)
-        if (applied) this.remove()
-        else target.addMorph(this);
+        var applied = this.tryToApplyTo(target);
+        if (applied)
+            this.remove();
+        else
+            target.addMorph(this);
     },
 
     tryToApplyTo: function(target) {
         // don't apply to world etc
         if (!this.applyTo) throw new Error('Implement applyTo');
         if (target === this.world()) {
-            alert('found no target to apply behavior to!')
+            alert('found no target to apply behavior to!');
             return false;
         }
-        this.applyTo(target)
-        return true
-    },
-})
+        this.applyTo(target);
+        return true;
+    }
 
-
+});
 
 lively.morphic.Morph.addMethods(
-
 'style', {
     getCustomStyle: function() {
         return {

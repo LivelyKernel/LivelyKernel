@@ -463,6 +463,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         return this['get'+pane+'Selection']();
     },
 
+    findBestMatchingNode: function(node, nodeListItems) {
+        var similar = nodeListItems.select(function(ea) {
+                return ea.value.hasSimilarTarget(node);
+            });
+        return similar.detect(function(ea) { // find best match, if possible exact match
+            return ea.value.target == node.target;
+        }) || similar[0];
+    },
+
     childsFilteredAndAsListItems: function(node, filters) {
         return     this.filterChildNodesOf(node, filters || []).collect(function(ea) { return ea.asListItem() });
     },
@@ -473,7 +482,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         });
     },
 
-     inPaneSelectNodeNamed: function(paneName,  nodeName) {
+    inPaneSelectNodeNamed: function(paneName,  nodeName) {
         return this.inPaneSelectNodeMatching(paneName, function(node) {
             return node && node.asString && node.asString().replace(/ ?\(.*\)/,"").endsWith(nodeName) });
     },
@@ -504,15 +513,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         }
         return null;
     },
+
     selectNodeNamed: function(name) {
         return this.selectNodeMatching(function(node) {
             return node && node.asString && node.asString().include(name);
         });
     },
+
     selectNothing: function() {
         if (this.panel) this.setPane1Selection(null, true);
     },
-
 
     onPane1SelectionUpdate: function(node) {
         this.pane1Selection = node; // for bindings
@@ -638,13 +648,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             nodes[i] = selection[i] ? 
                 browser.childsFilteredAndAsListItems(selection[i].value, filters[i]) : 
                 [];
-            selection[i + 1] = oldN[i] ? 
-                nodes[i].detect(function(ea) { return ea.value.hasSimilarTarget(oldN[i]); }) : 
-                null
+            selection[i + 1] = oldN[i] ? this.findBestMatchingNode(oldN[i], nodes[i]) : null;
         }
         // loose the first selection, rootNode, to have everything symmetric
         selection.shift();
-
 
         lively.bindings.noUpdate(function() {
             for (var n = 1; n < 5; n++){
@@ -970,8 +977,7 @@ Object.subclass('lively.ide.BrowserNode',
             return false;
         return (this.target !== undefined && this.target === other.target) 
             || this.asString() == other.asString()
-    },
-
+    }
 },
 'source code management', {
     newSource: function(newSource) {

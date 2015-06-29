@@ -1052,7 +1052,7 @@ lively.morphic.World.addMethods(
             }
         }
 
-        var maxQueueLength = 7;
+        var maxQueueLength = 20;
         if (this.undoQueue.length > maxQueueLength) {
             this.undoQueue.splice(0, 2);
         }

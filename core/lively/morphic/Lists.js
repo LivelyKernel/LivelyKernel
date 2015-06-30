@@ -1223,7 +1223,13 @@ lively.morphic.Box.subclass('lively.morphic.List',
         m && m.disableHalos();
         if (m) return m;
         return this.addMorph(lively.newMorph({
-            style: {fill: null, adjustForNewBounds: true, resizeWidth: true}}));
+            style: {
+                fill: null,
+                adjustForNewBounds: true,
+                resizeWidth: true,
+                enableDropping: false
+            }
+        }));
     },
     set listItemContainer(morph) {
         if (this.submorphs[0] && this.submorphs[0] !== morph) this.submorphs[0].remove();
@@ -1280,6 +1286,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
             itemMorph.textString = this.renderFunction(item);
+            itemMorph.droppingEnabled = false;
 
             var oldCssClasses = itemMorph.getStyleClassNames().withoutAll(["Morph","Text","list-item"]);
             var newCssClasses = item.cssClassNames ? item.cssClassNames.clone() : [];

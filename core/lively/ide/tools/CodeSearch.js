@@ -161,7 +161,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             _Position: lively.pt(590,24+478),
             checked: false,
             className: "lively.morphic.CheckBox",
-            droppingEnabled: true,
+            droppingEnabled: false,
             layout: {
                 moveHorizontal: true,
                 moveVertical: true
@@ -181,6 +181,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             allowInput: false,
             className: "lively.morphic.Text",
             fixedWidth: true,
+            droppingEnabled: false,
             grabbingEnabled: false,
             layout: {
                 moveHorizontal: true,

@@ -1,6 +1,7 @@
 module('lively.ide.tools.CommandLine').requires('lively.persistence.BuildSpec', "lively.ide.CodeEditor").toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.CommandLine', {
+    droppingEnabled: false,
     name: "CommandLine",
     className: "lively.morphic.CodeEditor",
     theme: Config.get('aceDefaultTheme'),

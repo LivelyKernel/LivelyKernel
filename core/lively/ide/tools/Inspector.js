@@ -15,7 +15,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         _Fill: Color.rgba(235,235,235,0),
         _Position: lively.pt(4.0,22.0),
         className: "lively.morphic.Box",
-        droppingEnabled: true,
+        droppingEnabled: false,
         isCopyMorphRef: true,
         layout: {
             adjustForNewBounds: true,
@@ -35,7 +35,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _Fill: Color.rgb(255,255,255),
             _Position: lively.pt(4,38.5),
             className: "lively.morphic.Box",
-            droppingEnabled: true,
+            droppingEnabled: false,
             layout: {
                 resizeWidth: true,
                 scaleVertical: true
@@ -49,7 +49,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
                 className: "lively.morphic.Tree",
                 depth: 0,
                 dragAndDrop: true,
-                droppingEnabled: true,
+                droppingEnabled: false,
                 isInLayoutCycle: false,
                 layout: {resizeWidth: true,scaleVertical: true},
                 name: "ObjectInspectorTree",
@@ -93,7 +93,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             className: "lively.morphic.DropDownList",
             doNotCopyProperties: [],
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
-            droppingEnabled: true,
+            droppingEnabled: false,
             itemList: [{
                 isListItem: true,
                 string: "show standard properties",
@@ -118,17 +118,20 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             }
         },
         {
+            _ClipMode: "hidden",
             _Extent: lively.pt(92.0,0.0),
             _Position: lively.pt(6.0,10.0),
             _FontFamily: "Helvetica",
             _HandStyle: null,
-            _InputAllowed: true,
+            _InputAllowed: false,
+            _IsSelectable: false,
             _TextColor: Color.rgb(64,64,64),
             allowInput: false,
             className: "lively.morphic.Text",
             evalEnabled: false,
             fixedHeight: true,
             fixedWidth: true,
+            isLabel: true,
             textString: "Filter:"
         },{
             _AutocompletionEnabled: true,
@@ -154,7 +157,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             allowInput: true,
             className: "lively.morphic.CodeEditor",
             doitContext: null,
-            droppingEnabled: true,
+            droppingEnabled: false,
             layout: {
                 resizeWidth: true,
                 scaleVertical: true
@@ -332,7 +335,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             className: "lively.morphic.HorizontalDivider",
             doNotSerialize: ["_renderContext","halos","_isRendered","priorExtent","cachedBounds"],
             draggingEnabled: true,
-            droppingEnabled: true,
+            droppingEnabled: false,
             fixed: [],
             layout: {
                 resizeWidth: true,
@@ -355,7 +358,7 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _Position: lively.pt(2,435),
             checked: false,
             className: "lively.morphic.CheckBox",
-            droppingEnabled: true,
+            droppingEnabled: false,
             layout: {
                 moveVertical: true
             },
@@ -365,10 +368,12 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             lively.bindings.connect(this, "setChecked", this.get("ObjectInspector"), "setDoItContext", {});
         }
         },{
+            _ClipMode: "hidden",
             _Extent: lively.pt(193.0,26.0),
             _FontFamily: "Arial, sans-serif",
             _HandStyle: "default",
             _InputAllowed: false,
+            _IsSelectable: false,
             _Position: lively.pt(25,438),
             _TextColor: Color.rgb(64,64,64),
             allowInput: false,
@@ -376,7 +381,11 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             fixedWidth: true,
             layout: { moveVertical: true },
             name: "Text",
-            textString: "Bind 'this' to selection"
+            textString: "Bind 'this' to selection",
+            onMouseDown: function onMouseDown(evt) {
+                var checkbox = this.get('BindThisToSelection');
+                checkbox.setChecked(!checkbox.isChecked());
+            }
         }],
         tree: {
             isMorphRef: true,

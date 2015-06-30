@@ -19,7 +19,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
 }",
     className: "lively.morphic.Box",
     connections: {rendered: {}},
-    droppingEnabled: true,
+    droppingEnabled: false,
     filterState: {
         filterTimeout: 100,
         filters: [],
@@ -61,7 +61,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         _Fill: Color.rgb(243,243,243),
         _Position: lively.pt(4,23),
         className: "lively.morphic.List",
-        droppingEnabled: true,
+        droppingEnabled: false,
         itemMorphs: [],
         layout: {
             adjustForNewBounds: true,

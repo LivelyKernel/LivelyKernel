@@ -25,12 +25,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
         currentCategory: null,
         currentTag: null,
-        droppingEnabled: true,
-        isCopyMorphRef: true,
-        layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         droppingEnabled: false,
         draggingEnabled: false,
         grabbingEnabled: false,
+        isCopyMorphRef: true,
+        layout: {adjustForNewBounds: true,resizeHeight: true,resizeWidth: true},
         morphRefId: 1,
         morphSelector: {
             isMorphRef: true,
@@ -128,7 +127,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Position: lively.pt(803.0,40.0),
             alarmColor: Color.rgb(240,0,0),
             className: "lively.morphic.Box",
-            droppingEnabled: true,
+            droppingEnabled: false,
             grabbingEnabled: false,
             draggingEnabled: false,
             isCopyMorphRef: true,
@@ -375,18 +374,22 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     }
                 }
         },{
+            _ClipMode: "hidden",
             _Extent: lively.pt(64.9,15.0),
             _FontFamily: "Arial, sans-serif",
             _FontSize: 9,
             _HandStyle: null,
             _InputAllowed: false,
+            _IsSelectable: false,
             _Position: lively.pt(4.0,12.0),
             _TextColor: Color.rgb(64,64,64),
+            allowInput: false,
             className: "lively.morphic.Text",
             eventsAreIgnored: true,
             fixedWidth: true,
             grabbingEnabled: false,
             isCopyMorphRef: true,
+            isLabel: true,
             morphRefId: 27,
             name: "ObjectEditorScriptsText2",
             textString: "Tag:"
@@ -699,7 +702,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             connectionList: { isMorphRef: true, name: "ObjectEditorConnectionList" },
             currentCategory: null,
             currentTag: null,
-            droppingEnabled: true,
+            droppingEnabled: false,
             grabbingEnabled: false,
             layout: { adjustForNewBounds: true, resizeHeight: true },
             morphSelector: {
@@ -778,17 +781,21 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                             return this.selectAt(index);
                     }
             },{
+                _ClipMode: "hidden",
                 _Extent: lively.pt(64.9,15.0),
                 _FontFamily: "Arial, sans-serif",
                 _FontSize: 9,
                 _HandStyle: null,
-                _InputAllowed: true,
+                _InputAllowed: false,
+                _IsSelectable: false,
                 _Position: lively.pt(3.0,2.0),
                 _TextColor: Color.rgb(64,64,64),
+                allowInput: false,
                 className: "lively.morphic.Text",
                 eventsAreIgnored: true,
                 fixedWidth: true,
                 isCopyMorphRef: true,
+                isLabel: true,
                 morphRefId: 18,
                 name: "ObjectEditorScriptsText",
                 textString: "Scripts"
@@ -905,7 +912,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
             currentCategory: null,
             currentTag: null,
-            droppingEnabled: true,
+            droppingEnabled: false,
             grabbingEnabled: false,
             layout: {
                 adjustForNewBounds: true,
@@ -996,17 +1003,21 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                             });
                     }
             },{
+                _ClipMode: "hidden",
                 _Extent: lively.pt(124.1,22.0),
                 _FontFamily: "Arial, sans-serif",
                 _FontSize: 9,
                 _HandStyle: null,
-                _InputAllowed: true,
+                _InputAllowed: false,
+                _IsSelectable: false,
                 _Position: lively.pt(2.0,2),
                 _TextColor: Color.rgb(64,64,64),
+                allowInput: false,
                 className: "lively.morphic.Text",
                 eventsAreIgnored: true,
                 fixedWidth: true,
                 isCopyMorphRef: true,
+                isLabel: true,
                 layout: {
                     moveVertical: true
                 },

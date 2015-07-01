@@ -986,20 +986,22 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
                 disconnectSelectedConnection: function disconnectSelectedConnection() {
                         var editor = this.objectEditorPane,
-                            selection = editor.connectionList.selection;
-                        if (!editor.target || editor.connectionList.getList().size() < 2) return;
-                        return this.world().confirm(
-                            'Disconnect "' + selection[0] +'" connection?',
+                            selection = editor.connectionList.selection,
+                            selectedIndex = editor.connectionList.selectedIndexes[0];
+                        if (!editor.target || editor.connectionList.getList().size() < 2 || selectedIndex == null)
+                            return;
+                        var confirmText = 'Disconnect ' + (selectedIndex == 0 ? selection + ' connections' : '"' + selection[0] + '" connection') + '?';
+                        return this.world().confirm(confirmText,
                             function (confirmed) {
                                 if (!confirmed) return;
-                                var listIndex = editor.target.attributeConnections.indexOf(selection[1]);
-                                if (selection && (typeof selection !== "string") && listIndex > -1) {
-                                    var c = selection[1];
-                                    lively.bindings.disconnect(
-                                        c.sourceObj, c.sourceAttrName, c.targetObj, c.targetMethodName);
-                                    editor.updateLists();
-                                    editor.displayInitialScript();
-                                }
+                                if (selectedIndex != 0) {
+                                    var listIndex = editor.target.attributeConnections.indexOf(selection[1]);
+                                    if (selection && listIndex >= 0)
+                                        selection[1].disconnect();
+                                } else // remove all
+                                    editor.target.attributeConnections.invoke('disconnect');
+                                editor.updateLists();
+                                editor.displaySourceForConnection(null);
                             });
                     }
             },{

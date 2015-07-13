@@ -452,7 +452,7 @@ lively.morphic.Morph.addMethods(
         //in the case where morph gets moved by a mouse directly (without using the halo)
         //we need to calculate the mouse offset to get the morph's true start origin
         //and then adjust the difference in both the startOrigin, and startTransform.
-        if(evt && evt.hand.eventStartPos) {
+        if(evt && evt.hand && evt.hand.eventStartPos) {
             var mouseOffsetX = evt.getPosition().x - evt.hand.eventStartPos.x;
             var mouseOffsetY = evt.getPosition().y - evt.hand.eventStartPos.y;
             org.x -= mouseOffsetX;
@@ -1106,7 +1106,7 @@ lively.morphic.World.addMethods(
         if (!this.undoQueue || this.undoQueue.length == 0) return;
         var lastAction = this.undoQueue.last();
         if (lastAction.morph !== amendment.morph || lastAction.actionName !== amendment.actionName) {
-            Console.log('Unmatching log of state for ' + amendment.actionName + ' ' + amendment.phase);
+            console.log('Unmatching log of state for ' + amendment.actionName + ' ' + amendment.phase);
             // Maybe we should do more - like check if lastAction phase was start
             // meaning it needs more, so we should take it off the queue since incomplete
             return

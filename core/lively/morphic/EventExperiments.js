@@ -49,7 +49,7 @@ cop.create('lively.morphic.GrabbingLayer')
     isLocked: function() { return false },
     onDragStart: function(evt) {
         if (cop.proceed(evt)) return;
-        evt.hand.grabMorph(this);
+        evt.hand.grabMorph(this, evt);
     }
 })
 .refineClass(lively.morphic.Text, {

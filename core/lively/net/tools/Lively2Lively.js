@@ -1061,7 +1061,8 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             var self = this, text = this.getSelectionMaybeInComment();
             function output(msg, isError) {
                 if (printResult) {
-                    self.printObject(editor, msg, false);
+                    // self.printObject(editor, msg, false);
+                    self.printObject(editor, "OK", false);
                 } else {
                     self.setStatusMessage(msg, isError ? Global.Color.red : null);
                     var sel = self.getSelection();

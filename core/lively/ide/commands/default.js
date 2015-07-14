@@ -616,12 +616,11 @@ Object.extend(lively.ide.commands.byName, {
                 searchForMatchingDebounced = lively.lang.fun.debounce(1000, searchForMatching),
                 lastSearchInput = null, lastFiles;
 
-            var dir,
-                narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+            lively.ide.tools.SelectionNarrowing.getNarrower({
                   name: 'lively.ide.browseFiles.NarrowingList',
                   spec: {
                     candidates: initialCandidates,
-                    candidatesUpdaterMinLength: 2,
+                    // candidatesUpdaterMinLength: 2,
                     prompt: 'filename: ',
                     maxItems: 25,
                     keepInputOnReactivate: true,
@@ -666,7 +665,7 @@ Object.extend(lively.ide.commands.byName, {
 
             function doSearch(searchAgain, input, matchParts, thenDo) {
                 lively.lang.fun.composeAsync(
-                    function withDirDo(func) { func(null, narrower.dir || lively.shell.cwd()); },
+                    function withDirDo(func) { func(null, lively.shell.cwd()); },
                     function fetchFiles(dir, next) {
                       if (!searchAgain && lastFiles) return next(null, lastFiles, dir);
                       var opts = {sync: false, matchPath: true}
@@ -770,7 +769,7 @@ Object.extend(lively.ide.commands.byName, {
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
                 function withDirDo(func) {
-                    if (narrower.dir) func(null, narrower.dir);
+                    if (narrower & narrower.dir) func(null, narrower.dir);
                     else lively.shell.exec('pwd', {}, function(cmd) { func(null, cmd.resultString()); });
                 }
                 function showLoadingIndicatorThenDo(thenDo) {
@@ -1040,21 +1039,28 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.printDirectory': {
         description: 'Print directory hierarchy',
         exec: function() {
-            function printIt(dir) {
-                lively.shell.run("find " + dir.path + "", {}, function(err, cmd) {
-                    lively.require('lively.data.DirectoryUpload').toRun(function() {
-                        var files = cmd.getStdout().split('\n')
-                        new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
-                    });
-                    
-                })
-            }
             lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
                 'choose directory: ',
-                lively.ide.CommandLineInterface.cwd(),
+                lively.shell.cwd(),
                 function(files) { return files.filterByKey('isDirectory'); },
                 "lively.ide.CommandLineInterface.printDirectory.NarrowingList",
-                [printIt]);
+                [function printIt(dir) {
+                  lively.lang.fun.composeAsync(
+                    function(n) { lively.require('lively.data.DirectoryUpload').toRun(function() { n(); }); },
+                    function(n) {
+                      var excludes = lively.lang.string.format("\\( -iname %s \\) -prune -o",
+                          lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
+                        cmdString = lively.lang.string.format("find %s %s -print",
+                          typeof dir === "string" ? dir : dir.path, excludes);
+                      lively.shell.run(cmdString, {}, n);
+                    },
+                    function(cmd, n) { n(null, cmd.getStdout().split('\n')); }
+                  )(function(err, files) {
+                    if (err) $world.inform("Error printing dir hierarchy of " + dir.path + "\n" + err)
+                    else new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(
+                      files, "Directory hierarchy of " + dir);
+                  })
+                }]);
         }
     },
 

@@ -428,6 +428,12 @@ lively.ast.MozillaAST.Cache = {
       + "  key: Identifier;\n"
       + "  value: FunctionExpression;\n"
       + "}\n",
+      // rk 2015-06-13 looks like the RestElement is favored over rest
+      // attributes...
+        "interface RestElement <: Pattern {\n"
+      + "  type: \"RestElement\";\n"
+      + "  argument: Pattern;\n"
+      + "}\n",
 
       // rk 2015-05-07 addition for jsx processing, see
       // https://github.com/facebook/jsx/blob/master/AST.md

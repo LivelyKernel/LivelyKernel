@@ -605,6 +605,9 @@ module.exports = function(acorn) {
     node.openingElement = openingElement;
     node.closingElement = closingElement;
     node.children = children;
+    if (this.type === tt.relational && this.value === "<") {
+      this.raise(this.pos, "Adjacent JSX elements must be wrapped in an enclosing tag");
+    }
     return this.finishNode(node, 'JSXElement');
   };
 
@@ -7326,6 +7329,18 @@ exports.MozillaAST.BaseVisitor = lang.class.create(Object, "lively.ast.MozillaAS
     return retVal;
   },
 
+  // intermediate addition until this becomes part of the official Mozilla AST spec
+  // interface RestElement <: Pattern {
+  //     type: "RestElement";
+  //     argument: Pattern;
+  // }
+  visitRestElement: function(node, depth, state, path) {
+    var retVal;
+    // argument is a node of type Pattern
+    retVal = this.accept(node.argument, depth, state, path.concat(["argument"]));
+    return retVal;
+  },
+
   visitSwitchCase: function(node, depth, state, path) {
     var retVal;
     if (node.test) {
@@ -8065,6 +8080,7 @@ var helpers = {
     return arr.flatmap(nodes, function(ea) {
       if (!ea) return [];
       if (ea.type === "Identifier") return [ea];
+      if (ea.type === "RestElement") return [ea.argument];
       if (ea.type === "ObjectPattern")
         return helpers.declIds(arr.pluck(ea.properties, "value"));
       if (ea.type === "ArrayPattern")

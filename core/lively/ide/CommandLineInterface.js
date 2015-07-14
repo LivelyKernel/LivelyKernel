@@ -848,13 +848,15 @@ Object.extend(lively.ide.CommandLineSearch, {
         return ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
 
-    extractBrowseRefFromGrepLine: function(line, baseDir) {
+    extractBrowseRefFromGrepLine: function extractBrowseRefFromGrepLine(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
         line = line.replace(/\\/g, '/').replace(/^\.\//, '');
-        var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
-        return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
+        var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):?([0-9]+)?/);
+        return fileMatch ?
+          {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir}
+          : null;
     },
 
     extractModuleNameFromLine: function(line) {
@@ -875,11 +877,15 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     doBrowseAtPointOrRegion: function(codeEditor) {
         try {
-            var str = codeEditor.getSelectionOrLineString();
-            str = str.replace(/\/\//g, '/');
-            var spec = this.extractBrowseRefFromGrepLine(str) || this.extractModuleNameFromLine(str);
+            var pos = codeEditor.getCursorPositionAce(),
+                line = codeEditor.aceEditor.session.getLine(pos.row),
+                start = (lively.lang.string.peekLeft(line, pos.column, " ") || -1) + 1,
+                end = lively.lang.string.peekRight(line, pos.column, " ") || line.length,
+                substring = line.slice(start, end).replace(/\/\//g, '/'),
+                spec = this.extractBrowseRefFromGrepLine(substring)
+                    || this.extractModuleNameFromLine(substring);
             if (!spec) {
-                show("cannot extract browse ref from %s", str);
+                show("cannot extract browse ref from %s", substring);
             } else {
                 // this.doBrowse(spec);
                 lively.ide.openFile(spec.fileName + (spec.line ? ':' + spec.line : ''));

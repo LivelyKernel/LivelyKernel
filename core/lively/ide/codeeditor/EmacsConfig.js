@@ -227,7 +227,7 @@ function setupEmacsSpecificCommands(kbd) {
 
   kbd.bindKeys(bind(cmdLPrefix + "b r o w s e", 'browseURLOrPathInWebBrowser'));
   kbd.bindKeys(bind(cmdLPrefix + "d a t e", 'insertDate'));
-  kbd.bindKeys(bind(cmdLPrefix + "s-o", 'doBrowseAtPointOrRegion'));
+  kbd.bindKeys(bind(cmdLPrefix + "o p e n", 'doBrowseAtPointOrRegion'));
 
   kbd.bindKeys(bind(cmdLPrefix + "s n i p", 'browseSnippets'));
   kbd.bindKeys(bind("S-CMD-c", 'browseSnippets'));

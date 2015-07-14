@@ -171,7 +171,7 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ja
 },
 "parsing", {
     parse: function(src, session) {
-        var options = {withComments: true};
+        var options = {withComments: true, allowReturnOutsideFunction: true};
         options.type = session.$astType;
         return lively.ast.fuzzyParse(src, options);
     }

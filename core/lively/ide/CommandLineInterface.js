@@ -903,7 +903,7 @@ Object.extend(lively.ide.CommandLineSearch, {
                           + "else "
                           + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
                           + "fi && ";
-        var excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
+        var excludes = options.excludes || ("-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
             searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : (options.matchPath ? '-ipath' : '-iname'), pattern),
             depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',
             // use GMT for time settings by default so the result is comparable

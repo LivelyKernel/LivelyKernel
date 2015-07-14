@@ -1323,15 +1323,14 @@ handleOnCapture);
     },
 
     dropOn: function(aMorph) {
-        // I might be wrong, but this.placeHolder is used nowhere wlse and should
-        // probably be this.placeholder. I've not seen where this changes behavior, though.
-        var placeholder = this.placeHolder;
-        var layouter = aMorph.getLayouter();
+        var placeholder = this.placeholder,
+            layouter = aMorph.getLayouter();
 
         if (placeholder) {
             var placeHolderPos = placeholder.getPosition();
             this.noLayoutDuring(function() {
                 if (layouter) layouter.removeAllPlaceholders();
+                placeholder.remove(); // placeholder might not be submorph of layouter.container
                 aMorph.addMorph(this);
                 this.onDropOn(aMorph);
                 this.setPosition(placeHolderPos.subPt(this.getOrigin()));

@@ -359,11 +359,14 @@ Object.subclass('lively.morphic.Layout.Layout',
     },
     showPlaceholderFor: function(morph, evt) {
         if (!this.container || !this.container.droppingEnabled) return;
-        var localPos = this.container.getGlobalTransform().
-            inverse().transformPoint(evt.getPosition());
-        var placeholder = morph.obtainPlaceholder();
-        if (!placeholder.isSubmorphOf(this.container)) {
-            this.container.insertPlaceholder(placeholder);
+
+        var localPos = this.container
+              .getGlobalTransform().inverse()
+              .transformPoint(evt.getPosition()),
+            placeholder = morph.obtainPlaceholder();
+
+        if (placeholder.owner !== this.container) {
+          this.container.insertPlaceholder(placeholder);
         }
         placeholder.setPosition(localPos);
         this.container.applyLayout();

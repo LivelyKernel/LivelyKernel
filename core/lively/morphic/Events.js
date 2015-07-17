@@ -1988,7 +1988,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'event handling', {
     grabMorph: function(morph, evt) {
-        morph.logTransformationForUndo('grab', 'start', evt);
+        morph.logTransformationForUndo('grab', 'start');
         morph.previousOwner = morph.owner;
         morph.previousPosition = morph.getPosition();
         return this.grabMorphs([morph], evt)

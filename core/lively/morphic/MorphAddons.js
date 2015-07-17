@@ -443,18 +443,27 @@ lively.morphic.Morph.addMethods(
         $world.amendMorphicAction(spec);
     },
 
-    logTransformationForUndo: function(actionName, phase) {
+    logTransformationForUndo: function(actionName, phase, evt) {
         // See World.undoReadme
         // Note grab/drop involves change in both ownership and transformation
         // Change of origin is handled separately
-        var transform = this.getGlobalTransform();
+        var transform = this.getTransform();
+        //in the case where morph gets moved by a mouse directly (without using the halo)
+        //we need to calculate the mouse offset to get the morph's true start origin
+        //and then adjust the difference in both the startOrigin, and startTransform.
+        if(evt && evt.hand && evt.hand.eventStartPos && evt.getTargetMorph() == this) {
+            var mouseOffsetX = evt.getPosition().x - evt.hand.eventStartPos.x;
+            var mouseOffsetY = evt.getPosition().y - evt.hand.eventStartPos.y;
+            transform.e -= mouseOffsetX;
+            transform.f -= mouseOffsetY;
+        }
         var org = transform.transformPoint(this.getOrigin());
         if (phase == null || phase == 'start') {
             // Log the starting state for, eg, grab, drag, etc.
             $world.logMorphicAction({
                 morph: this, actionName: actionName, phase: phase,
                 undoFunctionName: 'undoRedoTransformationChange',
-                startTransform: this.getTransform(), startExtent: this.getBounds().extent(),
+                startTransform: transform, startExtent: this.getBounds().extent(),
                 startOwner: this.owner,
                 startIndexInSubmorphs: this.owner ? this.owner.submorphs.indexOf(this) : null,
                 startOrigin: org

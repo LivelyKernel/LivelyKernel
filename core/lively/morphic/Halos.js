@@ -514,13 +514,13 @@ lively.morphic.Halo.subclass('lively.morphic.GrabHalo',
     },
     dragEndAction: function(evt) {
         evt.world.dispatchDrop(evt);
-        //this.targetMorph.logTransformationForUndo('grab', 'end');
+        this.targetMorph.logTransformationForUndo('grab', 'end');
         this.targetMorph.removeHalos();
         this.targetMorph.showHalos();
     },
     dragStartAction: function(evt) {
         this.compensateDragTriggerDistance(evt);
-        //this.targetMorph.logTransformationForUndo('grab', 'start');
+        this.targetMorph.logTransformationForUndo('grab', 'start');
         evt.hand.grabMorph(this.targetMorph, evt);
         this.targetMorph.showSelectedHalos([this]);
     },

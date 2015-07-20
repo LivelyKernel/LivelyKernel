@@ -451,7 +451,8 @@ lively.morphic.Morph.addMethods(
         //in the case where morph gets moved by a mouse directly (without using the halo)
         //we need to calculate the mouse offset to get the morph's true start origin
         //and then adjust the difference in both the startOrigin, and startTransform.
-        if(evt && evt.hand && evt.hand.eventStartPos && evt.getTargetMorph() == this) {
+        if(evt && evt.hand && evt.hand.eventStartPos && 
+            ! (evt.getTargetMorph() instanceof lively.morphic.GrabHalo )) {
             var mouseOffsetX = evt.getPosition().x - evt.hand.eventStartPos.x;
             var mouseOffsetY = evt.getPosition().y - evt.hand.eventStartPos.y;
             transform.e -= mouseOffsetX;

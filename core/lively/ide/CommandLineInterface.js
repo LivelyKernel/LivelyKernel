@@ -272,7 +272,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         if (this._done) {
             isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
-        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
+        } else if (!this._started && lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
             this._killed = true;
             isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
@@ -280,6 +280,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
             var pid = this.getPid();
             if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
             var self = this;
+            signal = signal || "SIGKILL";
             this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
                 err = err || (answer.data && answer.data.error);
                 if (err) console.warn("stopShellCommand: " + err);
@@ -805,7 +806,16 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     doGrep: function(string, path, thenDo) {
         var lastGrep = lively.ide.CommandLineSearch.lastGrep;
-        if (lastGrep) lastGrep.kill();
+        if (lastGrep && lastGrep.isRunning() && !lastGrep.wasKilled()) {
+          lastGrep.kill("KILL");
+          lively.lang.fun.waitFor(400,
+            function() { return !lively.ide.CommandLineSearch.lastGrep; },
+            function() {
+              lively.ide.CommandLineSearch.doGrep(string, path, thenDo);
+            })
+          return;
+        }
+
         path = path || '';
         if (path.length && !path.endsWith('/')) path += '/';
         var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
@@ -816,16 +826,14 @@ Object.extend(lively.ide.CommandLineSearch, {
             // baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a -print0 | xargs -0 grep -IinH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
-        if (platform !== 'win32') {
-            baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
-        }
-        var charsBefore = 80, charsAfter = 80;
-        var cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
-        lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(err, r) {
-            if (r.wasKilled()) return;
+        if (platform !== 'win32') baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
+        var charsBefore = 80, charsAfter = 80,
+            cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
+        lively.ide.CommandLineSearch.lastGrep = lively.shell.run(cmd, function(err, r) {
             lively.ide.CommandLineSearch.lastGrep = null;
-            var lines = r.getStdout().split('\n').map(function(line) {
-                return line.replace(/\/\//g, '/'); })
+            if (r.wasKilled()) return;
+            var lines = r.getStdout().split('\n')
+              .map(function(line) { return line.replace(/\/\//g, '/'); });
             thenDo && thenDo(lines, fullPath);
         });
     },

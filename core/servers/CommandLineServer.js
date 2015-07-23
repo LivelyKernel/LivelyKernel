@@ -58,9 +58,12 @@ function defaultKill(pid, cmd, signal, thenDo) {
 
 function pkillKill(pid, cmd, signal, thenDo) {
     // signal = "SIGKILL"|"SIGQUIT"|"SIGINT"|...
-    debug && console.log('signal pid %s with', pid, signal);
     signal = signal.toUpperCase().replace(/^SIG/, '');
-    exec(util.format('pkill -%s -P %s; kill -s %s %s', signal, pid, signal, pid), function(code, out, err) {
+    // rk 2015-07-15: properly killing piped processes -- currently this only
+    // works when making the spawned process a group leader
+    var killCmd = util.format('pkill -%s -g $(ps opgid= "%s")', signal, pid);
+    debug && console.log('signal pid %s with %s (%s)', pid, signal, killCmd);
+    exec(killCmd, function(code, out, err) {
         debug && console.log('signal result: ', out, err);
         thenDo(code, out, err);
     });
@@ -80,7 +83,7 @@ var doKill = defaultKill;
 function startSpawn(cmdInstructions) {
     var commandEnv = cmdInstructions.env || {};
     commandEnv.__proto__ = env;
-    var options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe'},
+    var options = {env: commandEnv, cwd: cmdInstructions.cwd || dir, stdio: 'pipe', detached: true},
         commandString = cmdInstructions.command,
         stdin = cmdInstructions.stdin;
     if (util.isArray(command)) {
@@ -106,9 +109,9 @@ function startSpawn(cmdInstructions) {
           args = ["/C", commandString];
     }
 
-    if (debug) console.log('Running command: "%s"', [command].concat(args).join(' '));
     var proc = spawn(command, args, options);
     d.add(proc);
+    if (debug) console.log('Running command: "%s" (%s)', [command].concat(args).join(' '), proc.pid);
     if (stdin) {
         debug && console.log('setting stdin to: %s', stdin);
         proc.stdin.end(stdin);

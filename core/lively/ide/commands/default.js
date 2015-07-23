@@ -1009,11 +1009,17 @@ Object.extend(lively.ide.commands.byName, {
             // ...and change the base dir for real
             function setBasePath(candidate, n) {
               if (!candidate) return n(new Error("No directory choosen"));
-              var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
-              if (result) alertOK('base directory is now ' + result);
-              else alertOK('resetting base directory to default');
-              lively.shell.setWorkingDirectory(result);
-              n(null, result);
+              var path = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+              if (path) $world.alertOK('base directory is now ' + path);
+              else $world.alertOK('resetting base directory to default');
+              lively.shell.setWorkingDirectory(path);
+              path && lively.require("lively.lang.Runtime").toRun(function() {
+                  lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
+              var menuBar = $morph('MenuBar');
+              if (menuBar && menuBar.getMorphNamed("cwdLabel")) {
+                menuBar.getMorphNamed("cwdLabel").update();
+              }
+              n(null, path);
             }
           )(function(err, dir) { });
           return true;

@@ -2939,6 +2939,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
             if (self.expandedExtent) self.setExtent(self.expandedExtent);
             if (self.expandedPosition) self.setPosition(self.expandedPosition);
             self.helperMorphs.forEach(function(ea) { self.addMorph(ea); });
+            if (self.targetMorph && !self.targetMorph.owner) self.addMorph(self.targetMorph);
         }
         this.withCSSTransitionForAllSubmorphsDo(finExpand, 250, function() {
             self.comeForward();

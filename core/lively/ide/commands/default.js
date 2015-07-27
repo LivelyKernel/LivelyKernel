@@ -80,12 +80,24 @@ Object.extend(lively.ide.commands.byName, {
     'lively.morphic.World.undoLastAction': {
 	description: 'Lively: undo last action',
 	exec: function() {
-	    $world.undoLastAction(); return true;
-	}
+	    //lively doesn't handle undo/redo for text editing, so pass the
+	    //event up to the browser to handle.
+	        if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	                return false;
+	            }
+	        $world.undoLastAction(); return true;
+	    }
     },
     'lively.morphic.World.redoNextAction': {
         description: 'Lively: redo next action',
         exec: function() {
+        //lively doesn't handle undo/redo for text editing, so pass the
+	    //event up to the browser to handle.
+            if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	                return false;
+	            }
             $world.redoNextAction(); return true;
         }
     },

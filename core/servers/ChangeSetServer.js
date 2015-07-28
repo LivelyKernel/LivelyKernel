@@ -92,7 +92,7 @@ function getCommitsByBranch(branch, cb) {
             }
 
             // find commit notes with info what belongs to this changeset
-            async.map(info.added.concat(info.missing), function(change, callback) {
+            async.mapLimit(info.added.concat(info.missing), 20, function(change, callback) {
                 gitHelper.util.readCommitInfo(repo, change.commitId, NAMESPACE, function(err, info) {
                     change.note = info && info.notes;
                     callback(err, info);

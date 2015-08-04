@@ -1874,36 +1874,6 @@ lively.morphic.World.addMethods(
         return editor;
     },
 
-    openAboutBox: function() {
-        var text = this.addTextWindow({title: 'About Lively Kernel'});
-        text.owner.setExtent(pt(390, 105));
-        var webR = new WebResource(new URL(Config.rootPath));
-        var licenseURL = 'http://lively-kernel.org/license/index.html';
-        var headRevision = webR.getHeadRevision().headRevision;
-        var repositoryString = 'Repository: ' + Config.rootPath;
-        var revisionString = '\n\nRevision: ' + headRevision;
-        var licenseString = '\n\nLicense: ' + licenseURL;
-        text.setTextString(repositoryString + revisionString + licenseString);
-        text.changeEmphasis('Repository: '.length, repositoryString.length + 1, function(emph, doEmph) {
-            doEmph({uri: Config.rootPath});
-        });
-        text.changeEmphasis(repositoryString.length + revisionString.length + '\n\nLicense: '.length, repositoryString.length + revisionString.length + licenseString.length + 1, function(emph, doEmph) {
-            doEmph({uri: licenseURL});
-        });
-        text.setSelectionRange(0,0)
-        return text;
-    },
-    openBootstrapParts: function() {
-        // load the bootstrap part from webwerkstat
-        // this part can fetch all his friends :-)
-        var oldRootPath = Config.rootPath
-        try {
-            Config.rootPath = 'http://lively-kernel.org/repository/webwerkstatt/'
-            this.openPartItem("BootstrapParts", "PartsBin/Tools")
-        } finally {
-            Config.rootPath = oldRootPath
-        }
-    },
     openSystemConsole: function() {
         lively.ide.commands.exec("lively.ide.openSystemConsole");
     },
@@ -2128,8 +2098,6 @@ lively.morphic.World.addMethods(
             ],
             ['Debugging', this.debuggingMenuItems(world)],
             ['Wiki', [
-                // ['About this wiki', this.openAboutBox.bind(this)],
-                // ['Bootstrap parts from webwerkstatt', this.openBootstrapParts.bind(this)],
                 ['View versions of this world', this.openVersionViewer.bind(this, URL.source)],
                 ['Download world', function() {
                     require('lively.persistence.StandAlonePackaging').toRun(function() {

@@ -1,4 +1,4 @@
-module('lively.persistence.Entanglement').requires('lively.persistence.BuildSpec', 'lively.persistence.Serializer', 'lively.morphic.Core', 'lively.ide.tools.EntanglementInspector').toRun(function() {
+module('lively.persistence.Entanglement').requires('lively.persistence.BuildSpec', 'lively.persistence.Serializer', 'lively.morphic.Core').toRun(function() {
 
 Object.subclass("lively.persistence.Entanglement.Morph", 
     "initializing", {
@@ -133,8 +133,11 @@ Object.subclass("lively.persistence.Entanglement.Morph",
         },
 
     visualize: function() {
-        var inspector = lively.BuildSpec('lively.ide.tools.EntanglementInspector').createMorph().openInWorldCenter();
-        inspector.visualize(this);
+        lively.require('lively.ide.tools.EntanglementInspector').toRun(function() {
+            var inspector = lively.BuildSpec('lively.ide.tools.EntanglementInspector').createMorph();
+            inspector.openInWorldCenter();
+            inspector.visualize(this);
+        }.bind(this));
     },
     addMethod: function(methodName, method) {
         this.entangledMorphs.forEach(function(morph) {

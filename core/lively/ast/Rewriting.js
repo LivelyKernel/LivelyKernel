@@ -153,6 +153,7 @@ Object.extend(lively.ast.Rewriting, {
                     'core/lively/Traits.js', 'core/lively/DOMAbstraction.js', 'core/lively/IPad.js',
                     'core/lively/LogHelper.js',
                     // bootstrap.js
+                    'core/lively/defaultconfig.js', 'core/lively/localconfig.js', // FIXME: + user configs ?
                     'core/lively/bindings.js', 'core/lively/bindings/Core.js',
                     'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
                     // directly necessary for debugging BUT excluded for now:

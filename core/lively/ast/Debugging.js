@@ -142,9 +142,84 @@ Object.extend(lively.ast, {
             this.alignInWorld();
         }
         });
-        lively.BuildSpec('lively.ast.DebuggingFlap').createMorph().openInWorld();
+
+        if (!lively.Config.get("showMenuBar") || world._MenuBarHidden) {
+            // add debugging flap
+            lively.BuildSpec('lively.ast.DebuggingFlap').createMorph().openInWorld();
+        } else {
+            lively.require('lively.morphic.tools.MenuBar').toRun(function() {
+                lively.BuildSpec('lively.ast.DebuggingMenuEntry', lively.BuildSpec('lively.morphic.tools.MenuBarEntry').customize({
+
+                    name: 'DebuggingMenuEntry',
+                    textString: 'Debugging',
+
+                    changeColorForMenu: false,
+                    menuBarAlign: 'right',
+
+                    style: lively.lang.obj.merge(lively.BuildSpec('lively.morphic.tools.MenuBarEntry').attributeStore.style, {
+                        extent: lively.pt(120, 22),
+                        textColor: Global.Color.white,
+                        toolTip: 'Debugging options'
+                    }),
+
+                    morphMenuItems: function morphMenuItems() {
+                        function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
+
+                        var dbgStmt = !!lively.Config.get('enableDebuggerStatements');
+                        return [
+                            ['[' + (dbgStmt ? 'x' : ' ') + '] break on debugger', function() {
+                                lively.Config.set('enableDebuggerStatements', !dbgStmt);
+                            }],
+                            ['clear cache', function() {
+                                if (!lively.IndexedDB.isAvailable()) return;
+                                lively.IndexedDB.hasStore('Debugging', function(err, exists) {
+                                    if (err) throw err;
+                                    if (exists)
+                                        lively.IndexedDB.clear(function(err) {
+                                            if (err)
+                                                alert('Could not clear Debugging cache: ' + err.message);
+                                            else
+                                                alertOK('Cleared Debugging cache!');
+                                        }, 'Debugging');
+                                    else
+                                        alertOK('No cache to be cleared!');
+                                });
+                            }]
+                        ];
+                    },
+
+                    onLoad: function onLoad() {
+                        if (lively.Config.get('loadRewrittenCode')) {
+                            this.applyStyle({ fill: Global.Color.green });
+                            this.textString = 'Debugging';
+                        } else {
+                            this.applyStyle({ fill: Global.Color.red });
+                            this.textString = 'NOT Debugging';
+                        }
+                    }
+
+                }));
+
+                // add DebuggingMenuEntry to menubar
+                lively.morphic.tools.MenuBar.addEntry(
+                    lively.BuildSpec('lively.ast.DebuggingMenuEntry').createMorph()
+                );
+                if (!lively.Config.get('menuBarDefaultEntries').include('lively.ast.Debugging')) {
+                    lively.Config.get('menuBarDefaultEntries').push('lively.ast.Debugging');
+                }
+            });
+        }
     });
 })();
+
+Object.extend(lively.ast.Debugging, {
+
+    getMenuBarEntries: function() {
+        return [lively.BuildSpec('lively.ast.DebuggingMenuEntry').createMorph()];
+    }
+
+});
+
 
 // patch JSLoader to rewrite code on load
 Object.extend(JSLoader, {

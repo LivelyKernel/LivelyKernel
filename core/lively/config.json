@@ -228,7 +228,7 @@
 
   "lively.ModuleSystem": [
     ["modulesBeforeWorldLoad", ["lively.morphic.HTML"], "evaluated before all changes"],
-    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki"], "evaluated before world is setup"],
+    ["modulesOnWorldLoad", ["lively.ide", "lively.IPad", "lively.net.SessionTracker", "lively.net.Wiki", "lively.morphic.GlobalLogger"], "evaluated before world is setup"],
     ["codeBase", null, "The URL or path to the core/ Lively modules. Dynamically determined in bootstrap."],
     ["showModuleDefStack", true, "So modules know where they were required from."],
     ["modulePaths", ["apps", "users", "node_modules"], "root URLs of module lookup"],
@@ -291,6 +291,10 @@
     ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
   ],
 
+  "lively.undo": [
+      ["undoLogging", true]
+  ],
+
   "lively.morphic.Text": [
     ["useSoftTabs", true],
     ["useElasticTabs", false],
@@ -305,7 +309,7 @@
       "set": {"type": "function", "code": "function(v) { lively.Config._defaultTabSize = v; module('lively.ide.CodeEditor').runWhenLoaded(function() { lively.morphic.CodeEditor.prototype.style.tabSize = v; lively.whenLoaded(function() { lively.ide.allCodeEditors().invoke('setTabSize', v); }); }); return v; }"}
     },
     ["disableSyntaxHighlighting", false],
-    ["textUndoEnabled", false, "Deprecated. Wether Lively takes care of undoing text changes or leaves it to the browser."]
+    ["textUndoEnabled", true, "Deprecated. Wether Lively takes care of undoing text changes or leaves it to the browser."]
   ],
 
   "lively.morphic.CodeEditor": [

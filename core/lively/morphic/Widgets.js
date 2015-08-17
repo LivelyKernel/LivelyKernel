@@ -812,8 +812,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     paddingLeft: 20,
     isEpiMorph: true,
     isMenu: true,
-    removeOnMouseOut: false
-
+    removeOnMouseOut: false,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, title, items) {
@@ -1280,7 +1280,8 @@ lively.morphic.Text.subclass("lively.morphic.MenuItem",
         fontFamily: "Helvetica,Verdana,sans-serif",
         whiteSpaceHandling: 'nowrap'
     },
-    defaultTextColor: Config.get('textColor') || Color.black
+    defaultTextColor: Config.get('textColor') || Color.black,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, item) {
@@ -1690,6 +1691,7 @@ lively.morphic.World.addMethods(
                 openInWorldCenter().comeForward();
         });
     },
+
     openEntanglementInspectorFor: function(object, evt) {
         var e = object.buildSpec().createEntanglement();
         e.postEntangle(object);
@@ -2444,10 +2446,11 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
         accessibleInInactiveWindow: true
     },
     connections: ['HelpText', 'fire'],
+    isLoggable: false
 },
 'initializing', {
     initialize: function($super, bnds, inset, labelString, labelOffset/*deprecated*/) {
-        $super(bnds, labelString)
+        $super(bnds, labelString);
         this.label.setExtent(this.getExtent());
     },
 });
@@ -2601,7 +2604,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
     isWindow: true,
     isCollapsed: function() { return this.state === 'collapsed'; },
-    doNotSerialize: ['highlighted', 'cameForward']
+    doNotSerialize: ['highlighted', 'cameForward'],
+	//isLoggable: false
+
 },
 'initializing', {
     initialize: function($super, targetMorph, titleString, optSuppressControls) {
@@ -3481,7 +3486,8 @@ lively.morphic.Box.subclass('lively.morphic.Selection',
     isEpiMorph: true,
     doNotRemove: true,
     propagate: true,
-    isSelection: true
+    isSelection: true,
+	isLoggable: false
 },
 'initializing', {
 

@@ -9,7 +9,8 @@ Object.subclass('lively.morphic.Morph',
         borderColor: null,
         fill: null
     },
-    isMorph: true
+    isMorph: true,
+    isLoggable: true
 },
 'initializing', {
     idCounter: 0,

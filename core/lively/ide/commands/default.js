@@ -100,6 +100,23 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() { $world.setScale(1); }
     },
 
+    'lively.morphic.undo': {
+        description: '[morphic] undo',
+        exec: function() {
+            $world.GlobalLogger.undoLastAction();
+            return true;
+        }
+    },
+
+    'lively.morphic.redo': {
+        description: '[morphic] redo',
+        exec: function() {
+            $world.GlobalLogger.redoNextAction();
+            return true;
+        }
+    },
+
+
     'lively.morphic.MenuBar.hide': {
         description: 'hide the menu bar',
         exec: function() {
@@ -109,6 +126,7 @@ Object.extend(lively.ide.commands.byName, {
           });
         }
     },
+
 
     'lively.morphic.MenuBar.show': {
         description: 'show the menu bar',
@@ -1712,6 +1730,8 @@ Object.extend(lively.ide.commands.byName, {
 
 Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default keys
     'lively.morphic.World.save': {mac: ["Command-S", "cmd-s-l s a v e"], win: "Control-S"},
+    'lively.morphic.undo': {mac: "Command-Z", win: "Control-Z"},
+    'lively.morphic.redo': {mac: "Command-Y", win: "Control-Y"},
     'lively.ide.openSystemCodeBrowser': {mac: "Command-B", win: "Control-B"},
     'lively.ide.openWorkspace': {mac: "Command-K", win: "Control-K"},
     'lively.ide.openObjectEditor': {mac: "Command-O", win: "Control-O"},
@@ -1736,7 +1756,6 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.commands.keys.reset': 'F8',
     "lively.tests.mocha.runAll": "Control-C t",
     'lively.ide.tools.SelectionNarrowing.activateLastActive': "cmd-shift-y",
-    'lively.morphic.Morph.openStyleEditor': "cmd-y",
     'lively.morphic.Halos.show': {mac: "cmd-h", win: 'ctrl-h'},
     'lively.morphic.List.selectItem': "m-space",
     'lively.ide.codeSearch': {mac: ["Command-Shift-C", "Command-Shift-F"], win: ["Control-Shift-C", 'Control-Shift-G', 'Control-Shift-F']},
@@ -1744,7 +1763,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x",
     // normally browser fwd/bwd shortcut:
-    'disabled': {mac: ["Command-[", "Command-]"], win: ["Control-[", "Control-]"]},
+    'disabled': {mac: ["Command-[", "Command-]"], win: ["Control-[", "Control-]"]}
 });
 
 }) // end of module

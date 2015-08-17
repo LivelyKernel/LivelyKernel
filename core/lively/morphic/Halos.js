@@ -135,11 +135,13 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     verticalPos: 0,
     isEpiMorph: true,
     isHalo: true,
-    iconBaseURL: Global.URL.codeBase + 'media/halos/'
+    iconBaseURL: Global.URL.codeBase + 'media/halos/',
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super, targetMorph) {
         $super(this.defaultExtent.extentAsRectangle());
+		this.shape.isLoggable = false;
         this.setTarget(targetMorph);
         if (typeof this.iconName === 'function') {
             this.createIcon();
@@ -160,14 +162,14 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         this.addMorph(this.labelMorph);
         (function() {
             this.labelMorph.fit();
-            this.labelMorph.align(this.labelMorph.bounds().center(), this.innerBounds().center())
+            this.labelMorph.align(this.labelMorph.bounds().center(), this.innerBounds().center());
         }).bind(this).delay(0);
         return this.labelMorph;
     },
     createIcon: function() {
-        this.iconMorph = new lively.morphic.Image(pt(3,3)
-                .extent(this.defaultExtent.subPt(pt(6,6))),
-            this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg')
+        this.iconMorph = new lively.morphic.Image(
+            pt(3,3).extent(this.defaultExtent.subPt(pt(6,6))),
+            this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg');
         this.addMorph(this.iconMorph);
         this.iconMorph.disableEvents();
         this.iconMorph.disableDropping();
@@ -181,7 +183,8 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
         if (!this.infoLabel) {
             this.infoLabel = new lively.morphic.Text(new Rectangle(0,0,100,30), "")
                 .beLabel({fontSize: 8});
-            this.infoLabel.isEpiMorph = true;
+            this.infoLabel.isLoggable = false
+			this.infoLabel.isEpiMorph = true;
             this.infoLabel.addScript(function alignAtTarget() {
                 if (!this.owner) return;
                 var t = this.targetMorph;

@@ -1119,6 +1119,7 @@ handleOnCapture);
         }
         return false;
     },
+
     processCommandKeys: function(evt) {
         if (!this.isFocused()) return false;
         var result = false, c = evt.getKeyChar();
@@ -1129,11 +1130,13 @@ handleOnCapture);
         result && evt.stop();
         return result;
     },
+
     onKeyUp: function(evt) {
         if (this.eventsAreIgnored) { return false; }
         var c = evt.getKeyCode();
         if (c === Event.KEY_SHIFT) return this.onShiftReleased(evt);
     },
+
     onKeyPress: Functions.False,
     onEnterPressed: function(evt) { return false },
     onEscPressed: function(evt) { return false },
@@ -1358,6 +1361,7 @@ handleOnCapture);
     getGrabShadow: function (local) {
         var shadow = new lively.morphic.Morph(
             lively.persistence.Serializer.newMorphicCopy(this.shape));
+		shadow.isLoggable = false
         this.submorphs.forEach(function(ea) {
             var submorphShadow = ea.getGrabShadow(true);
             submorphShadow && shadow.addMorph(submorphShadow) });
@@ -1958,7 +1962,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     style: {enableDropping: false, enableHalos: false, zIndex: 1100}
 },
 'testing', {
-    isHand: true
+    isHand: true,
+	isLoggable: false
 },
 'initializing', {
     initialize: function($super) {

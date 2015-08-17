@@ -700,40 +700,50 @@ Object.extend(lively.PartsBin, {
     },
 
     withAllItemsDo: function(partsBinBaseURL, thenDo) {
-      if (typeof partsBinBaseURL === "function") {
-        thenDo = partsBinBaseURL; partsBinBaseURL = null;
-      }
-      // FIXME: partsBinBaseURL currently not used, defaulting to "the one and
-      // only" PartsBin
-
-      var progressBar = $world.addProgressBar(null, "loading part items");
-      lively.lang.fun.composeAsync(
-        // 1. load parts spaces
-        lively.PartsBin.discoverPartSpaces,
-        
-        // 2. for each space, load items
-        function(spacesByName, next) {
-          var spaces = lively.lang.obj.values(spacesByName);
-          lively.lang.arr.mapAsyncSeries(spaces,
-            function(space, i, next) {
-              lively.bindings.once(space, "partItems", {whenDone: function(items) {
-                progressBar.setValue(i / spaces.length);
-                next(null, space);
-              }}, "whenDone");
-              space.load(true);
-            }, next)
-        },
-        
-        // 3. combine all items
-        function(spaces, next) {
-          progressBar.remove();
-          var itemsPerSpace = spaces.reduce(function(itemsPerSpace, space) {
-            itemsPerSpace[space.name] = space.partItems;
-            return itemsPerSpace;
-          }, {});
-          next(null, itemsPerSpace);
+        if (typeof partsBinBaseURL === "function") {
+            thenDo = partsBinBaseURL; partsBinBaseURL = null;
         }
-      )(thenDo);
+        if (partsBinBaseURL == null)
+            partsBinBaseURL = this.getLocalPartsBinURL();
+        // FIXME: only working with local partsBinBaseURLs
+        var relativeURL = partsBinBaseURL.relativePathFrom(URL.root);
+
+        lively.lang.fun.composeAsync(
+            // 1. load all files from ObjectRepository
+            lively.net.Wiki.findResourcePathsMatching.bind(lively.net.Wiki, relativeURL + '%', true),
+
+            // 2. put all the files into a tree (space -> files)
+            function(allFiles, next) {
+                var defaultParents = URL.root.getAllParentDirectories().length;
+                next(null, allFiles.reduce(function(spaces, urlPart) {
+                    var url = URL.root.withFilename(urlPart),
+                        partSpace = url.getAllParentDirectories()[defaultParents].relativePathFrom(URL.root);
+                    if (partSpace.endsWith('/')) {
+                        if (!spaces.hasOwnProperty(partSpace))
+                            spaces[partSpace] = [];
+                        spaces[partSpace].push(url);
+                    }
+                    return spaces;
+                }, {}));
+            },
+
+            // 3. create PartSpaces
+            function(tree, next) {
+                next(null, Object.getOwnPropertyNames(tree).map(function(space) {
+                    var partSpace = lively.PartsBin.partsSpaceWithURL(URL.root.withFilename(space));
+                    partSpace.setPartItemsFromURLList(tree[space]);
+                    return partSpace;
+                }));
+            },
+
+            // 4. combine all items
+            function (spaces, next) {
+                next(null, spaces.reduce(function(itemsPerSpace, space) {
+                    itemsPerSpace[space.name] = space.partItems;
+                    return itemsPerSpace;
+                }, {}));
+            }
+        )(thenDo);
     }
 });
 

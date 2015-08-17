@@ -258,6 +258,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             node.style.width = extent.x + 'px';
             node.style.height = extent.y + 'px';
         } else if (this.isSVG(node)) {
+            // FIXME: Should scale SVG path elements instead
             node.setAttributeNS(null, 'width', String(extent.x));
             node.setAttributeNS(null, 'height', String(extent.y));
         }
@@ -267,6 +268,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             node.style['width'] = value ?  value + 'px' : value;
         }
         if (this.isSVG(node)) {
+            // FIXME: Should scale SVG path elements instead
             node.setAttributeNS(null, 'width', String(value));
         }
     },
@@ -275,6 +277,7 @@ Object.subclass('lively.morphic.Rendering.DOMInterface',
             node.style['height'] = value ?  value + 'px' : value;
         }
         if (this.isSVG(node)) {
+            // FIXME: Should scale SVG path elements instead
             node.setAttributeNS(null, 'height', String(value));
         }
     },

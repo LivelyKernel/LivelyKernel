@@ -1030,8 +1030,10 @@ lively.morphic.Shapes.Image.addMethods(
             ctx.shapeNode.appendChild(ctx.imgNode);
             ctx.imgNode.draggable = false;
         }
+
         $super(ctx);
         this.setImageURLHTML(ctx, this.getImageURL());
+        this.setBorderRadiusHTML(ctx, this.getBorderRadius());
     },
 },
 'updating', {
@@ -1052,6 +1054,15 @@ lively.morphic.Shapes.Image.addMethods(
         if (ctx.imgNode)
             ctx.domInterface.setExtent(ctx.imgNode, extentWithoutBorder);
     },
+
+    setBorderRadiusHTML: function(ctx, value) {
+        if (Object.isString(value)) {
+            // irregular border radius for windows e.g.
+            ctx.getShapeNode().style.borderRadius = value;
+        } else {
+             ctx.domInterface.setHTMLBorderRadius(ctx.getShapeNode(), value , value);
+        }
+    }
 
 });
 

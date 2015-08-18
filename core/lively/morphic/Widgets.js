@@ -429,11 +429,18 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 'menu', {
     morphMenuItems: function($super) {
         var items = $super();
-        items.push(['open as canvas morph', function() { lively.morphic.CanvasMorph.fromImageMorph(this).openInHand(); }.bind(this)]);
-        items.push(['set to original extent', this.setNativeExtent.bind(this)]);
-        items.push(['resample image to fit bounds', this.resampleImageToFitBounds.bind(this)]);
-        items.push(['inline image data', this.convertToBase64.bind(this)]);
-        items.push(['download', function() { this.downloadImage(); }.bind(this)]);
+        items.push(['Change image URL...', function() {
+            this.world().prompt('Enter URL for Image', function(url) {
+                if (!url) return;
+                this.setImageURL(url);
+                alertOK('Loading image ' + url);
+            }.bind(this), this.getImageURL() || '')
+        }.bind(this)]);
+        items.push(['Open as canvas morph', function() { lively.morphic.CanvasMorph.fromImageMorph(this).openInHand(); }.bind(this)]);
+        items.push(['Set to original extent', this.setNativeExtent.bind(this)]);
+        items.push(['Resample image to fit bounds', this.resampleImageToFitBounds.bind(this)]);
+        items.push(['Inline image data', this.convertToBase64.bind(this)]);
+        items.push(['Download', function() { this.downloadImage(); }.bind(this)]);
         return items;
     },
 },

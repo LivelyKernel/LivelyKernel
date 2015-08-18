@@ -334,7 +334,7 @@ lively.morphic.Morph.addMethods(
         if (options.x !== undefined && options.y !== undefined) options = {pos: options};
         lively.morphic.World.current().internalAddWindow(this,
             options.title || this.name, options.pos || this.getPosition());
-        this.applyStyle({resizeWidth: true, resizeHeight: true});
+        this.applyStyle({ resizeWidth: true, resizeHeight: true, borderRadius: 8 });
         if (this.partsBinMetaInfo) {
             this.owner.setPartsBinMetaInfo(this.getPartsBinMetaInfo());
             this.owner.setName(this.name);

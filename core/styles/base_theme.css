@@ -39,24 +39,31 @@
 
 .Button {
 	font-size: 9pt;
-	color: #333;
 	text-align: center;
-	background: #EEE;
-	border-radius: 2px;
+	background: #808080;
+	border-radius: 13px;
 	cursor: pointer;
-	border: 1px solid #888;
+	border: 0px solid #888;
 }
 
-.Button.pressed {
-	box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+.Button > div > div > .Text > div > span, .Button.WindowControl.close > div > div > .Text > div > span {
+    color: white;
+}
+
+.Button.WindowControl > div > div > .Text > div > span {
+	color: #808080;
+}
+
+.Button:hover {
+    background: #f57c00;
 }
 
 .Button.toggled {
 	color: black;
 }
 
-.Button.disabled {
-	color: gray;
+.Button.disabled, .Button.disabled:hover {
+	background: gray;
 }
 
 .Button.disabled .Text span{
@@ -95,15 +102,17 @@
 }
 
 .Window {
-	background-color: rgb(244, 244, 244);
+	background-color: rgb(212, 212, 212);
 	box-shadow: 0px 2px 6px #666;
-	border-radius: 3px;
+	border-radius: 10px;
+	border: none;
 }
 
 .Window.highlighted {
-	background-color: rgb(222, 222, 222);
+	background-color: rgb(77, 77, 77);
 	box-shadow: 0px 2px 6px #333;
-	border: 1px solid white;
+	border-radius: 10px;
+	border: none;
 }
 
 .Window .TitleBar, .Window .reframe-handle {
@@ -125,20 +134,21 @@
 
 .Window .Text.window-title {
 	padding-top: 2px !important;
-	font-size: 10pt;
+	font-size: 12pt;
 	text-align: left;
 	margin-left: 2px;
-	color: #555;
+	color: #808080;
 }
+
 .Window.highlighted .Text.window-title {
-	font-weight: bold;
-	color: #333;
+	font-weight: medium;
+	color: #fff;
 }
 
 .Button.WindowControl {
-	border: 1px solid #aaa;
-	border-radius: 2px;
-	background: #EEE;
+	border: 0px solid #aaa;
+	border-radius: 10px;
+	background: #ccc;
 	font-weight: normal;
 }
 
@@ -147,8 +157,7 @@
 }
 
 .Button.WindowControl.close {
-	background: #E73F22;
-	color: white;
+	background: #f57c00;
 }
 
 /* Lists */
@@ -157,14 +166,14 @@
 }
 
 .List .list-item {
-	font-family: Helvetica,Verdana,sans-serif;
 	font-size: 10pt;
-	color: black;
+	color: rgb(77, 77, 77);
 }
 
 .List .list-item.selected {
-	background: rgb(43, 88, 255) !important;
+	background: rgb(245,124,0) !important;
 	color: white !important;
+	border-radius: 10px !important;
 }
 
 .HorizontalDivider {

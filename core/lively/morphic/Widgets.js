@@ -21,7 +21,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
             align: 'center',
             fixedWidth: true,
             fixedHeight: true,
-            textColor: Color.black,
+            textColor: Color.white,
             clipMode: 'hidden',
             emphasize: {textShadow: {offset: pt(0,1), color: Color.white}},
             allowInput: false
@@ -713,7 +713,6 @@ lively.morphic.Box.subclass('lively.morphic.ProgressBar',
         clipMode: 'hidden', // for label
     },
     labelStyle: {
-        fontSize: 11,
         fixedWidth: true,
         fixedHeight: false,
         clipMode: 'hidden',
@@ -2448,7 +2447,11 @@ lively.morphic.Button.subclass("lively.morphic.WindowControl",
     style: {
         borderWidth: 0,
         strokeOpacity: 0,
-        accessibleInInactiveWindow: true
+        accessibleInInactiveWindow: true,
+        cssStylingMode: true,
+        label: {
+            padding: Rectangle.inset(3,0)
+        }
     },
     connections: ['HelpText', 'fire'],
 },
@@ -2464,15 +2467,18 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     documentation: "Title bar for lively.morphic.Window",
 },
 'properties', {
-    controlSpacing: 3,
-    barHeight: 22,
-    shortBarHeight: 15,
+    controlSpacing: 13,
+    barHeight: 47,
+    shortBarHeight: 47,
+    iconSize: 24,
+    iconSpace: 32,
     accessibleInInactiveWindow: true,
     style: {
         adjustForNewBounds: true,
         resizeWidth: true
     },
     labelStyle: {
+        fontSize: 16,
         padding: Rectangle.inset(0,0),
         fixedWidth: true,
         fixedHeight: true,
@@ -2482,8 +2488,9 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     }
 },
 'intitializing', {
+
     initialize: function($super, headline, windowWidth, windowMorph) {
-        var bounds = new Rectangle(0, 0, windowWidth, this.barHeight);
+        var bounds = new lively.Rectangle(0, 0, windowWidth, this.barHeight);
         $super(bounds);
 
         this.windowMorph = windowMorph;
@@ -2500,13 +2507,20 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         this.label.addStyleClassName('window-title');
         this.label.setTextStylingMode(true);
 
+        this.icon = new lively.morphic.Image(lively.rect(0, 0, this.iconSize, this.iconSize), URL.root.withFilename('core/media/window_icons/default.svg'));
+        this.icon.applyStyle({
+            borderRadius: this.iconSize / 2, fill: Color.rgb(204,204,204)
+        });
+        this.addMorph(this.icon);
+
         this.disableDropping();
         this.setAppearanceStylingMode(true);
         this.setBorderStylingMode(true);
     },
+
     createNewButton: function(label, optLabelOffset, optWidth) {
-        var length = this.barHeight - 5,
-            extent = lively.pt(optWidth || length, length);
+        var defaultSize = 15,
+            extent = lively.pt(optWidth || defaultSize, defaultSize);
         var button = this.addMorph(
                 new lively.morphic.WindowControl(
                         lively.rect(lively.pt(0, 0), extent),
@@ -2515,53 +2529,70 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
                         optLabelOffset || pt(0,0)));
         return button;
     },
+
     addNewButton: function(label, optLabelOffset, optWidth) {
         var pos = this.buttons.size();
         return this.addNewButtonAt(pos, label, optLabelOffset, optWidth);
     },
+
     addNewButtonAt: function(pos, label, optLabelOffset, optWidth) {
         var button = this.createNewButton(label, optLabelOffset, optWidth);
         this.buttons.pushAt(button, pos);
         this.adjustElementPositions();
         return button;
-    },
+    }
+
 },
 'label', {
+
     setTitle: function(string) {
         this.label.replaceTextString(string);
     },
 
     getTitle: function(string) { return this.label.textString }
+
+},
+'icon', {
+
+    setIcon: function(url) {
+        this.icon && this.icon.setImageURL(url);
+    }
+
 },
 'layouting', {
+
     adjustElementPositions: function() {
         var innerBounds = this.innerBounds(),
-            sp = this.controlSpacing;
-
-        var buttonLocation = this.innerBounds().topRight().subXY(sp, -sp);
+            sp = this.controlSpacing,
+            buttonLocation = this.innerBounds().topRight().subXY(sp - 5, -sp - 4);
 
         this.buttons.forEach(function(ea) {
             buttonLocation = buttonLocation.subXY(ea.shape.getBounds().width, 0);
             ea.setPosition(buttonLocation);
-            buttonLocation = buttonLocation.subXY(sp, 0)
+            buttonLocation = buttonLocation.subXY(sp - 6, 0);
         });
 
         if (this.label) {
-            var start = this.innerBounds().topLeft().addXY(sp, sp),
-                end = lively.pt(buttonLocation.x,
-                        innerBounds.bottomRight().y).subXY(sp, sp);
+            var start = this.innerBounds().topLeft().addXY(sp + this.iconSpace, sp - 1),
+                end = lively.pt(buttonLocation.x, innerBounds.bottomRight().y);
             this.label.setBounds(rect(start, end));
         }
+
+        if (this.icon)
+            this.icon.setPosition(pt(sp, sp));
     },
+
     adjustForNewBounds: function() {
         this.adjustElementPositions();
     },
+
     lookCollapsedOrNot: function(collapsed) {
         this.applyStyle({borderRadius: collapsed ? "8px 8px 8px 8px" : "8px 8px 0px 0px"});
     }
 
 },
 'event handling', {
+
     showResizeMenu: function() {
         var win = this.getWindow(), world = this.world(), items = [];
         items.pushAll(["fullscreen","left","center","right","top","bottom", "reset"].map(function(how) {
@@ -2579,6 +2610,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         evt.hand.clickedOnMorph = this.windowMorph;
         evt.world.clickedOnMorph = this.windowMorph;
     },
+
     onMouseUp: function(evt) {
       if (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown())) {
         this.showResizeMenu();
@@ -2586,6 +2618,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
       }
       return false;
     }
+
 });
 
 lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.DragMoveTrait').derive({override: ['onDrag','onDragStart', 'onDragEnd']}),
@@ -2594,14 +2627,14 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 },
 'settings and state', {
     state: 'expanded',
-    spacing: 3, // window border
+    spacing: 8, // window border
     minWidth: 200,
     minHeight: 100,
     debugMode: false,
     style: {
         borderWidth: false,
         fill: null,
-        borderRadius: false,
+        borderRadius: 10,
         strokeOpacity: false,
         adjustForNewBounds: true,
         enableDragging: true
@@ -2650,10 +2683,10 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         var titleBar = new lively.morphic.TitleBar(titleString, width, this);
         if (optSuppressControls) return titleBar;
 
-        this.closeButton = titleBar.addNewButton("X", pt(0,-1));
+        this.closeButton = titleBar.addNewButton("X", pt(0, -1));
         this.closeButton.addStyleClassName('close');
-        this.collapseButton = titleBar.addNewButton("–", pt(0,1));
-        this.menuButton = titleBar.addNewButton("Menu", null, 40);
+        this.collapseButton = titleBar.addNewButton("–", pt(0, 1));
+        this.menuButton = titleBar.addNewButton("Menu", null, 45);
 
         connect(this.closeButton, 'fire', this, 'initiateShutdown');
         connect(this.menuButton, 'fire', this, 'showTargetMorphMenu');
@@ -2894,22 +2927,22 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         // cut off the label if it's bigger than that
         var maxLabelExtent = lively.pt(350,20);
         // padding around the window contents
-        var border = win.contentOffset.x
+        var border = win.contentOffset.x;
         // how big is the label really? Compute its upper right point
         var labelExtent = win.titleBar.label.computeRealTextBounds().extent();
         var labelExtentMin = labelExtent.minPt(maxLabelExtent);
         var labelBounds = labelExtentMin.extentAsRectangle();
-        var labelTopRight = labelExtentMin.withY(border);
+        var labelTopRight = pt(labelExtentMin.x + win.titleBar.iconSpace, border);
         // compute the unified bounds of the titlebar buttons and "put" it right
         // next to the label. This plus some spacing is the boudns we really
         // need to display the titlebar
-        var buttonBounds = win.titleBar.buttons.invoke('bounds')
+        var buttonBounds = win.titleBar.buttons.invoke('bounds');
         var leftMostButtonPosX = buttonBounds.pluck('x').min();
         var buttonOffset = pt(leftMostButtonPosX,0);
         var offset = buttonOffset.negated().addPt(labelTopRight);
         var buttonBoundsShiftedLeft = buttonBounds.reduce(function(akk, ea) {
             return akk.union(ea.translatedBy(offset)); }, rect(0,0,0,0));
-        return buttonBoundsShiftedLeft.extent().addXY(20,0);
+        return buttonBoundsShiftedLeft.extent().addXY(win.titleBar.iconSpace,0);
     },
     toggleCollapse: function() {
         return this.isCollapsed() ? this.expand() : this.collapse();
@@ -4063,6 +4096,64 @@ lively.morphic.Box.subclass('lively.morphic.HorizontalDivider',
     addScalingAbove: function(m) { this.scalingAbove.push(m); },
 
     addScalingBelow: function(m) { this.scalingBelow.push(m); }
+
+});
+
+lively.morphic.HorizontalDivider.subclass('lively.morphic.HorizontalDividerWithButton',
+'settings', {
+
+    style: { fill: Color.lively.orange, borderWidth: false },
+
+},
+'initializing', {
+
+    initialize: function($super, bounds){
+        $super(bounds);
+        this.minHeight = 5;
+        this.button = new lively.morphic.Button(lively.rect(0,0,20,20), 'N');
+        this.button.setOrigin(pt(10, 15));
+        this.addMorph(this.button);
+        this.button.setPosition(lively.pt(this.getExtent().x / 2, 0));
+        this.button.setFill(Color.lively.orange);
+        this.button.setAppearanceStylingMode(false);
+        lively.bindings.connect(this.button, 'fire', this, 'toggleCollapseAbove');
+        lively.bindings.connect(this, 'extent', this.button, 'setPosition', {
+            converter:function converter(value) { return pt(value.x/2,value.y); }
+        });
+        this.setAppearanceStylingMode(true);
+	}
+
+},
+'internal slider logic', {
+
+    collapseAbove: function() {
+        var distToTop;
+        this.scalingAbove.all(function(m) {
+            distToTop = m.getExtent().y;
+        });
+        this.movedVerticallyBy(Math.min(0, -(distToTop - this.minHeight)));
+    },
+
+    expandAbove: function(){
+        var distToButtom;
+        var self = this;
+        this.scalingBelow.all(function(m){
+            distToButtom = m.getExtent().y / 2 - (3 * self.minHeight);
+        });
+        this.movedVerticallyBy(Math.max(0,distToButtom));
+    }
+
+},
+'collapsing', {
+
+    toggleCollapseAbove: function(){
+        var distToTop;
+        this.scalingAbove.all(function(m){distToTop = m.getExtent().y});
+        if (distToTop > this.minHeight)
+            this.collapseAbove();
+        else
+            this.expandAbove();
+    }
 
 });
 

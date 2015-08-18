@@ -310,23 +310,55 @@ Object.extend(lively.morphic.Morph, {
                     getter: function(morph, val) { return val ? val.getTitle() : ''; },
                     recreate: function(instance, spec) { instance.titleBar = instance.makeTitleBar(spec.titleBar, instance.getExtent().x); }
                 },
+                _Extent: {
+                    recreate: function(instance, spec, key, val) {
+                        instance._Extent = spec._Extent;
+
+                        // BEGIN migrate window style
+                        var diffExtent = lively.pt(10.0,30.0),
+                            newContentOffset = lively.pt(8, 47);
+                        if (spec.contentOffset && spec.contentOffset.lessPt(newContentOffset)) {
+                            instance._Extent = instance._Extent.addPt(diffExtent);
+                        }
+                        // END migrate window style
+
+                        instance.setExtent(instance._Extent);
+                    }
+                },
                 grabbingEnabled: {defaultValue: false},
                 reframeHandle: {exclude: true},
                 bottomReframeHandle: {exclude: true},
                 rightReframeHandle: {exclude: true},
                 targetMorph: {exclude: true},
-                cameForward: {exlcude: true},
-                collapsedExtent: {exlcude: true},
-                collapsedTransform: {exlcude: true},
-                expandedExtent: {exlcude: true},
-                expandedTransform: {exlcude: true},
-                highlighted: {exlcude: true},
-                ignoreEventsOnExpand: {exlcude: true},
-                contentOffset: {exlcude: true}
+                cameForward: {exclude: true},
+                collapsedExtent: {exclude: true},
+                collapsedTransform: {exclude: true},
+                expandedExtent: {exclude: true},
+                expandedTransform: {exclude: true},
+                highlighted: {exclude: true},
+                ignoreEventsOnExpand: {exclude: true}
             },
 
             onFromBuildSpecCreated: function($super) {
                 $super();
+
+                // BEGIN migrate window style
+                var newContentOffset = lively.pt(8, 47);
+                if (this.getBorderRadius() === 0)
+                    this.setBorderRadius(10);
+                if (this.contentOffset && this.contentOffset.lessPt(newContentOffset)) {
+                    var diffPos = newContentOffset.subPt(this.contentOffset);
+                    this.contentOffset = newContentOffset;
+                    this.submorphs.forEach(function(m) {
+                        m.setPosition(m.getPosition().addPt(diffPos));
+                    });
+                }
+                if (this.submorphs.length == 1) {
+                    this.submorphs[0].setBorderRadius(8);
+                    this.submorphs[0].setBorderWidth(0);
+                }
+                // END migrate window style
+
                 this.makeReframeHandles();
                 this.addMorph(this.titleBar);
                 this.targetMorph = this.submorphs[0];

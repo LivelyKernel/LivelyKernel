@@ -38,8 +38,8 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         ['Pane2', newDragnDropListPane,                                                       [0.2505, 0, 0.2485, 0.47]],
         ['Pane3', newDragnDropListPane,                                                       [0.5010,  0, 0.2485, 0.47]],
         ['Pane4', newDragnDropListPane,                                                       [0.7515, 0, 0.2485, 0.47]],
-        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDivider(bnds) },  [0,    0.47, 1,    0.01]],
-        ['sourcePane', lively.ide.newCodeEditor,                                              [0,    0.48, 1,    0.52]]
+        ['midResizer', function(bnds) { return new lively.morphic.HorizontalDividerWithButton(bnds) },  [0,    0.475, 1,    0.01]],
+        ['sourcePane', lively.ide.newCodeEditor,                                              [0,    0.495, 1,    0.505]]
     ],
 
     allPaneNames: ['Pane1', 'Pane2', 'Pane3', 'Pane4'],
@@ -353,7 +353,6 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.view.addMorph(this.sourceOnlyPanel);
         this.view.targetMorph = this.sourceOnlyPanel;
 
-
         this.isNavigationCollapsed = true;
     },
     expandNavigation: function() {
@@ -391,12 +390,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         panel.ownerApp = this;
         this.panel = panel;
         this.view = win;
-        this.addNavigationCollapseButton();
         return win;
     },
     addNavigationCollapseButton: function() {
         var navButton = this.view.titleBar.addNewButtonAt(2, "N");
-        connect(navButton, 'fire', function() { 
+        navButton.setExtent(pt(15, 15));
+        connect(navButton, 'fire', function() {
             var scb = view.targetMorph.ownerWidget;
             scb.toggleCollapseNavigation();
         }.asScript({view: this.view}), "call");

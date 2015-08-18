@@ -2066,6 +2066,39 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
           || !topmostMorph.isLayoutable
           || !topmostMorph.wantsDroppedMorph(carriedMorph)
           || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+
+        // check for capability of morph to be dropped
+        function setColorAndBorder(aMorph, aColor, aWidth, anOldColor, anOldWidth) {
+            aMorph.prevBorderColor = anOldColor;
+            aMorph.prevBorderWidth = anOldWidth;
+            aMorph.setBorderColor(aColor);
+            aMorph.setBorderWidth(aWidth);
+        }
+
+        function restoreColorAndBorder(aMorph) {
+            aMorph.setBorderColor(aMorph.prevBorderColor);
+            aMorph.setBorderWidth(aMorph.prevBorderWidth);
+            delete aMorph.prevBorderColor;
+            delete aMorph.prevBorderWidth;
+        }
+
+        function checkMorph(aMorph) {
+            if (!aMorph.owner || aMorph.isWorld) return;
+            if (aMorph.wantsDroppedMorph(carriedMorph)
+               && carriedMorph.wantsToBeDroppedInto(aMorph)
+               && (aMorph.droppingEnabled == true)
+               && !aMorph.isWorld) {
+                   var prevBorderColor = aMorph.getBorderColor();
+                   var prevBorderWidth = aMorph.getBorderWidth();
+                   if (prevBorderColor != Color.green) {
+                       setColorAndBorder(aMorph, Color.green, 3, prevBorderColor, prevBorderWidth);
+                       restoreColorAndBorder.delay(0.5, aMorph);
+                    }
+            } else
+                checkMorph(aMorph.owner);
+        }
+        checkMorph(topmostMorph);
+
         var layouter = topmostMorph.getLayouter();
         if (layouter && layouter.displaysPlaceholders()) {
             layouter.showPlaceholderFor(carriedMorph, evt);

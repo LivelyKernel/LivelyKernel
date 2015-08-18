@@ -140,8 +140,8 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         {
             _Extent: lively.pt(200,18.0),
             _Position: lively.pt(5,22+478+4),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 8,
+            _TextColor: Color.white,
             _HandStyle: "default",
             _InputAllowed: false,
             allowInput: false,
@@ -174,8 +174,8 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
         }, {
             _Extent: lively.pt(90.0,18.0),
             _Position: lively.pt(614.0,22+478+4),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 8,
+            _TextColor: Color.white,
             _HandStyle: "default",
             _InputAllowed: false,
             allowInput: false,

@@ -1,8 +1,6 @@
 module("lively.ide.tools.JavaScriptWorkspace").requires("lively.ide.CodeEditor", "lively.persistence.BuildSpec", "lively.lang.VM").toRun(function() {
 
 lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
-    _BorderColor: null,
-    _BorderWidth: 1,
     _Extent: lively.pt(735.0,358.0),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(3.0,22.0),
@@ -14,7 +12,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     submorphs: [{
         _Extent: lively.pt(220.0,333.0),
         _Fill: Color.rgb(255,255,255),
-        _Position: lively.pt(512.0,22.0),
+        _Position: lively.pt(504.0,22.0),
         className: "lively.morphic.Box",
         droppingEnabled: true,
         layout: {
@@ -107,7 +105,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     },{
         _AutocompletionEnabled: true,
         _BorderColor: Color.rgb(95,94,95),
-        _Extent: lively.pt(729.0,333.0),
+        _Extent: lively.pt(726.0,333.0),
         _FontSize: 12,
         _LineWrapping: false,
         _Position: lively.pt(3.0,22.0),
@@ -195,7 +193,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         return this.state.workspaceVars[varName] = val;
     },
         hideVariableArea: function hideVariableArea() {
-        var newEditorBounds = rect(pt(3,22), this.get("listContainer").bounds().bottomRight());
+        var newEditorBounds = rect(this.getPosition(), this.get("listContainer").bounds().bottomRight());
         // this.setBounds(newEditorBounds);
         this.updateToggleVarsButton(newEditorBounds);
         this.animatedSetBounds(this, newEditorBounds);
@@ -253,11 +251,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             varAreaWidth = 220,
             varList = this.get("listContainer"),
             newEditorBounds = rect(
-                pt(3,22),
-                varList.bounds().bottomRight().addXY(-3 - varAreaWidth - border, 0));
+                this.getPosition(),
+                varList.bounds().bottomRight().subXY(3 + varAreaWidth + border, 0));
     
         varList.setExtent(varList.getExtent().withX(varAreaWidth));
-        varList.align(varList.bounds().topRight(), this.getWindow().innerBounds().topRight().addXY(-3,22));
+        varList.align(varList.bounds().topRight(), this.getWindow().innerBounds().topRight().addXY(-11, this.getPosition().y));
     
         this.updateToggleVarsButton(newEditorBounds);
     
@@ -408,9 +406,6 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         lively.bindings.connect(this.get("workspaceVarObserver"), "selection", this, "selectVarDef");
     }
     },{
-        _BorderColor: Color.rgb(189,190,192),
-        _BorderRadius: 5,
-        _BorderWidth: 1,
         _Extent: lively.pt(64.0,20.0),
         _Position: lively.pt(664.0,26.0),
         layout: {moveHorizontal: true},

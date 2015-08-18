@@ -1,7 +1,6 @@
 module('lively.morphic.tools.PartsBin').requires('lively.persistence.BuildSpec', 'lively.PartsBin').toRun(function() {
 
 lively.BuildSpec('lively.morphic.tools.PartsBin', {
-    _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(838.0,520.2),
     _Position: lively.pt(251.0,241.4),
     _StyleClassNames: ["Morph","Window"],
@@ -148,9 +147,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                     },
                     sourceModule: "lively.morphic.Core",
                     submorphs: [{
-                        _BorderColor: Color.rgb(210,210,210),
+                        _BorderRadius: 5,
                         _Extent: lively.pt(28.0,28.0),
-                        _Fill: Color.rgb(204,204,204),
                         _Position: lively.pt(123.3,0.0),
                         _StyleClassNames: ["Morph","Button"],
                         className: "lively.morphic.Button",
@@ -162,7 +160,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         name: "removeCategoryButton",
                         sourceModule: "lively.morphic.Widgets",
                         style: {
-                            borderRadius: 0,
                             padding: lively.rect(4,3,0,0)
                         },
                         toggle: false,
@@ -175,9 +172,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                                 this.get('PartsBinBrowser').removeCategoryInteractively();
                                             }
                     },{
-                        _BorderColor: Color.rgb(210,210,210),
+                        _BorderRadius: 5,
                         _Extent: lively.pt(28.0,28.0),
-                        _Fill: Color.rgb(204,204,204),
                         _Position: lively.pt(91.3,0.0),
                         _StyleClassNames: ["Morph","Button"],
                         className: "lively.morphic.Button",
@@ -189,7 +185,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         name: "addCategoryButton",
                         sourceModule: "lively.morphic.Widgets",
                         style: {
-                            borderRadius: 0,
                             padding: lively.rect(4,3,0,0)
                         },
                         toggle: false,
@@ -202,9 +197,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                                 this.get('PartsBinBrowser').addCategoryInteractively()
                                             }
                     },{
-                        _BorderColor: Color.rgb(210,210,210),
+                        _BorderRadius: 5,
                         _Extent: lively.pt(28.0,28.0),
-                        _Fill: Color.rgb(204,204,204),
                         _StyleClassNames: ["Morph","Button","RectButton"],
                         className: "lively.morphic.Button",
                         isPressed: false,
@@ -212,7 +206,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         name: "reloadButton",
                         sourceModule: "lively.morphic.Widgets",
                         style: {
-                            borderRadius: 0,
                             padding: lively.rect(4,3,0,0)
                         },
                         value: false,
@@ -330,7 +323,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                     _BorderColor: Color.rgb(190,190,190),
                     _Extent: lively.pt(657.7,27.0),
                     _Fill: Color.rgb(255,255,255),
-                    _FontFamily: "Helvetica",
                     _HandStyle: null,
                     _InputAllowed: true,
                     _IsSelectable: true,
@@ -356,7 +348,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                     style: {
                         allowInput: true,
                         borderColor: Color.rgb(190,190,190),
-                        borderRadius: 0,
+                        borderRadius: 5,
                         borderWidth: 0,
                         clipMode: "visible",
                         enableDragging: true,
@@ -365,7 +357,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         fill: Color.rgb(255,255,255),
                         fixedHeight: true,
                         fixedWidth: true,
-                        fontFamily: "Helvetica",
                         fontSize: 10,
                         padding: lively.rect(25,7,0,0),
                         textColor: Color.rgb(64,64,64)
@@ -487,9 +478,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 pointerConnection: null,
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [{
-                    _BorderColor: Color.rgb(204,204,204),
+                    _BorderRadius: 5,
                     _Extent: lively.pt(59.8,30.0),
-                    _Fill: Color.rgb(204,204,204),
                     _Position: lively.pt(590.2,-28.6),
                     _StyleClassNames: ["Morph","Button"],
                     className: "lively.morphic.Button",
@@ -567,7 +557,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                     submorphs: [{
                         _ClipMode: "hidden",
                         _Extent: lively.pt(574.4,27.0),
-                        _FontFamily: "Arial, sans-serif",
                         _FontSize: 14,
                         _HandStyle: "default",
                         _InputAllowed: false,
@@ -576,7 +565,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         _MinTextWidth: 258,
                         _Padding: lively.rect(0,2,0,0),
                         _Position: lively.pt(9.6,0.0),
-                        _TextColor: Color.rgb(64,64,64),
+                        _TextColor: Color.white,
                         allowInput: false,
                         className: "lively.morphic.Text",
                         emphasis: [[0,0,{}]],
@@ -606,7 +595,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         allowInput: true,
                         className: "lively.morphic.Text",
                         emphasis: [[0,10,{
-                            uri: "http://lively-web.org/viral.html?part=RhythmWheel&path=PartsBin%2FFun%2F"
+                            uri: "http://lively-web.org/viral.html?part=RhythmWheel&path=PartsBin%2FFun%2F",
+                            color: Color.white
                         }]],
                         fixedWidth: true,
                         layout: {
@@ -623,14 +613,13 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                     },{
                         _Align: "left",
                         _Extent: lively.pt(3.0,25.0),
-                        _FontFamily: "Arial, sans-serif",
                         _HandStyle: "default",
                         _InputAllowed: false,
                         _IsSelectable: true,
                         _MaxTextWidth: 265,
                         _MinTextWidth: 265,
                         _Padding: lively.rect(5,7,0,0),
-                        _TextColor: Color.rgb(64,64,64),
+                        _TextColor: Color.white,
                         allowInput: false,
                         className: "lively.morphic.Text",
                         emphasis: [[0,0,{}]],
@@ -735,9 +724,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                             name: "ButtonLineMorph",
                             sourceModule: "lively.morphic.Core",
                             submorphs: [{
-                                _BorderColor: Color.rgb(255,255,255),
                                 _Extent: lively.pt(39.7,28.0),
-                                _Fill: Color.rgb(204,204,204),
                                 _StyleClassNames: ["Morph","Button","disabled"],
                                 className: "lively.morphic.Button",
                                 droppingEnabled: false,
@@ -753,17 +740,12 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                 padding: lively.rect(5,0,0,0),
                                 showsMorphMenu: true,
                                 sourceModule: "lively.morphic.Widgets",
-                                style: {
-                                    borderRadius: 0
-                                },
                                 withoutLayers: [],
                                 connectionRebuilder: function connectionRebuilder() {
                                 lively.bindings.connect(this, "fire", this.get("PartsBinBrowser"), "interactivelyRemoveSelectedPartItem", {});
                             }
                             },{
-                                _BorderColor: Color.rgb(255,255,255),
                                 _Extent: lively.pt(39.7,28.0),
-                                _Fill: Color.rgb(204,204,204),
                                 _Position: lively.pt(87.4,0.0),
                                 _StyleClassNames: ["Morph","Button","disabled"],
                                 className: "lively.morphic.Button",
@@ -779,17 +761,12 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                 name: "movePartButton",
                                 padding: lively.rect(5,0,0,0),
                                 sourceModule: "lively.morphic.Widgets",
-                                style: {
-                                    borderRadius: 0
-                                },
                                 withoutLayers: [],
                                 connectionRebuilder: function connectionRebuilder() {
                                 lively.bindings.connect(this, "fire", this.get("PartsBinBrowser"), "interactivelyMoveSelectedPartItem", {});
                             }
                             },{
-                                _BorderColor: Color.rgb(255,255,255),
                                 _Extent: lively.pt(39.7,28.0),
-                                _Fill: Color.rgb(204,204,204),
                                 _Position: lively.pt(43.7,0.0),
                                 _StyleClassNames: ["Morph","Button","disabled"],
                                 className: "lively.morphic.Button",
@@ -806,9 +783,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                 padding: lively.rect(5,0,0,0),
                                 showsMorphMenu: true,
                                 sourceModule: "lively.morphic.Widgets",
-                                style: {
-                                    borderRadius: 0
-                                },
                                 withoutLayers: [],
                                 connectionRebuilder: function connectionRebuilder() {
                                 lively.bindings.connect(this, "fire", this.get("PartsBinBrowser"), "interactivelyCopySelectedPartItem", {});
@@ -932,9 +906,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                             name: "ButtonLineVersions",
                             sourceModule: "lively.morphic.Core",
                             submorphs: [{
-                                _BorderColor: Color.rgb(255,255,255),
                                 _Extent: lively.pt(259.3,28.0),
-                                _Fill: Color.rgb(204,204,204),
                                 _StyleClassNames: ["Morph","Button","disabled"],
                                 className: "lively.morphic.Button",
                                 droppingEnabled: false,
@@ -950,18 +922,13 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                 padding: lively.rect(5,0,0,0),
                                 showsMorphMenu: true,
                                 sourceModule: "lively.morphic.Widgets",
-                                style: {
-                                    borderRadius: 0
-                                },
                                 value: false,
                                 withoutLayers: [],
                                 connectionRebuilder: function connectionRebuilder() {
                                 lively.bindings.connect(this, "fire", this.get("PartsBinBrowser"), "loadAndOpenSelectedPartItem", {});
                             }
                             },{
-                                _BorderColor: Color.rgb(255,255,255),
                                 _Extent: lively.pt(259.3,28.0),
-                                _Fill: Color.rgb(204,204,204),
                                 _Position: lively.pt(263.3,0.0),
                                 _StyleClassNames: ["Morph","Button","disabled"],
                                 className: "lively.morphic.Button",
@@ -977,9 +944,6 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                                 name: "revertButton",
                                 padding: lively.rect(5,0,0,0),
                                 sourceModule: "lively.morphic.Widgets",
-                                style: {
-                                    borderRadius: 0
-                                },
                                 value: false,
                                 withoutLayers: [],
                                 connectionRebuilder: function connectionRebuilder() {
@@ -1489,7 +1453,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         linkText.setTextString('Share Link');
         var url = Global.URL.root + 'viral.html?part='
             + partItem.name + '&path=' + partItem.partsSpaceName.replace(/\//g, '%2F');
-        linkText.emphasizeAll({uri: url});
+        linkText.emphasizeAll({uri: url,color: Color.white});
     },
         setupConnections: function setupConnections() {
         Global.connect(this.closeButton, 'fire', this, 'remove')

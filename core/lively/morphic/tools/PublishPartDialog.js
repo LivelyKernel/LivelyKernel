@@ -12,9 +12,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
     },
     minExtent: lively.pt(479.0,437.0),
     submorphs: [{
-        _BorderColor: Color.rgb(95,94,95),
         _Extent: lively.pt(473.0,411.0),
-        _Fill: Color.rgb(243,243,243),
         _Position: lively.pt(3.0,23.0),
         className: "lively.morphic.Box",
         doNotCopyProperties: [],
@@ -33,7 +31,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             _ClipMode: "hidden",
             _Extent: lively.pt(174.0,20.0),
             _Fill: Color.rgb(255,255,255),
-            _FontFamily: "Helvetica",
             _MaxTextWidth: 164,
             _MinTextWidth: 164,
             _Position: lively.pt(10.0,62.0),
@@ -67,7 +64,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             _ClipMode: "auto",
             _Extent: lively.pt(454.0,102.0),
             _Fill: Color.rgb(255,255,255),
-            _FontFamily: "Helvetica",
             _InputAllowed: true,
             _MaxTextWidth: 444,
             _MinTextWidth: 444,
@@ -95,8 +91,9 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             textString: "no comment"
         },{
             _Extent: lively.pt(114.0,18.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 10,
+            _FontStyle: "italic",
+            _TextColor: Color.white,
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
@@ -107,10 +104,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: false,
-            emphasis: [[0,4,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
             fixedWidth: true,
             grabbingEnabled: false,
             layout: {
@@ -122,8 +115,9 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             textString: "name"
         },{
             _Extent: lively.pt(250.0,20.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 10,
+            _FontStyle: "italic",
+            _TextColor: Color.white,
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
             _Padding: lively.rect(5,5,0,0),
@@ -134,10 +128,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: false,
-            emphasis: [[0,14,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
             fixedWidth: true,
             grabbingEnabled: false,
             name: "CommitMessageLabel",
@@ -146,8 +136,9 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             textString: "commit message"
         },{
             _Extent: lively.pt(114.0,18.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 10,
+            _FontStyle: "italic",
+            _TextColor: Color.white,
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
@@ -158,10 +149,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: false,
-            emphasis: [[0,8,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
             fixedWidth: true,
             grabbingEnabled: false,
             layout: {
@@ -173,9 +160,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             submorphs: [],
             textString: "category"
         },{
-            _BorderColor: Color.rgb(214,214,214),
             _BorderRadius: 5,
-            _BorderWidth: 1,
             _Extent: lively.pt(101.0,21.0),
             _Position: lively.pt(245.0,376.0),
             className: "lively.morphic.Button",
@@ -187,7 +172,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
                 moveHorizontal: true,
                 moveVertical: true
             },
-            name: "Button",
+            name: "cancelButton",
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -196,9 +181,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             lively.bindings.connect(this, "fire", this.get("PublishPartPanePane"), "onCancel", {});
         }
         },{
-            _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
+            _BorderRadius: 5,
             _Extent: lively.pt(101.0,21.0),
             _Position: lively.pt(355.0,376.0),
             className: "lively.morphic.Button",
@@ -210,7 +193,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
                 moveHorizontal: true,
                 moveVertical: true
             },
-            name: "Button1",
+            name: "publishButton",
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             toggle: false,
@@ -225,7 +208,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             _ClipMode: "auto",
             _Extent: lively.pt(455.0,120.0),
             _Fill: Color.rgb(255,255,255),
-            _FontFamily: "Helvetica",
             _InputAllowed: true,
             _MaxTextWidth: 445,
             _MinTextWidth: 445,
@@ -252,8 +234,9 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             textString: "no comment"
         },{
             _Extent: lively.pt(250.0,20.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 10,
+            _FontStyle: "italic",
+            _TextColor: Color.white,
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
             _Padding: lively.rect(5,5,0,0),
@@ -264,10 +247,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             doNotCopyProperties: [],
             doNotSerialize: [],
             droppingEnabled: false,
-            emphasis: [[0,7,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
             fixedWidth: true,
             grabbingEnabled: false,
             name: "CommentLabel",
@@ -275,9 +254,7 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             submorphs: [],
             textString: "comment"
         },{
-            _BorderColor: Color.rgb(214,214,214),
-            _BorderRadius: 5.2,
-            _BorderWidth: 1.1840000000000002,
+            _BorderRadius: 5,
             _Extent: lively.pt(150.0,21.0),
             _Position: lively.pt(15.0,376.0),
             className: "lively.morphic.Button",
@@ -303,7 +280,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             _ClipMode: "hidden",
             _Extent: lively.pt(266.0,20.0),
             _Fill: Color.rgb(255,255,255),
-            _FontFamily: "Helvetica",
             _MaxTextWidth: 250,
             _MinTextWidth: 250,
             _Position: lively.pt(200.0,62.0),
@@ -330,7 +306,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
         },{
             _ClipMode: "auto",
             _Extent: lively.pt(395.0,23.0),
-            _Fill: Color.rgb(243,243,243),
             _FontSize: 10,
             _Position: lively.pt(71.0,12.0),
             className: "lively.morphic.DropDownList",
@@ -349,8 +324,9 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
         }
         },{
             _Extent: lively.pt(62.0,18.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 10,
+            _FontStyle: "italic",
+            _TextColor: Color.white,
             _MaxTextWidth: 114,
             _MinTextWidth: 114,
             _Padding: lively.rect(5,5,0,0),
@@ -360,10 +336,6 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
             className: "lively.morphic.Text",
             doNotSerialize: ["charsTyped"],
             droppingEnabled: false,
-            emphasis: [[0,8,{
-                fontWeight: "normal",
-                italics: "italic"
-            }]],
             fixedWidth: true,
             grabbingEnabled: false,
             layout: {

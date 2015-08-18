@@ -58,7 +58,6 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
         submorphs: [{
             _ClipMode: "auto",
             _Extent: lively.pt(354.0,295.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 11,
             _HandStyle: "default",
             _InputAllowed: false,

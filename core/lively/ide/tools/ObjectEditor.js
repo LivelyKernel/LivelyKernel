@@ -1,7 +1,6 @@
 module('lively.ide.tools.ObjectEditor').requires('lively.persistence.BuildSpec').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.ObjectEditor', {
-    _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(822.0,457.8),
     className: "lively.morphic.Window",
     contentOffset: lively.pt(4.0,22.0),
@@ -147,9 +146,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     this.setBorderColor(color);
                 }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(251.0,21.0),
             _Position: lively.pt(185.0,9.0),
             className: "lively.morphic.Button",
@@ -161,9 +158,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             showsMorphMenu: true,
             sourceModule: "lively.morphic.Widgets",
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -180,8 +174,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },
@@ -376,13 +369,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },{
             _ClipMode: "hidden",
             _Extent: lively.pt(64.9,15.0),
-            _FontFamily: "Arial, sans-serif",
             _FontSize: 9,
             _HandStyle: null,
             _InputAllowed: false,
             _IsSelectable: false,
             _Position: lively.pt(4.0,12.0),
-            _TextColor: Color.rgb(64,64,64),
+            _TextColor: Color.white,
             allowInput: false,
             className: "lively.morphic.Text",
             eventsAreIgnored: true,
@@ -394,9 +386,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "ObjectEditorScriptsText2",
             textString: "Tag:"
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(100.0,21.0),
             _Position: lively.pt(714.0,9.0),
             className: "lively.morphic.Button",
@@ -406,12 +396,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 centeredHorizontal: false,
                 moveHorizontal: true
             },
-            name: "Button",
+            name: "runButton",
             sourceModule: "lively.morphic.Widgets",
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -428,8 +415,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },
@@ -437,9 +423,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "runScript", {});
         }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(100.0,21.0),
             _Position: lively.pt(610.0,9.0),
             className: "lively.morphic.Button",
@@ -452,9 +436,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "saveButton",
             sourceModule: "lively.morphic.Widgets",
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -471,8 +452,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },
@@ -482,9 +462,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorScriptPane"), "doSave", {});
         }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(100.0,21.0),
             _Position: lively.pt(506.0,9.0),
             _StyleClassNames: ["Morph","Button"],
@@ -497,9 +475,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "openTestsButton",
             sourceModule: "lively.morphic.Widgets",
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -516,8 +491,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },
@@ -526,10 +500,8 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "openPartTestRunner", {});
         }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
-            _Extent: lively.pt(27.0,21.0),
+            _BorderRadius: 5,
+            _Extent: lively.pt(21.0,21.0),
             _Position: lively.pt(440.0,9.0),
             className: "lively.morphic.Button",
             highlightRectangle: {
@@ -540,9 +512,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             name: "MagnifierButton",
             sourceModule: "lively.morphic.Widgets",
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -559,14 +528,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },
             submorphs: [{
                 _BorderColor: Color.rgb(204,0,0),
-                _Extent: lively.pt(29.0,29.0),
+                _Extent: lively.pt(24.0,24.0),
                 _HandStyle: "default",
                 _PointerEvents: "none",
                 _Position: lively.pt(-14.0,1.0),
@@ -690,8 +658,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     disconnectAll(this.getHighlightRectangle());
                 }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(180.0,287.0),
             _Position: lively.pt(0.0,40.0),
             changeIndicator: {
@@ -721,11 +688,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             sourceModule: "lively.morphic.Core",
             submorphs: [{
                 _BorderColor: Color.rgb(189,190,192),
+                _BorderRadius: 5,
                 _BorderWidth: 1,
                 _ClipMode: { x: "hidden", y: "scroll" },
-                _Extent: lively.pt(180.0,268.0),
+                _Extent: lively.pt(180.0,263.0),
                 _Fill: Color.rgb(255,255,255),
-                _Position: lively.pt(0.0,19.0),
+                _Position: lively.pt(0.0,21.0),
                 className: "lively.morphic.List",
                 currentCategory: null,
                 doitContext: {
@@ -783,13 +751,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },{
                 _ClipMode: "hidden",
                 _Extent: lively.pt(64.9,15.0),
-                _FontFamily: "Arial, sans-serif",
                 _FontSize: 9,
                 _HandStyle: null,
                 _InputAllowed: false,
                 _IsSelectable: false,
-                _Position: lively.pt(3.0,2.0),
-                _TextColor: Color.rgb(64,64,64),
+                _Position: lively.pt(5.0,2.0),
+                _TextColor: Color.white,
                 allowInput: false,
                 className: "lively.morphic.Text",
                 eventsAreIgnored: true,
@@ -800,8 +767,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 name: "ObjectEditorScriptsText",
                 textString: "Scripts"
             },{
-                _BorderColor: Color.rgb(189,190,192),
-                _BorderWidth: 1,
+                _BorderRadius: 5,
                 _Extent: lively.pt(20.0,20.0),
                 _Position: lively.pt(160.0,0.0),
                 _StyleClassNames: ["Morph","Button"],
@@ -819,9 +785,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 showsMorphMenu: true,
                 sourceModule: "lively.morphic.Widgets",
                 style: {
-                    borderColor: Color.rgb(189,190,192),
-                    borderRadius: 0,
-                    borderWidth: 1,
                     enableDropping: false,
                     enableGrabbing: false,
                     label: {
@@ -838,8 +801,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         fixedHeight: true,
                         fixedWidth: true,
                         fontSize: 10,
-                        padding: lively.rect(0,3,0,0),
-                        textColor: Color.rgb(0,0,0)
+                        padding: lively.rect(0,3,0,0)
                     },
                     padding: lively.rect(0,3,0,0)
                 },
@@ -849,10 +811,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "deleteSelectedScript", {});
             }
             },{
-                _BorderColor: Color.rgb(189,190,192),
-                _BorderWidth: 1,
+                _BorderRadius: 5,
                 _Extent: lively.pt(20.0,20.0),
-                _Position: lively.pt(141.0,0.0),
+                _Position: lively.pt(138.0,0.0),
                 _StyleClassNames: ["Morph","Button"],
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
@@ -864,9 +825,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 showsMorphMenu: true,
                 sourceModule: "lively.morphic.Widgets",
                 style: {
-                    borderColor: Color.rgb(189,190,192),
-                    borderRadius: 0,
-                    borderWidth: 1,
                     enableDropping: false,
                     enableGrabbing: false,
                     label: {
@@ -883,8 +841,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         fixedHeight: true,
                         fixedWidth: true,
                         fontSize: 10,
-                        padding: lively.rect(0,3,0,0),
-                        textColor: Color.rgb(0,0,0)
+                        padding: lively.rect(0,3,0,0)
                     },
                     padding: lively.rect(0,3,0,0)
                 },
@@ -897,8 +854,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             tagChooser: { isMorphRef: true, name: "ObjectEditorTagChooser" },
             target: { isMorphRef: true, name: "Pane4" }
         },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(180.0,100.0),
             _Position: lively.pt(0.0,331.0),
             changeIndicator: {
@@ -934,8 +890,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },
             sourceModule: "lively.morphic.Core",
             submorphs: [{
-                _BorderColor: Color.rgb(189,190,192),
-                _BorderWidth: 1,
+                _BorderRadius: 5,
                 _Extent: lively.pt(20.0,20.0),
                 _Position: lively.pt(160.0,0.0),
                 className: "lively.morphic.Button",
@@ -955,9 +910,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 showsMorphMenu: true,
                 sourceModule: "lively.morphic.Widgets",
                 style: {
-                    borderColor: Color.rgb(189,190,192),
-                    borderRadius: 0,
-                    borderWidth: 1,
                     enableDropping: false,
                     enableGrabbing: false,
                     label: {
@@ -974,8 +926,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         fixedHeight: true,
                         fixedWidth: true,
                         fontSize: 10,
-                        padding: lively.rect(0,3,0,0),
-                        textColor: Color.rgb(0,0,0)
+                        padding: lively.rect(0,3,0,0)
                     },
                     padding: lively.rect(0,3,0,0)
                 },
@@ -1007,13 +958,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },{
                 _ClipMode: "hidden",
                 _Extent: lively.pt(124.1,22.0),
-                _FontFamily: "Arial, sans-serif",
                 _FontSize: 9,
                 _HandStyle: null,
                 _InputAllowed: false,
                 _IsSelectable: false,
-                _Position: lively.pt(2.0,2),
-                _TextColor: Color.rgb(64,64,64),
+                _Position: lively.pt(5.0,2),
+                _TextColor: Color.white,
                 allowInput: false,
                 className: "lively.morphic.Text",
                 eventsAreIgnored: true,
@@ -1027,10 +977,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 name: "ObjectEditorConnectionsText",
                 textString: "Connections"
             },{
-                _BorderColor: Color.rgb(189,190,192),
-                _BorderWidth: 1,
+                _BorderRadius: 5,
                 _Extent: lively.pt(20.0,20.0),
-                _Position: lively.pt(141.0,0.0),
+                _Position: lively.pt(138.0,0.0),
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
                 isPressed: false,
@@ -1044,9 +993,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 showsMorphMenu: true,
                 sourceModule: "lively.morphic.Widgets",
                 style: {
-                    borderColor: Color.rgb(189,190,192),
-                    borderRadius: 0,
-                    borderWidth: 1,
                     enableDropping: false,
                     enableGrabbing: false,
                     label: {
@@ -1063,8 +1009,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         fixedHeight: true,
                         fixedWidth: true,
                         fontSize: 10,
-                        padding: lively.rect(0,3,0,0),
-                        textColor: Color.rgb(0,0,0)
+                        padding: lively.rect(0,3,0,0)
                     },
                     padding: lively.rect(0,3,0,0)
                 },
@@ -1076,12 +1021,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             },{
                 _BorderColor: Color.rgb(189,190,192),
                 _BorderWidth: 1,
+                _BorderRadius: 5,
                 _ClipMode: {x: "hidden",
                     y: "scroll"
                 },
-                _Extent: lively.pt(180.0,82.0),
+                _Extent: lively.pt(180.0,80.0),
                 _Fill: Color.rgb(255,255,255),
-                _Position: lively.pt(0.2,19),
+                _Position: lively.pt(0,21),
                 className: "lively.morphic.List",
                 droppingEnabled: false,
                 draggingEnabled: false,
@@ -1115,9 +1061,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             tagChooser: { isMorphRef: true, name: "ObjectEditorTagChooser" },
             target: { isMorphRef: true, name: "Pane4" }
         }, {
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
+            _BorderRadius: 5,
             _Extent: lively.pt(60.0,20.0),
             _Position: lively.pt(35.0,9.0),
             className: "lively.morphic.Button",
@@ -1132,9 +1076,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             setTargetToListSelection: "all",
             showsMorphMenu: true,
             style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
                 label: {
@@ -1151,8 +1092,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     fixedHeight: true,
                     fixedWidth: true,
                     fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
+                    padding: lively.rect(0,3,0,0)
                 },
                 padding: lively.rect(0,3,0,0)
             },

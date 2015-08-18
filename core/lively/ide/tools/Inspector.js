@@ -1,7 +1,6 @@
 module('lively.ide.tools.Inspector').requires('lively.persistence.BuildSpec', 'lively.morphic.Widgets', 'lively.ide.CodeEditor').toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.Inspector', {
-    _BorderColor: Color.rgb(204,0,0),
     _Extent: lively.pt(370,490),
     _StyleClassNames: ["Morph","Window"],
     className: "lively.morphic.Window",
@@ -87,7 +86,6 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _ClipMode: "auto",
             _Extent: lively.pt(200.0,21.0),
             _Fill: Color.rgba(243,243,243,0),
-            _FontFamily: "Helvetica",
             _FontSize: 10,
             _Position: lively.pt(55.0,7.0),
             className: "lively.morphic.DropDownList",
@@ -121,11 +119,10 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
             _ClipMode: "hidden",
             _Extent: lively.pt(92.0,0.0),
             _Position: lively.pt(6.0,10.0),
-            _FontFamily: "Helvetica",
             _HandStyle: null,
             _InputAllowed: false,
             _IsSelectable: false,
-            _TextColor: Color.rgb(64,64,64),
+            _TextColor: Color.white,
             allowInput: false,
             className: "lively.morphic.Text",
             evalEnabled: false,
@@ -370,12 +367,11 @@ lively.BuildSpec('lively.ide.tools.Inspector', {
         },{
             _ClipMode: "hidden",
             _Extent: lively.pt(193.0,26.0),
-            _FontFamily: "Arial, sans-serif",
             _HandStyle: "default",
             _InputAllowed: false,
             _IsSelectable: false,
             _Position: lively.pt(25,438),
-            _TextColor: Color.rgb(64,64,64),
+            _TextColor: Color.white,
             allowInput: false,
             className: "lively.morphic.Text",
             fixedWidth: true,

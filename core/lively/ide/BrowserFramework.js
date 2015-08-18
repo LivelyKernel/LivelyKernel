@@ -534,6 +534,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (!node || !node.sourceString) return;
 
         this.setPane2Content(this.childsFilteredAndAsListItems(node, this.getPane1Filters()));
+
+        // FIXME: Also happens in onSelect but that's where it is to late in some cases - MR
+        var codeEditor = this.sourceInput();
+        if (codeEditor.isCodeEditor && node instanceof lively.ide.CompleteCSSFragmentNode)
+            codeEditor.setTextMode('css');
+
         this.setSourceString(node.sourceString());
         this.updateTitle();
 
@@ -1063,6 +1069,8 @@ Object.subclass('lively.ide.BrowserNode',
     signalChange: function() { this.browser.nodeChanged(this) },
     signalTextChange: function() { this.browser.textChanged(this) },
     onSelect: function() {
+        // FIXME: this is too late to change the mode, the ACE editor goes crazy
+        //        with some CSS in JS mode (@import) - MR
         var codeEditor = this.browser.sourceInput();
         if (codeEditor.isCodeEditor) codeEditor.setTextMode(this.getSourceCodeMode());
     },

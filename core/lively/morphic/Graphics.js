@@ -1395,6 +1395,11 @@ Object.extend(Color, {
     neutral: {
         lightGray: Color.rgb(0xbd, 0xbe, 0xc0),
         gray:      Color.rgb(0x80, 0x72, 0x77)
+    },
+    lively: {
+        orange: Color.rgb(245, 124, 0),
+        lightGray: Color.rgb(128, 128, 128),
+        darkGray: Color.rgb(77, 77, 77)
     }
 });
 

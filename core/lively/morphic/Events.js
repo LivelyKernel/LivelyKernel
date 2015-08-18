@@ -1326,6 +1326,9 @@ handleOnCapture);
         var placeholder = this.placeholder,
             layouter = aMorph.getLayouter();
 
+        this.setOpacity(this.prevOpac);
+        delete this.prevOpac;
+
         if (placeholder) {
             var placeHolderPos = placeholder.getPosition();
             this.noLayoutDuring(function() {
@@ -1356,37 +1359,7 @@ handleOnCapture);
     },
 
     getGrabShadow: function (local) {
-        var shadow = new lively.morphic.Morph(
-            lively.persistence.Serializer.newMorphicCopy(this.shape));
-        this.submorphs.forEach(function(ea) {
-            var submorphShadow = ea.getGrabShadow(true);
-            submorphShadow && shadow.addMorph(submorphShadow) });
-
-        shadow.isGrabShadow = true;
-        shadow.applyStyle({
-            clipMode: this.getClipMode(),
-            fill: this.getFill() === null ? Color.gray : Color.gray.darker(),
-            opacity: 0.5});
-        shadow.connections = [
-            lively.bindings.connect(this, 'rotation', shadow, 'setRotation'),
-            lively.bindings.connect(this, 'scale', shadow, 'setScale')];
-        shadow.addScript(function remove() {
-            $super();
-            this.connections.invoke('disconnect');
-            this.submorphsForReconnect = this.submorphs.clone();
-            this.submorphs.invoke('remove');
-            lively.bindings.callWhenNotNull(this, 'owner', this, 'reconnect');
-        });
-        shadow.addScript(function reconnect(newOwner) {
-            this.connections.invoke('connect');
-            this.submorphsForReconnect.forEach(function(ea) { this.addMorph(ea) }, this);
-            delete this.submorphsForReconnect;
-        });
-        shadow.setTransform(local ? this.getTransform() : this.getGlobalTransform());
-        shadow.disableDropping();
-        //shadow.originalMorph = this;
-        //this.grabShadow = shadow;
-        return shadow;
+        return null;
     }
 },
 'scrolling', {
@@ -1990,6 +1963,12 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         morph.logTransformationForUndo('grab', 'start', evt);
         morph.previousOwner = morph.owner;
         morph.previousPosition = morph.getPosition();
+
+        var prevOpac = morph.getOpacity();
+        morph.prevOpac = prevOpac;
+        if (prevOpac > 0.8)
+            morph.setOpacity(0.8);
+
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {

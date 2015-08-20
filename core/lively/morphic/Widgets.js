@@ -3300,6 +3300,108 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.InformDialog',
 
 });
 
+lively.morphic.AbstractDialog.subclass('lively.morphic.HelpDialog',
+'properties', {
+    inset: 8,
+    labelOffset: 20,
+    messageOffset: 30
+},
+'initializing', {
+    initialize: function($super, title, message, callback) {
+        if (typeof message != 'string') {
+            message = title;
+            title = null;
+        }
+        $super(message, callback);
+        this.titleText = title;
+        this.buttons = [];
+    },
+
+    buildView: function($super, extent) {
+        var panel = $super(extent);
+        if (this.titleText)
+            this.buildTitle();
+
+        var bounds = this.label.bounds();
+        (function afterFit() {
+            var origPanelExtent = this.panel.getExtent(),
+                panelExtent = origPanelExtent,
+                labelBoundsFit = this.label.bounds(),
+                newWidth = this.label.bounds().width
+            if (this.title)
+                newWidth = Math.max(labelBoundsFit.width, newWidth);
+            var panelExtent = panelExtent.withX(newWidth + 2 * this.inset);
+            var newHeight = labelBoundsFit.top() + labelBoundsFit.height + this.inset;
+            panelExtent = panelExtent.withY(newHeight);
+            this.panel.setExtent(panelExtent);
+            if (this.alignedAt)
+                this.alignAt(this.alignedAt.morph, this.alignedAt.offset);
+            else
+                this.panel.moveBy(panelExtent.subPt(origPanelExtent).scaleBy(0.5, 1).negated());
+        }).bind(this).delay(0);
+
+        lively.bindings.connect(panel, 'onEscPressed', this, 'result', {
+            converter: function(evt) { Global.event && Global.event.stop(); return false; }});
+        lively.bindings.connect(panel, 'onEnterPressed', this, 'result', {
+            converter: function(evt) { Global.event && Global.event.stop(); return true; }});
+        return panel;
+    },
+
+    buildPanel: function($super, bounds) {
+        var result = $super.call(this, bounds);
+        this.panel.setBorderRadius(10);
+        this.panel.setFill(this.panel.getBorderColor());
+        return result;
+    },
+
+    buildLabel: function($super) {
+        var result = $super.call(this);
+        this.label.setPosition(this.label.getPosition().addXY(0,
+            (this.titleText ? this.labelOffset : 0)));
+        this.label.setBorderRadius(5);
+        this.label.setPadding(lively.rect(8,5));
+        this.label.growOrShrinkToFit();
+        return result;
+    },
+
+    buildTitle: function() {
+        var bounds = new lively.Rectangle(
+            this.inset, 5, this.panel.getExtent().x - 2*this.inset, 18);
+        this.title = new lively.morphic.Text(bounds, this.titleText);
+        this.title.applyStyle({ fixedHeight: false, fixedWidth: false, padding: Rectangle.inset(2,3) });
+        this.panel.addMorph(this.title);
+
+        // // FIXME ugly hack for wide dialogs:
+        // // wait until dialog opens and text is rendered so that we can
+        // // determine its extent
+        this.title.fit();
+        (function afterFit() {
+            this.title.beLabel({
+                textColor: Color.lively.orange,
+                enableGrabbing: false, enableDragging: false
+            });
+            this.title.disableEvents();
+
+            this.title.cachedBounds = null;
+        }).bind(this).delay(0);
+    }
+
+},
+'layouting', {
+
+    alignAt: function(morph, offset) {
+        if (!morph) return;
+        var pos = morph.getGlobalTransform().getTranslation(),
+            extent = morph.getExtent();
+        pos = pos.addXY(extent.x / 2 - this.view.getExtent().x / 2, extent.y + this.messageOffset);
+        if (offset instanceof lively.Point)
+            pos = pos.addPt(offset);
+        this.view.setPosition(pos);
+        this.alignedAt = { morph: morph, offset: offset };
+    }
+
+});
+
 lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'properties', {

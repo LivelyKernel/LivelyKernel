@@ -421,11 +421,6 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
     }
 
 },
-'halos', {
-    getHaloClasses: function($super) {
-        return $super().concat([lively.morphic.SetImageURLHalo]);
-    },
-},
 'menu', {
     morphMenuItems: function($super) {
         var items = $super();

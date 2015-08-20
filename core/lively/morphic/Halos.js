@@ -5,39 +5,39 @@ lively.morphic.Morph.addMethods(
     showsHalosOnRightClick: true,
     enableHalos: function() { this.halosEnabled = true },
     disableHalos: function() { this.halosEnabled = false },
-    showHalos: function() {
+    showHalos: function(evt) {
         if (!this.world() || (this.halosEnabled !== undefined && !this.halosEnabled)) return;
         if (this.showsHalos && this.halos) { this.halos.invoke('alignAtTarget'); return; }
         this.showsHalos = true;
         this.halos = this.getHalos();
         this.world().showHalosFor(this, this.halos);
-        this.halos.invoke('alignAtTarget');
+        this.halos.invoke('alignAtTarget', evt);
         this.focus.bind(this).delay(0);
     },
-    showSelectedHalos: function(haloItems) {
+    showSelectedHalos: function(haloItems, evt) {
         if (!this.world()) return;
         this.showsHalos = true;
         this.halos = (this.halos || []).pushAll(haloItems).uniq();
         this.world().showHalosFor(this, this.halos);
-        this.halos.invoke('alignAtTarget');
+        this.halos.invoke('alignAtTarget', evt);
     },
 
     getHaloClasses: function() {
         // BoundsHalo has to be in the background (top of the list)
         // so that when other Halos get moved to be seen on the screen they are still in front
-        return [lively.morphic.BoundsHalo,
-            lively.morphic.RenameHalo,
-            lively.morphic.ResizeHalo,
-            lively.morphic.DragHalo,
-            lively.morphic.InspectHalo,
-            lively.morphic.RotateHalo,
-            lively.morphic.CloseHalo,
-            lively.morphic.GrabHalo,
-            lively.morphic.CopyHalo,
-            lively.morphic.MenuHalo,
-            lively.morphic.StyleHalo,
-            lively.morphic.ScriptEditorHalo,
-            lively.morphic.OriginHalo];
+        return [
+            lively.morphic.NewBoundsHalo,
+            lively.morphic.NewRenameHalo,
+            lively.morphic.NewResizeHalo,
+            lively.morphic.NewRotateHalo,
+            lively.morphic.NewCloseHalo,
+            lively.morphic.NewGrabHalo,
+            lively.morphic.NewCopyHalo,
+            lively.morphic.NewMenuHalo,
+            lively.morphic.NewScriptEditorHalo,
+            lively.morphic.NewStyleEditorHalo,
+            lively.morphic.NewOriginHalo
+        ];
     },
     getHalos: function() {
         var morph = this;
@@ -72,19 +72,19 @@ lively.morphic.Morph.addMethods(
             this.world().setSelectedMorphs(selectedMorphs);
             return;
         }
-        // toggles halo through the mophs that are stacked beneath evt.getPosition()
+        // toggles halo through the morphs that are stacked beneath evt.getPosition()
         if (currentTarget && currentTarget.fullContainsWorldPoint(evt.getPosition()))
             morphWithHalos = currentTarget.showHalosForMorphBeneath(evt);
-        if (!morphWithHalos) this.showHalos();
+        if (!morphWithHalos) this.showHalos(evt);
     },
 
     showHalosForMorphBeneath: function(evt) {
         var morphBeneath = this.morphBeneath(evt.getPosition());
-        if (morphBeneath) morphBeneath.showHalos();
+        if (morphBeneath) morphBeneath.showHalos(evt);
         return morphBeneath
     }
 
-})
+});
 
 lively.morphic.World.addMethods(
 'halos', {
@@ -111,10 +111,9 @@ lively.morphic.World.addMethods(
     },
     getHaloClasses: function() {
         return [
-            lively.morphic.MenuHalo,
-            lively.morphic.InspectHalo,
-            lively.morphic.ScriptEditorHalo,
-            lively.morphic.StyleHalo
+            lively.morphic.NewMenuHalo,
+            lively.morphic.NewScriptEditorHalo,
+            lively.morphic.NewStyleEditorHalo
         ];
     }
 });
@@ -341,34 +340,27 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
     },
 },
 'key events', {
+
     onShiftPressed: function() {
         this.shiftPressedOnTarget();
     },
+
     onShiftReleased: function() {
         this.shiftReleasedOnTarget();
     },
+
     shiftPressedOnTarget: function() {
-        if (typeof this.toggleIcon === 'function') {
-            this.toggleIcon(true);
-        }
+        this.toggleIcon(true);
     },
+
     shiftReleasedOnTarget: function() {
-        if (typeof this.toggleIcon === 'function') {
-            this.toggleIcon(false);
-        }
+        this.toggleIcon(false);
     },
-},
-'utilities', {
-    targetScripts: function() {
-        // answer sorted list of targetMorph's script names
-        var obj = this.targetMorph;
-        var fs = Functions.own(obj);
-        if (!fs)
-            return [];
-        return fs
-            .select(function(name) { return obj[name].getOriginal().hasLivelyClosure })
-            .sortBy(function(name) { return name.toLowerCase() }); 
-    },
+
+    toggleIcon: function(bool) {
+        this.iconMorph && this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg');
+    }
+
 },
 'connectors', {
     getMagnets: function() {
@@ -391,9 +383,6 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
     },
     iconName: function (bool) {
         return bool ? 'resize_shift' : 'resize'
-    },
-    toggleIcon: function(bool) {
-        this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg')
     }
 },
 'halo actions', {
@@ -417,7 +406,7 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
     },
     dragEndAction: function(evt) {
         this.targetMorph.removeHalos();
-        this.targetMorph.showHalos();
+        this.targetMorph.showHalos(evt);
         this.targetMorph.logTransformationForUndo('bounds', 'end');
     },
     dragStartAction: function(evt) {
@@ -506,7 +495,7 @@ lively.morphic.Halo.subclass('lively.morphic.DragHalo',
         // this.targetMorph.onDragEnd(evt);
         this.targetMorph.logTransformationForUndo('drag', 'end');
         this.targetMorph.removeHalos();
-        this.targetMorph.showHalos();
+        this.targetMorph.showHalos(evt);
     },
     dragStartAction: function(evt) {
         // this.startPos = evt.getPosition();
@@ -614,7 +603,7 @@ lively.morphic.Halo.subclass('lively.morphic.CopyHalo',
 lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
 'settings', {
     style: {fill: Color.blue.lighter(), toolTip: 'rotates the object (sticky around 45° steps\n' +
-                                        'hold shift down to scale (sticky around 0.5)'  },
+                                        'hold SHIFT to scale (sticky around 0.5)'  },
     labelText: 'T',
     horizontalPos: 0,
     verticalPos: 3,
@@ -626,9 +615,6 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     setTarget: function($super, morph) {
         $super(morph);
         this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown());
-    },
-    toggleIcon: function(bool) {
-        this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg')
     }
 },
 'halo actions', {
@@ -658,7 +644,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
         this.haloIsBeingDragged = false;
         this.removeAngleIndicator();
         this.targetMorph.removeHalos();
-        this.targetMorph.showHalos();
+        this.targetMorph.showHalos(evt);
         this.targetMorph.logTransformationForUndo('rotate', 'end');
     },
 
@@ -919,17 +905,29 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
             }
             this.setToolTip(this.style.toolTip);
         };
-    },
-    targetConnections: function () {
-        return (this.targetMorph && this.targetMorph.attributeConnections) ? this.targetMorph.attributeConnections : []; 
     }
 },
 'halo actions', {
     clickAction: function(evt) {
         this.targetMorph.removeHalos();
         $world.openObjectEditorFor(this.targetMorph);
+    }
+},
+'helper', {
+    targetConnections: function () {
+        return (this.targetMorph && this.targetMorph.attributeConnections) ? this.targetMorph.attributeConnections : []; 
     },
 
+    targetScripts: function() {
+        // answer sorted list of targetMorph's script names
+        var obj = this.targetMorph;
+        var fs = Functions.own(obj);
+        if (!fs)
+            return [];
+        return fs
+            .select(function(name) { return obj[name].getOriginal().hasLivelyClosure })
+            .sortBy(function(name) { return name.toLowerCase() });
+    },
 });
 
 lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
@@ -1232,20 +1230,1060 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo
     },
 });
 
+lively.morphic.Path.subclass('lively.morphic.WheelHalo',
+'settings', {
+
+    outerRadius: 115,
+    innerRadius: 75,
+    subItemWidth: 8,
+
+    style: {
+        borderWidth: 0, borderColor: null, fill: Color.rgb(77, 77, 77), opacity: 0.8,
+        enableHalos: false, enableDropping: false, enableDragging: true, zIndex: 1010
+    },
+    isEpiMorph: true,
+    isHalo: true,
+    iconBaseURL: Global.URL.codeBase + 'media/new_halos/',
+    iconSize: pt(37, 37), // UserAgent.isMobile ? pt(40, 40) : pt(30, 30),
+    colorSubItemMarker: Color.rgb(242,92,0),
+
+    wheelPosition: 0,
+    subItems: []
+
+},
+'initialization', {
+
+    initialize: function($super, targetMorph) {
+        var verts = this.createVertices();
+        $super(verts);
+        this.setTarget(targetMorph);
+
+        var factor = Math.sin(Math.PI / 4),
+            outerHeight = this.outerRadius * factor;
+        this.setOrigin(pt(this.outerRadius, outerHeight - 1));
+        this.setRotation(Math.PI / 4 * (this.wheelPosition + 1 + .5));
+
+        this.createIcon();
+        if (this.hasSubItems())
+            this.createSubItemMarker();
+    },
+
+    setTarget: function(morph) {
+        this.targetMorph = morph;
+        this.toggleIcon(Global.event && Global.event.isShiftDown());
+        this.resetStyle();
+    },
+
+    createVertices: function() {
+        var factor = Math.sin(Math.PI / 4),
+            outerHeight = this.outerRadius * factor,
+            outerWidth = this.outerRadius * (1 - factor) - 2,
+            innerHeight = this.innerRadius * factor,
+            innerWidth = this.innerRadius * (1 - factor) - 2;
+
+        return [
+            pt(0, outerHeight),
+            new lively.morphic.Shapes.ArcTo(true, outerWidth, 0, this.outerRadius, this.outerRadius, 0, 0, 1),
+            pt((this.outerRadius - this.innerRadius) + innerWidth, outerHeight - innerHeight),
+            new lively.morphic.Shapes.ArcTo(true, (this.outerRadius - this.innerRadius), outerHeight, this.innerRadius, this.innerRadius, 0, 0, 0),
+            pt(0, outerHeight)
+        ];
+    },
+
+    createSubItemMarker: function() {
+        var factor = Math.sin(Math.PI / 4),
+            outerHeight = this.outerRadius * factor,
+            outerWidth = this.outerRadius * (1 - factor) - 2,
+            innerRadius = (this.outerRadius - this.subItemWidth),
+            innerHeight = innerRadius * factor,
+            innerWidth = innerRadius * (1 - factor) - 2;
+
+        this.subItemMarker = new lively.morphic.Path([
+            pt(0, outerHeight),
+            new lively.morphic.Shapes.ArcTo(true, outerWidth, 0, this.outerRadius, this.outerRadius, 0, 0, 1),
+            pt((this.outerRadius - innerRadius) + innerWidth, outerHeight - innerHeight),
+            new lively.morphic.Shapes.ArcTo(true, (this.outerRadius - innerRadius), outerHeight, innerRadius, innerRadius, 0, 0, 0),
+            pt(0, outerHeight)
+        ]);
+        this.subItemMarker.applyStyle({
+            fill: this.colorSubItemMarker,
+            borderWidth: 0,
+            borderColor: null
+        });
+        this.subItemMarker.setOrigin(pt(this.outerRadius, outerHeight - 1));
+        this.subItemMarker.disableEvents();
+        this.subItemMarker.disableDropping();
+        this.addMorph(this.subItemMarker);
+    },
+
+    createIcon: function() {
+        this.iconMorph = new lively.morphic.Image(
+            this.iconSize.extentAsRectangle(),
+            this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg'
+        );
+        this.iconMorph.setBorderWidth(7);
+        this.iconMorph.setBorderColor(null);
+        this.addMorph(this.iconMorph);
+        this.iconMorph.setOrigin(this.iconMorph.getExtent().scaleBy(.5));
+
+        var outerRadius = this.outerRadius;
+        if (this.hasSubItems())
+            outerRadius -= this.subItemWidth;
+
+        var aOut = outerRadius * Math.sin(45 * Math.PI / 360),
+            aIn = this.innerRadius * Math.sin(45 * Math.PI / 360),
+            aMedian = (aOut + aIn) / 2,
+            bOut = Math.sqrt(outerRadius * outerRadius - aOut * aOut),
+            bIn = Math.sqrt(this.innerRadius * this.innerRadius - aIn * aIn),
+            bMedian = (bOut + bIn) / 2;
+        this.iconMorph.setPosition(pt(-bMedian, -aMedian));
+
+        this.iconMorph.setRotation(-Math.PI / 4 * (this.wheelPosition + 1 + .5));
+        this.iconMorph.disableEvents();
+        this.iconMorph.disableDropping();
+    },
+
+    iconName: function(alternative) {
+        return 'menu';
+    },
+
+    resetStyle: function() {
+        if (this.iconMorph) {
+            this.iconMorph.setFill(null);
+            this.iconMorph.setBorderRadius(0);
+        }
+        this.setFill(Color.lively.darkGray);
+        if (this.subItemMarker)
+            this.subItemMarker.setFill(this.colorSubItemMarker);
+        this.haloIsBeingDragged = false;
+    }
+
+},
+'accesing', {
+
+    getBoundsHalo: function() {
+        return this.targetMorph && this.targetMorph.halos.detect(function(ea) { return ea.isBoundsHalo });
+    }
+
+},
+'testing', {
+
+    hasSubItems: function() {
+        return this.subItems && (this.subItems.length > 0);
+    }
+
+},
+'layout', {
+
+    alignAtTarget: function(evt) {
+        var world = this.world();
+        if (!this.haloIsBeingDragged || !world) {
+            if (evt && evt.getPosition())
+                this.setPosition(evt.getPosition());
+            else
+                this.setPosition(this.targetMorph.worldPoint(this.targetMorph.innerBounds().center()));
+        } else {
+            var pos = world.firstHand().getPosition(),
+                offset = this.getGlobalTransform().getTranslation().subPt(
+                    this.iconMorph.getGlobalTransform().getTranslation());
+            pos = pos.addPt(offset);
+            this.setPosition(pos);
+        }
+    },
+
+    tranformMoveDeltaDependingOnHaloPosition: function(evt, moveDelta, cornerName) {
+        // Griding and rounding might move the morph differently
+        // so we have to recalculate the delta...
+        if(!evt.isAltDown())
+            return moveDelta
+
+        var pos = this.targetMorph.bounds()[cornerName]()
+        var newOffset = evt.getPosition().subPt(this.targetMorph.owner.worldPoint(pos))
+        this.startOffset = this.startOffset || newOffset;
+
+        var deltaOffset = newOffset.subPt(this.startOffset)
+
+        moveDelta = moveDelta.addPt(deltaOffset);
+        return moveDelta
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        return false;
+    },
+
+    dragAction: function(evt, moveDelta) {},
+
+    dragStartAction: function(evt) {
+        this.haloIsBeingDragged = true;
+        this.iconMorph.setFill(Color.lively.darkGray);
+        this.iconMorph.setBorderRadius(this.iconMorph.getExtent().x / 2);
+        this.setFill(null);
+        if (this.subItemMarker)
+            this.subItemMarker.setFill(null);
+    },
+
+    dragEndAction: function(evt) {
+        this.haloIsBeingDragged = false;
+        this.resetStyle();
+    }
+
+},
+'mouse events', {
+
+    onMouseUp: function(evt) {
+        if (evt.hand.haloLastClickedOn === this)
+            return this.clickAction(evt);
+        return false;
+    },
+
+    onDragStart: function(evt) {
+        this.prevDragPos = evt.getPosition();
+        this.dragStartAction(evt);
+        return true;
+    },
+
+    onDragEnd: function(evt) {
+        if (this.targetMorph.halos)
+            this.targetMorph.halos.invoke('alignAtTarget');
+        if (this.infoLabel) this.infoLabel.remove();
+        this.dragEndAction(evt);
+        return true;
+    },
+
+    onDrag: function(evt) {
+        if (!this.prevDragPos) this.prevDragPos = evt.getPosition();
+        var movedBy = evt.getPosition().subPt(this.prevDragPos);
+        this.prevDragPos = evt.getPosition();
+        this.dragAction(evt, movedBy);
+        return true;
+    },
+
+    compensateDragTriggerDistance: function(evt) {
+        var target = this.targetMorph;
+        var world = this.targetMorph.world();
+        if (!target || !world || !world.eventStartPos) return;
+        target.moveBy(evt.getPosition().subPt(evt.hand.eventStartPos));
+        target.halos.invoke('alignAtTarget');
+    },
+
+    onMouseOver: function($super, evt) {
+        if (this.haloIsBeingDragged) return $super.call(this, evt);
+
+        this.setFill(Color.rgb(245, 124, 0));
+
+        if (this.isShowingSubItems) return $super.call(this, evt);
+        this.isShowingSubItems = true;
+
+        var morph = this.targetMorph,
+            subItems = this.subItems.map(function(ea) {
+                return ea.getInstanceFor ? ea.getInstanceFor(morph) : new ea(morph);
+            }).reject(function(ea) {
+                return morph.halos.include(ea);
+            });
+        morph.halos.pushAll(subItems);
+        subItems.forEach(function(ea) {
+            ea.setTarget(this.targetMorph);
+            this.addMorph(ea);
+            ea.alignAtTarget();
+        }, this);
+
+        return $super.call(this, evt);
+    },
+
+    onMouseOut: function($super, evt) {
+        if (this.haloIsBeingDragged) return $super.call(this, evt);
+
+        this.setFill(Color.rgb(77, 77, 77));
+
+        var morph = this.targetMorph;
+        var stillInside = this.subItems.some(function(ea) {
+            var haloItem = ea.getInstanceFor ? ea.getInstanceFor(morph) : new ea(morph);
+            return haloItem.globalBounds().containsPoint(evt.getPosition());
+        });
+
+        if (stillInside) return $super.call(this, evt);
+        this.isShowingSubItems = false;
+
+        this.subItems.forEach(function(ea) {
+            var haloItem = ea.getInstanceFor ? ea.getInstanceFor(morph) : new ea(morph);
+            haloItem.remove();
+            morph.halos.remove(haloItem);
+        });
+
+        return $super.call(this, evt);
+    }
+
+},
+'key events', {
+
+    onShiftPressed: function() {
+        this.shiftPressedOnTarget();
+    },
+
+    onShiftReleased: function() {
+        this.shiftReleasedOnTarget();
+    },
+
+    shiftPressedOnTarget: function() {
+        this.toggleIcon(true);
+    },
+
+    shiftReleasedOnTarget: function() {
+        this.toggleIcon(false);
+    },
+
+    toggleIcon: function(toggled) {
+        if (!this.iconMorph) return;
+        this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(toggled) + '.svg');
+    }
+
+},
+'connectors', {
+
+    getMagnets: function() {
+        return []; // Don't connect to halo items by accident
+    }
+
+},
+'information', {
+
+    setInfo: function(str) {
+        this.ensureInfoLabel().setTextString(str);
+    },
+
+    ensureInfoLabel: function() {
+        // rkrk - better use own class, here we build the halo behavior on the fly
+        if (!this.infoLabel) {
+            this.infoLabel = new lively.morphic.Text(new Rectangle(0,0,100,30), '');
+            this.infoLabel.beLabel({fontSize: 8});
+            this.infoLabel.isEpiMorph = true;
+            this.infoLabel.addScript(function alignAtTarget() {
+                if (!this.owner) return;
+                var t = this.targetMorph;
+                this.align(
+                    this.bounds().bottomLeft(),
+                    // here come the magic numbers!
+                    t.owner.worldPoint(t.bounds().topLeft().addXY(-3,15)));
+            });
+            this.targetMorph.halos.push(this.infoLabel);
+            if (!this.world()) return this.infoLabel;
+        }
+        this.infoLabel.targetMorph = this.targetMorph;
+        if (!this.infoLabel.owner) this.world().addMorph(this.infoLabel);
+        // Why needed?? - Dan --- rkrk - because of alignment at targetMorph
+        this.infoLabel.alignAtTarget();
+        return this.infoLabel;
+    }
+
+});
+
+lively.morphic.BoundsHalo.subclass('lively.morphic.NewBoundsHalo',
+'settings', {
+    style: {
+        fill: null, borderColor: Color.black, borderWidth: 1, borderStyle: 'dashed', borderRadius: 0,
+        zIndex: 1009
+    }
+});
+
+lively.morphic.OriginHalo.subclass('lively.morphic.NewOriginHalo',
+'settings', {
+    style: { fill: Color.red, borderWidth: 1, borderColor: Color.black, toolTip: 'origin' },
+    defaultExtent: pt(8, 8)
+});
+
+lively.morphic.DragHalo.subclass('lively.morphic.NewDragHalo',
+'settings', {
+    style: {
+        borderWidth: 0, borderRadius: 19, borderColor: null, fill: Color.rgb(77, 77, 77),
+        opacity: 1, toolTip: 'drag the object'
+    },
+    defaultExtent: pt(37, 37),
+    iconBaseURL: Global.URL.codeBase + 'media/new_halos/'
+},
+'initialization', {
+
+    initialize: function($super, targetMorph) {
+        $super(targetMorph);
+        this.setFill(this.style.fill);
+        this.iconMorph.setExtent(pt(30, 30).subXY(6, 6));
+        this.iconMorph.setPosition(this.iconMorph.getPosition().addPt(pt(3, 3)));
+    },
+
+    iconName: function(alternative) {
+        return 'move';
+    }
+
+},
+'layout', {
+
+    alignAtTarget: function($super) {
+        var world = this.world();
+        if (!this.haloIsBeingDragged || !world) {
+            var outerRadius = this.owner.outerRadius + (this.getExtent().x / 2) + 10;
+
+            var a = outerRadius * Math.sin(45 * Math.PI / 360),
+                b = Math.sqrt(outerRadius * outerRadius - a * a);
+            this.setOrigin(this.getExtent().scaleBy(.5));
+            this.setPosition(pt(-b, -a));
+            this.setRotation(-Math.PI / 4 * (this.owner.wheelPosition + 1 + .5));
+        } else
+            $super.call(this);
+    }
+
+},
+'halo actions', {
+
+    dragAction: function(evt, moveDelta) {
+        moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'topRight')
+
+        var transform = this.targetMorph.owner.getGlobalTransform();
+        var oldPos = transform.transformPoint(pt(0,0)),
+            newPos = oldPos.addPt(moveDelta);
+        var newPos = transform.inverse().transformPoint(newPos);
+
+        var newTargetPos = this.targetMorph.getPosition().addPt(newPos)
+        if (evt.isAltDown()) {
+            newTargetPos = newTargetPos.griddedBy(this.targetMorph.getGridPoint())
+        }
+        this.setInfo('pos: ' + newTargetPos)
+        this.lastHaloPosition = this.getPosition();
+        this.targetMorph.setPosition(newTargetPos);
+
+        this.targetMorph.halos.invoke('alignAtTarget');
+
+        // we might think about only moving the halos when targetMorph.onDrag returns true
+        // morphs could return false to indicate that they don't want to be moved on every
+        // drag event (e.g. if they are in some sort of grid layout)
+        // this.targetMorph.onDrag(evt);
+    },
+
+    dragEndAction: function($super, evt) {
+        this.haloIsBeingDragged = false;
+        this.setOpacity(1);
+        return $super.call(this, evt);
+    },
+
+    dragStartAction: function($super, evt) {
+        this.world().addMorph(this);
+        this.setOpacity(0.8);
+        var result = $super.call(this, evt);
+        this.haloIsBeingDragged = true;
+        return result;
+    }
+
+},
+'mouse events', {
+
+    onMouseOver: function($super, evt) {
+        this.setFill(Color.rgb(245, 124, 0));
+        if (this.owner instanceof lively.morphic.WheelHalo) {
+            this.owner.setFill(Color.rgb(77, 77, 77));
+        }
+    },
+
+    onMouseOut: function($super, evt) {
+        this.setFill(Color.rgb(77, 77, 77));
+        return $super.call(this, evt);
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewGrabHalo',
+'settings', {
+    style: { toolTip: 'grab the object (CMD-click)'},
+    wheelPosition: 0,
+    subItems: [lively.morphic.NewDragHalo]
+},
+'initialization', {
+
+    iconName: function(alternative) {
+        return 'grab';
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        this.dragStartAction(evt); // same effect, but with mouse up
+    },
+
+    dragAction: function(evt, moveDelta) {
+        // morph is in hand
+        this.targetMorph.halos.invoke('alignAtTarget');
+    },
+
+    dragStartAction: function($super, evt) {
+        this.compensateDragTriggerDistance(evt);
+        this.targetMorph.logTransformationForUndo('grab', 'start');
+        evt.hand.grabMorph(this.targetMorph, evt);
+        this.targetMorph.showSelectedHalos([this]);
+        return $super.call(this, evt);
+    },
+
+    dragEndAction: function($super, evt) {
+        evt.world.dispatchDrop(evt);
+        this.targetMorph.logTransformationForUndo('grab', 'end');
+        this.targetMorph.removeHalos();
+        var result = $super.call(this, evt);
+        this.targetMorph.showHalos(evt);
+        return result;
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewCloseHalo',
+'settings', {
+    style: { enableDragging: false, enableGrabbing: false, toolTip: 'remove the object' },
+    wheelPosition: 1
+},
+'initialization', {
+
+    iconName: function() {
+        return 'close';
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        this.targetMorph.removeHalos();
+        if (this.targetMorph.isWindow)
+            this.targetMorph.initiateShutdown();  // has its own undo
+        else {
+            this.targetMorph.logTransformationForUndo('remove', 'start');
+            this.targetMorph.remove();
+            this.targetMorph.logTransformationForUndo('remove', 'end');
+        }
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewStyleEditorHalo',
+'settings', {
+    style: { enableDragging: false, enableGrabbing: false, toolTip: 'open style editor' },
+    wheelPosition: 6
+},
+'initialization', {
+
+    iconName: function(alternative) {
+        return 'styleedit';
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        this.targetMorph.removeHalos();
+        lively.morphic.World.current().openStyleEditorFor(this.targetMorph);
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewScriptEditorHalo',
+'settings', {
+    style: { enableDragging: false, enableGrabbing: false, toolTip: 'open script editor' },
+    wheelPosition: 2
+},
+'initialization', {
+
+    iconName: function(alternative) {
+        // if targetMorph has scripts, use a colored handle
+        // and show script names in tooltip
+        var scripts = this.targetScripts(),
+            connections = this.targetConnections();
+        return scripts.size() > 0 ?
+            (connections.size() > 0 ? // 2 because of onKeyUp onKeyDown
+                'scriptedit_scriptconnection' : 'scriptedit_script') :
+            (connections.size() > 0 ?
+                'scriptedit_connection' : 'scriptedit');
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        this.targetMorph.removeHalos();
+        $world.openObjectEditorFor(this.targetMorph);
+    }
+
+},
+'helper', {
+
+    targetConnections: function () {
+        return (this.targetMorph && this.targetMorph.attributeConnections) ? this.targetMorph.attributeConnections : []; 
+    },
+
+    targetScripts: function() {
+        // answer sorted list of targetMorph's script names
+        var obj = this.targetMorph;
+        var fs = Functions.own(obj);
+        if (!fs)
+            return [];
+        return fs
+            .select(function(name) { return obj[name].getOriginal().hasLivelyClosure })
+            .sortBy(function(name) { return name.toLowerCase() });
+    }
+
+});
+
+lively.morphic.ResizeHalo.subclass('lively.morphic.NewRatioResizeHalo',
+'settings', {
+    style: {
+        borderWidth: 0, borderRadius: 19, borderColor: null, fill: Color.rgb(77, 77, 77),
+        opacity: 1, toolTip: 'drag the object'
+    },
+    defaultExtent: pt(37, 37),
+    iconBaseURL: Global.URL.codeBase + 'media/new_halos/'
+},
+'initialization', {
+
+    initialize: function($super, targetMorph) {
+        $super(targetMorph);
+        this.setFill(this.style.fill);
+        this.iconMorph.setExtent(pt(30, 30).subXY(6, 6));
+        this.iconMorph.setPosition(this.iconMorph.getPosition().addPt(pt(3, 3)));
+    },
+
+    iconName: function(alternative) {
+        return 'resize_ratio';
+    }
+
+},
+'layout', {
+
+    alignAtTarget: function($super) {
+        var world = this.world();
+        if (!this.haloIsBeingDragged || !world) {
+            var outerRadius = this.owner.outerRadius + (this.getExtent().x / 2) + 10;
+
+            var a = outerRadius * Math.sin(45 * Math.PI / 360),
+                b = Math.sqrt(outerRadius * outerRadius - a * a);
+            this.setOrigin(this.getExtent().scaleBy(.5));
+            this.setPosition(pt(-b, -a));
+            this.setRotation(-Math.PI / 4 * (this.owner.wheelPosition + 1 + .5));
+        } else
+            $super.call(this);
+    }
+
+},
+'halo actions', {
+
+    dragAction: function($super, evt, moveDelta) {
+        evt.shiftKey = true;
+        return $super.call(this, evt, moveDelta);
+    },
+
+    dragStartAction: function($super, evt) {
+        this.world().addMorph(this);
+        this.setOpacity(0.8);
+        var result = $super.call(this, evt);
+        this.haloIsBeingDragged = true;
+        return result;
+    },
+
+    dragEndAction: function($super, evt) {
+        this.haloIsBeingDragged = false;
+        this.setOpacity(1);
+        return $super.call(this, evt);
+    }
+
+},
+'mouse events', {
+
+    onMouseOver: function($super, evt) {
+        this.setFill(Color.rgb(245, 124, 0));
+        if (this.owner instanceof lively.morphic.WheelHalo) {
+            this.owner.setFill(Color.rgb(77, 77, 77));
+        }
+    },
+
+    onMouseOut: function($super, evt) {
+        this.setFill(Color.rgb(77, 77, 77));
+        return $super.call(this, evt);
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewResizeHalo',
+'settings', {
+    style: { toolTip: 'resize the object' },
+    wheelPosition: 3,
+    subItems: [lively.morphic.NewRatioResizeHalo]
+},
+'initialization', {
+
+    iconName: function(alternative) {
+        return 'resize';
+    }
+
+},
+'halo actions', {
+
+    dragAction: function(evt, moveDelta) {
+        moveDelta =  this.tranformMoveDeltaDependingOnHaloPosition(evt, moveDelta, 'bottomRight');
+        var extent = this.targetMorph.getExtent().scaleBy(this.targetMorph.getScale());
+        if (evt.isShiftDown()) {
+            var ratio = extent.x / extent.y,
+                ratioPt = pt(1, 1 / ratio),
+                maxDelta = Math.max(moveDelta.x, moveDelta.y);
+            moveDelta = pt(maxDelta, maxDelta).scaleByPt(ratioPt);
+        }
+        var newExtent = extent.addPt(moveDelta);
+        if (evt.isAltDown()) {
+            newExtent = newExtent.griddedBy(this.targetMorph.getGridPoint());
+        }
+		this.setInfo('extent: ' + newExtent);
+        this.targetMorph.setExtent(newExtent.scaleBy(1/this.targetMorph.getScale()));
+        this.targetMorph.halos.invoke('alignAtTarget');
+    },
+
+    dragStartAction: function($super, evt) {
+        this.targetMorph.logTransformationForUndo('bounds', 'start');
+        this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
+        return $super.call(this, evt);
+    },
+
+    dragEndAction: function($super, evt) {
+        this.targetMorph.logTransformationForUndo('bounds', 'end');
+        this.targetMorph.removeHalos();
+        var result = $super.call(this, evt);
+        this.targetMorph.showHalos(evt);
+        return result;
+    }
+
+});
+
+lively.morphic.RotateHalo.subclass('lively.morphic.NewScaleHalo',
+'settings', {
+    style: {
+        borderWidth: 0, borderRadius: 19, borderColor: null, fill: Color.rgb(77, 77, 77),
+        opacity: 1, toolTip: 'scale the object (sticky around 0.5)'
+    },
+    defaultExtent: pt(37, 37),
+    iconBaseURL: Global.URL.codeBase + 'media/new_halos/'
+},
+'initialization', {
+
+    initialize: function($super, targetMorph) {
+        $super(targetMorph);
+        this.setFill(this.style.fill);
+        this.iconMorph.setExtent(pt(30, 30).subXY(6, 6));
+        this.iconMorph.setPosition(this.iconMorph.getPosition().addPt(pt(3, 3)));
+    },
+
+    iconName: function(alternative) {
+        return 'scale';
+    }
+
+},
+'layout', {
+
+    alignAtTarget: function($super) {
+        var world = this.world();
+        if (!this.haloIsBeingDragged || !world) {
+            var outerRadius = this.owner.outerRadius + (this.getExtent().x / 2) + 10;
+
+            var a = outerRadius * Math.sin(45 * Math.PI / 360),
+                b = Math.sqrt(outerRadius * outerRadius - a * a);
+            this.setOrigin(this.getExtent().scaleBy(.5));
+            this.setPosition(pt(-b, -a));
+            this.setRotation(-Math.PI / 4 * (this.owner.wheelPosition + 1 + .5));
+        } else
+            $super.call(this);
+    }
+
+},
+'halo actions', {
+
+    dragAction: function($super, evt, moveDelta) {
+        evt.shiftKey = true;
+        return $super.call(this, evt, moveDelta);
+    },
+
+    dragStartAction: function($super, evt) {
+        this.world().addMorph(this);
+        this.setOpacity(0.8);
+        var result = $super.call(this, evt);
+        this.haloIsBeingDragged = true;
+        return result;
+    },
+
+    dragEndAction: function($super, evt) {
+        this.haloIsBeingDragged = false;
+        this.setOpacity(1);
+        return $super.call(this, evt);
+    }
+
+},
+'mouse events', {
+
+    onMouseOver: function($super, evt) {
+        this.setFill(Color.rgb(245, 124, 0));
+        if (this.owner instanceof lively.morphic.WheelHalo) {
+            this.owner.setFill(Color.rgb(77, 77, 77));
+        }
+    },
+
+    onMouseOut: function($super, evt) {
+        this.setFill(Color.rgb(77, 77, 77));
+        return $super.call(this, evt);
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewRotateHalo',
+'settings', {
+    style: { toolTip: 'rotate the object (sticky around 45° steps' },
+    wheelPosition: 5,
+    subItems: [lively.morphic.NewScaleHalo]
+},
+'initialization', {
+
+    iconName: function(bool) {
+        return 'rotate';
+    }
+
+},
+'halo actions', {
+
+    dragAction: function(evt, moveDelta) {
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
+
+        // Normally rotate the morph, with detents at multiples of 45 degrees
+        var nowHandAngle = evt.getPosition().subPt(globalPosition).theta();
+        var newRotation = this.startRotation + (nowHandAngle - this.startHandAngle);
+        newRotation = newRotation.toDegrees().detent(10, 45).toRadians();
+        this.setInfo(newRotation.toDegrees().toPrecision(5) + ' degrees');
+        this.targetMorph.setRotation(newRotation);
+
+        this.targetMorph.halos.invoke('alignAtTarget');  // Seems not to be needed?? - Dan
+        this.updateAngleIndicator(evt.hand);
+    },
+
+    dragStartAction: function($super, evt) {
+        var target = this.targetMorph,
+            globalPosition = target.getGlobalTransform().transformPoint(pt(0,0));
+        this.targetMorph.logTransformationForUndo('rotate', 'start');
+        this.startRotation = this.targetMorph.getRotation();
+        this.startScale = this.targetMorph.getScale();
+        this.startHandAngle = evt.getPosition().subPt(globalPosition).theta();
+        this.startHandDist = evt.getPosition().subPt(globalPosition).r();
+        this.targetMorph.removeHalosWithout(this.world(), [this, this.getBoundsHalo()]);
+        this.updateAngleIndicator(evt.hand);
+        return $super.call(this, evt);
+    },
+
+    dragEndAction: function($super, evt) {
+        this.removeAngleIndicator();
+        this.targetMorph.logTransformationForUndo('rotate', 'end');
+        this.targetMorph.removeHalos();
+        var result = $super.call(this, evt);
+        this.targetMorph.showHalos(evt);
+        return result;
+    },
+
+    onMouseDown: function($super, evt) {
+        this.prevHandPosForSnappingRotation = evt.getPosition();
+        return false;
+    },
+
+    ensureAngleIndicator: function() {
+        // show a red line between the hand and the origin of the target morph
+        if (this.lineIndicator) return this.lineIndicator;
+        var line = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)]).applyStyle({borderColor: Color.red});
+        return this.lineIndicator = this.addMorph(line);
+    },
+
+    removeAngleIndicator: function() {
+        this.lineIndicator && this.lineIndicator.remove();
+        delete this.lineIndicator;
+    },
+
+    updateAngleIndicator: function(hand) {
+        var indicator = this.ensureAngleIndicator(),
+            globalStart = hand.getPosition(),
+            localStart = this.localize(globalStart),
+            globalEnd = this.targetMorph.worldPoint(pt(0,0)),
+            localEnd = this.localize(globalEnd);
+        indicator.setVertices([localStart, localEnd]);
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewCopyHalo',
+'settings', {
+    style: { toolTip: 'copies the object (SHIFT-click)' },
+    wheelPosition: 4
+},
+'initialization', {
+
+    iconName: function() {
+        return 'copy';
+    }
+
+},
+'halo actions', {
+
+    // clickAction: function(evt) {
+    //     //this.dragStartAction(evt)     ael: making copy happen only on drag (not click) seems ok...?
+    // },
+
+    dragAction: function(evt, moveDelta) {
+        // Nothing to do here - morph is in the hand
+        if (this.copiedTarget && this.copiedTarget.halos)
+            this.copiedTarget.halos.invoke('alignAtTarget', evt);
+    },
+
+    dragStartAction: function($super, evt) {
+        this.targetMorph.removeHalos();
+
+        try {
+            this.copiedTarget = this.targetMorph.copy();
+        } catch(e) {
+            alert("could not copy morph: " + this.targetMorph)
+            return;
+        };
+
+        // FIXME this is only necessary because transformation in addMorph
+        // is only applied when owner is present
+        this.targetMorph.world().addMorph(this.copiedTarget)
+        this.copiedTarget.align(
+            this.copiedTarget.worldPoint(pt(0,0)),
+            this.targetMorph.worldPoint(pt(0,0)))
+
+        evt.hand.grabMorph(this.copiedTarget, evt);
+        var undoSpec = $world.getUndoQueue().last();  // this is a hack :-(
+        undoSpec.startOwner = null;  // signals that undo/redo should remove/addWorld
+
+        this.copiedTarget.showSelectedHalos([this]);
+
+        return $super.call(this, evt);
+    },
+
+    dragEndAction: function($super, evt) {
+        evt.world.dispatchDrop(evt);
+        var result = $super.call(this, evt);
+        if (this.copiedTarget) {
+            this.copiedTarget.removeHalos();
+            this.copiedTarget.showHalos(evt);
+        }
+        this.copiedTarget = null;
+        return result;
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewMenuHalo',
+'settings', {
+    style: { enableDragging: false, enableGrabbing: false, toolTip: 'open the object\'s menu' },
+    wheelPosition: 7
+},
+'initialization', {
+
+    iconName: function(alternative) {
+        return alternative && this.hasURL() ? 'link' : 'menu';
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        if (evt.isShiftDown() && this.hasURL())
+            return this.alternativeClickAction(evt);
+        this.targetMorph.removeHalos();
+        this.targetMorph.showMorphMenu(evt);
+    },
+
+    alternativeClickAction: function(evt) {
+        this.targetMorph.removeHalos();
+        var morph = this.targetMorph;
+        morph.world().prompt('Enter URL for Image', function(url) {
+            if (!url) return;
+            morph.setImageURL(url);
+            alertOK('Loading image ' + url);
+        }, morph.getImageURL() || '');
+    }
+
+},
+'event handling', {
+
+    onMouseDown: function($super, evt) {
+        this.clickAction(evt);
+        return true;
+    }
+
+},
+'helper', {
+
+    hasURL: function() {
+        // FIXME: check for morph attribute like hasURL or similar
+        return this.targetMorph instanceof lively.morphic.Image;
+    }
+
+});
+
+lively.morphic.WheelHalo.subclass('lively.morphic.NewLockHalo',
+'settings', {
+    style: { enableDragging: false, enableGrabbing: false, toolTip: '(un)lock the morph' },
+    wheelPosition: 4
+},
+'initialization', {
+
+    iconName: function() {
+        return this.targetMorph.isLocked() ? 'lock' : 'unlock';
+    }
+
+},
+'halo actions', {
+
+    clickAction: function(evt) {
+        var isLocked = this.targetMorph.isLocked();
+        this.targetMorph[isLocked ? 'unlock' : 'lock']();
+        this.toggleIcon(!isLocked);
+    }
+
+});
+
+lively.morphic.RenameHalo.subclass('lively.morphic.NewRenameHalo',
+'halo actions', {
+
+    alignAtTarget: function(evt) {
+        this.labelMorph.fit();
+        var extent = this.labelMorph.getExtent(),
+            outerRadius = lively.morphic.WheelHalo.prototype.outerRadius;
+        this.setExtent(extent);
+        if (evt && evt.getPosition())
+            this.setPosition(evt.getPosition().addXY(extent.x / -2, outerRadius + 10));
+        else {
+            var targetMorph = this.targetMorph,
+                haloItemBounds = this.bounds(),
+                alignPoint = haloItemBounds.topCenter();
+            console.log(targetMorph, haloItemBounds, alignPoint);
+            this.align(alignPoint, targetMorph.bounds().center().addXY(0, outerRadius + 10));
+        }
+    }
+
+});
+
 (function setupGetInstanceFor() {
     // add a getInstanceFor method to all halo classes
-    lively.morphic.classes()
-      .filter(function(ea) { return ea.isSubclassOf(lively.morphic.Halo); })
-      .forEach(function(klass) {
+    lively.morphic.classes().filter(function(ea) {
+        return ea.isSubclassOf(lively.morphic.Halo) || ea.isSubclassOf(lively.morphic.WheelHalo);
+    }).forEach(function(klass) {
         Object.extend(klass, {
             getInstanceFor: function(morph) {
-                if (!klass.instance) klass.instance = new klass(morph);
-                else klass.instance.setTarget(morph);
+                if (!klass.instance)
+                    klass.instance = new klass(morph);
+                else
+                    klass.instance.setTarget(morph);
                 return klass.instance;
             }
         });
-      });
-
+    });
 })();
 
 }) // end of module

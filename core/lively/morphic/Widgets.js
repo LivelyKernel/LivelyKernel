@@ -3100,9 +3100,9 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 
     doNotSerialize: ['lastFocusedMorph'],
 
-    initialViewExtent: lively.pt(300, 90),
+    initialViewExtent: lively.pt(300, 130),
 
-    inset: 4
+    inset: 25
 
 },
 'initializing', {
@@ -3123,9 +3123,10 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     buildPanel: function(bounds) {
         this.panel = new lively.morphic.Box(bounds);
         this.panel.applyStyle({
-            fill: Color.rgb(210,210,210),
-            borderColor: Color.gray.darker(),
-            borderWidth: 1,
+            fill: Color.white,
+            borderColor: Color.lively.darkGray,
+            borderWidth: 5,
+            borderRadius: 5,
             adjustForNewBounds: true, // layouting
             enableGrabbing: false,
             enableDragging: false,
@@ -3140,18 +3141,20 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     buildLabel: function() {
         var bounds = new lively.Rectangle(
             this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
-        this.label = new lively.morphic.Text(bounds, this.message).beLabel({
-            fill: Color.white,
-            fixedHeight: false, fixedWidth: false,
-            padding: Rectangle.inset(2,3),
-            enableGrabbing: false, enableDragging: false});
+        this.label = new lively.morphic.Text(bounds, this.message);
+        this.label.applyStyle({ fixedHeight: false, fixedWidth: false, padding: Rectangle.inset(2,3) });
         this.panel.addMorph(this.label);
 
         // FIXME ugly hack for wide dialogs:
         // wait until dialog opens and text is rendered so that we can
         // determine its extent
         this.label.fit();
-        (function fit() {
+        (function afterFit() {
+            this.label.beLabel({
+                fill: Color.white,
+                enableGrabbing: false, enableDragging: false});
+            this.label.disableEvents();
+
             this.label.cachedBounds=null
             var labelBoundsFit = this.label.bounds(),
                 origPanelExtent = this.panel.getExtent(),
@@ -3175,7 +3178,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     buildButton: function(title, place, total) {
         place = Object.isNumber(place) ? place : 0;
         var mult = (this.buttons.length) - place - 1,
-            bounds = new Rectangle(0,0, 75, 30),
+            bounds = new Rectangle(0,0, 65, 20),
             btn = new lively.morphic.Button(bounds, title),
             btnWidth = btn.bounds().width + this.inset;
         btn.align(btn.bounds().bottomRight().addXY(this.inset, this.inset), this.panel.innerBounds().bottomRight().subXY(btnWidth * mult, 0));
@@ -3241,7 +3244,7 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
 'properties', {
 
-    initialViewExtent: lively.pt(260, 70),
+    initialViewExtent: lively.pt(560, 110),
 
 },
 'initializing', {
@@ -3274,7 +3277,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.ConfirmDialog',
 lively.morphic.AbstractDialog.subclass('lively.morphic.InformDialog',
 'properties', {
 
-    initialViewExtent: lively.pt(260, 70),
+    initialViewExtent: lively.pt(260, 110),
 
 },
 'initializing', {
@@ -3301,7 +3304,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 // new lively.morphic.PromptDialog('Test', function(input) { alert(input) }).open()
 'properties', {
 
-    initialViewExtent: lively.pt(580, 90),
+    initialViewExtent: lively.pt(580, 170),
 
 },
 'initializing', {
@@ -3328,7 +3331,12 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
             lively.bindings.connect(input, 'savedTextString', self, 'result');
             lively.bindings.connect(input, 'onEscPressed', self, 'result', {converter: function() { return null } });
             lively.bindings.connect(self.panel, 'onEscPressed', self, 'result', {converter: function() { return null}});
-            input.applyStyle({resizeWidth: true, moveVertical: true});
+            input.applyStyle({
+                resizeWidth: true,
+                moveVertical: true,
+                fill: Color.rgb(242, 242, 242),
+                borderRadius: 5
+            });
             self.inputText = self.panel.focusTarget = self.panel.addMorph(input);
             input.textString = opt.input || '';
         });
@@ -3373,7 +3381,12 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PasswordPromptDialog',
         lively.bindings.connect(input, 'savedValue', this, 'result');
         lively.bindings.connect(input, 'onEscPressed', this, 'result', {converter: function() { return null } });
         lively.bindings.connect(this.panel, 'onEscPressed', this, 'result', {converter: function() { return null}});
-        input.applyStyle({resizeWidth: true, moveVertical: true});
+        input.applyStyle({
+            resizeWidth: true,
+            moveVertical: true,
+            fill: Color.rgb(242, 242, 242),
+            borderRadius: 5
+        });
         this.inputText = this.panel.focusTarget = this.panel.addMorph(input);
     },
 

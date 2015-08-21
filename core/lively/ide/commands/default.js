@@ -77,7 +77,30 @@ Object.extend(lively.ide.commands.byName, {
             $world.interactiveSaveWorldAs(); return true;
         }
     },
-
+    'lively.morphic.World.undoLastAction': {
+	description: 'Lively: undo last action',
+	exec: function() {
+	    //lively doesn't handle undo/redo for text editing, so pass the
+	    //event up to the browser to handle.
+	        if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	                return false;
+	            }
+	        $world.undoLastAction(); return true;
+	    }
+    },
+    'lively.morphic.World.redoNextAction': {
+        description: 'Lively: redo next action',
+        exec: function() {
+        //lively doesn't handle undo/redo for text editing, so pass the
+	    //event up to the browser to handle.
+            if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	                return false;
+	            }
+            $world.redoNextAction(); return true;
+        }
+    },
     'lively.morphic.World.changeUserName': {
         description: 'user: change user name',
         exec: function() {
@@ -1743,6 +1766,8 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     'lively.ide.execShellCommandInWindow': ["Alt-Shift-!", "Alt-Shift-1"],
     "lively.ide.CommandLineInterface.SpellChecker.spellCheckWord": "m-s-$",
     'lively.ide.commands.execute': "m-x",
+    "lively.morphic.World.undoLastAction": { mac: ["Command-Z", "cmd-z-l u n d o"], win: "Control-Z" },
+    "lively.morphic.World.redoNextAction": { mac: ["Command-Y", "cmd-y-l r e d o"], win: "Control-Y" },
     // normally browser fwd/bwd shortcut:
     'disabled': {mac: ["Command-[", "Command-]"], win: ["Control-[", "Control-]"]},
 });

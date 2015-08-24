@@ -20,7 +20,19 @@ lively.BuildSpec('lively.morphic.tools.LivelyMenuBarEntry', lively.BuildSpec("li
           ['Show menu bar', lively.ide.commands.exec.bind(null, 'lively.morphic.MenuBar.show')]
         ]],
       ['Run command... (alt-x)', cmd('lively.ide.commands.execute')],
-      ['Save world ...', $world.interactiveSaveWorldAs.bind($world)]];
+      ['Save world ...', $world.interactiveSaveWorldAs.bind($world)],
+          ['AutoSave World', [
+              ['Start AutoSave', function(){
+                  function autosave(){
+                      var sourceURL = window.location.href
+                      $world.saveWorldAs(sourceURL + '?autosave=true')
+                  }
+                  $world.addScript(autosave)
+                  $world.startStepping(10000,'autosave')
+              }]
+              ]
+          ]
+      ];
   },
 
   update: function update() {},

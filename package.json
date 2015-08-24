@@ -15,7 +15,7 @@
     "colorize": "~0.1",
     "escodegen": "^1.6.1",
     "file-fuser": ">=0.0.8",
-    "life_star": ">=0.8.4",
+    "life_star": "git://github.com/LivelyKernel/life_star.git#changesets",
     "lively.ast": "^0.2.6",
     "optparse": "~1.0",
     "shelljs": "~0.2",

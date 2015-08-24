@@ -92,7 +92,7 @@ module.exports = function(route, app) {
                             else { diffResult = out +'\n' + err; next(); }
                         });
                     },
-                    function(next) { exec('rm -rfd diff-tmp/', next); }
+                    function(next) { exec('rm -rf diff-tmp/', next); }
                 ], function(err) {
                     if (err) {
                         console.error(err);

@@ -71,7 +71,8 @@ lively.BuildSpec('lively.morphic.tools.ConfirmList', {
     }],
     getSelectedItems: function getSelectedItems() {
         var target = this.get('target');
-        return target.selection;
+        return target.isMultipleSelectionList ?
+          target.getSelections() : target.getSelection();
     },
     connectionRebuilder: function connectionRebuilder() {
         var target = this.get('target'),
@@ -94,7 +95,9 @@ lively.BuildSpec('lively.morphic.tools.ConfirmList', {
     promptFor: function promptFor(options) {
         this.get('Label').setTextString(options.prompt);
         if (options.list) this.get('target').setList(options.list);
+        if (options.multiselect) this.get('target').enableMultipleSelections('normal');
         if (options.selection) this.get('target').setSelection(options.selection);
+        else if (options.selections) this.get('target').selectAllAt(options.selections);
         if (options.extent) this.setExtent(options.extent);
         this.get('Label').fit();
         this.applyLayout()

@@ -35,7 +35,7 @@ jsMode.addMethods({
 Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
 'helper', {
     ensureAST: function(astOrSource) {
-        return Object.isString(astOrSource) ? lively.ast.acorn.fuzzyParse(astOrSource) : astOrSource;
+        return Object.isString(astOrSource) ? lively.ast.fuzzyParse(astOrSource) : astOrSource;
     },
 
     move: function(selector, ed) {
@@ -171,9 +171,9 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.Ja
 },
 "parsing", {
     parse: function(src, session) {
-        var options = {withComments: true};
+        var options = {withComments: true, allowReturnOutsideFunction: true};
         options.type = session.$astType;
-        return lively.ast.acorn.fuzzyParse(src, options);
+        return lively.ast.fuzzyParse(src, options);
     }
 },
 'rendering', {

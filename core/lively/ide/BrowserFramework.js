@@ -344,26 +344,33 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
 
         this.sourceOnlyPanel.sourcePane = this.sourceOnlyPanel.addMorph(sourcePane);
         sourcePane.setPosition(lively.pt(0, 0));
+        sourcePane.setExtent(this.panel.getExtent());
 
         this.panel.remove();
-        this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        // this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        // this.view.setExtent(this.view.getExtent().subPt(lively.pt(0, this.navigationHeight())));
+        
         this.view.addMorph(this.sourceOnlyPanel);
         this.view.targetMorph = this.sourceOnlyPanel;
+
 
         this.isNavigationCollapsed = true;
     },
     expandNavigation: function() {
+        if (this.isNavigationCollapsed == false) return;
         var originalSourceEditHeight = this.panel.bounds().height - this.navigationHeight(),
             vResizing = this.sourceOnlyPanel.bounds().height / originalSourceEditHeight,
             newHeight = this.panel.bounds().height * vResizing,
             newWidth = this.sourceOnlyPanel.bounds().width;
         this.panel.setExtent(lively.pt(newWidth, newHeight));
         
-        this.panel.addMorph(this.getSourcePane());
-        this.getSourcePane().setPosition(this.panel.midResizer.getBounds().bottomLeft());
-        
+        var sourcePane = this.getSourcePane()
+        this.panel.addMorph(sourcePane);
+        sourcePane.setPosition(this.panel.midResizer.getBounds().bottomLeft());
+        sourcePane.setExtent(this.panel.getExtent().subPt(sourcePane.getPosition()));
+
         this.sourceOnlyPanel.remove();
-        this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
+        // this.view.setExtent(this.view.getExtent().addPt(lively.pt(0, this.navigationHeight())));  
         this.view.addMorph(this.panel);
         this.view.targetMorph = this.panel;
         
@@ -456,6 +463,15 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         return this['get'+pane+'Selection']();
     },
 
+    findBestMatchingNode: function(node, nodeListItems) {
+        var similar = nodeListItems.select(function(ea) {
+                return ea.value.hasSimilarTarget(node);
+            });
+        return similar.detect(function(ea) { // find best match, if possible exact match
+            return ea.value.target == node.target;
+        }) || similar[0];
+    },
+
     childsFilteredAndAsListItems: function(node, filters) {
         return     this.filterChildNodesOf(node, filters || []).collect(function(ea) { return ea.asListItem() });
     },
@@ -466,7 +482,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         });
     },
 
-     inPaneSelectNodeNamed: function(paneName,  nodeName) {
+    inPaneSelectNodeNamed: function(paneName,  nodeName) {
         return this.inPaneSelectNodeMatching(paneName, function(node) {
             return node && node.asString && node.asString().replace(/ ?\(.*\)/,"").endsWith(nodeName) });
     },
@@ -497,15 +513,16 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         }
         return null;
     },
+
     selectNodeNamed: function(name) {
         return this.selectNodeMatching(function(node) {
             return node && node.asString && node.asString().include(name);
         });
     },
+
     selectNothing: function() {
         if (this.panel) this.setPane1Selection(null, true);
     },
-
 
     onPane1SelectionUpdate: function(node) {
         this.pane1Selection = node; // for bindings
@@ -517,6 +534,12 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         if (!node || !node.sourceString) return;
 
         this.setPane2Content(this.childsFilteredAndAsListItems(node, this.getPane1Filters()));
+
+        // FIXME: Also happens in onSelect but that's where it is to late in some cases - MR
+        var codeEditor = this.sourceInput();
+        if (codeEditor.isCodeEditor && node instanceof lively.ide.CompleteCSSFragmentNode)
+            codeEditor.setTextMode('css');
+
         this.setSourceString(node.sourceString());
         this.updateTitle();
 
@@ -631,13 +654,10 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
             nodes[i] = selection[i] ? 
                 browser.childsFilteredAndAsListItems(selection[i].value, filters[i]) : 
                 [];
-            selection[i + 1] = oldN[i] ? 
-                nodes[i].detect(function(ea) { return ea.value.hasSimilarTarget(oldN[i]); }) : 
-                null
+            selection[i + 1] = oldN[i] ? this.findBestMatchingNode(oldN[i], nodes[i]) : null;
         }
         // loose the first selection, rootNode, to have everything symmetric
         selection.shift();
-
 
         lively.bindings.noUpdate(function() {
             for (var n = 1; n < 5; n++){
@@ -963,8 +983,7 @@ Object.subclass('lively.ide.BrowserNode',
             return false;
         return (this.target !== undefined && this.target === other.target) 
             || this.asString() == other.asString()
-    },
-
+    }
 },
 'source code management', {
     newSource: function(newSource) {
@@ -1050,6 +1069,8 @@ Object.subclass('lively.ide.BrowserNode',
     signalChange: function() { this.browser.nodeChanged(this) },
     signalTextChange: function() { this.browser.textChanged(this) },
     onSelect: function() {
+        // FIXME: this is too late to change the mode, the ACE editor goes crazy
+        //        with some CSS in JS mode (@import) - MR
         var codeEditor = this.browser.sourceInput();
         if (codeEditor.isCodeEditor) codeEditor.setTextMode(this.getSourceCodeMode());
     },

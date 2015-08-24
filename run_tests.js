@@ -63,8 +63,6 @@ var baseTests = [
     // AST / OMeta
     "ometa.tests.OmetaTests",
     "lively.ast.tests.AcornTests",
-    "lively.ast.tests.AstTests",
-    "lively.ast.tests.Comments",
     "lively.ast.tests.InterpreterTests",
     "lively.ast.tests.RewriterTests",
 

@@ -155,6 +155,7 @@ var Module = Object.subclass('lively.Module',
         this.namespaceIdentifier = context.namespaceIdentifier + '.' + nsName;
         this.createTime = new Date();
         this.errors = [];
+        this.loadAttempts = 0;
     },
     beAnonymous: function() {
         this._isAnonymous = true;
@@ -456,8 +457,11 @@ var Module = Object.subclass('lively.Module',
             this.loadRequirementsFirst();
             return;
         }
+        this.loadAttempts++;
         this.loadStartTime = Date.now();
-        this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
+        this.timeoutProcess = setTimeout(
+            this.timeoutLoad.bind(this),
+            this.networkTimeout);
         JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
         if (loadSync) this.constructor.loadSync = prevWasSync;
     },
@@ -479,9 +483,19 @@ var Module = Object.subclass('lively.Module',
     timeoutLoad: function() {
       if (this.timeoutProcess) clearTimeout(this.timeoutProcess);
       if (this.isLoaded()) return;
+      if (typeof $world === "undefined") { // error loading world, abort
+        var err = new Error('Could not load world dependency ' + this.namespaceIdentifier);
+        Global.LivelyLoader.handleStartupError(err);
+        return;
+      }
+      if (this.loadAttempts > 3) {
+          console.warn("Tried to load %s %s times but failed. Giving up loading.",
+              this.namespaceIdentifier, this.loadAttempts);
+          return;
+      }
       console.warn("loading module %s timed out, trying again...", this.namespaceIdentifier);
-      this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
       delete this.loadStartTime;
+      this.timeoutProcess = setTimeout(this.timeoutLoad.bind(this), this.networkTimeout);
       JSLoader.forget(this.uri());
       this.load();
     }

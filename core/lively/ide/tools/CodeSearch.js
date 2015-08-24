@@ -81,7 +81,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             },
 
             parseInput: function parseInput(input) {
-                // this.inputChange()
+                // this.inputChanged()
                 // this.parseInput('foo')
                 // this.parseInput('foo bar')
                 // this.parseInput('/foo/ bar')
@@ -161,7 +161,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             _Position: lively.pt(590,24+478),
             checked: false,
             className: "lively.morphic.CheckBox",
-            droppingEnabled: true,
+            droppingEnabled: false,
             layout: {
                 moveHorizontal: true,
                 moveVertical: true
@@ -181,6 +181,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             allowInput: false,
             className: "lively.morphic.Text",
             fixedWidth: true,
+            droppingEnabled: false,
             grabbingEnabled: false,
             layout: {
                 moveHorizontal: true,
@@ -196,7 +197,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
     titleBar: "CodeSearch",
     doSearch: function doSearch(searchTerm, thenDo) {
-    // this.reset(); this.get('filter').setInput('indica'); this.inputChange()
+    // this.reset(); this.get('filter').setInput('indica'); this.inputChanged()
     false && show('doing search');
 
     if (!searchTerm || searchTerm === '') { this.reset(); return; }
@@ -314,6 +315,11 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             if (proto === obj)
                 name = obj.constructor.type || obj.constructor.name;
 
+            // class extend
+            if (proto === Function.prototype && obj.qualifiedMethodName) {
+                name = obj.qualifiedMethodName();
+            }
+
             if (type === 'buildspec')
                 name = optParent.buildSpecName;
 
@@ -327,6 +333,9 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
             if (proto !== obj && obj.isMorph)
                 name = obj.name ? obj.name + "(" + String(obj.id).truncate(12) + ")" : String(obj);
+
+            if (name && name.startsWith('Global.'))
+                name = name.substr(7);
 
             if (obj === Global)
                 name = "Global";

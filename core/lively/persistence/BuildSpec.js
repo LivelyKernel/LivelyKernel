@@ -87,9 +87,7 @@ Object.subclass('lively.persistence.SpecObject',
     },
 
     customize: function(spec) {
-        var newStore = {}
-        Object.extend(newStore, this.attributeStore);
-        Object.extend(newStore, spec);
+        var newStore = lively.lang.obj.merge(this.attributeStore, spec);
         return this.constructor.fromPlainObject(newStore);
     },
 

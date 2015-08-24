@@ -13,9 +13,14 @@ lively.BuildSpec('lively.morphic.tools.LivelyMenuBarEntry', lively.BuildSpec("li
   morphMenuItems: function morphMenuItems() {
     function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
     return [
+      ['Settings', [
         ['My user config', lively.ide.commands.exec.bind(null, 'lively.ide.SystemCodeBrowser.openUserConfig')],
-        ['Run command... (alt-x)', cmd('lively.ide.commands.execute')],
-        ['Save world as ...', $world.interactiveSaveWorldAs.bind($world)]];
+        $world.get(/^MenuBar/) && $world.get(/^MenuBar/).isGlobalMenuBar ?
+          ['Hide menu bar', lively.ide.commands.exec.bind(null, 'lively.morphic.MenuBar.hide')] :
+          ['Show menu bar', lively.ide.commands.exec.bind(null, 'lively.morphic.MenuBar.show')]
+        ]],
+      ['Run command... (alt-x)', cmd('lively.ide.commands.execute')],
+      ['Save world ...', $world.interactiveSaveWorldAs.bind($world)]];
   },
 
   update: function update() {},

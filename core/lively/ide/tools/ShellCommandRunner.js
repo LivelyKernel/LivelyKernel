@@ -3,12 +3,14 @@ module('lively.ide.tools.ShellCommandRunner').requires('lively.persistence.Build
 Object.extend(lively.ide.tools.ShellCommandRunner, {
     run: function(cmdString, options, thenDo) {
         var cmd = lively.shell.run(cmdString, options, thenDo);
-        return lively.ide.tools.ShellCommandRunner.forCommand(cmd)
-            .openInWorldCenter().comeForward();
+        return lively.ide.tools.ShellCommandRunner.forCommand(cmd, options)
+          .openInWorldCenter().comeForward();
     },
-    forCommand: function(cmd) {
+    forCommand: function(cmd, options) {
+        options = options || {};
         var runner = lively.BuildSpec('lively.ide.tools.ShellCommandRunner').createMorph();
         runner.attachTo(cmd);
+        if (options.extent) runner.setExtent(options.extent);
         return runner;
     },
     findOrCreateForCommand: function(cmd) {
@@ -66,9 +68,16 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
             storedString: "",
             theme: Config.get('aceWorkspaceTheme'),
             focus: function focus() {
-            this.get("ShellCommandRunner").lastFocused = this;
-            return $super();
-        },
+              this.get("ShellCommandRunner").lastFocused = this;
+              return $super();
+            },
+
+            detectMode: function detectMode() {
+              var mode = this.getTextMode(), newMode;
+              if (this.textString.startsWith('diff ')) newMode = "diff";
+              else newMode = "text";
+              if (mode !== newMode) this.setTextMode(newMode);
+            }
         },
         lively.BuildSpec('lively.ide.tools.CommandLine').customize({
             _Extent: lively.pt(579.0,19.0),
@@ -198,17 +207,19 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
         this.updateTitleBar(cmd);
     },
         onStderr: function onStderr(string) {
-        this.print(string);
+          if (string.trim()) this.print(string);
     },
         onStdout: function onStdout(string) {
-        this.print(string);
+          if (string.trim()) this.print(string);
     },
         onWindowGetsFocus: function onWindowGetsFocus() {
         if (!this.lastFocused) this.lastFocused = this.get('commandLine')
         this.lastFocused.focus();
     },
         print: function print(string) {
-        this.get('output').append(string);
+          var ed = this.get('output');
+        ed.append(string);
+        ed.withAceDo(function() { ed.detectMode(); })
     },
         onKeyDown: function onKeyDown(evt) {
         if (this.showsHalos) return $super(evt);
@@ -266,12 +277,14 @@ lively.BuildSpec('lively.ide.tools.ShellCommandRunner', {
                 show('%s cannot reattach because a current command is still running.', this);
                 return;
             }
+            this.get('commandLine').addCommandToHistory(cmd.getCommand());
             this.currentCommand = cmd;
             this.listenForEvents(cmd);
             if (cmd.isRunning()) this.updateTitleBar(cmd);
             else this.updateTitleBar(cmd);
-            this.print(cmd.getStdout() || '');
-            this.print(cmd.getStderr() || '');
+            var out = cmd.getStdout() || '';
+            var err = cmd.getStderr() || '';
+            this.print((out + (err ? "\n" + err : "")).trim());
         },
         listenForEvents: function listenForEvents(cmd) {
             var self = this, listener = {

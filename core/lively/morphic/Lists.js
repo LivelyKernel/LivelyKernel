@@ -358,6 +358,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
 // list = new lively.morphic.MorphList([1,2,3]).openInWorldCenter()
 // list.initializeLayout({type: "vertical",spacing: 5, border: 3});
 'settings', {
+
     style: {
         fill: Color.gray.lighter(3),
         borderColor: Color.gray.lighter(),
@@ -365,17 +366,20 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         borderStyle: 'outset',
         grabbingEnabled: false, draggingEnabled: false
     },
+
     listItemStyle: {
         fill: null,
         borderColor: Color.gray,
         borderWidth: 1,
         fixedHeight: false,
         fixedWidth: false,
-        allowInput: false
+        allowInput: false,
+        selectable: false
     },
     isList: true
 },
 'initializing', {
+
     initialize: function($super) {
         var args = Array.from(arguments);
         $super = args.shift();
@@ -389,6 +393,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         this.setList(items);
         this.initializeLayout();
     },
+
     initializeLayout: function(layoutStyle) {
         // layoutStyle: {
         //   type: "tiling"|"horizontal"|"vertical",
@@ -424,7 +429,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         this.itemMorphs.forEach(function(itemMorph) {
             itemMorph.applyStyle(style);
         });
-    },
+    }
 },
 'morphic', {
     addMorph: function($super, morph, optMorphBefore) {
@@ -475,10 +480,15 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         if (!items) items = [];
         this.itemList = items;
         var oldItemMorphs = this.getItemMorphs();
-        var itemMorphs = this.itemMorphs = items.map(function(ea) { return list.renderFunction(ea); });
+        // 1. create or retrieve morphs for items
+        var itemMorphs = this.itemMorphs = items.map(function(ea) {
+          return list.renderFunction(ea); });
+        // 2. get rid of old, now unused item morphs
         oldItemMorphs.withoutAll(itemMorphs).invoke('remove');
-        itemMorphs.forEach(function(ea, i) {
-            list.submorphs.include(ea) || list.addMorph(ea, itemMorphs[i+1]); });
+        // 3. add item morphs not already submorphs
+        itemMorphs
+          .reject(function(ea) { return list.submorphs.include(ea); })
+          .forEach(function(ea, i) { list.addMorph(ea, itemMorphs[i+1]); });
     },
 
     getItemMorphs: function() { return this.itemMorphs || []; },
@@ -877,6 +887,38 @@ lively.morphic.Box.subclass('lively.morphic.List',
         }
     },
 
+    setListSilently: function(items, options) {
+        options = options || {};
+        var selectByString = options.selectByString || false,
+            self = this,
+            oldSelectionItems = this.getSelectedItems();
+
+        if (!items) items = [];
+        this.itemList = items;
+        this.layout = this.initLayout(items.length, this.layout);
+        this.setupScroll(items.length, this.layout);
+        this.updateView();
+
+        var stringItems = items.map(function(ea) {
+          return !ea || typeof ea === 'string' ? ea : ea.string; });
+
+        var newSelectionIndexes = oldSelectionItems.reduce(function(all, ea, i) {
+            if (selectByString) {
+              var found = stringItems.indexOf(ea ? ea.string : ea);
+              if (found === -1) found = NaN;
+            } else { var found = ea && self.find(ea.hasOwnProperty("value") ? ea.value : ea) ; }
+
+            if (!isNaN(found)) all.push(found);
+            return all;
+        }, []);
+
+        lively.bindings.noUpdate(function() {
+            newSelectionIndexes.forEach(function(i) {
+                self.updateSelectionAndLineNo(i, true); }); });
+
+        return newSelectionIndexes;
+    },
+
     updateList: function(items) { return this.setList(items); },
 
     getList: function() { return this.itemList; },
@@ -951,9 +993,10 @@ lively.morphic.Box.subclass('lively.morphic.List',
         this.saveSelectAt(Object.isNumber(this.selectedLineNo) ? this.selectedLineNo-1 : 0);
     },
 
-    updateSelectionAndLineNo: function(selectionIdx) {
+    updateSelectionAndLineNo: function(selectionIdx, dontScroll) {
         this.addSelectedIndex(selectionIdx);
-        this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
+        if (!dontScroll)
+          this.scrollIndexIntoView.bind(this,selectionIdx).delay(0);
     },
 
     setSelection: function(sel) {
@@ -1182,7 +1225,13 @@ lively.morphic.Box.subclass('lively.morphic.List',
         m && m.disableHalos();
         if (m) return m;
         return this.addMorph(lively.newMorph({
-            style: {fill: null, adjustForNewBounds: true, resizeWidth: true}}));
+            style: {
+                fill: null,
+                adjustForNewBounds: true,
+                resizeWidth: true,
+                enableDropping: false
+            }
+        }));
     },
     set listItemContainer(morph) {
         if (this.submorphs[0] && this.submorphs[0] !== morph) this.submorphs[0].remove();
@@ -1239,6 +1288,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             itemMorph.index = listIndex;
             itemMorph.name = String(itemMorph.index);
             itemMorph.textString = this.renderFunction(item);
+            itemMorph.droppingEnabled = false;
 
             var oldCssClasses = itemMorph.getStyleClassNames().withoutAll(["Morph","Text","list-item"]);
             var newCssClasses = item.cssClassNames ? item.cssClassNames.clone() : [];

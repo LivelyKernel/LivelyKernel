@@ -223,7 +223,7 @@ Object.subclass('URL',
             result = path.replace(/\/[^\/]+\/\.\./, '');
         } while (result != path);
         // foo//bar --> foo/bar
-        result = result.replace(/([^:])[\/]+/g, '$1/');
+        result = result.replace(/(^|[^:])[\/]+/g, '$1/');
         // foo/./bar --> foo/bar
         result = result.replace(/\/\.\//g, '/');
         return this.withPath(result);

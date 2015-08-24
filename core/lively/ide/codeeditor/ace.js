@@ -38,17 +38,24 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
     })(ace.require('ace/edit_session').EditSession.prototype);
     
     ace.require('ace/editor').Editor.prototype.focus = function () {
-        var _self = this;
-        var x = Global.scrollX, y = Global.scrollY;
-        console.log("%s %s",x,y);
+        var _self = this, x = Global.scrollX, y = Global.scrollY;
         setTimeout(function() {
-            _self.textInput.focus();
-            (function() {
-                Global.scrollTo(x, y);
-            }).delay(0);
+          _self.textInput.focus();
+          (function() { window.scrollTo(x, y); }).delay(0);
         });
         this.textInput.focus();
-        Global.scrollTo(x, y)
+        window.scrollTo(x, y)
+    };
+    
+    
+    ace.require("ace/virtual_renderer").VirtualRenderer.prototype.screenToTextCoordinates = function (x, y) {
+      var canvasPos = this.scroller.getBoundingClientRect();
+      var scale = lively.morphic.World.current().getScale()
+      x = x / scale;
+      y = y / scale;
+      var col = Math.round((x + this.scrollLeft - (canvasPos.left / scale) - this.$padding) / this.characterWidth);
+      var row = (y + this.scrollTop - (canvasPos.top / scale)) / this.lineHeight;
+      return this.session.screenToDocumentPosition(row, Math.max(col, 0));
     }
 
 })();

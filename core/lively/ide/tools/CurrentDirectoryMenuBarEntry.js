@@ -13,6 +13,14 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     toolTip: "Shows the directory all operating system commands work with. Click to change and browse."
   }),
 
+  knownDirectories: function knownDirectories() {
+    return ($world.knownWorkingDirectories || []).uniqBy(function(a,b) {
+      var aPath = a ? (typeof a === "string" ? a : a.path) : "";
+      var bPath = b ? (typeof b === "string" ? b : b.path) : "";
+      return aPath.replace(/(\/|\\)$/, "") === bPath.replace(/(\/|\\)$/, "");
+    });
+  },
+
   actions: function actions() {
     var self = this;
 
@@ -134,9 +142,10 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     var dChooser = $world.get(/^BaseDirectoryChooser/)
     if (dChooser)
       this.dirs = this.dirs.concat(dChooser.get("DirList").getList().pluck("value").compact()).uniq();
-    if ($world.knownWorkingDirectories)
-      this.dirs = this.dirs.concat($world.knownWorkingDirectories).uniq();
-    $world.knownWorkingDirectories = this.dirs.clone();
+    $world.knownWorkingDirectories = ($world.knownWorkingDirectories||[]).concat(this.dirs);
+    $world.knownWorkingDirectories = this.knownDirectories();
+    this.dirs = this.knownDirectories();
+    if ($world.currentWorkingDirectory) this.addDir($world.currentWorkingDirectory);
   },
 
   onOwnerChanged: function onOwnerChanged(owner) {
@@ -147,9 +156,10 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
 
 Object.extend(lively.ide.tools.CurrentDirectoryMenuBarEntry, {
 
-  getMenuBarEntries: function() {
-    return [lively.BuildSpec("lively.ide.tools.CurrentDirectoryMenuBarEntry").createMorph()]
-  }
+    getMenuBarEntries: function() {
+        return [lively.BuildSpec("lively.ide.tools.CurrentDirectoryMenuBarEntry").createMorph()];
+    }
+
 });
 
 }) // end of module

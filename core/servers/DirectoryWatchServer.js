@@ -1,3 +1,4 @@
+
 // Watches a directory recursively for file changes.
 // Provides two http methods:
 //   GET files?dir=PATHNAME
@@ -7,6 +8,7 @@
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // s=global.DirectoryWatchServerState['/Users/robert/Dropbox/Projects/LivelyKernel']
+// s=require("./DirectoryWatchServer").DirectoryWatchServerState["/Users/robert/Lively/LivelyKernel"]
 // s.changeList.length
 // s.changeList[0].time
 
@@ -150,8 +152,8 @@ module.exports = dirWatcherDomain.bind(function(route, app) {
 
     app.post(route + 'reset', function(req, res) {
         dirWatcherDomain.run(function() {
-            Object.keys(global.DirectoryWatchServerState).forEach(function(name) {
-                delete global.DirectoryWatchServerState[name]; });
+            Object.keys(watchState).forEach(function(name) {
+                delete watchState[name]; });
             res.json({message: 'OK'}).end();
         });
     });

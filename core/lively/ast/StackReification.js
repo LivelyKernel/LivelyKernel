@@ -30,7 +30,7 @@ lively.Closure.subclass('lively.ast.RewrittenClosure',
 
     rewrite: function(astRegistry) {
         var src = this.getFuncSource(),
-            ast = lively.ast.acorn.parseFunction(src),
+            ast = lively.ast.parseFunction(src),
             namespace = '[runtime]';
         if (this.originalFunc && this.originalFunc.sourceModule)
             namespace = new URL(this.originalFunc.sourceModul.findUri()).relativePathFrom(URL.root);

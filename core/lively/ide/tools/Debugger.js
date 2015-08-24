@@ -296,12 +296,12 @@ lively.BuildSpec('lively.ide.tools.Debugger', {
                         pc = frame.getPC();
                     frame.setPC(null);
                     try {
-                        ast = lively.ast.acorn.parse(str = '(' + __evalStatement + ')');
+                        ast = lively.ast.parse(str = '(' + __evalStatement + ')');
                         acorn.walk.addAstIndex(ast);
                         acorn.walk.addSource(ast, str);
                         return interpreter.runWithFrame(ast, frame);
                     } catch (e) {
-                        ast = lively.ast.acorn.parse(str = __evalStatement);
+                        ast = lively.ast.parse(str = __evalStatement);
                         acorn.walk.addAstIndex(ast);
                         acorn.walk.addSource(ast, str);
                         // In case str starts with a comment, set str to program node

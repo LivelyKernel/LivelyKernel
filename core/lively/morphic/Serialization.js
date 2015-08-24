@@ -157,13 +157,19 @@ lively.morphic.World.addMethods(
     onRenderFinished: function($super) {
         $super();
         if (UserAgent.isMobile) {
-            for (var i = 0; i<4; i++) { this.addHandMorph(); }
-            var meta = document.createElement('meta');
-            meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
-            document.head.appendChild(meta.children[0]);
-            this.commandButton = new lively.morphic.BertButton();
-            this.commandButton.isCommandButton = true;
-            this.commandButton.open.bind(this.commandButton, this).delay(0);
+            if (!Config.useSingleHand) {
+                for (var i = 0; i<4; i++) { this.addHandMorph(); }
+            }
+            if (Config.usePointerevents) {
+                // with pointerevents we deactivate zooming and stay on one default level
+                var meta = document.createElement('meta');
+                meta.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>'
+                document.head.appendChild(meta.children[0]);
+                // BertButtons work with multiple hands enabled by pointerevents
+                this.commandButton = new lively.morphic.BertButton();
+                this.commandButton.isCommandButton = true;
+                this.commandButton.open.bind(this.commandButton, this).delay(0);
+            }
         }
     },
 
@@ -254,8 +260,10 @@ lively.morphic.World.addMethods(
 
     visitNewPageAfterSaveAs: function(url) {
         if (!url) return;
-        if (url.toString().indexOf("autosave") >= 0) return;
-        this.confirm("visit " + url + "?", function(yes) {
+        url = url.toString();
+        if (url.indexOf("autosave") >= 0) return;
+        url = new URL(url).withRelativePartsResolved();
+        this.confirm("Visit " + url.toString() + "?", function(yes) {
             if (yes)
                 window.open(url.toString());
         });

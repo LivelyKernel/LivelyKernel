@@ -34,7 +34,7 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
             title: 'Directory contents of ' + entry.fullPath,
             content: printed,
             textMode: 'text'
-        });
+        }).getWindow().comeForward();
     },
 
     printFileNameListAsTree: function(files, title) {
@@ -53,7 +53,7 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
             title: (title || "file listing"),
             content: printed,
             textMode: 'texttree'
-        });
+        }).getWindow().comeForward();
 
         function createHierarchy(fileMap, currentPath) {
             if (Object.isString(fileMap)) return {name: currentPath};

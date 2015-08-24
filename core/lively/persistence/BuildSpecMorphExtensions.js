@@ -439,7 +439,8 @@ Object.extend(lively.morphic.Morph, {
             onFromBuildSpecCreated: function($super) {
                 $super();
                 this.tabContainer = this.owner;
-                this.tabs = this.submorphs.clone();
+                this.tabs = this.submorphs.filter(function(ea) {
+                  return !!ea.isTab; });
             }
         });
 
@@ -463,6 +464,9 @@ Object.extend(lively.morphic.Morph, {
                 label: {
                     defaultValue: '',
                     getter: function(morph, val) { return val.textString || ''; },
+                    recreate: function(instance, spec) {
+                        instance.label = spec.submorphs[0] && spec.submorphs[0].attributeStore.textString;
+                    },
                     exclude: true
                 },
                 pane: { // index of the pane in tabContainer.submorphs

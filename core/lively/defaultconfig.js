@@ -1,5 +1,5 @@
 /**
- * defaultconfig.js.  System default configuration. Reads config.js
+ * defaultconfig.js.  System default configuration. Reads config.json
  *
  * Note that if the files localconfig.json and/or localconfig.js can be found,
  * those will be read immediately after this one, thus allowing any of these settings
@@ -25,7 +25,9 @@ var isMozilla = Global.navigator && Global.navigator.userAgent.indexOf("Mozilla"
     isChrome = Global.navigator && Global.navigator.userAgent.indexOf("Chrome") > -1,
     isOpera = Global.navigator && Global.navigator.userAgent.indexOf("Opera") > -1,
     isIE = Global.navigator && Global.navigator.userAgent.indexOf("MSIE") > -1,
-    isMobile = Global.navigator && Global.navigator.userAgent.indexOf("Mobile") > -1,
+    isMobile = (Global.navigator && Global.navigator.userAgent.indexOf("Mobile") > -1) ||
+        (window && window.location && window.location.search && 
+        (window.location.search.indexOf('forceIsMobile=true') > 0)),
     fireFoxVersion = Global.navigator &&
     (Global.navigator.userAgent.split("Firefox/")[1] ||
      Global.navigator.userAgent.split("Minefield/")[1]); // nightly
@@ -191,7 +193,8 @@ Global.Config = {
         var userName = optUsername || this.get('UserName');
         if (!userName || userName === "undefined") return;
         var userConfigModule = Strings.format('users.%s.config', userName);
-        lively.require(userConfigModule).toRun(this.urlQueryOverride.bind(this));
+        lively.module(userConfigModule).load(true);
+        this.urlQueryOverride();
     },
 
     set: function(name, value) {

@@ -139,16 +139,17 @@ lively.ast.MozillaAST.Cache = {
       + "    left: VariableDeclaration |  Expression;\n"
       + "    right: Expression;\n"
       + "    body: Statement;\n"
-      + "}",  "interface LetStatement <: Statement {\n"
-        + "    type: \"LetStatement\";\n"
-      + "    head: [ { id: Pattern, init: Expression | null } ];\n"
+      + "}",
+        "interface LetStatement <: Statement {\n"
+      + "    type: \"LetStatement\";\n"
+      + "    head: [ VariableDeclarator ];\n"
       + "    body: Statement;\n"
       + "}",
         "interface DebuggerStatement <: Statement {\n"
       + "    type: \"DebuggerStatement\";\n"
       + "}",
         "interface Declaration <: Statement { }\n",
-      "interface FunctionDeclaration <: Function, Declaration {\n"
+        "interface FunctionDeclaration <: Function, Declaration {\n"
       + "    type: \"FunctionDeclaration\";\n"
       + "    id: Identifier;\n"
       + "    params: [ Pattern ];\n"
@@ -168,7 +169,8 @@ lively.ast.MozillaAST.Cache = {
       + "    id: Pattern;\n"
       + "    init: Expression | null;\n"
       + "}",
-        "interface Expression <: Node, Pattern { }",  "interface ThisExpression <: Expression {\n"
+        "interface Expression <: Node, Pattern { }",
+        "interface ThisExpression <: Expression {\n"
       + "    type: \"ThisExpression\";\n"
       + "}",
         "interface ArrayExpression <: Expression {\n"
@@ -177,9 +179,13 @@ lively.ast.MozillaAST.Cache = {
       + "}",
         "interface ObjectExpression <: Expression {\n"
       + "    type: \"ObjectExpression\";\n"
-      + "    properties: [ { key: Literal | Identifier,\n"
-      + "                    value: Expression,\n"
-      + "                    kind: \"init\" | \"get\" | \"set\" } ];\n"
+      + "    properties: [ Property ];\n"
+      + "}",
+        "interface Property <: Node {\n"
+      + "    type: \"Property\";\n"
+      + "    key: Literal | Identifier;\n"
+      + "    value: Expression;\n"
+      + "    kind: \"init\" | \"get\" | \"set\";\n"
       + "}",
         "interface FunctionExpression <: Function, Expression {\n"
       + "    type: \"FunctionExpression\";\n"
@@ -203,76 +209,92 @@ lively.ast.MozillaAST.Cache = {
         "interface SequenceExpression <: Expression {\n"
       + "    type: \"SequenceExpression\";\n"
       + "    expressions: [ Expression ];\n"
-      + "}",  "interface UnaryExpression <: Expression {\n"
-        + "    type: \"UnaryExpression\";\n"
+      + "}",
+        "interface UnaryExpression <: Expression {\n"
+      + "    type: \"UnaryExpression\";\n"
       + "    operator: UnaryOperator;\n"
       + "    prefix: boolean;\n"
       + "    argument: Expression;\n"
-      + "}",  "interface BinaryExpression <: Expression {\n"
-        + "    type: \"BinaryExpression\";\n"
+      + "}",
+        "interface BinaryExpression <: Expression {\n"
+      + "    type: \"BinaryExpression\";\n"
       + "    operator: BinaryOperator;\n"
       + "    left: Expression;\n"
       + "    right: Expression;\n"
-      + "}",  "interface AssignmentExpression <: Expression {\n"
-        + "    type: \"AssignmentExpression\";\n"
+      + "}",
+        "interface AssignmentExpression <: Expression {\n"
+      + "    type: \"AssignmentExpression\";\n"
       + "    operator: AssignmentOperator;\n"
-      + "    left: Expression;\n"
+      + "    left: Pattern;\n"
       + "    right: Expression;\n"
-      + "}",  "interface UpdateExpression <: Expression {\n"
-        + "    type: \"UpdateExpression\";\n"
+      + "}",
+        "interface UpdateExpression <: Expression {\n"
+      + "    type: \"UpdateExpression\";\n"
       + "    operator: UpdateOperator;\n"
       + "    argument: Expression;\n"
       + "    prefix: boolean;\n"
-      + "}",  "interface LogicalExpression <: Expression {\n"
-        + "    type: \"LogicalExpression\";\n"
+      + "}",
+        "interface LogicalExpression <: Expression {\n"
+      + "    type: \"LogicalExpression\";\n"
       + "    operator: LogicalOperator;\n"
       + "    left: Expression;\n"
       + "    right: Expression;\n"
-      + "}",  "interface ConditionalExpression <: Expression {\n"
-        + "    type: \"ConditionalExpression\";\n"
+      + "}",
+        "interface ConditionalExpression <: Expression {\n"
+      + "    type: \"ConditionalExpression\";\n"
       + "    test: Expression;\n"
       + "    alternate: Expression;\n"
       + "    consequent: Expression;\n"
-      + "}",  "interface NewExpression <: Expression {\n"
-        + "    type: \"NewExpression\";\n"
+      + "}",
+        "interface NewExpression <: Expression {\n"
+      + "    type: \"NewExpression\";\n"
       + "    callee: Expression;\n"
       + "    arguments: [ Expression ];\n"
-      + "}",  "interface CallExpression <: Expression {\n"
-        + "    type: \"CallExpression\";\n"
+      + "}",
+        "interface CallExpression <: Expression {\n"
+      + "    type: \"CallExpression\";\n"
       + "    callee: Expression;\n"
       + "    arguments: [ Expression ];\n"
-      + "}",  "interface MemberExpression <: Expression {\n"
-        + "    type: \"MemberExpression\";\n"
+      + "}",
+        "interface MemberExpression <: Expression {\n"
+      + "    type: \"MemberExpression\";\n"
       + "    object: Expression;\n"
       + "    property: Identifier | Expression;\n"
       + "    computed: boolean;\n"
-      + "}",  "interface YieldExpression <: Expression {\n"
-        + "    argument: Expression | null;\n"
+      + "}",
+        "interface YieldExpression <: Expression {\n"
+      + "    type: \"YieldExpression\";\n"
+      + "    argument: Expression | null;\n"
       + "}",
         "interface ComprehensionExpression <: Expression {\n"
+      + "    type: \"ComprehensionExpression\";\n"
       + "    body: Expression;\n"
-      + "    blocks: [ ComprehensionBlock ];\n"
+      + "    blocks: [ ComprehensionBlock | ComprehensionIf ];\n"
       + "    filter: Expression | null;\n"
       + "}",
         "interface GeneratorExpression <: Expression {\n"
+      + "    type: \"GeneratorExpression\";\n"
       + "    body: Expression;\n"
-      + "    blocks: [ ComprehensionBlock ];\n"
+      + "    blocks: [ ComprehensionBlock | ComprehensionIf ];\n"
       + "    filter: Expression | null;\n"
       + "}",
         "interface GraphExpression <: Expression {\n"
+      + "    type: \"GraphExpression\";\n"
       + "    index: uint32;\n"
       + "    expression: Literal;\n"
       + "}",
         "interface GraphIndexExpression <: Expression {\n"
+      + "    type: \"GraphIndexExpression\";\n"
       + "    index: uint32;\n"
       + "}",
         "interface LetExpression <: Expression {\n"
       + "    type: \"LetExpression\";\n"
-      + "    head: [ { id: Pattern, init: Expression | null } ];\n"
+      + "    head: [ VariableDeclarator | null ];\n"
       + "    body: Expression;\n"
-      + "}",
-        "interface Pattern <: Node { }\n",
-      "interface ObjectPattern <: Pattern {\n"
+      + "    }",
+        "interface Pattern <: Node { }\n"
+      + "    ",
+        "interface ObjectPattern <: Pattern {\n"
       + "    type: \"ObjectPattern\";\n"
       + "    properties: [ { key: Literal | Identifier, value: Pattern } ];\n"
       + "}",
@@ -292,9 +314,14 @@ lively.ast.MozillaAST.Cache = {
       + "    body: BlockStatement;\n"
       + "}",
         "interface ComprehensionBlock <: Node {\n"
+      + "    type: \"ComprehensionBlock\";\n"
       + "    left: Pattern;\n"
       + "    right: Expression;\n"
       + "    each: boolean;\n"
+      + "}",
+        "interface ComprehensionIf <: Node {\n"
+      + "    type: \"ComprehensionIf\";\n"
+      + "    test: Expression;\n"
       + "}",
         "interface Identifier <: Node, Expression, Pattern {\n"
       + "    type: \"Identifier\";\n"
@@ -338,10 +365,10 @@ lively.ast.MozillaAST.Cache = {
         "interface XMLList <: XML, Expression {\n"
       + "    type: \"XMLList\";\n"
       + "    contents: [ XML ];\n"
-      + "}",
-        "interface XML <: Node { }\n",
-      "interface XMLEscape <: XML {\n"
-      + "    type \"XMLEscape\";\n"
+      + "    }",
+        "interface XML <: Node { }\n"
+      + "    ", "interface XMLEscape <: XML {\n"
+      + "    type: \"XMLEscape\";\n"
       + "    expression: Expression;\n"
       + "}",
         "interface XMLText <: XML {\n"
@@ -380,7 +407,7 @@ lively.ast.MozillaAST.Cache = {
       + "    type: \"XMLProcessingInstruction\";\n"
       + "    target: string;\n"
       + "    contents: string | null;\n"
-      + "}",
+      + "}\n",
 
       // rk 2014-09-28 adding preliminary es6 class interfaces
         "interface ClassDeclaration <: Declaration {\n"
@@ -400,7 +427,78 @@ lively.ast.MozillaAST.Cache = {
       + "  kind: \"\";\n"
       + "  key: Identifier;\n"
       + "  value: FunctionExpression;\n"
-      + "}"]
+      + "}\n",
+      // rk 2015-06-13 looks like the RestElement is favored over rest
+      // attributes...
+        "interface RestElement <: Pattern {\n"
+      + "  type: \"RestElement\";\n"
+      + "  argument: Pattern;\n"
+      + "}\n",
+
+      // rk 2015-05-07 addition for jsx processing, see
+      // https://github.com/facebook/jsx/blob/master/AST.md
+        "interface JSXIdentifier <: Identifier {\n"
+      + "  type: \"JSXIdentifier\";\n"
+      + "}\n",
+
+        "interface JSXMemberExpression <: Expression {\n"
+      + "  type: \"JSXMemberExpression\";\n"
+      + "  object: JSXMemberExpression | JSXIdentifier;\n"
+      + "  property: JSXIdentifier;\n"
+      + "}\n",
+
+        "interface JSXNamespacedName <: Expression {\n"
+      + "  type: \"JSXNamespacedName\";\n"
+      + "  namespace: JSXIdentifier;\n"
+      + "  name: JSXIdentifier;\n"
+      + "}\n",
+
+        "interface JSXEmptyExpression <: Node {\n"
+      + "  type: \"JSXEmptyExpression\";\n"
+      + "}\n",
+
+        "interface JSXExpressionContainer <: Node {\n"
+      + "  type: \"JSXExpressionContainer\";,\n"
+      + "  expression: Expression | JSXEmptyExpression;\n"
+      + "}\n",
+
+        "interface JSXBoundaryElement <: Node {\n"
+      + "  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;\n"
+      + "}\n",
+
+        "interface JSXOpeningElement <: JSXBoundaryElement {\n"
+      + "  type: \"JSXOpeningElement\";\n"
+      + "  attributes: [ JSXAttribute | JSXSpreadAttribute ];\n"
+      + "  selfClosing: boolean;\n"
+      + "}\n",
+
+        "interface JSXClosingElement <: JSXBoundaryElement {\n"
+      + "  type: \"JSXClosingElement\";\n"
+      + "}\n",
+
+        "interface JSXAttribute <: Node {\n"
+      + "  type: \"JSXAttribute\";\n"
+      + "  name: JSXIdentifier | JSXNamespacedName;\n"
+      + "  value: Literal | JSXExpressionContainer | JSXElement | null;\n"
+      + "}\n",
+
+        "interface SpreadElement <: Node {\n"
+      + "  type: \"SpreadElement\";\n"
+      + "  argument: Expression;\n"
+      + "}\n",
+
+        "interface JSXSpreadAttribute <: SpreadElement {\n"
+      + "  type: \"JSXSpreadAttribute\";\n"
+      + "}\n",
+
+        "interface JSXElement <: Expression {\n"
+      + "  type: \"JSXElement\";\n"
+      + "  openingElement: JSXOpeningElement;\n"
+      + "  children: [ Literal | JSXExpressionContainer | JSXElement ];\n"
+      + "  closingElement: JSXClosingElement | null;\n"
+      + "}\n"
+
+      ]
 
 }
 
@@ -544,7 +642,7 @@ lively.ast.MozillaAST.NodeSpecVisitorGenerator = {
             canBeNull = types.include('null'),
             code = '';
         if (canBeNull) { code += f('%sif (%s) {\n', indent, iteratorName); indent += singleIndent; }
-        if (types.without('null').length !== 1) {
+        if (types.without('null').length === 0) {
             throw new Error('Invalid array member: ' + Objects.inspect(arrayMember, {maxDepth: 3}));
         } else  if (types[0] === 'node') {
             var path = options.pathAsParameter ? ', path.concat(["' + arrayPropName + '", i])' : '';

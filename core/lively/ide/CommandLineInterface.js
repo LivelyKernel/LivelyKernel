@@ -39,16 +39,17 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     getGroup: function() { return this._options.group || null; },
 
     kill: function(signal, thenDo) {
-        if (this._done) {
-            thenDo && thenDo();
-        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
-            this._killed = true;
-            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
-            thenDo && thenDo();
-        } else {
-            this._killed = true;
-            lively.ide.CommandLineInterface.kill(this, thenDo);
-        }
+      var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+      if (this._done) {
+          thenDo && thenDo();
+      } else if (lively.ide.CommandLineInterface.isScheduled(this, group)) {
+          this._killed = true;
+          lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+          thenDo && thenDo();
+      } else {
+          this._killed = true;
+          lively.ide.CommandLineInterface.kill(this, thenDo);
+      }
     },
 
     resultString: function(bothErrAndOut) {
@@ -228,6 +229,8 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         this._code = exitCode;
         this._done = true;
         lively.bindings.signal(this, 'end', this);
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+        if (lively.shell.isScheduled(this, group)) lively.shell.unscheduleCommand(this, group);
         if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,null,this);
     },
     checkIfCommandIsStillAttachedAndRunning: function(thenDo) {
@@ -264,21 +267,26 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 
     kill: function(signal, thenDo) {
         thenDo = Functions.once(thenDo);
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+        var isScheduled = lively.ide.CommandLineInterface.isScheduled(this, group);
         if (this._done) {
+            isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
-        } else if (lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
+        } else if (!this._started && lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
             this._killed = true;
-            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+            isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
         } else {
             var pid = this.getPid();
             if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
             var self = this;
+            signal = signal || "SIGKILL";
             this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
                 err = err || (answer.data && answer.data.error);
                 if (err) console.warn("stopShellCommand: " + err);
                 var running = answer && answer.commandIsRunning;
                 self._killed = !running; // hmmmmm
+                isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(self, group);
                 thenDo && thenDo(err, answer);
             });
         }
@@ -343,6 +351,8 @@ Object.extend(lively.ide.CommandLineInterface, {
 
     commandQueue: {},
 
+    defaultGroup: "ungrouped-command",
+
     reset: function() {
         this.rootDirectory = null,
         this.commandQueue && Properties.forEachOwn(this.commandQueue,
@@ -359,14 +369,22 @@ Object.extend(lively.ide.CommandLineInterface, {
     scheduleCommand: function(cmd, group) {
         lively.bindings.connect(cmd, 'end', lively.ide.CommandLineInterface, 'unscheduleCommand', {
             updater: function($upd, cmd) { $upd(cmd, cmd.getGroup()); }});
-        var queue = group && this.getGroupCommandQueue(group);
-        if (queue) { queue.push(cmd); }
-        if (!queue || queue.indexOf(cmd) === 0) cmd.startRequest();
+        if (!group) group = lively.shell.defaultGroup + Strings.newUUID();
+        var queue = this.getGroupCommandQueue(group);
+        if (queue) {
+          queue.push(cmd);
+          queue.forEach(function(cmd) { if (cmd.isDone()) queue.remove(cmd); })
+          if (queue.indexOf(cmd) === 0) cmd.startRequest();
+          else if (queue[0] && !queue[0].isRunning()) queue[0].startRequest();
+        } else cmd.startRequest();
     },
     unscheduleCommand: function(cmd, group) {
-        var queue = group && this.getGroupCommandQueue(group);
-        if (queue) queue.remove(cmd);
-        if (group) this.startCommandFromQueue(group);
+      group = group || lively.shell.defaultGroup
+      var queue = group && this.getGroupCommandQueue(group);
+      if (queue) { queue.remove(cmd); }
+      if (group) this.startCommandFromQueue(group);
+      if (!lively.shell.commandQueue[group] || !lively.shell.commandQueue[group].length)
+        delete lively.shell.commandQueue[group];
     },
     startCommandFromQueue: function(group) {
         if (!group) return null;
@@ -427,6 +445,8 @@ Object.extend(lively.ide.CommandLineInterface, {
         }
         if (thenDo) options.whenDone = thenDo;
 
+        if (!options.group) options.group = lively.shell.defaultGroup + Strings.newUUID();
+
         var session = lively.net.SessionTracker.getSession(),
             lively2LivelyShellAvailable = session && session.isConnected(),
             commandClass = lively2LivelyShellAvailable && !options.sync ?
@@ -435,7 +455,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
         // prepare for askpass command
         if (lively2LivelyShellAvailable) {
-            var env = options
+            var env = options;
             options.env = Object.extend(options.env || {}, {
                 "L2L_ASKPASS_SSL_CA_FILE": lively.Config.askpassSSLcaFile || "",
                 "L2L_ASKPASS_SSL_KEY_FILE": lively.Config.askpassSSLkeyFile || "",
@@ -508,11 +528,14 @@ Object.extend(lively.ide.CommandLineInterface, {
          ], function(err, commands) { show(Object.values(commands).invoke('resultString').join('\n')); })
         lively.ide.CommandLineInterface.runAll([{name: "cmd1", command: "ls ."}], function(err, commands) { show(commands.cmd1.resultString()); });
         */
+
         thenDo = thenDo || Functions.Null;
-        var results = {};
+        var results = {}, group = lively.shell.defaultGroup + Strings.newUUID();
         commands.doAndContinue(function(next, ea, i) {
             // run either with exec by setting ea.isExec truthy, otherwise with run (spawn)
             var cmd = ea.command, runCommand;
+            var opts = ea.options || {};
+            if (!opts.group) opts.group = group;
             if (ea.isExec) runCommand = this.exec;
             else if (ea.readFile) { runCommand = this.readFile; cmd = ea.readFile; }
             else if (ea.writeFile) { runCommand = this.writeFile; cmd = ea.writeFile; ea.options = ea.options || {}; if (ea.content) ea.options.content = ea.content; }
@@ -522,7 +545,7 @@ Object.extend(lively.ide.CommandLineInterface, {
                     return results[variable] && results[variable].isShellCommand ?
                         results[variable].resultString() : (results[variable] || ''); });
             }
-            runCommand.call(this, cmd, ea.options || {}, function(cmd) {
+            runCommand.call(this, cmd, opts, function(cmd) {
                 var name = ea.name || String(i);
                 results[name] = ea.transform ? ea.transform(cmd) : cmd;
                 next();
@@ -548,12 +571,15 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     setWorkingDirectory: function(dir) {
+      if (typeof $world !== "undefined") $world.currentWorkingDirectory = dir;
       this.rootDirectory = dir
       lively.bindings.signal(lively.shell, 'currentDirectory', dir);
       return dir;
     },
 
-    cwd: function() { return this.rootDirectory || this.getWorkingDirectory(); },
+    cwd: function() {
+      return (this.rootDirectory || this.getWorkingDirectory() || "").replace(/(\/|\\)?$/, "");
+    },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
     
@@ -562,6 +588,7 @@ Object.extend(lively.ide.CommandLineInterface, {
       webR.withJSONWhenDone(function(json, status) {
         if (status.isSuccess())
           lively.ide.CommandLineInterface.WORKSPACE_LK = json.cwd;
+          lively.ide.CommandLineInterface.PLATFORM = json.platform;
       });
       if (!sync) webR.beAsync();
       webR.get();
@@ -586,7 +613,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     readFile: function(path, options, thenDo) {
         if (typeof options === "function") { thenDo = options; options = null; }
         options = options || {};
-        path = '"' + path + '"';
+        if (this.PLATFORM !== 'win32') path = '"' + path + '"';
         var cmd = this.run('cat ' + path, options);
         if (options.onInput) lively.bindings.connect(cmd, 'stdout', options, 'onInput');
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
@@ -605,7 +632,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         if (typeof options === "string") options = {content: options};
         options = options || {};
         options.content = options.content || '';
-        path = '"' + path + '"';
+        if (this.PLATFORM !== 'win32') path = '"' + path + '"';
         var cmd = this.run('tee ' + path, {stdin: options.content});
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
@@ -628,7 +655,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     ls: function(path, thenDo) {
-      return lively.ide.CommandLineSearch.findFiles("*", {cwd: path, depth: 1}, function(result) {
+      return lively.ide.CommandLineSearch.findFiles("*", {cwd: path, depth: 1}, function(err, result) {
         thenDo && thenDo(null, result); });
     },
 
@@ -779,7 +806,16 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     doGrep: function(string, path, thenDo) {
         var lastGrep = lively.ide.CommandLineSearch.lastGrep;
-        if (lastGrep) lastGrep.kill();
+        if (lastGrep && lastGrep.isRunning() && !lastGrep.wasKilled()) {
+          lastGrep.kill("KILL");
+          lively.lang.fun.waitFor(400,
+            function() { return !lively.ide.CommandLineSearch.lastGrep; },
+            function() {
+              lively.ide.CommandLineSearch.doGrep(string, path, thenDo);
+            })
+          return;
+        }
+
         path = path || '';
         if (path.length && !path.endsWith('/')) path += '/';
         var rootDirectory = lively.ide.CommandLineInterface.rootDirectory,
@@ -790,16 +826,14 @@ Object.extend(lively.ide.CommandLineSearch, {
             // baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a -print0 | xargs -0 grep -IinH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
             platform = lively.ide.CommandLineInterface.getServerPlatform();
-        if (platform !== 'win32') {
-            baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
-        }
-        var charsBefore = 80, charsAfter = 80;
-        var cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
-        lively.ide.CommandLineSearch.lastGrep = lively.shell.exec(cmd, function(err, r) {
-            if (r.wasKilled()) return;
+        if (platform !== 'win32') baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
+        var charsBefore = 80, charsAfter = 80,
+            cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
+        lively.ide.CommandLineSearch.lastGrep = lively.shell.run(cmd, function(err, r) {
             lively.ide.CommandLineSearch.lastGrep = null;
-            var lines = r.getStdout().split('\n').map(function(line) {
-                return line.replace(/\/\//g, '/'); })
+            if (r.wasKilled()) return;
+            var lines = r.getStdout().split('\n')
+              .map(function(line) { return line.replace(/\/\//g, '/'); });
             thenDo && thenDo(lines, fullPath);
         });
     },
@@ -822,13 +856,15 @@ Object.extend(lively.ide.CommandLineSearch, {
         return ff && ff.browseIt({line: spec.line/*, browser: getCurrentBrowser()*/});
     },
 
-    extractBrowseRefFromGrepLine: function(line, baseDir) {
+    extractBrowseRefFromGrepLine: function extractBrowseRefFromGrepLine(line, baseDir) {
         // extractBrowseRefFromGrepLine("lively/morphic/HTML.js:235:    foo")
         // = {fileName: "lively/morphic/HTML.js", line: 235}
         if (baseDir && line.indexOf(baseDir) === 0) line = line.slice(baseDir.length);
         line = line.replace(/\\/g, '/').replace(/^\.\//, '');
-        var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):([0-9]+)/);
-        return fileMatch ? {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir} : null;
+        var fileMatch = line.match(/((?:[^\/\s]+\/)*[^\.]+\.[^:]+):?([0-9]+)?/);
+        return fileMatch ?
+          {fileName: fileMatch[1], line: Number(fileMatch[2]), baseDir: baseDir}
+          : null;
     },
 
     extractModuleNameFromLine: function(line) {
@@ -849,11 +885,15 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     doBrowseAtPointOrRegion: function(codeEditor) {
         try {
-            var str = codeEditor.getSelectionOrLineString();
-            str = str.replace(/\/\//g, '/');
-            var spec = this.extractBrowseRefFromGrepLine(str) || this.extractModuleNameFromLine(str);
+            var pos = codeEditor.getCursorPositionAce(),
+                line = codeEditor.aceEditor.session.getLine(pos.row),
+                start = (lively.lang.string.peekLeft(line, pos.column, " ") || -1) + 1,
+                end = lively.lang.string.peekRight(line, pos.column, " ") || line.length,
+                substring = line.slice(start, end).replace(/\/\//g, '/'),
+                spec = this.extractBrowseRefFromGrepLine(substring)
+                    || this.extractModuleNameFromLine(substring);
             if (!spec) {
-                show("cannot extract browse ref from %s", str);
+                show("cannot extract browse ref from %s", substring);
             } else {
                 // this.doBrowse(spec);
                 lively.ide.openFile(spec.fileName + (spec.line ? ':' + spec.line : ''));
@@ -866,20 +906,28 @@ Object.extend(lively.ide.CommandLineSearch, {
     findFilesCommandString: function(pattern, options) {
         options = options || {};
         var rootDirectory = options.rootDirectory || '.';
-        if (!rootDirectory.endsWith('/')) rootDirectory += '/';
+        var P = lively.ide.CommandLineInterface.PLATFORM;
+        var slash = P === 'win32' ? '\\' : '/'
+        if (P !== 'win32' && !rootDirectory.endsWith(slash)) rootDirectory += slash;
         options.rootDirectory = rootDirectory;
+
         // we expect an consistent timeformat across OSs to parse the results
         var timeFormatFix = "if [ \"`uname`\" = \"Darwin\" ]; "
                           + "  then timeformat='-T'; "
                           + "else "
                           + "  timeformat=\"--time-style=+%b %d %T %Y\"; "
-                          + "fi && ",
-            excludes = options.excludes || '-iname ".svn" -o -iname ".git" -o -iname "node_modules"',
-            searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : '-iname', pattern),
+                          + "fi && ";
+        var excludes = options.excludes || ("-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
+            searchPart = Strings.format('%s "%s"', options.re ? '-iregex' : (options.matchPath ? '-ipath' : '-iname'), pattern),
             depth = options.hasOwnProperty('depth') ? ' -maxdepth ' + options.depth : '',
             // use GMT for time settings by default so the result is comparable
             // also force US ordering of date/time elements, to help with the parsing
-            commandString = timeFormatFix + Strings.format(
+            commandString = P === 'win32' ?
+              Strings.format(
+              "find %s %s ( %s ) -prune -o "
+              + "%s %s -print0 | xargs -0 -I{} ls -lLd --time-style=locale {}",
+                rootDirectory, (options.re ? '-E ' : ''), excludes.replace(/"/g, ''), searchPart.replace(/"/g, ''), depth) :
+              timeFormatFix + Strings.format(
                 "env TZ=GMT LANG=en_US.UTF-8 "
               + "find %s %s \\( %s \\) -prune -o "
               + "%s %s -print0 | xargs -0 -I{} ls -lLd \"$timeformat\" \"{}\"",
@@ -889,7 +937,7 @@ Object.extend(lively.ide.CommandLineSearch, {
 
     findFiles: function(pattern, options, callback) {
         // lively.ide.CommandLineSearch.findFiles('*html',
-        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING});
+        //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING, matchPath: BOOL});
         options = options || {};
         var commandString = this.findFilesCommandString(pattern, options),
             rootDirectory = options.rootDirectory,
@@ -898,15 +946,17 @@ Object.extend(lively.ide.CommandLineSearch, {
         if (lastFind) lastFind.kill();
         var result = [],
             cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(err, cmd) {
-                if (cmd.getCode() != 0) console.warn(cmd.getStderr());
-                result = parseDirectoryList(cmd.getStdout(), rootDirectory);
-                callback && callback(result);
+              lively.ide.CommandLineSearch.lastFind = null;
+              var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
+              if (err) console.warn(err);
+              result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);
+              callback && callback(err, result || []);
             });
         lively.ide.CommandLineSearch.lastFind = cmd;
         return options.sync ? result : cmd;
     },
 
-    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates) {
+    interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates, offerCreation) {
         // usage:
         // lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
         //     'choose directory: ',
@@ -923,6 +973,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         // /foo/ that match "bar*".
         // "/foo/ bar" match all subdirectories of /foo/ that match "*bar*".
 
+        actions = actions || [show];
         if (!rootDir) rootDir = lively.shell.exec("pwd", {sync: true}).getStdout().trim();
         if (rootDir) rootDir = rootDir.replace(/\/?$/, "/");
         var lastSearch;
@@ -941,8 +992,8 @@ Object.extend(lively.ide.CommandLineSearch, {
             else callback(candidates.map(fileToListItem));
         });
 
-        lively.ide.tools.SelectionNarrowing.getNarrower({
-            name: narrowerName, //'lively.ide.browseFiles.changeBasePath.NarrowingList',
+        var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+            name: narrowerName || '_lively.ide.interactivelyChooseFileSystemItem.NarrowingList',
             spec: {
                 candidates: initialCandidates,
                 prompt: prompt,
@@ -952,9 +1003,14 @@ Object.extend(lively.ide.CommandLineSearch, {
                 keepInputOnReactivate: false,
                 completeInputOnRightArrow: true,
                 completeOnEnterWithMultipleChoices: true,
-                actions: actions || [show]
+                actions: actions
             }
         });
+
+        lively.bindings.connect(narrower, 'escapePressed', onCancel, 'call');
+        lively.bindings.connect(narrower, 'escapePressed', Global, 'show');
+
+        return narrower;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -970,7 +1026,7 @@ Object.extend(lively.ide.CommandLineSearch, {
             var continueAction = Functions.either(
                 // function timeout() { thenDo(fileListSoFar.map(fileToListItem)); },
                 function timeout() { thenDo([]); },
-                function filesFound(files) {
+                function filesFound(err, files) {
                     lastSearch = null;
                     thenDo((filterFunc || Functions.K)(files, input, pattern, dir)
                         .uniqBy(filesAreEqual)
@@ -991,13 +1047,14 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
 
         function fileToListItem(file) {
-            var path = String(file.path);
-            if (!path.length) return null;
-            if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
-            return {
-                isListItem: true,
-                string: path,
-                value: file}
+            var name = file.name;
+            if (!name) {
+              var path = String(file.path);
+              if (!path.length) return null;
+              if (file.isDirectory) path = file.path = path.replace(/\/?$/, "/")
+              name = path;
+            }
+            return {isListItem: true, string: name, value: file};
         }
 
         function extractDirAndPatternFromInput(input) {
@@ -1011,7 +1068,7 @@ Object.extend(lively.ide.CommandLineSearch, {
         }
 
         function filesAreEqual(fileA, fileB) {
-            return fileA.path.replace(/\/$/, '') == fileB.path.replace(/\/$/, '');
+            return fileA.path.replace(/(\/|\\)$/, '') == fileB.path.replace(/(\/|\\)$/, '');
         }
 
         function sortFiles(input, fileA, fileB) {
@@ -1022,6 +1079,11 @@ Object.extend(lively.ide.CommandLineSearch, {
             if (fileA.path.toLowerCase() < fileB.path.toLowerCase()) return -1;
             if (fileA.path.toLowerCase() > fileB.path.toLowerCase()) return 1;
             return 0;
+        }
+
+        function onCancel() {
+          lively.bindings.disconnectAll(narrower);
+          actions[0].call(null,null);
         }
     }
 

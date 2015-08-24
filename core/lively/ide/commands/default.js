@@ -56,7 +56,7 @@ Object.extend(lively.ide.commands.byName, {
             // Global Escape will drop grabbed morphs, remove menus, close halos
             var world = lively.morphic.World.current(), h = world.firstHand();
             if (h.submorphs.length > 0) { h.dropContentsOn(world); return true; }
-            if (world.worldMenuOpened) { h.removeOpenMenu(event); return true; }
+            if (world.worldMenuOpened) { h.removeOpenMenu(); return true; }
             if (world.hasSelection()) { world.resetSelection(); return true; }
             if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); return true; }
             var narrowers = world.submorphs.filter(function(m) { return m.isNarrowingList && m.isVisible(); })
@@ -64,44 +64,65 @@ Object.extend(lively.ide.commands.byName, {
             return false;
         }
     },
+
     'lively.morphic.World.save': {
-        description: 'save world',
+        description: 'Lively: save world',
         exec: function() {
             $world.saveWorld(); return true;
         }
     },
     'lively.morphic.World.saveAs': {
-        description: 'save world as',
+        description: 'Lively: save world as',
         exec: function() {
             $world.interactiveSaveWorldAs(); return true;
         }
     },
 
     'lively.morphic.World.changeUserName': {
-        description: 'change user name',
+        description: 'user: change user name',
         exec: function() {
             $world.askForUserName(); return true;
         }
     },
 
     'lively.morphic.World.setExtent': {
-        description: 'set world extent',
+        description: 'morphic: set world extent',
         exec: function() { $world.askForNewWorldExtent(); }
     },
 
     'lively.morphic.World.setExtentToWindowBounds': {
-        description: 'set world extent to fit into window bounds',
+        description: 'morphic: set world extent to fit into window bounds',
         exec: function() { $world.setExtent($world.windowBounds().extent()); }
     },
 
     'lively.morphic.World.resetScale': {
-        description: 'reset world scale',
+        description: 'morphic: reset world scale',
         exec: function() { $world.setScale(1); }
+    },
+
+    'lively.morphic.MenuBar.hide': {
+        description: 'hide the menu bar',
+        exec: function() {
+          $world._MenuBarHidden = true;
+          lively.require('lively.morphic.tools.MenuBar').toRun(function() {
+            lively.morphic.tools.MenuBar.remove();
+          });
+        }
+    },
+
+    'lively.morphic.MenuBar.show': {
+        description: 'show the menu bar',
+        exec: function() {
+          $world._MenuBarHidden = false;
+          lively.require('lively.morphic.tools.MenuBar').toRun(function() {
+            lively.morphic.tools.MenuBar.openOnWorldLoad();
+          });
+        }
     },
 
     // morphic
     'lively.morphic.Halos.show': {
-        description: 'show halo',
+        description: 'morphic: show halo',
         exec: function() {
             var focused = lively.morphic.Morph.focusedMorph(),
                 morph = $world.getActiveWindow() || focused;
@@ -112,8 +133,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.showSceneGraph': {
-        description: 'show scene graph',
+        description: 'morphic: show scene graph',
         exec: function() {
             // withAllSubmorphsDo isn't good enough for ignoring certain morphs and their
             // submorphs
@@ -159,7 +181,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.copy': {
-        description: 'copy morph',
+        description: 'morphic: copy morph',
         exec: function() {
             var morph = $world.getActiveWindow();
             if (!morph) morph = lively.morphic.Morph.focusedMorph();
@@ -178,7 +200,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.swapMorphs': {
-        description: 'swap morphs',
+        description: 'morphic: swap morphs',
         exec: function() {
             var morph1;
             lively.lang.fun.composeAsync(
@@ -201,7 +223,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.openObjectEditor': {
-        description: 'open ObjectEditor for focused Morph',
+        description: 'morphic: open ObjectEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function(target) {
             var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
@@ -209,8 +231,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Morph.openStyleEditor': {
-        description: 'open StyleEditor for focused Morph',
+        description: 'tools: open StyleEditor for focused Morph',
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function(target) {
             var morph = target || $world.currentHaloTarget || lively.morphic.Morph.focusedMorph();
@@ -220,7 +243,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.alignFlapsInWorld': {
-        description: 'align flaps in world',
+        description: 'morphic: align flaps in world',
         exec: function() {
             $world.submorphs
                 .filter(function(ea) { return ea.hasFixedPosition() && ea.alignInWorld; })
@@ -230,7 +253,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.morphic.Morph.setGridSpacing': {
-        description: 'set grid spacing',
+        description: 'morphic: set grid spacing',
         exec: function(spacing) {
             if (spacing) lively.Config.set("gridSpacing", spacing);
             else {
@@ -268,7 +291,7 @@ Object.extend(lively.ide.commands.byName, {
 
     // windows
     'lively.morphic.Window.rename': {
-        description: 'rename active window',
+        description: 'windows: rename active window',
         exec: function() {
             var focused = lively.morphic.Morph.focusedMorph(),
                 win = focused && focused.getWindow();
@@ -279,8 +302,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.toggleCollapse': {
-        description: 'collapse/uncollapse window',
+        description: 'windows: collapse/uncollapse window',
         exec: function() {
             var win = $world.getActiveWindow();
             if (!win) { show('Cannot find active window!'); return; }
@@ -289,8 +313,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.gather': {
-        description: 'gather all windows at mouse cursor',
+        description: 'windows: gather all windows at mouse cursor',
         exec: function() {
             function restack(parent, filter) {
                 var morphs = parent.submorphs.select(filter),
@@ -304,8 +329,9 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.rearrangeSelectedIntoVisibleBounds': {
-        description: 'Rearrange selected morphs to fit into visible world bounds.',
+        description: 'morphic: Rearrange selected morphs to fit into visible world bounds.',
         exec: function() {
             function fitMorphsIntoBounds(morphs, bounds) {
                 // Unions the bounds of morphs together and moves them so that the top left
@@ -325,6 +351,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.resizeWindow': {
+        description: "windows: resize active window",
         exec: function(how, window) {
             var win = window || $world.getActiveWindow();
             if (!win) return;
@@ -344,9 +371,10 @@ Object.extend(lively.ide.commands.byName, {
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
             function askForHow() {
-                var actions = ['fullscreen','center','right','left','bottom',
+                var actions = ['full', 'fullscreen','center','right','left','bottom',
                                'top',"shrinkWidth", "growWidth","shrinkHeight",
-                               "growHeight",'reset'];
+                               "growHeight", 'col1','col2', 'col3', 'col4', 'col5',
+                               'reset'];
                 lively.ide.tools.SelectionNarrowing.chooseOne(
                     actions, function(err, candidate) { doResize(candidate); },
                     {prompt: "How to resize the window?"});
@@ -354,12 +382,19 @@ Object.extend(lively.ide.commands.byName, {
 
             function doResize(how) {
                 switch(how) {
-                    case 'fullscreen': break;
+                    case 'full': case 'fullscreen': break;
                     case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
                     case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
                     case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
+                    case 'col3': case 'center': bounds = thirdColBounds.withCenter(worldB.center()); break;
+                    case 'col5': case 'right': bounds = thirdColBounds.withTopRight(worldB.topRight()); break;
+                    case 'col1': case 'left': bounds = thirdColBounds.withTopLeft(bounds.topLeft()); break;
                     case 'bottom': bounds = bounds.withY(bounds.y + bounds.height/2);
                     case 'top': bounds = bounds.withHeight(bounds.height/2); break;
+                    case 'col2': bounds = thirdColBounds.withTopLeft(worldB.topCenter().scaleByPt(pt(.333,1))).withWidth(thirdW); break;
+                    case 'col4': bounds = thirdColBounds.withTopRight(worldB.topCenter().scaleByPt(pt(1.666,1))).withWidth(thirdW); break;
+                    case 'halftop': bounds = winB.withY(bounds.top()).withHeight(bounds.height/2); break;
+                    case 'halfbottom': bounds = winB.withY(bounds.height/2).withHeight(bounds.height/2); break;
                     case 'reset': bounds = win.normalBounds || pt(500,400).extentAsRectangle().withCenter(bounds.center()); break;
                     default: return;
                 }
@@ -372,16 +407,24 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         },
     },
-    'lively.ide.resizeWindow.reset': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'reset'); }},
-    'lively.ide.resizeWindow.full': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'fullscreen'); }},
-    'lively.ide.resizeWindow.left': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'left'); }},
-    'lively.ide.resizeWindow.center': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'center'); }},
-    'lively.ide.resizeWindow.right': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'right'); }},
-    'lively.ide.resizeWindow.top': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'top'); }},
-    'lively.ide.resizeWindow.bottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'bottom'); }},
+
+    'lively.ide.resizeWindow.reset':      {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'reset'); }},
+    'lively.ide.resizeWindow.full':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'fullscreen'); }},
+    'lively.ide.resizeWindow.left':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'left'); }},
+    'lively.ide.resizeWindow.center':     {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'center'); }},
+    'lively.ide.resizeWindow.right':      {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'right'); }},
+    'lively.ide.resizeWindow.top':        {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'top'); }},
+    'lively.ide.resizeWindow.bottom':     {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'bottom'); }},
+    'lively.ide.resizeWindow.col1':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col1'); }},
+    'lively.ide.resizeWindow.col2':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col2'); }},
+    'lively.ide.resizeWindow.col3':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col3'); }},
+    'lively.ide.resizeWindow.col4':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col4'); }},
+    'lively.ide.resizeWindow.col5':       {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'col5'); }},
+    'lively.ide.resizeWindow.halftop':    {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'halftop'); }},
+    'lively.ide.resizeWindow.halfbottom': {exec: function() { return lively.ide.commands.exec('lively.ide.resizeWindow', 'halfbottom'); }},
 
     'lively.morphic.Window.resizeVisibleMorphsToFitIntoVisibleBounds': {
-        description: 'Resize visible morphs to fit into visible world bounds.',
+        description: 'morphic: Resize visible morphs to fit into visible world bounds.',
         exec: function() {
             $world.submorphs.forEach(function(ea) {
                 var vB = $world.visibleBounds(), b = ea.bounds();
@@ -391,23 +434,26 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
+
     'lively.morphic.Window.selectAll': {
-        description: 'Select all windows',
+        description: 'windows: Select all windows',
         exec: function() {
             var windows = $world.submorphs.select(function(ea) { return ea.isWindow; });
             $world.setSelectedMorphs(windows);
             return true;
         }
     },
+
     'lively.morphic.Window.close': {
-        description: 'close active window',
+        description: 'windows: close active window',
         exec: function() {
             $world.closeActiveWindow();
             return true;
         }
     },
+
     'lively.ide.WindowNavigation.start': {
-        description: 'open window navigator',
+        description: 'windows: open window navigator to switch windows',
         exec: function exec() {
           if (module("lively.ide.WindowNavigation").isLoaded())
             lively.ide.WindowNavigation.WindowManager.current().startWindowSelection();
@@ -417,7 +463,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.WindowNavigation.reopenClosedWindows': {
-        description: 'recover closed windows',
+        description: 'windows: recover closed windows',
         exec: function() {
             var narrower = $world.submorphs.detect(function(morph) { return morph.name && morph.name.include('lively.ide.WindowNavigation.NarrowingList'); });
             if (narrower) {
@@ -549,7 +595,105 @@ Object.extend(lively.ide.commands.byName, {
     },
     'lively.ide.browseFiles': {
         description: 'browse files',
-        exec: function() {
+        exec: true ?
+          function browseFilesWithFind() {
+
+            var actions = [
+                {name: 'open in system browser', exec: function(candidate) {
+                  if (isSaveForSCB(candidate)) lively.ide.browse(URL.root.withFilename(candidate.relativePath));
+                  else lively.ide.openFile(candidate.fullPath);
+                }},
+                {name: 'open in text editor', exec: function(candidate) { lively.ide.openFile(candidate.fullPath); }},
+                {name: 'open in web browser', exec: function(candidate) { window.open(candidate.relativePath); }},
+                {name: 'open in versions viewer', exec: function(candidate) { lively.ide.commands.exec("lively.ide.openVersionsViewer", candidate.relativePath); }},
+                {name: 'reset directory watcher', exec: function(candidate) { lively.ide.DirectoryWatcher.reset(); }}];
+
+            // SCB is currently only supported for Lively files
+            if (!lively.shell.cwdIsLivelyDir()) { actions.shift(); }
+
+            var showsInitialCandidates = true,
+                initialCandidates = [],
+                searchForMatchingDebounced = lively.lang.fun.debounce(1000, searchForMatching),
+                lastSearchInput = null, lastFiles;
+
+            lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.browseFiles.NarrowingList',
+                  spec: {
+                    candidates: initialCandidates,
+                    // candidatesUpdaterMinLength: 2,
+                    prompt: 'filename: ',
+                    maxItems: 25,
+                    keepInputOnReactivate: true,
+                    candidatesUpdater: searchForMatching,
+                    actions: actions
+                  }
+              });
+
+            return true;
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+            function isSaveForSCB(candidate) {
+              return (candidate.fullPath || "").endsWith(".js");
+            }
+
+            function searchForMatching(input, callback) {
+              if (showsInitialCandidates) {
+                showsInitialCandidates = false;
+                if (initialCandidates.length)
+                  return callback(initialCandidates);
+              }
+              if (!input || input === "") callback([]);
+              var parts = input.split(" "),
+                  matchParts = parts.slice(1).compact().map(function(ea) { return new RegExp(ea, "i"); }),
+                  searchAgain = lastSearchInput !== parts[0];
+              lastSearchInput = parts[0];
+              doSearch(searchAgain, parts[0], matchParts, callback);
+            }
+
+            function makeCandidates(dir, files) {
+                return files.map(function(fullPath) {
+                    var relativePath = fullPath.slice(dir.length+1).replace(/\\/g, '/');
+                    if (relativePath.length === 0) return null;
+                    return {
+                        string: relativePath,
+                        value: {dir: dir, fullPath: fullPath, relativePath: relativePath},
+                        isListItem: true
+                    }
+                }).compact();
+            }
+
+            function doSearch(searchAgain, input, matchParts, thenDo) {
+                lively.lang.fun.composeAsync(
+                    function withDirDo(func) { func(null, lively.shell.cwd()); },
+                    function fetchFiles(dir, next) {
+                      if (!searchAgain && lastFiles) return next(null, lastFiles, dir);
+                      var opts = {sync: false, matchPath: true}
+                      if (input.length < 3) opts.depth = 2;
+                      input = "*" + input.replace(/^\*?|\*?$/g, "") + "*";
+                      lively.ide.CommandLineSearch.findFiles(
+                        input, opts, function(err, files) {
+                          if (err) next(new Error('Cannot fetch files for ' + dir + ":\n" + err));
+                          else { lastFiles = files; next(null, files, dir); }
+                      });
+                    },
+                    function(files, dir, next) {
+                      var paths = files
+                        .filter(function(ea) { return !ea.isDirectory; })
+                        .map(function(ea) { return lively.lang.string.joinPath(dir, ea.fileName); })
+                        .filter(function(ea) { return matchParts.every(function(match) { return match.test(ea); })});
+                      next(null, paths, dir);
+                    },
+                    function(files, dir, next) { next(null, makeCandidates(dir, files)); }
+                )(function(err, candidates) {
+                    if (err) show("Error browsing files: %s", err);
+                    else thenDo(candidates);
+                });
+            }
+
+        } :
+
+          function browseFilesWithDirWatcher() {
 
             var actions = [
                 {name: 'open in system browser', exec: function(candidate) { lively.ide.browse(URL.root.withFilename(candidate.relativePath)); }},
@@ -625,7 +769,7 @@ Object.extend(lively.ide.commands.byName, {
                 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
                 function withDirDo(func) {
-                    if (narrower.dir) func(null, narrower.dir);
+                    if (narrower & narrower.dir) func(null, narrower.dir);
                     else lively.shell.exec('pwd', {}, function(cmd) { func(null, cmd.resultString()); });
                 }
                 function showLoadingIndicatorThenDo(thenDo) {
@@ -755,23 +899,27 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.doGrepSearch': {
         description: 'code search (grep)',
         exec: function() {
-            var greper = Functions.debounce(500, function(input, callback) {
-                lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
-                    var candidates = lines.map(function(line) {
-                        return line.trim() === '' ? null : {
-                            isListItem: true,
-                            string: line.slice(baseDir.length),
-                            value: {baseDir: baseDir, match: line}
-                        };
-                    }).compact();
-                    if (candidates.length === 0) candidates = ['nothing found'];
-                    callback(candidates);
-                });
-            });
+
+            var lastSearchTime,
+                greper = lively.lang.fun.debounce(500, function(t, input, callback) {
+                  lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
+                      if (t < lastSearchTime) return;
+                      var candidates = lines.map(function(line) {
+                          return line.trim() === '' ? null : {
+                              isListItem: true,
+                              string: line.slice(baseDir.length),
+                              value: {baseDir: baseDir, match: line}
+                          };
+                      }).compact();
+                      if (candidates.length === 0) candidates = ['nothing found'];
+                      callback(candidates);
+                  });
+              });
 
             function candidateBuilder(input, callback) {
+              lastSearchTime = Date.now();
               callback(['searching...']);
-              greper(input, callback);
+              greper(lastSearchTime, input, callback);
             };
 
             function openInTextEditor(candidate) {
@@ -788,7 +936,7 @@ Object.extend(lively.ide.commands.byName, {
             }
 
             var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: '_lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
+                name: 'lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
                 reactivateWithoutInit: true,
                 spec: {
                     prompt: 'search for: ',
@@ -833,12 +981,12 @@ Object.extend(lively.ide.commands.byName, {
 
             // If there is a list of known dirs first offer to choose from those
             function chooseFromKnownWorkingDirectories(n) {
-              if (!$world.knownWorkingDirectories && !$world.knownWorkingDirectories.length)
+              if (!$world.knownWorkingDirectories || !$world.knownWorkingDirectories.length)
                 return n();
                 lively.ide.tools.SelectionNarrowing.getNarrower({
                   name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
                   spec: {
-                    candidates: ['choose different directory...'].concat($world.knownWorkingDirectories),
+                    candidates: ['choose different directory...'].concat(knownDirectories()),
                     preselect: 1,
                     actions: [function select(c) {
                       n(null,c === 'choose different directory...' ? null : c);
@@ -861,14 +1009,28 @@ Object.extend(lively.ide.commands.byName, {
             // ...and change the base dir for real
             function setBasePath(candidate, n) {
               if (!candidate) return n(new Error("No directory choosen"));
-              var result = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
-              if (result) alertOK('base directory is now ' + result);
-              else alertOK('resetting base directory to default');
-              lively.shell.setWorkingDirectory(result);
-              n(null, result);
+              var path = (candidate && (Object.isString(candidate) ? candidate : candidate.path)) || null;
+              if (path) $world.alertOK('base directory is now ' + path);
+              else $world.alertOK('resetting base directory to default');
+              lively.shell.setWorkingDirectory(path);
+              path && lively.require("lively.lang.Runtime").toRun(function() {
+                  lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
+              var menuBar = $morph('MenuBar');
+              if (menuBar && menuBar.getMorphNamed("cwdLabel")) {
+                menuBar.getMorphNamed("cwdLabel").update();
+              }
+              n(null, path);
             }
           )(function(err, dir) { });
           return true;
+
+          function knownDirectories() {
+            return ($world.knownWorkingDirectories || []).uniqBy(function(a,b) {
+              var aPath = a ? (typeof a === "string" ? a : a.path) : "";
+              var bPath = b ? (typeof b === "string" ? b : b.path) : "";
+              return aPath.replace(/(\/|\\)$/, "") === bPath.replace(/(\/|\\)$/, "");
+            });
+          }
         }
     },
     'lively.ide.CommandLineInterface.openBaseDirectoryChooser': {
@@ -883,29 +1045,34 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.CommandLineInterface.printDirectory': {
         description: 'Print directory hierarchy',
         exec: function() {
-            function printIt(dir) {
-                lively.shell.run("find " + dir.path + "", {}, function(err, cmd) {
-                    lively.require('lively.data.DirectoryUpload').toRun(function() {
-                        var files = cmd.getStdout().split('\n')
-                        new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(files);
-                    });
-                    
-                })
-            }
             lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
                 'choose directory: ',
-                lively.ide.CommandLineInterface.cwd(),
+                lively.shell.cwd(),
                 function(files) { return files.filterByKey('isDirectory'); },
-                "lively.ide.browseFiles.baseDir.NarrowingList",
-                [printIt]);
+                "lively.ide.CommandLineInterface.printDirectory.NarrowingList",
+                [function printIt(dir) {
+                  lively.lang.fun.composeAsync(
+                    function(n) { lively.require('lively.data.DirectoryUpload').toRun(function() { n(); }); },
+                    function(n) {
+                      var excludes = lively.lang.string.format("\\( -iname %s \\) -prune -o",
+                          lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
+                        cmdString = lively.lang.string.format("find %s %s -print",
+                          typeof dir === "string" ? dir : dir.path, excludes);
+                      lively.shell.run(cmdString, {}, n);
+                    },
+                    function(cmd, n) { n(null, cmd.getStdout().split('\n')); }
+                  )(function(err, files) {
+                    if (err) $world.inform("Error printing dir hierarchy of " + dir.path + "\n" + err)
+                    else new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(
+                      files, "Directory hierarchy of " + dir);
+                  })
+                }]);
         }
     },
 
     'lively.ide.execShellCommand': {
         description: 'execute shell command',
         exec: function(codeEditor, args) {
-            Global.event.stop();
-
             var insertResult   = !args || typeof args.insert === 'undefined' || !!args.insert,
                 insertProgress = args  && !!args.insertProgress,
                 openInWindow   = !codeEditor || (args && args.count !== 4)/*universal argument*/,
@@ -1080,12 +1247,21 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openMethodFinder': {description: 'open MethodFinder', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openReferencingMethodFinder(); return true; }},
     'lively.ide.openTextEditor': {description: 'open TextEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function(path) { lively.ide.openFile(path || URL.source.toString()); return true; }},
     'lively.ide.openSystemConsole': {
-        description: 'open SystemConsole (to see console logging)',
+        description: 'logging: open JavaScript log (system console)',
         exec: function() {
             if ($world.get("LogMessages")) $world.get("LogMessages").comeForward();
             else lively.require("lively.ide.tools.SystemConsole")
               .toRun(function() { lively.ide.tools.SystemConsole.open(); });
             return true;
+        }
+    },
+
+    'lively.ide.logging.toggleVerbosity': {
+        description: 'logging: toggle verbosity',
+        exec: function() {
+          lively.Config.toggle("verboseLogging");
+          show("verbose logging %sactivated", lively.Config.get("verboseLogging") ? "" : "de");
+          return true;
         }
     },
 
@@ -1099,9 +1275,9 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
-    'lively.ide.openOMetaWorkspace': {description: 'open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
+    'lively.ide.openOMetaWorkspace': {description: 'tools: open OMetaWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openOMetaWorkspace(); return true; }},
     'lively.ide.openSubserverViewer': {
-        description: 'open SubserverViewer',
+        description: 'tools: open JavaScript subserver viewer',
         exec: function(options) {
             options = options || {};
             var serverName = options.serverName,
@@ -1113,15 +1289,16 @@ Object.extend(lively.ide.commands.byName, {
             return true;
         }
     },
-    'lively.ide.openServerWorkspace': {description: 'open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
-    'lively.ide.openShellWorkspace': {description: 'open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'pastel_on_dark', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
-    'lively.ide.openVersionsViewer': {description: 'open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
-    'lively.ide.openGitControl': {description: 'open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
-    'lively.ide.openServerLog': {description: 'open ServerLog', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
-    'lively.ide.openDiffer': {description: 'open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
+
+    'lively.ide.openServerWorkspace': {description: 'tools: open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
+    'lively.ide.openShellWorkspace': {description: 'tools: open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'clouds', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
+    'lively.ide.openVersionsViewer': {description: 'tools: open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
+    'lively.ide.openGitControl': {description: 'tools: open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
+    'lively.ide.openServerLog': {description: 'logging: open JavaScript server log', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
+    'lively.ide.openDiffer': {description: 'tools: open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 
     "lively.tests.mocha.runAll": {
-      description: "run all mocha tests",
+      description: "testing: run all mocha tests",
       exec: function runMochaTests(thenDo, mochaSuites) {
         lively.require('lively.MochaTests').toRun(function() {
           if (mochaSuites) lively.MochaTests.run(mochaSuites)
@@ -1130,8 +1307,9 @@ Object.extend(lively.ide.commands.byName, {
         return true;
       }
     },
+
     "lively.tests.mocha.reset": {
-      description: "reset mocha test suites",
+      description: "testing: reset mocha test suites",
       exec: function runMochaTests(thenDo, mochaSuites) {
         lively.require('lively.MochaTests').toRun(function() {
           lively.MochaTests.registeredSuites = {};
@@ -1256,7 +1434,7 @@ Object.extend(lively.ide.commands.byName, {
     },
 
     'lively.ide.findFile': {
-        'description': 'find file',
+        description: 'find file',
         exec: function() {
             // This is the emacs "find-file" equivalent.
             // Lists all the files at the current dir defined by
@@ -1277,92 +1455,13 @@ Object.extend(lively.ide.commands.byName, {
                     }
                 }
             }
+
             lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-                        'open file: ',
-                        null,
-                        function(files, input) {
-                            return files.length ? files : [{isDirectory: false, path: input}]; },
-                        "lively.ide.findFiles.Narrower",
-                        [open]);
-
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            // FIXME As a test to how well #interactivelyChooseFileSystemItem
-            // works let's use the above solution for now
-            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            return true;
-
-            var candidates, narrower, dir, searchDir, slash = '/';
-
-            function splitInput(input) {
-                // split input in basedir and filename
-                var inputParts = input.split(slash),
-                    filePattern = inputParts.pop();
-                return {dir: inputParts.join(slash), filePattern: filePattern || ''}
-            }
-
-            var searcher = Functions.debounce(200, function(input, callback) {
-
-                if (!dir) dir = lively.ide.CommandLineInterface.cwd();
-
-                var dirParts = dir.split(slash),
-                    splitted = splitInput(input);
-                searchDir = dirParts.concat(splitted.dir).join(slash);
-
-                lively.ide.CommandLineSearch.findFiles("*", {cwd: searchDir, depth: 1}, function(files) {
-
-                    candidates = files.map(function(ea) {
-                        return {isListItem: true, string: String(ea.fileName) + (ea.isDirectory ? '/' : ''), value: ea}
-                    });
-
-                    var filePattern = splitted.filePattern;
-                    var filtered = narrower.doFilter(candidates, filePattern).filtered;
-
-                    if (filtered.length !== 1 && filePattern.trim().length) {
-                        filtered.unshift({
-                            isListItem: true,
-                            string: filePattern,
-                            value: {isDirectInput: true, fileName: filePattern}
-                        })
-                    }
-
-                    callback(filtered);
-                });
-            });
-
-            function candidateBuilder(input, callback) {
-                callback([input]);
-                searcher(input, callback);
-            };
-
-            narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: 'lively.ide.findFile.Narrower',
-                reactivateWithoutInit: true,
-                setup: function(n) {
-                    n.deactivate = n.deactivate.wrap(function(proceed) { dir = null; proceed(); });
-                },
-                spec: {
-                    prompt: 'search for something: ',
-                    candidates: [],
-                    maxItems: 25,
-                    candidatesUpdater: candidateBuilder,
-                    keepInputOnReactivate: true,
-                    completeInputOnRightArrow: function(candidate) {
-                        var splitted = splitInput(narrower.getInput())
-                        return (splitted.dir ? splitted.dir + slash : '') + candidate.string;
-                    },
-                    actions: [{
-                        name: 'open file item',
-                        exec: function(candidate) {
-                            var fullpath = searchDir + slash + candidate.fileName;
-                            if (!candidate.isDirectory) {
-                                lively.ide.commands.byName['lively.ide.openTextEditor'].exec(fullpath);
-                            } else if (candidate.isDirectory) {
-                                lively.ide.commands.byName['lively.ide.openDirViewer'].exec(fullpath);
-                            }
-                        }
-                    }]
-                }
-            });
+              'open file: ',
+              null,
+              function(files, input) { return files.length ? files : [{isDirectory: false, path: input}]; },
+              "lively.ide.findFiles.Narrower",
+              [open]);
 
             return true;
         }
@@ -1602,7 +1701,9 @@ Object.extend(lively.ide.commands.byName, {
     'disabled': {
         isActive: lively.ide.commands.helper.noCodeEditorActive,
         exec: function() {
-            var evt = Global.event, keys = evt.getKeyString();
+            var evt = Global.LastEvent;
+            if (!evt) return true;
+            var keys = evt.getKeyString();
             lively.morphic.World.current().alert(keys + ' globally disabled');
             return true;
         }

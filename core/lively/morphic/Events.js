@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib({url: Config.codeBase + 'lib/pointerevents/pointerevents.min.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib(Config.usePointerevents && {url: Config.codeBase + 'lib/pointerevents/pointerevents.dev.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -32,8 +32,8 @@ lively.morphic.EventSimulator = {
         return simulatedEvent;
     },
     doMouseEvent: function(spec) {
-        // type one of click, pointerdown, pointerup, pointerover, pointermove, pointerout.
-        if (!spec.type) spec.type = 'pointerdown';
+        // type one of click, Event.INPUT_TYPE_DOWN, Event.INPUT_TYPE_UP, Event.INPUT_TYPE_OVER, Event.INPUT_TYPE_MOVE, Event.INPUT_TYPE_OUT.
+        if (!spec.type) spec.type = Global.Event.INPUT_TYPE_DOWN;
         if (!spec.pos) spec.pos = pt(0,0);
         if (!spec.button) spec.button = 0;
         var targetMorphOrNode = spec.target;
@@ -52,14 +52,14 @@ lively.morphic.EventSimulator = {
 
         keys = {meta: true}
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'pointerdown',
+            type: Global.Event.INPUT_TYPE_DOWN,
             pos: pos,
             target: btn,
             keys: keys
         });
 
         lively.morphic.EventSimulator.doMouseEvent({
-            type: 'pointerup',
+            type: Global.Event.INPUT_TYPE_UP,
             pos: pos,
             target: btn,
             keys: keys
@@ -250,7 +250,7 @@ Object.subclass('lively.morphic.EventHandler',
             return Event.pressedKeyString(evt, options);
         }
 
-        evt.isMouseEvent = evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'pointermove' || evt.type === 'pointerover' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
+        evt.isMouseEvent = evt.type === Global.Event.INPUT_TYPE_DOWN || evt.type === Global.Event.INPUT_TYPE_UP || evt.type === Global.Event.INPUT_TYPE_MOVE || evt.type === Global.Event.INPUT_TYPE_OVER || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'selectstart' || evt.type === 'contextmenu' || evt.type === 'mousewheel';
 
         evt.isKeyboardEvent = !evt.isMouseEvent && (evt.type === 'keydown' || evt.type === 'keyup' || evt.type === 'keypress');
 
@@ -361,7 +361,7 @@ lively.morphic.EventHandler.subclass('lively.morphic.RelayEventHandler',
         }
 
         // For some reason it works a bit better when we generate the events again...
-        if (evt.type === 'pointermove' || evt.type === 'pointerdown' || evt.type === 'pointerup' || evt.type === 'click' || evt.type === 'dblclick' || evt.type === 'pointerover' || evt.type === 'pointerout' || evt.type === 'mousewheel' || evt.type === 'pointerenter' || evt.type === 'pointerleave') {
+        if (evt.type === Global.Event.INPUT_TYPE_MOVE || evt.type === Global.Event.INPUT_TYPE_DOWN || evt.type === Global.Event.INPUT_TYPE_UP || evt.type === 'click' || evt.type === 'dblclick' || evt.type === Global.Event.INPUT_TYPE_OVER || evt.type === Global.Event.INPUT_TYPE_OUT || evt.type === 'mousewheel' || evt.type === 'pointerenter' || evt.type === 'pointerleave') {
             var e = document.createEvent("MouseEvents"),
                 be = evt,
                 et = be.type;
@@ -409,17 +409,23 @@ Object.extend(Event, {
     MOUSE_MIDDLE_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 2 || evt.buttons === 4) } :
-            UserAgent.isMobile ?
-                function(evt) { return false } :
+            // UserAgent.isMobile ?
+            //     function(evt) { return false } :
                 function(evt) { return (evt.which === 2 || evt.buttons === 4) }
     })(),
     MOUSE_RIGHT_DETECTOR: (function() {
         return UserAgent.fireFoxVersion ?
             function(evt) { return evt.world.clickedOnMorph && (evt.which === 3 || evt.buttons === 2) } :
-            UserAgent.isMobile ?
-                function(evt) { return false } :
+            // UserAgent.isMobile ?
+            //     function(evt) { return false } :
                 function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
+    
+    INPUT_TYPE_DOWN: lively.Config.usePointerevents ? 'pointerdown' : 'mousedown',
+    INPUT_TYPE_UP: lively.Config.usePointerevents ? 'pointerup' : 'mouseup',
+    INPUT_TYPE_MOVE: lively.Config.usePointerevents ? 'pointermove' : 'mousemove',
+    INPUT_TYPE_OVER: lively.Config.usePointerevents ? 'pointerover' : 'mouseover',
+    INPUT_TYPE_OUT: lively.Config.usePointerevents ? 'pointerout' : 'mouseout',
 
     manualKeyIdentifierLookup: (function() {
         // this is a fallback for browsers whose key events do not have a
@@ -801,8 +807,13 @@ lively.morphic.Morph.addMethods(
         this.registerForEvents();
     },
     registerForEvents: function(handleOnCapture) {
-        this.registerForPointerEvents(handleOnCapture);
-        this.registerForMouseEvents(handleOnCapture);
+        if (lively.Config.usePointerevents) {
+            this.registerForPointerEvents(handleOnCapture);
+            this.registerForMouseEventPatching(handleOnCapture);
+        } else {
+            this.registerForMouseEvents(handleOnCapture);
+            this.registerForTouchEvents(handleOnCapture)
+        }
         this.registerForKeyboardEvents(handleOnCapture);
         this.registerForOtherEvents(handleOnCapture);
         this.registerForFocusAndBlurEvents();
@@ -816,6 +827,7 @@ lively.morphic.Morph.addMethods(
     },
 
     registerForPointerEvents: function(handleOnCapture) {
+        // pointerevents only
         if (this.onMouseUpEntry) {
             this.registerForEvent('pointercancel', this, 'onPointerCancelEntry', handleOnCapture);
             this.registerForEvent('pointerup', this, 'onMouseUpEntry', handleOnCapture);
@@ -825,18 +837,32 @@ lively.morphic.Morph.addMethods(
         if (this.onMouseMoveEntry) this.registerForEvent('pointermove', this, 'onMouseMoveEntry', handleOnCapture);
         if (this.onMouseOver) this.registerForEvent('pointerover', this, 'onMouseOver', handleOnCapture);
         if (this.onMouseOut) this.registerForEvent('pointerout', this, 'onMouseOut', handleOnCapture);
+        // both supported by pointerevents and mouseevents
+        if (this.onDoubleClick) this.registerForEvent('dblclick', this, 'onDoubleClick', handleOnCapture);
+        if (this.onSelectStart) this.registerForEvent('selectstart', this, 'onSelectStart', handleOnCapture);
+        if (this.onContextMenu) this.registerForEvent('contextmenu', this, 'onContextMenu', handleOnCapture);
+        if (this.onMouseWheelEntry) this.registerForEvent('mousewheel', this, 'onMouseWheelEntry',
+handleOnCapture);
+        if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
+        if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
+        if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
+        if (this.onHTML5Drop) this.registerForEvent('drop', this, 'onHTML5Drop', handleOnCapture);
     },
-
-    registerForMouseEvents: function(handleOnCapture) {
+    
+    registerForMouseEventPatching: function(handleOnCapture) {
+        // Some users define their own mouseevent handlers, support those, too.
         if (this.onMouseUpEntry) this.registerForEvent('mouseup', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
         if (this.onMouseDownEntry) this.registerForEvent('mousedown', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
         if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
         if (this.onMouseOver) this.registerForEvent('mouseover', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
         if (this.onMouseOut) this.registerForEvent('mouseout', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
-        // if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
-        // if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
-        // if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
-        // if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
+    },
+
+    registerForMouseEvents: function(handleOnCapture) {
+        if (this.onMouseUpEntry) this.registerForEvent('mouseup', this, 'onMouseUpEntry', handleOnCapture);
+        if (this.onMouseDownEntry) this.registerForEvent('mousedown', this, 'onMouseDownEntry', handleOnCapture);
+        if (this.onClick) this.registerForEvent('click', this, 'onClick', handleOnCapture);
+        if (this.onMouseMoveEntry) this.registerForEvent('mousemove', this, 'onMouseMoveEntry', handleOnCapture);
         if (this.onDoubleClick) this.registerForEvent('dblclick', this, 'onDoubleClick', handleOnCapture);
 
         if (this.onSelectStart) this.registerForEvent('selectstart', this, 'onSelectStart', handleOnCapture);
@@ -846,25 +872,27 @@ lively.morphic.Morph.addMethods(
 
         if (this.onMouseWheelEntry) this.registerForEvent('mousewheel', this, 'onMouseWheelEntry',
 handleOnCapture);
-        // if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
-        // if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
+        if (this.onMouseOver) this.registerForEvent('mouseover', this, 'onMouseOver', handleOnCapture);
+        if (this.onMouseOut) this.registerForEvent('mouseout', this, 'onMouseOut', handleOnCapture);
         if (this.onHTML5DragEnter) this.registerForEvent('drageEnter', this, 'onHTML5DragEnter', handleOnCapture);
         if (this.onHTML5DragOver) this.registerForEvent('dragover', this, 'onHTML5DragOver', handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
         if (this.onHTML5Drop) this.registerForEvent('drop', this, 'onHTML5Drop', handleOnCapture);
-
     },
+
     registerForOtherEvents: function(handleOnCapture) {
         if (this.onChange) this.registerForEvent('change', this, 'onChange', handleOnCapture);
         if (this.onScroll) this.registerForEvent('scroll', this, 'onScroll', handleOnCapture);
     },
-    // registerForTouchEvents: function(handleOnCapture) {
-    //     if (!UserAgent.isTouch || true) return;
-    //     if (this.onTouchStart)
-    //         this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
-    //     if (this.onTouchEnd)
-    //         this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
-    // },
+
+    registerForTouchEvents: function(handleOnCapture) {
+        if (!UserAgent.isTouch || true) return;
+        if (this.onTouchStart)
+            this.registerForEvent('touchstart', this, 'onTouchStart', handleOnCapture);
+        if (this.onTouchEnd)
+            this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
+    },
+    
     registerForFocusAndBlurEvents: function() {
         this.registerForEvent('blur', this, 'onBlur', true);
         this.registerForEvent('focus', this, 'onFocus', true);
@@ -1295,15 +1323,14 @@ handleOnCapture);
     },
 
     dropOn: function(aMorph) {
-        // I might be wrong, but this.placeHolder is used nowhere wlse and should
-        // probably be this.placeholder. I've not seen where this changes behavior, though.
-        var placeholder = this.placeHolder;
-        var layouter = aMorph.getLayouter();
+        var placeholder = this.placeholder,
+            layouter = aMorph.getLayouter();
 
         if (placeholder) {
             var placeHolderPos = placeholder.getPosition();
             this.noLayoutDuring(function() {
                 if (layouter) layouter.removeAllPlaceholders();
+                placeholder.remove(); // placeholder might not be submorph of layouter.container
                 aMorph.addMorph(this);
                 this.onDropOn(aMorph);
                 this.setPosition(placeHolderPos.subPt(this.getOrigin()));
@@ -1928,7 +1955,7 @@ lively.morphic.World.addMethods(
 
 lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'settings', {
-    style: {enableDropping: false, enableHalos: false}
+    style: {enableDropping: false, enableHalos: false, zIndex: 1100}
 },
 'testing', {
     isHand: true

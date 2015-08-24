@@ -48,7 +48,7 @@ Object.subclass('RealTrait',
 
     extend: function(category, def) {
         if (!def) return null;
-        this.removeFromDependents();
+        this.removeFromDependents(true);
         for (var name in def) {
             if (!def.hasOwnProperty(name) || !Object.isFunction(def[name])) continue;
             if (Global.lively && lively.Module && lively.Module.current) {
@@ -187,13 +187,13 @@ Object.subclass('RealTrait',
                 if (klass.prototype[ea]) originalMethods[ea] = klass.prototype[ea];
             });
         }
-        this.removeFrom(klass.prototype);
+        this.removeFrom(klass);
         this.basicApplyTo(this.def, klass.prototype, options)
         this.extendedObjectsAndOptions.classes[klass.type || klass.name] = options;
         return this;
     },
     applyToTrait: function(trait, options) {
-        trait.removeFromDependents();
+        trait.removeFromDependents(true);
         this.removeFrom(trait.def);
         var def = {};
         for (var name in this.def){
@@ -251,11 +251,23 @@ Object.subclass('RealTrait',
     }
 },
 'removing', {
+
     remove: function() {
         this.removeFromDependents();
         delete this.traitRegistry[this.name];
     },
-    removeFrom: function(obj, options) {
+
+    removeFrom: function(obj, options, keepReference) {
+        var originalObj = obj;
+        if (lively.Class.isClass(obj)) {
+            obj = obj.prototype;
+            options = options || this.optionsConfForClass(originalObj);
+        } else if (obj.isTrait) {
+            obj = obj.def;
+        } else {
+            options = options || this.optionsConfForObj(originalObj);
+        }
+
         var own = Properties.ownValues(this.def),
             props = Functions.all(obj),
             originalMethods = (options && options.originalMethods) || {};
@@ -270,35 +282,59 @@ Object.subclass('RealTrait',
                 delete obj[name];
             }
         }
+
+        if (!keepReference)
+            this.removeReference(originalObj);
     },
 
-    removeFromDependents: function() {
-        this.removeFromClasses();
-        this.removeFromTraits();
-        this.removeFromObjects();
+    removeFromDependents: function(keepReference) {
+        this.removeFromClasses(keepReference);
+        this.removeFromTraits(keepReference);
+        this.removeFromObjects(keepReference);
     },
 
-    removeFromClasses: function() {
+    removeFromClasses: function(keepReference) {
         Properties.forEachOwn(this.extendedObjectsAndOptions.classes, function(className, options) {
             var klass = lively.Class.forName(className);
             if (!klass) return;
-            this.removeFrom(klass.prototype, options);
+            this.removeFrom(klass, options, keepReference);
         }, this);
     },
 
-    removeFromTraits: function() {
+    removeFromTraits: function(keepReference) {
         Properties.forEachOwn(this.extendedObjectsAndOptions.traits, function(traitName, options) {
             var trait = Trait(traitName);
             if (!trait) return;
-            trait.removeFromDependents();
-            this.removeFrom(trait.def);
+            trait.removeFromDependents(true);
+            this.removeFrom(trait.def, null, keepReference);
             trait.updateDependents();
         }, this);
     },
 
-    removeFromObjects: function() {
+    removeFromObjects: function(keepReference) {
         var objConfs = this.extendedObjectsAndOptions.objects;
-        objConfs && objConfs.forEach(function(conf) { if (conf.object) this.removeFrom(conf.object); }, this);
+        objConfs && objConfs.forEach(function(conf) {
+            if (conf.object)
+                this.removeFrom(conf.object, null, keepReference);
+        }, this);
+    },
+
+    removeReference: function(obj) {
+        var position;
+
+        if (lively.Class.isClass(obj)) {
+            delete this.extendedObjectsAndOptions.classes[obj.type || obj.name];
+        } else if (obj.isTrait) {
+            delete this.extendedObjectsAndOptions.traits[obj.name];
+        } else if (Object.isArray(obj[this.objectTraitConfig])) {
+            position = this.extendedObjectsAndOptions.objects.pluck('object').indexOf(obj);
+            if (position >= 0) {
+                this.extendedObjectsAndOptions.objects.removeAt(position);
+                position = obj[this.objectTraitConfig].pluck('traitName').indexOf(this.name);
+                if (position >= 0)
+                    obj[this.objectTraitConfig].removeAt(position);
+            }
+        }
     }
 
 },

@@ -450,7 +450,8 @@ lively.BuildSpec("lively.morphic.tools.PublishPartDialog", {
         if (info.partsSpaceName) {
             var partsSpace = lively.PartsBin.partsSpaceNamed(info.partsSpaceName),
                 partsBinURL = this.get('PartsBinURLChooser').getList().find(function(pbURL) {
-                    return !partsSpace.getURL().relativePathFrom(pbURL).startsWith('../');
+                    // return !partsSpace.getURL().relativePathFrom(pbURL).startsWith('../');
+                    return partsSpace.getURL().toString().startsWith(pbURL);
                 });
             if (partsBinURL) {
                 this.get('PartsBinURLChooser').setSelectionMatching(partsBinURL);

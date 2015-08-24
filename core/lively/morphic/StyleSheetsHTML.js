@@ -79,7 +79,7 @@ Trait('StyleSheetsHTMLShapeTrait',
     setBorderWidthHTML: function(ctx, width) {
         if (this.getBorderStylingMode()) {
             ctx.shapeNode.style.border = '';
-            ctx.shapeNode.style.borderWidth = width+'px';
+            ctx.shapeNode.style.borderWidth = parseInt(width) + 'px ';
         } else {
             ctx.shapeNode.style.borderWidth = '';
             this.setBorderHTML(ctx, width, this.getBorderColor(), this.getStrokeOpacity());

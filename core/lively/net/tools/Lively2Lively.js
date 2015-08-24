@@ -486,7 +486,8 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         addText: function addText(string) {
         var messages = this.get('MessageList')
         var y = messages.submorphs.length ? messages.submorphs.last().bounds().bottom() : 0;
-        if (messages.submorphs.last().textString === string) {
+        var lastMessage = messages.submorphs.last();
+        if (lastMessage && lastMessage.textString === string) {
             // UGLY HACK: Muss anders, geht aber jetzt nicht,
             return;
         }
@@ -613,10 +614,10 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyInspector', {
             name: "SessionList",
             connectionRebuilder: function connectionRebuilder() {
                 var connectionToMorphNamedFilterableList = this.get('filter').attributeConnections.find(function(ea) {
-                    return ea.sourceAttrName === 'inputChange'
+                    return ea.sourceAttrName === 'inputChanged';
                 })
                 connectionToMorphNamedFilterableList && connectionToMorphNamedFilterableList.disconnect();
-                lively.bindings.connect(this.get('filter'),"inputChange", this, "inputChange", {})
+                lively.bindings.connect(this.get('filter'),"inputChanged", this, "inputChanged", {});
                 lively.bindings.connect(this.get('list'), "selection", this.get("Lively2LivelyInspector"), "setWorkspaceTarget", {});
             }
         }),{
@@ -1060,9 +1061,10 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             var self = this, text = this.getSelectionMaybeInComment();
             function output(msg, isError) {
                 if (printResult) {
-                    self.printObject(editor, msg, false);
+                    // self.printObject(editor, msg, false);
+                    self.printObject(editor, "OK", false);
                 } else {
-                    if (isError) self.setStatusMessage(msg, Global.Color.red);
+                    self.setStatusMessage(msg, isError ? Global.Color.red : null);
                     var sel = self.getSelection();
                     if (sel && sel.isEmpty()) sel.selectLine();
                 }
@@ -1226,6 +1228,12 @@ lively.BuildSpec("lively.net.tools.ConnectionIndicatorMenuBarEntry", lively.Buil
       ]);
     } else {
       return livelyItems.concat([
+        ['open chat...', function() {
+            if ($morph('Lively2LivelyChat'))
+                $morph('Lively2LivelyChat').openInWorldCenter().comeForward();
+            else
+                lively.BuildSpec('lively.net.tools.Lively2LivelyChat').createMorph().openInWorldCenter();
+        }],
         ['[' + (allowRemoteEval ? 'x' : ' ') + '] allow remote eval', function() {
             lively.Config.set('lively2livelyAllowRemoteEval', !allowRemoteEval);
         }],

@@ -13,6 +13,8 @@ localconfig.js
 !blank.html
 !welcome.html
 !run_tests.html
+!onedrive.html
+!dropbox.html
 
 # Node #
 node_modules

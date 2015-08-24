@@ -71,6 +71,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         elasticTabs: Config.get('useElasticTabs'),
         tabSize: Config.get('defaultTabSize'),
         autocompletion: Config.get('aceDefaultEnableAutocompletion'),
+        behaviors: Config.get('aceDefaultEnableBehaviors'),
         showWarnings: Config.get('aceDefaultShowWarnings'),
         showErrors: Config.get('aceDefaultShowErrors')
     },
@@ -120,6 +121,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (spec.showActiveLine !== undefined) this.setShowActiveLine(spec.showActiveLine);
         if (spec.softTabs !== undefined)       this.setSoftTabs(spec.softTabs);
         if (spec.autocompletion !== undefined) this.setAutocompletionEnabled(spec.autocompletion);
+        if (spec.behaviors !== undefined)      this.setBehaviorsEnabled(spec.behaviors);
         if (spec.showWarnings !== undefined)   this.setShowWarnings(spec.showWarnings);
         if (spec.showErrors !== undefined)     this.setShowErrors(spec.showErrors);
         if (spec.tabSize !== undefined)        this.setTabSize(spec.tabSize);
@@ -194,6 +196,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
         if (this.getElasticTabs()) this.setElasticTabs(true);
         this.setShowActiveLine(this.getShowActiveLine());
         this.setAutocompletionEnabled(this.getAutocompletionEnabled());
+        this.setBehaviorsEnabled(this.getBehaviorsEnabled());
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
 
@@ -670,19 +673,19 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 'event handling', {
 
     onMouseDownEntry: function($super, evt) {
-        // ace installs a pointerup event handler on the document level and
+        // ace installs a Global.Event.INPUT_TYPE_UP event handler on the document level and
         // stops the event so it never reaches our Morphic event handlers. To
         // still dispatch the event properly we install an additional pointerup
         // handler that is removed immediately thereafter
         var self = this;
         function upHandler(evt) {
-            document.removeEventListener("pointerup", upHandler, true);
+            document.removeEventListener(Global.Event.INPUT_TYPE_UP, upHandler, true);
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             evt.hand.clickedOnMorph = self;
             [self].concat(self.ownerChain()).reverse().forEach(function(ea) {
                 ea.onMouseUpEntry(evt); });
         }
-        document.addEventListener("pointerup", upHandler, true);
+        document.addEventListener(Global.Event.INPUT_TYPE_UP, upHandler, true);
         evt.hand.clickedOnMorph = this;
         return $super(evt);
     },
@@ -723,8 +726,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
     scrollToRow: function(row) {
         return this.withAceDo(function(ed) { return ed.scrollToRow(row); })
     },
-
-
 
     doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null,
@@ -854,12 +855,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
                 var interpreter = new lively.ast.AcornInterpreter.Interpreter(),
                     ast;
                 try {
-                    ast = lively.ast.acorn.parse(str = '(' + __evalStatement + ')');
+                    ast = lively.ast.parse(str = '(' + __evalStatement + ')');
                     acorn.walk.addAstIndex(ast);
                     acorn.walk.addSource(ast, str);
                     return interpreter.runWithContext(ast, ctx, Global);
                 } catch (e) {
-                    ast = lively.ast.acorn.parse(str = __evalStatement);
+                    ast = lively.ast.parse(str = __evalStatement);
                     acorn.walk.addAstIndex(ast);
                     acorn.walk.addSource(ast, str);
                     // In case str starts with a comment, set str to program node
@@ -916,7 +917,7 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
       var doitMarker = "// =>", match;
       var printDepth = 1;
       var src = ed.textString;
-      var ast = lively.ast.acorn.parse(src);
+      var ast = lively.ast.parse(src);
 
       // 2. Find the doit markers in comments and for each comment get a range
       var commentRanges = Strings
@@ -1037,8 +1038,12 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           this.printObject(editor, result, false, this.getPrintItAsComment());
           return;
         }
-        if (result && result instanceof Error && lively.Config.get('showDoitErrorMessages') && this.world()) {
+        var isError = result instanceof Error;
+        if (isError && lively.Config.get('showDoitErrorMessages') && this.world()) {
             this.world().logError(result, "doit error");
+        }
+        if (lively.Config.get("showDoitInMessageMorph")) {
+          this.setStatusMessage(String(result), isError ? Color.red : null);
         }
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
@@ -1603,6 +1608,15 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
             return ed.getOption("enableBasicAutocompletion"); });
     },
 
+    setBehaviorsEnabled: function(bool) {
+        this.withAceDo(function(ed) { ed.setOption("behaviorsEnabled", bool); });
+        return this._BehaviorsEnabled = bool;
+    },
+    getBehaviorsEnabled: function() {
+        return this.hasOwnProperty("_BehaviorsEnabled") ? this._BehaviorsEnabled : this.withAceDo(function(ed) {
+            return ed.getOption("behaviorsEnabled"); });
+    },
+
     setShowWarnings: function(bool) { return this._ShowWarnings = bool; },
     getShowWarnings: function() {
         return this.hasOwnProperty("_ShowWarnings") ? this._ShowWarnings : true
@@ -1820,47 +1834,47 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 },
 'messaging', {
 
-    ensureStatusMessageMorph: function() {
-      if (this._statusMorph) return this._statusMorph;
-      var ext = this.getExtent();
-      var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
-      sm.applyStyle({
-          fontFamily: 'Monaco,monospace',
-          borderWidth: 0, borderRadius: 6,
-          fontSize: this.getFontSize()-2,
-          inputAllowed: false,
-          fixedWidth: true, fixedHeight: false,
-      });
-      sm.isEpiMorph = true;
-      return sm;
-    },
+    ensureStatusMessageMorph: Trait('lively.morphic.SetStatusMessageTrait').def.ensureStatusMessageMorph,
 
     setStatusMessage: function (msg, color, delay) {
         var world = this.world();
         if (!world) return;
         var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
             ext = this.getExtent();
-
+      
+        sm.bringToFront();
         // setting 'da message
-        if (Array.isArray(msg)) sm.setRichTextMarkup(msg);
-        else sm.textString = msg;
         sm.lastUpdated = Date.now();
+        if (!sm.owner) sm.setVisible(false); // to avoid flickering
         world.addMorph(sm);
-        var color = color || Color.white;
-        var fill = (color === Color.green || color === Color.red) ? Color.white : Color.black.lighter()
-        sm.applyStyle({
-            textColor: color, fill: fill,
-            position: this.worldPoint(this.innerBounds().bottomLeft()),
-        });
-
+        var color = color || Global.Color.white;
+        var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
+        var ext = this.getExtent(), maxX = ext.x, maxY = Math.max(40, Math.min(ext.y-100, 250));
+        sm.applyStyle({textColor: color, fill: fill, fixedHeight: false, fixedWidth: false, clipMode: 'visible'});
+        if (!Array.isArray(msg)) {
+          msg = [
+            ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
+            ['\n'],
+            [String(msg)]
+          ]
+        }
+        sm.setRichTextMarkup(msg);
+      
         // aligning
-        sm.fit();
-        (function() {
+        sm.setTextExtent(pt(maxX, 10));
+        sm.fitThenDo(function() {
+          sm.setVisible(true);
+          sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
           var visibleBounds = world.visibleBounds(),
-              overlapY = sm.bounds().bottom() - visibleBounds.bottom();
+              bounds = sm.bounds(),
+              height = Math.min(bounds.height+3, maxY),
+              overlapY = bounds.top() + height - visibleBounds.bottom();
           if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
-          sm.setExtent(sm.getExtent().withX(ext.x));
-        }).delay(0);
+          sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
+          sm.setExtent(pt(maxX, height));
+          var cb = sm.get("closeButton");
+          if (cb) cb.alignInOwner();
+        });
 
         // either remove via timeout or when curs/selection changes occur. Note
         // that via onOwnerChanged the statusMorph also is removed when the

@@ -7,8 +7,8 @@ snippet proto
 snippet fun
 	function ${1?:functionName}(${2}) {${0}}
 # Anonymous Function
-regex /((=)\s*|(:)\s*|(\()|\b)/f/
-name f
+snippet fn
+regex /((=)\s*|(:)\s*|(\()|\b)/fn/
 	function($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}
 # Anonymous Function
 regex /((=)\s*|(:)\s*|(\()|\b)/f2/(\))?/
@@ -288,3 +288,8 @@ snippet confirm
 		if (!input) return;
 		${0}
 	});
+# es6
+snippet f
+	${1:(arg)} => ${0}
+snippet f1
+	${1:arg} => ${0}

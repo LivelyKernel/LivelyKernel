@@ -1,6 +1,5 @@
 module('lively.tests.TraitTests').requires('lively.TestFramework', 'lively.Traits').toRun(function() {
 
-
 TestCase.subclass('lively.tests.TraitsTests.BaseTest',
 'running', {
     setUp: function() {
@@ -60,7 +59,209 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assertEqualState(trait.getCategoryNames(), ['test'], 'categories wrong');
     },
 
-    testTraitAddedToClass: function() {
+    testExtendTrait: function() {
+        this.removeTraitAfterwards('Foo');
+        this.removeTraitAfterwards('Bar');
+        var trait1 = Trait('Foo', {b: function() { return 2 }}),
+            trait2 = Trait('Bar', {b: function() { return 3 }, c: function() { return 4 }});
+            trait2.applyTo(trait1);
+        trait1.applyTo(this.dummyA);
+        var obj = new this.dummyA();
+        this.assertEquals(2, obj.b());
+        this.assertEquals(4, obj.c());
+        trait2 = Trait('Bar', {c: function() { return 5 }});
+        this.assertEquals(5, obj.c());
+    },
+
+    testRemoveFrom: function() {
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {b: function() { return 2 }});
+        trait.applyTo(this.dummyA);
+        trait.removeFrom(this.dummyA);
+        this.assert(!this.dummyA.prototype.b, 'not removed');
+    },
+
+    testRemoveOverridenMethodsFromClass: function() {
+        this.removeTraitAfterwards('Foo');
+        var orig = this.dummyB.prototype.m3,
+            trait = Trait('Foo', {m3: function() { return 2 }});
+        trait.applyTo(this.dummyB, {override: ['m3']});
+        trait.remove();
+        this.assertIdentity(orig, this.dummyB.prototype.m3, 'not removed');
+    },
+
+    testIdentityOfDerivedTraitsWithSameOptions: function() {
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {a: 4, m1: function() { return 33 }}),
+            derived1 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
+            derived2 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
+            derived3 = trait.derive({alias: {m1: 'newM1'}}),
+            derived4 = trait.derive({alias: {m1: 'newM2'}, exclude: ['a']});
+        this.assertIdentity(derived1, derived2, 'derived1 !== derived2')
+        this.assert(derived1 !== derived3, 'derived1 === derived3')
+        this.assert(derived1 !== derived4, 'derived1 === derived4')
+    },
+
+    testEqualOptions: function() {
+        var options1 = {alias: {m1: 'newM1'}, exclude: ['a']},
+            options2 = {alias: {m1: 'newM1'}, exclude: ['a']},
+            options3 = {alias: {m1: 'newM1'}},
+            options4 = {alias: {m1: 'newM2'}, exclude: ['a']};
+        this.assert(RealTrait.prototype.equalOptions(options1, options1), 'options1 !== options1');
+        this.assert(RealTrait.prototype.equalOptions(options1, options2), 'options1 !== options2');
+        this.assert(!RealTrait.prototype.equalOptions(options1, options3), 'options1 == options3');
+        this.assert(!RealTrait.prototype.equalOptions(options1, options4), 'options1 == options4');
+    },
+
+    testSourceModule: function() {
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {b: function() { return 2 }});
+        this.assert(trait.sourceModule, "trait has no source module");
+        this.assert(trait.def.b.sourceModule, "trait function has no source module");
+    },
+
+    testMixin: function() {
+        this.dummyA.addMethods({c: function ($super) {
+            return $super() + 1;
+        }});
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {c: function() { return 2 }});
+        trait.mixin().applyTo(this.dummyA);
+        var obj = new this.dummyA();
+        this.assertEquals(3, obj.c());
+        Trait('Foo', {c: function() { return 4 }});
+        this.assertEquals(5, obj.c());
+    },
+
+    xtestRemoveTrait: function() {
+        this.removeTraitAfterwards('Foo');
+        this.removeTraitAfterwards('Bar');
+        var trait1 = Trait('Foo', {b: function() { return 2 }}),
+            trait2 = Trait('Bar', {c: function() { return 4 }});
+            trait2.applyTo(trait1);
+        trait1.applyTo(this.dummyA);
+        var obj = new this.dummyA();
+        this.assertEquals(2, obj.b());
+        this.assertEquals(4, obj.c());
+        trait2.removeFrom(trait1);
+        this.assert(!obj.c, 'trait was not removed');
+    }
+
+});
+
+lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTraits',
+'testing', {
+
+    testApplyTrait: function() {
+        this.removeTraitAfterwards('Foo');
+        var obj = {foo: function() { return 23 }},
+            trait = Trait('Foo', {a: function() { return 99 }});
+        trait.applyTo(obj);
+        this.assert(obj.a, 'trait was not applied to object');
+        this.assertEquals(99, obj.a());
+    },
+
+    testUpdateTrait: function() {
+        this.removeTraitAfterwards('Foo');
+        var obj = {foo: function() { return 23}},
+            trait = Trait('Foo', {a: function() { return 99 }});
+        trait.applyTo(obj);
+        this.assert(obj.a, 'trait was not applied to object');
+        this.assertEquals(obj.a.belongsToTrait, trait, 'a does not have relationship to trait');
+        Trait('Foo', {a: function() { return 77 }});
+        this.assertEquals(77, obj.a(), 'obj was not updated');
+    },
+
+    testUpdateTraitAfterRemoval: function() {
+        this.removeTraitAfterwards('Foo');
+        var obj = {foo: function() { return 23}},
+            trait = Trait('Foo', {a: function() { return 99 }});
+        trait.applyTo(obj);
+        trait.removeFrom(obj);
+        this.assert(!obj.a, 'trait was not removed to object');
+        Trait('Foo', {a: function() { return 77 }});
+        this.assert(!obj.a, 'trait was applied even though it was removed');
+    },
+
+    testApplyTwoTraits: function() {
+        this.removeTraitAfterwards('Foo');
+        this.removeTraitAfterwards('Bar');
+        var obj = {},
+        trait1 = Trait('Foo', {a: function() { return 99 }}),
+        trait2 = Trait('Bar', {b: function() { return 77 }});
+        trait1.applyTo(obj);
+        trait2.applyTo(obj);
+        this.assert(obj.a, 'trait1 was not applied to object');
+        this.assert(obj.b, 'trait2 was not applied to object');
+    },
+
+    testApplyTwoTraitsWithOptions: function() {
+        this.removeTraitAfterwards('Foo');
+        this.removeTraitAfterwards('Bar');
+
+        var obj = {},
+            trait1 = Trait('Foo', {a: function() { return 99 }}),
+            trait2 = Trait('Bar', {a: function() { return 77 }});
+
+        trait1.applyTo(obj, {alias: {a: 'c'}});
+        trait2.applyTo(obj, {alias: {a: 'd'}});
+        this.assert(!obj.a, 'trait1 was not correctly applied to object (aliasing failed)');
+        this.assert(obj.c, 'trait1 was not applied to object');
+        this.assert(obj.d, 'trait2 was not applied to object');
+        this.assertEquals(99, obj.c(), 'trait1 method result not ok');
+        this.assertEquals(77, obj.d(), 'trait2 method result not ok');
+
+        Trait('Foo', {a: function() { return 22 }});
+        Trait('Bar', {a: function() { return 11 }});
+        this.assertEquals(22, obj.c(), 'trait1 method result after update not ok');
+        this.assertEquals(11, obj.d(), 'trait2 method result after update not ok');
+    },
+
+    testMixinInObject: function() {
+        this.removeTraitAfterwards('Foo');
+
+        var obj = new this.dummyA();
+        (function m2() { return $super() + 1; }).asScriptOf(obj);
+        this.assertEquals(5, obj.m2());
+
+        var trait = Trait('Foo', {m2: function() { return 1 }});
+        trait.mixin().applyTo(obj);
+        this.assertEquals(2, obj.m2());
+
+        trait.remove();
+        this.assertEquals(5, obj.m2());
+        
+    },
+
+    testMixinInObjectWithSuper: function() {
+        this.removeTraitAfterwards('Foo');
+
+        var obj = new this.dummyA();
+        (function m2() { return $super() + 1; }).asScriptOf(obj);
+        this.assertEquals(5, obj.m2());
+
+        // FIXME: this is __NOT__!!! a proper super implementation. Requirement
+        // for implementing Trait/Mixin super is the decision of which super
+        // implementation to use (see Function>>addMethods and
+        // Function>>asScriptOf) and an extraction of this behavior to be reused
+        // in Traits/Mixins
+
+        var trait = Trait('Foo', {m2: function() {
+            return this.constructor.prototype.m2.call(this) + 1;
+        }});
+        trait.mixin().applyTo(obj);
+        this.assertEquals(6, obj.m2());
+
+        trait.remove();
+        this.assertEquals(5, obj.m2());
+        
+    }
+});
+
+lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ClassTraits',
+'testing', {
+
+    testApplyTrait: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {b: function() { return 2 }, m1: function() { return 33 }});
         trait.applyTo(this.dummyA);
@@ -68,6 +269,26 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assert(Object.isFunction(obj.b), 'no trait method b in obj');
         this.assertEquals(2, obj.b());
         this.assertEquals(7, obj.m1(), 'Original method overwritten');
+    },
+
+    testOverrideAndGetOriginalMethod: function() {
+        this.removeTraitAfterwards('Foo');
+        var trait = Trait('Foo', {m1: function() { return 33 }}),
+            originalMethod = this.dummyA.prototype.m1;
+
+        trait.applyTo(this.dummyA, {override: ['m1']});
+        var trait2 = this.dummyA.prototype.m1.belongsToTrait;
+        this.assertEquals(trait2, trait, 'm1 not overridden');
+        this.assertEquals(trait2.getOriginalMethodFor(this.dummyA, 'm1'), originalMethod, 'unabled to get original method after applying trait');
+
+        trait.removeFrom(this.dummyA);
+        trait2 = this.dummyA.prototype.m1.belongsToTrait;
+        this.assert(trait2 === undefined, 'trait did not get removed');
+
+        trait.applyTo(this.dummyA, {override: ['m1']});
+        trait2 = this.dummyA.prototype.m1.belongsToTrait;
+        this.assertEquals(trait2, trait, 'm1 not overridden a second time');
+        this.assertEquals(trait2.getOriginalMethodFor(this.dummyA, 'm1'), originalMethod, 'unabled to get original method after applying trait a second time');
     },
 
     testTraitAddedToClassOverwritesPropertiesInPrototypeChain: function() {
@@ -137,7 +358,7 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assertEquals(33, obj.m1());
     },
 
-    testClassUpdated: function() {
+    testUpdateTrait: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {b: function() { return 2 }});
         trait.applyTo(this.dummyA);
@@ -148,174 +369,32 @@ lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.TraitCreati
         this.assertEquals(4, obj.b());
     },
 
-    testExtendTrait: function() {
-        this.removeTraitAfterwards('Foo');
-        this.removeTraitAfterwards('Bar');
-        var trait1 = Trait('Foo', {b: function() { return 2 }}),
-            trait2 = Trait('Bar', {b: function() { return 3 }, c: function() { return 4 }});
-            trait2.applyTo(trait1);
-        trait1.applyTo(this.dummyA);
-        var obj = new this.dummyA();
-        this.assertEquals(2, obj.b());
-        this.assertEquals(4, obj.c());
-        trait2 = Trait('Bar', {c: function() { return 5 }});
-        this.assertEquals(5, obj.c());
-    },
-
-    testRemoveFrom: function() {
+    testRemoveTrait: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {b: function() { return 2 }});
         trait.applyTo(this.dummyA);
-        trait.removeFrom(this.dummyA.prototype);
-        this.assert(!this.dummyA.prototype.b, 'not removed');
+
+        var obj = new this.dummyA();
+        this.assert(Object.isFunction(obj.b), 'no trait method b in obj');
+        this.assertEquals(2, obj.b());
+
+        trait.removeFrom(this.dummyA);
+        this.assert(!Object.isFunction(obj.b), 'trait method b should be removed from obj');
+        var obj2 = new this.dummyA();
+        this.assert(!Object.isFunction(obj.b), 'trait method b should be removed from obj2');
     },
 
-    testRemoveOverridenMethodsFromClass: function() {
-        this.removeTraitAfterwards('Foo');
-        var orig = this.dummyB.prototype.m3,
-            trait = Trait('Foo', {m3: function() { return 2 }});
-        trait.applyTo(this.dummyB, {override: ['m3']});
-        trait.remove();
-        this.assertIdentity(orig, this.dummyB.prototype.m3, 'not removed');
-    },
-
-    testIdentityOfDerivedTraitsWithSameOptions: function() {
-        this.removeTraitAfterwards('Foo');
-        var trait = Trait('Foo', {a: 4, m1: function() { return 33 }}),
-            derived1 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
-            derived2 = trait.derive({alias: {m1: 'newM1'}, exclude: ['a']}),
-            derived3 = trait.derive({alias: {m1: 'newM1'}}),
-            derived4 = trait.derive({alias: {m1: 'newM2'}, exclude: ['a']});
-        this.assertIdentity(derived1, derived2, 'derived1 !== derived2')
-        this.assert(derived1 !== derived3, 'derived1 === derived3')
-        this.assert(derived1 !== derived4, 'derived1 === derived4')
-    },
-
-    testEqualOptions: function() {
-        var options1 = {alias: {m1: 'newM1'}, exclude: ['a']},
-        options2 = {alias: {m1: 'newM1'}, exclude: ['a']},
-        options3 = {alias: {m1: 'newM1'}},
-        options4 = {alias: {m1: 'newM2'}, exclude: ['a']};
-        this.assert(RealTrait.prototype.equalOptions(options1, options1), 'options1 !== options1')
-        this.assert(RealTrait.prototype.equalOptions(options1, options2), 'options1 !== options2')
-            this.assert(!RealTrait.prototype.equalOptions(options1, options3), 'options1 == options3')
-        this.assert(!RealTrait.prototype.equalOptions(options1, options4), 'options1 == options4')
-    },
-
-    testSourceModule: function() {
+    testUpdateTraitAfterRemoval: function() {
         this.removeTraitAfterwards('Foo');
         var trait = Trait('Foo', {b: function() { return 2 }});
-        this.assert(trait.sourceModule, "trait has no source module");
-        this.assert(trait.def.b.sourceModule, "trait function has no source module");
-    },
-
-    testMixin: function() {
-        this.dummyA.addMethods({c: function ($super) {
-            return $super() + 1;
-        }});
-        this.removeTraitAfterwards('Foo');
-        var trait = Trait('Foo', {c: function() { return 2 }});
-        trait.mixin().applyTo(this.dummyA);
+        trait.applyTo(this.dummyA);
+        trait.removeFrom(this.dummyA);
         var obj = new this.dummyA();
-        this.assertEquals(3, obj.c());
-        Trait('Foo', {c: function() { return 4 }});
-        this.assertEquals(5, obj.c());
+        this.assert(!obj.b, 'trait was not removed');
+        Trait('Foo', {b: function() { return 4 }});
+        this.assert(!obj.b, 'trait was applied even though it was removed');
     }
 
-});
-
-lively.tests.TraitsTests.BaseTest.subclass('lively.tests.TraitsTests.ObjectTraits',
-'testing', {
-
-    testApplyTrait: function() {
-        this.removeTraitAfterwards('Foo');
-        var obj = {foo: function() { return 23 }},
-            trait = Trait('Foo', {a: function() { return 99 }});
-        trait.applyTo(obj);
-        this.assert(obj.a, 'trait was not applied to object');
-        this.assertEquals(99, obj.a());
-    },
-
-    testUpdateTrait: function() {
-        this.removeTraitAfterwards('Foo');
-        var obj = {foo: function() { return 23}},
-        trait = Trait('Foo', {a: function() { return 99 }});
-        trait.applyTo(obj);
-        this.assert(obj.a, 'trait was not applied to object');
-        Trait('Foo', {a: function() { return 77 }});
-        this.assertEquals(77, obj.a());
-    },
-
-    testApplyTwoTraits: function() {
-        this.removeTraitAfterwards('Foo');
-        this.removeTraitAfterwards('Bar');
-        var obj = {},
-        trait1 = Trait('Foo', {a: function() { return 99 }}),
-        trait2 = Trait('Bar', {b: function() { return 77 }});
-        trait1.applyTo(obj);
-        trait2.applyTo(obj);
-        this.assert(obj.a, 'trait1 was not applied to object');
-        this.assert(obj.b, 'trait2 was not applied to object');
-    },
-
-    testApplyTwoTraitsWithOptions: function() {
-        this.removeTraitAfterwards('Foo');
-        this.removeTraitAfterwards('Bar');
-        var obj = {},
-        trait1 = Trait('Foo', {a: function() { return 99 }}),
-        trait2 = Trait('Bar', {a: function() { return 77 }});
-        trait1.applyTo(obj, {alias: {a: 'c'}});
-        trait2.applyTo(obj, {alias: {a: 'd'}});
-        this.assert(!obj.a, 'trait1 was not correctly applied to object (aliasing failed)');
-        this.assert(obj.c, 'trait1 was not applied to object');
-        this.assert(obj.d, 'trait2 was not applied to object');
-        this.assertEquals(99, obj.c(), 'trait1 method result not ok');
-        this.assertEquals(77, obj.d(), 'trait2 method result not ok');
-        Trait('Foo', {a: function() { return 22 }});
-        Trait('Bar', {a: function() { return 11 }});
-        this.assertEquals(22, obj.c(), 'trait1 method result after update not ok');
-        this.assertEquals(11, obj.d(), 'trait2 method result after update not ok');
-    },
-
-    testMixinInObject: function() {
-        this.removeTraitAfterwards('Foo');
-
-        var obj = new this.dummyA();
-        (function m2() { return $super() + 1; }).asScriptOf(obj);
-        this.assertEquals(5, obj.m2());
-
-        var trait = Trait('Foo', {m2: function() { return 1 }});
-        trait.mixin().applyTo(obj);
-        this.assertEquals(2, obj.m2());
-
-        trait.remove();
-        this.assertEquals(5, obj.m2());
-        
-    },
-
-    testMixinInObjectWithSuper: function() {
-        this.removeTraitAfterwards('Foo');
-
-        var obj = new this.dummyA();
-        (function m2() { return $super() + 1; }).asScriptOf(obj);
-        this.assertEquals(5, obj.m2());
-
-        // FIXME: this is __NOT__!!! a proper super implementation. Requirement
-        // for implementing Trait/Mixin super is the decision of which super
-        // implementation to use (see Function>>addMethods and
-        // Function>>asScriptOf) and an extraction of this behavior to be reused
-        // in Traits/Mixins
-
-        var trait = Trait('Foo', {m2: function() {
-            return this.constructor.prototype.m2.call(this) + 1;
-        }});
-        trait.mixin().applyTo(obj);
-        this.assertEquals(6, obj.m2());
-
-        trait.remove();
-        this.assertEquals(5, obj.m2());
-        
-    }
 });
 
 }) // end of module

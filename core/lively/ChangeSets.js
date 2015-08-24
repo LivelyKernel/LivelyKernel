@@ -611,7 +611,7 @@ Object.extend(lively.ChangeSet, {
 
         var storageArray = [source];
         //check if it has any 'this' references
-        var programNode = lively.ast.acorn.parse(source);
+        var programNode = lively.ast.parse(source);
         var thisReferences = false;
         acorn.walk.simple(programNode, {
             ThisExpression: function(node) { thisReferences = true }
@@ -2860,7 +2860,7 @@ Object.subclass('lively.ide.ReferencesCycler',
                 references.push([node.start, node.end]); };
         }
         var references = [];
-		acorn.walk.simple(lively.ast.acorn.parse(source), options);
+		acorn.walk.simple(lively.ast.parse(source), options);
         this.references = references;
         this.cursor = -1;
     },
@@ -3424,7 +3424,7 @@ Object.extend(Global, {
                 var f = getFunctionOrAccessor(n, e);
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
-                    var programNode = lively.ast.acorn.parse("var f = " + source);
+                    var programNode = lively.ast.parse("var f = " + source);
                     try { acorn.walk.simple(programNode, options); }
                     catch(t) { 
                         if(t === foundMarker) return true;
@@ -3498,7 +3498,7 @@ Object.extend(Global, {
                 var f = getFunctionOrAccessor(n, e);
                 source = f.toString();
                 if (source.match(re) && !source.endsWith("{ [native code] }")) {
-                    var programNode = lively.ast.acorn.parse(preamble + source);
+                    var programNode = lively.ast.parse(preamble + source);
                     try { acorn.walk.simple(programNode, options); }
                     catch(t) { 
                         if(t === foundMarker) return true;

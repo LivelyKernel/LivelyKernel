@@ -621,7 +621,7 @@ lively.morphic.Morph.addMethods(
     removeOverlay: function() {
         if (this.overlay) this.overlay.remove();
     },
-})
+});
 
 Object.extend(lively.morphic.Morph, {
     makeRectangle: function (/**/) {
@@ -694,7 +694,8 @@ Object.extend(lively.morphic.Morph, {
             return new Rectangle(b.x - lineWidth, b.y - lineWidth, b.width + 2 * lineWidth, b.height + 2 * lineWidth)
         }
         return bezierCurve;
-    }});
+    }
+});
 
 lively.Line.addMethods(
 'conversion', {
@@ -1572,6 +1573,104 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
         if (this.hasFixedPosition()) this.disableFixedPositioning();
         return this.constructor.prototype.remove.call(this);
     }
+});
+
+Trait('lively.morphic.SetStatusMessageTrait', {
+
+  ensureStatusMessageMorph: function() {
+    if (this._statusMorph) return this._statusMorph;
+
+    var ext = this.getExtent();
+    var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
+    sm.applyStyle({
+      fontFamily: 'Monaco,monospace',
+      padding: lively.Rectangle.inset(4, 2, 8, 2),
+      borderWidth: 0, borderRadius: 6,
+      fontSize: 10,
+      allowInput: false, selectable: true,
+      clipMode: "auto", whiteSpaceHandling: 'pre'
+    });
+    sm.isEpiMorph = true;
+    (function() {
+      var closeBtn = new lively.morphic.Button(lively.rect(0,0,18,18), "X");
+      closeBtn.name = "closeButton";
+      lively.bindings.connect(closeBtn, 'fire', sm, 'remove');
+      sm.addMorph(closeBtn);
+      sm.addScript(function onMouseMove(evt) {
+        var closeBtn = this.get("closeButton");
+        if (closeBtn.innerBoundsContainsWorldPoint(evt.getPosition())) {
+          closeBtn.bringToFront();
+          closeBtn.focus();
+        }
+      });
+      sm.addScript(function expand() {
+        $world.addCodeEditor({
+          tile: 'message', textMode: "text",
+          content: this.textString.replace(/^expand\n/m, "")
+        }).getWindow().comeForward();
+      });
+      closeBtn.addScript(function onMouseMove(evt) { this.focus(); });
+      closeBtn.addScript(function alignInOwner() {
+        var offset = this.owner.showsVerticalScrollBar() ? this.owner.getScrollBarExtent().x + 3 : 2;
+        this.align(this.bounds().topRight(), this.owner.innerBounds().topRight().addXY(-offset,2));
+      });
+      closeBtn.alignInOwner();
+    }).delay(0);
+    return sm;
+  },
+
+  setStatusMessage: function(msg, color, delay) {
+    var world = this.world();
+    if (!world) return;
+    var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
+        ext = this.getExtent();
+  
+    sm.bringToFront();
+    // setting 'da message
+    sm.lastUpdated = Date.now();
+    if (!sm.owner) sm.setVisible(false); // to avoid flickering
+    world.addMorph(sm);
+    var color = color || Global.Color.white;
+    var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
+    var ext = this.getExtent(), maxX = ext.x, maxY = Math.max(40, Math.min(ext.y-100, 250));
+    sm.applyStyle({textColor: color, fill: fill, fixedHeight: false, fixedWidth: false, clipMode: 'visible'});
+    if (!Array.isArray(msg)) {
+      msg = [
+        ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
+        ['\n'],
+        [String(msg)]
+      ]
+    }
+    sm.setRichTextMarkup(msg);
+  
+    // aligning
+    sm.setTextExtent(pt(maxX, 10));
+    sm.fitThenDo(function() {
+      sm.setVisible(true);
+      sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
+      var visibleBounds = world.visibleBounds(),
+          bounds = sm.bounds(),
+          height = Math.min(bounds.height+3, maxY),
+          overlapY = bounds.top() + height - visibleBounds.bottom();
+      if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
+      sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
+      sm.setExtent(pt(maxX, height));
+      var cb = sm.get("closeButton");
+      if (cb) cb.alignInOwner();
+    });
+
+    (function() {
+      function removeStatusMessage() {
+        sm.remove();
+        // self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
+      }
+
+      if (sm._removeTimer) clearTimeout(sm._removeTimer);
+      if (typeof delay === "number") {
+        sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
+      }
+    }).delay(0);
+  }
 });
 
 }) // end of module

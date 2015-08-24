@@ -70,6 +70,22 @@
     }
   ],
 
+  "auth": [
+    ["userAuthEnabled", false, "Is user authentication enabled?"],
+    ["cookieField", "lvUserData_2013-10-12", "Cookie used for user data"],
+    ["usersFile", null, "File containing the authentication information and access rules"],
+    ["usersDefaultWorld", "/users/%USERNAME%/start.html", "Users' default world placed in their workspace"],
+    ["authPaths", {
+      "login": "/login",
+      "register": "/register",
+      "logout": "/logout",
+      "currentUser": "/current-user",
+      "checkPassword": "/check-password",
+      "userExists": "/user-exists",
+      "listUsers": "/list-users"
+    }, "Routes for user management, e.g. login, logout, registration"]
+  ],
+
   "user": [
     {
       "name": "UserName",
@@ -201,7 +217,8 @@
     ["showWorldSave", true],
 
     ["gridSpacing", 10, "determins the pixels to snap to alt-dragging the drag halo"],
-    ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."]
+    ["maxStatusMessages", 3, "Number of statusmessages that should appear at one time on the screen."],
+    ["coloredHaloItems", false, "Halo Items can be made colorful for better recognition."]
   ],
 
   "lively.TestFramework": [
@@ -261,7 +278,9 @@
     ["hideSystemCursor", false],
     ["handleOnCapture", true],
     ["globalGrabbing", true],
-    ["touchBeMouse", false, "Dynamically determined."]
+    ["touchBeMouse", false, "Dynamically determined."],
+    ["usePointerevents", true, "Switch between native event handling and Googles Pointerevents library"],
+    ["useSingleHand", false, "Enforce the use of only one hand on mobile devices"]
   ],
 
   "lively.debugging": [
@@ -309,8 +328,10 @@
     ["aceDefaultShowWarnings", true, "Should autocompletion be enabled?"],
     ["aceDefaultShowErrors", true, "Show syntax errors in programming language mode?"],
     ["aceDefaultEnableAutocompletion", true, "Should autocompletion be enabled?"],
+    ["aceDefaultEnableBehaviors", true, "Should behaviors be enabled? (auto insert closing parens and quotation marks)"],
     ["computeCodeEditorCompletionsOnStartup", false, "when enabled all JS files udner core/ are read on startup nd their content is used to compute word completions"],
     ["showDoitErrorMessages", true, "When a doit eval results in an error a error message pops up."],
+    ["showDoitInMessageMorph", true, "Print eval results in message boxes of the code editor morph."],
     ["improvedJavaScriptEval", true, "Eval that changes semantics of how object literals and if statements are evaluated."],
     ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"],
     ["aceDefaultUseIyGotoChar", true, "Quickly jump to next / prev characters using Cmd/Ctrl-, and Cmd/Ctrl-. "],
@@ -369,6 +390,10 @@
     ["propertyPreservation", null, "When saving a method (property) with a changed name, save the old behavior, or loose it. If not set (undefined), you are asked."]
   ],
 
+  "lively.ide.tools.SelectionNarrowing": [
+    ["selectionNarrowerInputLineAtTop", true, "Show the input line at top or bottom?"]
+  ],
+
   "askpass": [
     ["askpassSSLcaFile", "", ""],
     ["askpassSSLkeyFile", "", ""],
@@ -391,12 +416,20 @@
   ],
 
   "lively.morphic.tools.MenuBar": [
-    ["showMenuBar", false, "Should a menu bar be opened on world load?"],
+    ["showMenuBar", true, "Should a menu bar be opened on world load?"],
     ["menuBarDefaultEntries", [
       "lively.net.tools.Lively2Lively",
       "lively.morphic.tools.LivelyMenuBarEntry",
       "lively.ide.tools.CurrentDirectoryMenuBarEntry",
+      "lively.morphic.tools.LogMenuBarEntry",
+      "lively.net.tools.Wiki",
       "lively.ide.tools.JavaScriptToolsMenuBarEntries"
       ], "Which menu bar entries to add by default? Specifies modules that should implement a getMenuBarEntries() method."]
+  ],
+
+  "lively.VM": [
+    ["useJsx", true, "jsx is a JS language extension for the react framework. When enabled code editors will know how to parse jsx."],
+    ["useBabelJsForEval", true, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."],
+    ["useBabelJsForScriptLoad", false, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."]
   ]
 }

@@ -16,10 +16,37 @@ lively.BuildSpec('lively.ide.tools.JavaScriptToolsMenuBarEntry', lively.BuildSpe
   morphMenuItems: function morphMenuItems() {
     function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
     return [
+      ['PartsBin', cmd("lively.PartsBin.open")],
       ['JavaScript Workspace', cmd('lively.ide.openWorkspace')],
       ['JavaScript Browser', cmd('lively.ide.openSystemCodeBrowser')],
-      ['JavaScript Log', cmd('lively.ide.openSystemConsole')],
-      ['Subserver Viewer', cmd('lively.ide.openSubserverViewer')],
+      ['Subserver Viewer', cmd('lively.ide.openSubserverViewer')]
+    ]
+  },
+
+  update: function update() {},
+  
+}));
+
+lively.BuildSpec('lively.ide.tools.LivelySearchMenuBarEntry', lively.BuildSpec("lively.morphic.tools.MenuBarEntry").customize({
+
+  name: "livelySearchMenuBarEntry",
+  menuBarAlign: "left",
+  textString: "search",
+
+  style: lively.lang.obj.merge(lively.BuildSpec("lively.morphic.tools.MenuBarEntry").attributeStore.style, {
+    align: "center",
+    extent: lively.pt(60,20),
+    textColor: Color.gray.darker(),
+    toolTip: "Search the Lively runtime and wiki",
+  }),
+
+  morphMenuItems: function morphMenuItems() {
+    function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
+    return [
+      ['Code search', cmd('lively.ide.codeSearch')],
+      ['Search for worlds, modules, parts', cmd('lively.ide.resourceSearch')],
+      ['Search for files', cmd('lively.ide.browseFiles')],
+      ['Search in files', cmd('lively.ide.CommandLineInterface.doGrepSearch')]
     ]
   },
 
@@ -31,7 +58,8 @@ Object.extend(lively.ide.tools.JavaScriptToolsMenuBarEntries, {
 
   getMenuBarEntries: function() {
     return [
-      lively.BuildSpec('lively.ide.tools.JavaScriptToolsMenuBarEntry').createMorph()]
+      lively.BuildSpec('lively.ide.tools.JavaScriptToolsMenuBarEntry').createMorph(),
+      lively.BuildSpec('lively.ide.tools.LivelySearchMenuBarEntry').createMorph()]
   }
 });
 

@@ -4,7 +4,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
 'helper', {
 
     parse: function(src) {
-        return lively.ast.acorn.parse(src);
+        return lively.ast.parse(src);
     },
 
     interpret: function(node, optMapping) {
@@ -226,9 +226,19 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(5, mapping.a);
     },
 
-    test20UnaryOp: function() {
+    test20aUnaryOp: function() {
         var node = this.parse('var a = 4; -a');
         this.assertEquals(-4, this.interpret(node));
+    },
+
+    test20bTypeOfExistent: function() {
+        var node = this.parse('var a = 4; typeof a');
+        this.assertEquals('number', this.interpret(node));
+    },
+
+    test20cTypeOfNonExisting: function() {
+        var node = this.parse('typeof a');
+        this.assertEquals('undefined', this.interpret(node));
     },
 
     test21aBreakInFor: function() {
@@ -387,6 +397,21 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(1, this.interpret(node));
     },
 
+    test25gReturnObjectInNewExpr: function() {
+        var node = this.parse('function m() { return { a: 23 }; }; new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
+    test25hReturnNonObjectInNewExpr: function() {
+        var node = this.parse('function m() { this.a = 23; return 42 }; new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
+    test25iObjectAsLastResultInNewExpr: function() {
+        var node = this.parse('function m() { this.a = 23; ({ a: 42 }); } new m().a;');
+        this.assertEquals(23, this.interpret(node));
+    },
+
     test26InstantiateClass: function() {
         var className = 'Dummy_test26InstantiateClass';
         this.onTearDown(function() { delete Global[className]; })
@@ -533,9 +558,14 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornInterpreterTests',
         this.assertEquals(1, this.interpret(node));
     },
 
-    test39NativeConstructor: function() {
+    test39aNativeConstructor: function() {
         var node = this.parse('(function() { return typeof new Date(); })();');
         this.assertEquals('object', this.interpret(node, Global));
+    },
+
+    test39bNativeConstructorWithArgs: function() {
+        var node = this.parse('var regexp = new RegExp("f[o]+"); regexp.exec("fooobar");');
+        this.assertEquals('fooo', this.interpret(node, Global));
     },
 
     test40aDeleteExistingVar: function() {
@@ -693,7 +723,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornResumeTests',
 'helper', {
 
     parse: function(src) {
-        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
+        return acorn.walk.addAstIndex(lively.ast.parse(src));
     },
 
     resumeWithMapping: function(resumeNode, contextNode, mapping) {
@@ -856,7 +886,7 @@ TestCase.subclass('lively.ast.tests.InterpreterTests.AcornSteppingTests',
 'helper', {
 
     parse: function(src) {
-        return acorn.walk.addAstIndex(lively.ast.acorn.parse(src));
+        return acorn.walk.addAstIndex(lively.ast.parse(src));
     }
 
 },

@@ -89,8 +89,8 @@ Object.subclass('lively.store.CouchDBStorage',
 Object.subclass("lively.store.ObjectRepository",
 "initializing", {
 
-    initialize: function(url) {
-        this.repoURL = url ? url.withPath("/") : URL.root;
+    initialize: function (url) {
+        this.repoURL = url ? url : URL.root;
     }
 
 },
@@ -103,13 +103,16 @@ Object.subclass("lively.store.ObjectRepository",
 },
 "querying", {
 
-    getRecords: function(querySpec, thenDo)  {
+    getRecords: function (querySpec, thenDo)  {
         // new lively.store.ObjectRepository().getRecords()
         var res = this.getServerInterfaceURL()
             .withQuery({getRecords: encodeURIComponent(JSON.stringify(querySpec))})
             .asWebResource().noProxy();
         if (thenDo != null) {
             res.withJSONWhenDone(function(json, status) {
+                if (JSON.prettyPrint(json) == "[]"){
+                    throw new Error("Could not get records for:" + JSON.prettyPrint(querySpec))
+                } 
                 thenDo(status.isSuccess() ? null : status, json); }).beAsync().get();
             return this;
         } else {

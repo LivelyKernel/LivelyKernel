@@ -119,6 +119,31 @@ lively.morphic.World.addMethods(
     }
 });
 
+lively.morphic.Path.addMethods(
+'halos', {
+    getHalos: function($super) {
+        return $super()
+            .concat(this.getControlPointHalos())
+            .concat(this.getInsertPointHalos())
+            // .reject(function(halo) { return halo instanceof lively.morphic.OriginHalo });
+    },
+    getHaloClasses: function($super) {
+        return $super()
+            .without(lively.morphic.NewResizeHalo);
+            // .concat([lively.morphic.RescaleHalo]);
+    },
+
+    getControlPointHalos: function() { return this.getControlPoints().invoke('asHalo') },
+    getInsertPointHalo: function(idx) {
+        return new lively.morphic.PathInsertPointHalo(this.getControlPoint(idx));
+    },
+    getInsertPointHalos: function() {
+        var result = [];
+        for (var i = 0; i < this.vertices().length-1; i++) result.push(this.getInsertPointHalo(i));
+        return result
+    }
+});
+
 lively.morphic.Box.subclass('lively.morphic.Halo',
 'settings', {
     style: {
@@ -169,8 +194,11 @@ lively.morphic.Box.subclass('lively.morphic.Halo',
                 .extent(this.defaultExtent.subPt(pt(6,6))),
             this.iconBaseURL + this.iconName(Global.LastEvent && Global.LastEvent.isShiftDown()) + '.svg')
         this.addMorph(this.iconMorph);
-        this.iconMorph.ignoreEvents();
-        this.setFill(Global.Color.rgb(240,240,240)); // basic gray
+        this.iconMorph.disableEvents();
+        this.iconMorph.disableDropping();
+        if (!Config.coloredHaloItems) {
+            this.setFill(Global.Color.rgb(240,240,240)); // basic gray
+        }
         this.setBorderWidth(0);
     },
     ensureInfoLabel: function() {
@@ -863,8 +891,14 @@ lively.morphic.Halo.subclass('lively.morphic.ScriptEditorHalo',
         icon && icon.setImageURL(this.iconBaseURL + this.iconName() + '.svg')
         var scripts = this.targetScripts();
         if (scripts.size() > 0) {
+            if (Config.coloredHaloItems) {
+                this.setFill(Color.orange);
+            }
             this.setToolTip(this.style.toolTip + '\n' + scripts.join('()\n') + '()');
         } else {
+            if (Config.coloredHaloItems) {
+                this.setFill(Color.rgb(240, 240, 240));
+            }
             this.setToolTip(this.style.toolTip);
         };
     },
@@ -1037,6 +1071,142 @@ lively.morphic.Halo.subclass('lively.morphic.BoundsHalo',
         return false;
     }
 
+});
+
+lively.morphic.Halo.subclass('lively.morphic.PathControlPointHalo',
+'settings', {
+    style: {fill: null, borderWidth: 2, borderColor: Color.blue},
+    defaultExtent: pt(12,12),
+    isPathControlPointHalo: true,
+},
+'initializing', {
+    initialize: function($super, controlPoint) {
+        $super(controlPoint.getMorph());
+        this.controlPoint = controlPoint;
+        //controlPoint.getMorph().addMorph(this);
+        //this.setPosition(controlPoint.getPos());
+    },
+    createLabel: function() {/*do nothing*/}
+});
+
+lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPointHalo',
+'properies', {
+    isVertexControlHalo: true
+},
+'halo behavior', {
+
+    computePositionAtTarget: function() {
+        return this.controlPoint.getGlobalPos().subPt(this.getExtent().scaleBy(0.5));
+    },
+
+    dragAction: function (evt, moveDelta) {
+        this.overOther = this.highlightIfOverOther();
+
+        var transform = this.targetMorph.getGlobalTransform(),
+            oldPos = transform.transformPoint(pt(0,0)),
+            newDelta = oldPos.addPt(moveDelta),
+            newDelta = transform.inverse().transformPoint(newDelta);
+
+        this.controlPoint.moveBy(newDelta);
+        if (this.targetMorph.halos)
+            this.targetMorph.halos.invoke('alignAtTarget');
+
+        if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
+            var nearestMagnets = this.magnetSet.nearestMagnetsToControlPoint(this.controlPoint)
+            if (nearestMagnets.length == 0) {
+                this.controlPoint.setConnectedMagnet(null);
+            } else {
+                this.controlPoint.setConnectedMagnet(nearestMagnets[0]);
+                this.align(this.bounds().center(),this.controlPoint.getGlobalPos())
+            }
+        }
+
+    },
+
+    dragStartAction: function(evt) {
+        this.targetMorph.removeHalosWithout(this.world(), [this]);
+
+        if (lively.Config.get('enableMagneticConnections')) {
+            this.magnetSet = new lively.morphic.MagnetSet(this.world());
+            this.magnetSet.helperMorphs  = [];
+        }
+
+    },
+
+    dragEndAction: function(evt) {
+        this.targetMorph.removeHalos();
+        this.targetMorph.showHalos();
+
+        if (!this.overOther) return;
+        if (this.controlPoint.next() !== this.overOther.controlPoint &&
+            this.controlPoint.prev() !== this.overOther.controlPoint) return;
+        if (this.controlPoint.isLast() || this.controlPoint.isFirst()) return;
+
+        this.controlPoint.remove();
+
+        if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
+            this.magnetSet.helperMorphs.invoke('remove');
+            delete this.magnetSet;
+        }
+
+    },
+
+    findIntersectingControlPoint: function() {
+        var halos = this.targetMorph.halos;
+        if (!halos) return;
+        for (var i = 0; i < halos.length; i++)
+            if (halos[i].isVertexControlHalo &&
+                halos[i] !== this &&
+                this.bounds().intersects(halos[i].bounds()))
+                    return halos[i];
+    },
+
+    highlightIfOverOther: function() {
+        var overOther = this.findIntersectingControlPoint();
+        this.setBorderColor(overOther ? Color.red : Color.blue);
+        return overOther;
+    },
+
+});
+
+lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo',
+'settings', {
+    style: {borderRadius: 6},
+},
+'properies', {
+    isPathControlPointHalo: true,
+},
+'acessing', {
+    getStartPos: function() { return this.controlPoint.getPos() },
+    getEndPos: function() { return this.controlPoint.next().getPos() },
+    getLocalPos: function() {
+        var start = this.getStartPos(), end = this.getEndPos();
+        return start.addPt(end.subPt(start).scaleBy(0.5))
+    },
+    getGlobalPos: function() {
+        return this.targetMorph.worldPoint(this.getLocalPos());
+    },
+},
+'halo behavior', {
+    computePositionAtTarget: function() {
+        return this.getGlobalPos().subPt(this.getExtent().scaleBy(0.5));
+    },
+    dragStartAction: function(evt) {
+        this.newControlPoint = this.controlPoint.insertAfter(this.getLocalPos());
+        this.targetMorph.removeHalos();
+        this.targetMorph.showHalos()
+    },
+    dragAction: function(evt, moveDelta) {
+
+        var transform = this.targetMorph.getGlobalTransform(),
+            oldPos = transform.transformPoint(this.newControlPoint.getPos()),
+            newPos = oldPos.addPt(moveDelta),
+            newPos = transform.inverse().transformPoint(newPos);
+        this.newControlPoint.setPos(newPos);
+
+        if (this.targetMorph.halos)
+            this.targetMorph.halos.invoke('alignAtTarget');
+    },
 });
 
 (function setupGetInstanceFor() {

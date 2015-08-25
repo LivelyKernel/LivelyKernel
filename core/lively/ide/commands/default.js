@@ -988,9 +988,13 @@ Object.extend(lively.ide.commands.byName, {
                   spec: {
                     candidates: ['choose different directory...'].concat(knownDirectories()),
                     preselect: 1,
-                    actions: [function select(c) {
-                      n(null,c === 'choose different directory...' ? null : c);
-                    }]
+                    actions: [
+                      function select(c) { n(null, c === 'choose different directory...' ? null : c); },
+                      function remove(c) {
+                        var path = (c && (Object.isString(c) ? c : c.path)) || null;
+                        ($world.knownWorkingDirectories || []).remove(c);
+                        lively.ide.commands.exec('lively.ide.CommandLineInterface.changeShellBaseDirectory');
+                      }]
                   }
                 })
             },

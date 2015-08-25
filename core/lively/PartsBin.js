@@ -132,8 +132,17 @@ Object.subclass('lively.PartsBin.PartItem',
         ignoreOwnerPlugin.addFilter(function(obj, propName) {
             return obj === part && propName === 'owner';
         });
+
+        // filter for some craft in the PartsBinMetaInfo that is also present in the .metainfo file
+        var ignoreMetaInfoPlugin = new GenericFilter();
+        ignoreMetaInfoPlugin.addFilter(function(obj, propName) {
+            return (obj instanceof lively.PartsBin.PartsBinMetaInfo) && (propName == 'changes');
+        });
+
         var serializer = this.getSerializer();
         serializer.addPlugin(ignoreOwnerPlugin);
+        serializer.addPlugin(ignoreMetaInfoPlugin);
+
         var bounds = part.getBounds(),
             scale = 85 / Math.max(bounds.width, bounds.height) * part.getScale();
         try {
@@ -146,6 +155,9 @@ Object.subclass('lively.PartsBin.PartItem',
             // for fixing the bug that parts are shown in the world
             // origin after copying them to the partsbin
             if (part.owner) part.owner.addMorph(part);
+
+            // remove metainfo filter from (global) serializer
+            serializer.plugins.remove(ignoreMetaInfoPlugin);
         }
         return {
             json: json,

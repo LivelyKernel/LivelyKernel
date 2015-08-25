@@ -610,15 +610,15 @@ View.subclass('NetRequest',
         }
         if (this.getReadyState() === this.Done) {
             this.setStatus(this.getStatus());
-            if (this.transport.responseText !== undefined)
-                this.setResponseText(this.getResponseText());
-            if (this.transport.responseXML !== undefined)
-                this.setResponseXML(this.getResponseXML());
             try {
                 if (this.transport.getAllResponseHeaders() !== undefined)
                     this.setResponseHeaders(this.getResponseHeaders());
             } catch(e) {} // ignore responses without headers
                           // (e.g. when using file:// requests)
+            if (this.transport.responseXML !== undefined)
+                this.setResponseXML(this.getResponseXML());
+            if (this.transport.responseText !== undefined)
+                this.setResponseText(this.getResponseText());
             this.disconnectModel(); // autodisconnect?
         }
     },
@@ -762,7 +762,7 @@ View.subclass('Resource', {
     ],
 
     createNetRequest: function() {
-        return new NetRequest({
+        var request = new NetRequest({
             model: this,
             setResponseXML: "setContentDocument",
             setResponseText: 'setContentText',
@@ -770,10 +770,13 @@ View.subclass('Resource', {
             setResponseHeaders: "setResponseHeaders",
             setProgress: 'setProgress'
         });
+        request.useProxy = !!this.useProxy;
+        return request;
     },
 
     initialize: function(plug, contentType) {
         this.contentType  = contentType;
+        this.useProxy = true;
         this.connectModel(plug);
     },
 
@@ -836,17 +839,6 @@ View.subclass('Resource', {
 Resource.subclass('SVNResource', {
 
     formals: Resource.prototype.formals.concat(['Metadata', 'HeadRevision', 'LocationHistory']),
-
-    createNetRequest: function() {
-        return new NetRequest({
-            model: this,
-            setResponseXML: "setContentDocument",
-            setResponseText: 'setContentText',
-            setStatus: "setRequestStatus",
-            setResponseHeaders: "setResponseHeaders",
-            setProgress: 'setProgress'
-        });
-    },
 
     initialize: function($super, repoUrl, plug, contentType) {
         this.repoUrl = repoUrl.toString();
@@ -1226,6 +1218,7 @@ Object.subclass('WebResource',
                 setMetadata: 'setMetadata'
             });
         resource.isShowingProgress = this.isShowingProgress;
+        if (this._noProxy) resource.useProxy = false;
         return resource;
     },
 
@@ -1246,7 +1239,7 @@ Object.subclass('WebResource',
                     setReadyState: function(readyState) { self.readystate = readyState },
                     setProgress: function(progress) { self.progress = progress },
                     setStreamContent: function(content) {
-                        self.content = content;  self.streamContent = content  }
+                        self.content = content;  self.streamContent = content;  }
                 },
                 setStatus: 'setStatus',
                 setResponseText: 'setResponseText',
@@ -1297,12 +1290,12 @@ Object.subclass('WebResource',
             webR.status = status;
             if (req.readyState == loadStates.DONE) {
                 webR.isExisting = status.isSuccess();
-                if (req.responseText !== undefined)
-                    webR.content = req.responseText;
-                if (req.responseXML !== undefined)
-                    webR.contentDocument = req.responseXML;
                 if (req.getAllResponseHeaders() !== undefined)
                     webR.responseHeaders = extractHeaders(req);
+                if (req.responseXML !== undefined)
+                    webR.contentDocument = req.responseXML;
+                if (req.responseText !== undefined)
+                    webR.content = req.responseText;
             }
         };
 
@@ -1662,6 +1655,21 @@ Object.subclass('WebResource',
         var res = this.createResource();
         this.xhr = res.fetchProperties(this.isSync(), optRequestHeaders, rev);
         return this;
+    },
+
+    getLastModifiedDate: function(thenDo) {
+      var self = this;
+      return this.whenDone(function(_, status) {
+        if (!status || !status.isSuccess()) return thenDo && thenDo(status);
+        try {
+          var xml = self.contentDocument;
+          var rawDate = xml.getElementsByTagName("getlastmodified")[0].textContent;
+          var date = new Date(rawDate);
+          thenDo && thenDo(null, date);
+        } catch (e) {
+          thenDo && thenDo(e);
+        }
+      }).getProperties();
     },
 
     ensureExistance: function() {

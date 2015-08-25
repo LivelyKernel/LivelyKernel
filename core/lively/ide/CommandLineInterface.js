@@ -562,12 +562,16 @@ Object.extend(lively.ide.CommandLineInterface, {
             thenDo && thenDo(json.message ? json.message : json); }).del();
     },
 
-    getWorkingDirectory: function() {
+    getWorkingDirectory: function(thenDo) {
         // the directory the commandline server runs with
-        var webR = this.commandLineServerURL.asWebResource().beSync();
-        try {
-            return JSON.parse(webR.get().content).cwd;
-        } catch(e) { return ''; }
+        var webR = this.commandLineServerURL.asWebResource();
+        if (thenDo) webR.beAsync();
+        var result;
+        webR.withJSONWhenDone(function(data, status) {
+          result = (data && data.cwd) || '';
+          thenDo && thenDo(null, result);
+        }).get();
+        return result;
     },
 
     setWorkingDirectory: function(dir) {
@@ -577,8 +581,15 @@ Object.extend(lively.ide.CommandLineInterface, {
       return dir;
     },
 
-    cwd: function() {
-      return (this.rootDirectory || this.getWorkingDirectory() || "").replace(/(\/|\\)?$/, "");
+    cwd: function(thenDo) {
+      var sync = typeof thenDo === "undefined";
+      if (sync) {
+        return safeCwd(this.rootDirectory || this.getWorkingDirectory());
+      } else {
+        if (this.rootDirectory) thenDo(null, safeCwd(this.rootDirectory));
+        else this.getWorkingDirectory(thenDo);
+      }
+      function safeCwd(cwd) { return (cwd || "").replace(/(\/|\\)?$/, ""); }
     },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },

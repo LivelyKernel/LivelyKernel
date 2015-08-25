@@ -128,11 +128,12 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
   },
 
   update: function update() {
-    var path = lively.shell.cwd();
-    if (!path) path = lively.shell.WORKSPACE_LK;
-    this.updateText(path);
-    if (!this.dirs.include(path))
-      this.addDir(path);
+    lively.shell.cwd(function(err, path) {
+      if (!path) path = lively.shell.WORKSPACE_LK;
+      this.updateText(path);
+      if (!this.dirs.include(path))
+        this.addDir(path);
+    }.bind(this));
   },
 
   onLoad: function onLoad() {

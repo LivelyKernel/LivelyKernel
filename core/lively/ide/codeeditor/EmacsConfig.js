@@ -230,7 +230,7 @@ function setupEmacsSpecificCommands(kbd) {
   kbd.bindKeys(bind(cmdLPrefix + "o p e n", 'doBrowseAtPointOrRegion'));
 
   kbd.bindKeys(bind(cmdLPrefix + "s n i p", 'browseSnippets'));
-  kbd.bindKeys(bind("S-CMD-c", 'browseSnippets'));
+  // kbd.bindKeys(bind("S-CMD-c", 'browseSnippets'));
 
   kbd.bindKeys({"M-q": 'fitTextToColumn'});
   kbd.bindKeys(bind(cmdLPrefix + "w t", 'cleanupWhitespace'));

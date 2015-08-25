@@ -1067,11 +1067,13 @@ Object.extend(lively.ide.CodeEditor.KeyboardShortcuts, {
         return this._instance || (this._instance = new this());
     },
     reinitKeyBindingsForAllOpenEditors: function() {
-      lively.ide.allCodeEditors().forEach(function(ea) {
-        ea.withAceDo(function(ed) {
-          ed.keyBinding.$handlers.forEach(function(h) { delete h.hasLivelyKeys; });
-          lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
-        })
+      lively.whenLoaded(function() {
+        lively.ide.allCodeEditors().forEach(function(ea) {
+          ea.withAceDo(function(ed) {
+            ed.keyBinding.$handlers.forEach(function(h) { delete h.hasLivelyKeys; });
+            lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance().attach(ea);
+          })
+        });
       });
     }
 });

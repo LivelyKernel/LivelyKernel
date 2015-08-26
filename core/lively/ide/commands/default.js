@@ -1649,6 +1649,15 @@ Object.extend(lively.ide.commands.byName, {
         }
     },
 
+    "lively.net.wiki.tools.changeChangeSet": {
+        description: "change ChangeSet",
+        exec: function() {
+            lively.require('lively.net.Wiki').toRun(function() {
+                lively.net.Wiki.changeChangeSet();
+            });
+        }
+    },
+
     // debugging
     'lively.ide.debugging.globalTrace': {
         description: "start / stop global tracing",

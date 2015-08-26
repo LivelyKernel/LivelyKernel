@@ -306,6 +306,30 @@ Object.extend(lively.net.Wiki, {
 
     lastChangeSetTest: null,
 
+    changeChangeSet: function() {
+        var currentCS = lively.Config.get('cookie')['livelykernel-branch'];
+        $world.prompt('Change ChangeSet to:', function(newCS) {
+            if (newCS != null) {
+                function invalidChangeSetName(name) {
+                    // Cannot:
+                    //     - Have a path component that begins with "."
+                    //     - Have a double dot ".."
+                    //     - Have an ASCII control character, "~", "^", ":" or SP, anywhere
+                    //     - End with a "/"
+                    //     - End with ".lock"
+                    //     - Contain a "\" (backslash
+                    return name.startsWith('.') || (name.indexOf('..') != -1) ||
+                        name.match(/\0-\x1F\x7F-\x9F\xAD\~\^:\s/) ||
+                        name.endsWith('.lock') || (name.indexOf('\\') != -1);
+                }
+                if (invalidChangeSetName(newCS))
+                    return alert('Could not change to: ' + newCS);
+                document.cookie = 'livelykernel-branch=' + newCS +
+                    (newCS == '' ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '');
+            }
+        }, currentCS);
+    },
+
     closeLastChangeSetTest: function() {
         if (this.lastChangeSetTest && !this.lastChangeSetTest.closed) {
             this.lastChangeSetTest.close();

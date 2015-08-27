@@ -1955,6 +1955,10 @@ lively.morphic.World.addMethods(
             title = options.title || 'Code editor',
             editor = new lively.morphic.CodeEditor(bounds, options.content || ''),
             pane = this.internalAddWindow(editor, options.title, options.position);
+        if (options.file) {
+          editor._file = options.file;
+          editor.addScript(function getTargetFilePath() { return this._file; });
+        }
         if (Object.isString(options.position)) delete options.position;
         editor.applyStyle({resizeWidth: true, resizeHeight: true, gutter: false});
         editor.accessibleInInactiveWindow = true;

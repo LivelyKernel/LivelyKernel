@@ -83,9 +83,9 @@ lively.BuildSpec('lively.morphic.tools.ConfirmList', {
         lively.bindings.connect(cancelBtn, 'fire', this, 'result', {
             converter: function() { return false }});
         lively.bindings.connect(this, 'onEscPressed', this, 'result', {
-            converter: function() { return false }});
+            converter: function() { Global.event && Global.event.stop(); return false }});
         lively.bindings.connect(this, 'onEnterPressed', this, 'result', {
-            converter: function() { return this.targetObj.getSelectedItems(); }});
+            converter: function() { Global.event && Global.event.stop(); return this.targetObj.getSelectedItems(); }});
         lively.bindings.connect(this, 'result', this, 'remove');
     },
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {

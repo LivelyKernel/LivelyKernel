@@ -1,5 +1,17 @@
 module('lively.ide.codeeditor.modes.TextTree').requires('lively.ide.codeeditor.ace').toRun(function() {
 
+// FIXME helper
+function takeWhile(arr, predFunc) {
+  var result = [];
+  for (var i = 0; i < arr.length; i++) {
+    var val = arr[i];
+    if (!predFunc(val, i)) break;
+    result.push(val);
+  }
+  return result;
+}
+
+
 (function defineMode() {
 
 // ace.require("ace/mode/texttree").Mode
@@ -39,8 +51,9 @@ Object.extend(lively.ide.codeeditor.modes.TextTree, {
 
   itemTextStartColumn: function(treeString, row) {
     var self = lively.ide.codeeditor.modes.TextTree,
-        lines = self.ensureLines(treeString),
-        idx = lines[row].lastIndexOf("\\-");
+        lines = self.ensureLines(treeString);
+    if (!lines[row]) return 0;
+    var idx = lines[row].lastIndexOf("\\-");
     return idx === -1 ? lines[row].lastIndexOf("|-") : idx;
   },
 
@@ -76,6 +89,51 @@ Object.extend(lively.ide.codeeditor.modes.TextTree, {
     return self.itemTextOfRow(lines, row);
   },
 
+  subtree: function(treeString, row) {
+    var self = lively.ide.codeeditor.modes.TextTree,
+        lines = self.ensureLines(treeString),
+        col = self.itemTextStartColumn(lines, row);
+    return takeWhile(lines.slice(row+1), function(_, i) {
+      return col < self.itemTextStartColumn(treeString, row+i+1);
+    });
+  },
+
+  siblingsWithRows: function(treeString, row) {
+    // var treeString = that.textString;
+    // var row = that.getCursorPositionAce().row
+    var self = lively.ide.codeeditor.modes.TextTree,
+        lines = self.ensureLines(treeString),
+        parentRow = self.parentRowOfRow(lines, row),
+        col = self.itemTextStartColumn(lines, row),
+        subtree = self.subtree(lines, parentRow);
+    return subtree.reduce(function(siblings, line, i) {
+        var absRow = parentRow+i+1;
+        var currentCol = self.itemTextStartColumn(lines, absRow)
+        return col === currentCol ?
+          siblings.concat([[absRow, line]]) :
+          siblings
+      }, []);
+  },
+
+  siblingsWithRowsAndCurrentLine: function(treeString, row) {
+    var self = lively.ide.codeeditor.modes.TextTree,
+        lines = self.ensureLines(treeString),
+        siblings = self.siblingsWithRows(lines, row),
+        index = 0,
+        current = siblings.detect(function(rowAndLine, i) {
+          index = i; return rowAndLine[0] === row; });
+    return {index: index, siblings: siblings};
+  },
+
+  siblings: function(treeString, row) {
+    // var treeString = that.textString;
+    // var row = that.getCursorPositionAce().row
+    // self.siblings(treeString, row);
+    var self = lively.ide.codeeditor.modes.TextTree;
+    return self.siblingsWithRows(treeString, row)
+      .map(function(rowAndLine) { return rowAndLine[1]; })
+  },
+
   rootPathFromRow: function(treeString, row) {
     var self = lively.ide.codeeditor.modes.TextTree,
         lines = self.ensureLines(treeString),
@@ -87,6 +145,14 @@ Object.extend(lively.ide.codeeditor.modes.TextTree, {
       rows.unshift(row);
     }
     return rows.map(self.itemTextOfRow.curry(lines));
+  },
+
+  rangeForSubtree: function(ed, row, subtree) {
+    if (!subtree.length) return null;
+    var endRow = row + subtree.length - 1,
+        endPos = {row: endRow, column: ed.session.getLine(endRow).length},
+        range = lively.ide.ace.require("ace/range").Range.fromPoints({row: row, column: 0}, endPos);
+    return range;
   }
 
 });
@@ -97,13 +163,39 @@ TextTreeMode.addMethods({
 
     commands: {
 
-      "tree.up": {
-        bindKey: "alt-up",
+      "tree.move-to-parent": {
+        bindKey: "alt-left",
         exec: function(ed) {
           var pos = ed.getCursorPosition();
           var r = pos.row;
           var upPos = lively.ide.codeeditor.modes.TextTree.parentItemTextStartPosition(ed.getValue(), r);
           ed.moveCursorTo(upPos.row, upPos.column+1)
+          ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
+        }
+      },
+
+      "tree.move-to-prev-sibling": {
+        bindKey: "alt-up",
+        exec: function(ed) {
+          var treeFuncs = lively.ide.codeeditor.modes.TextTree,
+              pos = ed.getCursorPosition(),
+              siblings = treeFuncs.siblingsWithRowsAndCurrentLine(ed.getValue(), pos.row),
+              prev = siblings.siblings[siblings.index-1],
+              col = treeFuncs.itemTextStartColumn(ed.getValue(), pos.row);
+          ed.moveCursorTo(prev[0], ed.session.getLine(prev[0]).length);
+          ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
+        }
+      },
+
+      "tree.move-to-next-sibling": {
+        bindKey: "alt-down",
+        exec: function(ed) {
+          var treeFuncs = lively.ide.codeeditor.modes.TextTree,
+              pos = ed.getCursorPosition(),
+              siblings = treeFuncs.siblingsWithRowsAndCurrentLine(ed.getValue(), pos.row),
+              prev = siblings.siblings[siblings.index+1],
+              col = treeFuncs.itemTextStartColumn(ed.getValue(), pos.row);
+          ed.moveCursorTo(prev[0], ed.session.getLine(prev[0]).length);
           ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
         }
       },
@@ -124,6 +216,58 @@ TextTreeMode.addMethods({
           var path = lively.ide.codeeditor.modes.TextTree.rootPathFromRow(
             ed.getValue(), ed.getCursorPosition().row);
           lively.ide.openFile(path.join("/"))
+        }
+      },
+
+      "tree.select-subtree": {
+        bindKey: 'alt-space',
+        exec: function (ed, args) {
+          var startPos = ed.getCursorPosition(),
+              subtree = lively.ide.codeeditor.modes.TextTree.subtree(ed.getValue(), startPos.row),
+              range = lively.ide.codeeditor.modes.TextTree.rangeForSubtree(ed, startPos.row+1, subtree);
+          if (range) {
+            range.setStart(startPos.row, 0); // select parent itself
+            ed.selection.setRange(range)
+            ed.centerSelection();
+            ed.pushEmacsMark && ed.pushEmacsMark(startPos, false);
+          }
+        }
+      },
+
+      "tree.select-subtrees-of-siblings": {
+        bindKey: 'alt-shift-space',
+        exec: function (ed, args) {
+          var treeFuncs = lively.ide.codeeditor.modes.TextTree,
+              pos = ed.getCursorPosition(),
+              siblings = treeFuncs.siblingsWithRowsAndCurrentLine(ed.getValue(), pos.row),
+              subtrees = siblings.siblings.map(function(rowAndLine) {
+                return treeFuncs.subtree(ed.getValue(), rowAndLine[0]);
+              }),
+              ranges = siblings.siblings.map(function(rowAndLine, i) {
+                return subtrees[i] ? treeFuncs.rangeForSubtree(ed, rowAndLine[0]+1, subtrees[i]) : null;
+              }).compact();
+          if (!ranges.length) return;
+          ed.selection.clearSelection();
+          ed.moveCursorToPosition(ranges[0].start);
+          ranges.reverse().forEach(function(range) { ed.selection.addRange(range); })
+          ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
+        }
+      },
+
+      "tree.select-siblings": {
+        bindKey: 'ctrl-alt-space',
+        exec: function (ed, args) {
+          var treeFuncs = lively.ide.codeeditor.modes.TextTree,
+              pos = ed.getCursorPosition(),
+              siblings = treeFuncs.siblingsWithRowsAndCurrentLine(ed.getValue(), pos.row),
+              ranges = siblings.siblings.map(function(rowAndLine) {
+                var start = {column: 0, row: rowAndLine[0]};
+                var end = {column: ed.session.getLine(rowAndLine[0]).length, row: rowAndLine[0]};
+                return lively.ide.ace.require("ace/range").Range.fromPoints(start, end);
+              });
+          ed.selection.clearSelection();
+          ranges.reverse().forEach(function(range) { ed.selection.addRange(range); })
+          ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
         }
       }
     },
@@ -148,5 +292,9 @@ TextTreeMode.addMethods({
         return items;
     },
 });
+
+lively.ide.allCodeEditors()
+  .filter(function(ed) { return ed.getTextMode() === "texttree"; })
+  .forEach(function(ed) { ed.setTextMode("text"); ed.setTextMode("texttree"); })
 
 }) // end of module

@@ -1048,29 +1048,39 @@ Object.extend(lively.ide.commands.byName, {
 
     'lively.ide.CommandLineInterface.printDirectory': {
         description: 'Print directory hierarchy',
-        exec: function() {
-            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
-                'choose directory: ',
-                lively.shell.cwd(),
-                function(files) { return files.filterByKey('isDirectory'); },
-                "lively.ide.CommandLineInterface.printDirectory.NarrowingList",
-                [function printIt(dir) {
-                  lively.lang.fun.composeAsync(
-                    function(n) { lively.require('lively.data.DirectoryUpload').toRun(function() { n(); }); },
-                    function(n) {
-                      var excludes = lively.lang.string.format("\\( -iname %s \\) -prune -o",
-                          lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
-                        cmdString = lively.lang.string.format("find %s %s -print",
-                          typeof dir === "string" ? dir : dir.path, excludes);
-                      lively.shell.run(cmdString, {}, n);
-                    },
-                    function(cmd, n) { n(null, cmd.getStdout().split('\n')); }
-                  )(function(err, files) {
-                    if (err) $world.inform("Error printing dir hierarchy of " + dir.path + "\n" + err)
-                    else new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(
-                      files, "Directory hierarchy of " + dir);
-                  })
-                }]);
+        exec: function(opts) {
+            var dir = opts && opts.dir;
+            
+            if (dir) printIt(dir);
+            else {
+              lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+                  'choose directory: ',
+                  lively.shell.cwd(),
+                  function(files) { return files.filterByKey('isDirectory'); },
+                  "lively.ide.CommandLineInterface.printDirectory.NarrowingList",
+                  [printIt]);
+            }
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+            function printIt(dir) {
+              if (!dir) return;
+              lively.lang.fun.composeAsync(
+                function(n) { lively.require('lively.data.DirectoryUpload').toRun(function() { n(); }); },
+                function(n) {
+                  var excludes = lively.lang.string.format("\\( -iname %s \\) -prune -o",
+                      lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname ')),
+                    cmdString = lively.lang.string.format("find %s %s -print",
+                      typeof dir === "string" ? dir : dir.path, excludes);
+                  lively.shell.run(cmdString, {}, n);
+                },
+                function(cmd, n) { n(null, cmd.getStdout().split('\n')); }
+              )(function(err, files) {
+                if (err) $world.inform("Error printing dir hierarchy of " + dir.path + "\n" + err)
+                else new lively.data.DirectoryUpload.Handler().printFileNameListAsTree(
+                  files, "Directory hierarchy of " + dir);
+              })
+            }
         }
     },
 

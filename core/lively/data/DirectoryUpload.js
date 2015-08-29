@@ -38,6 +38,7 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
     },
 
     printFileNameListAsTree: function(files, title) {
+        // files: [{path: STTRING}*]
         var fileSplitter = "/";
         var fileMap = files
             .map(function(ea) { return ea.startsWith(fileSplitter) ? ea.slice(1) : ea; })
@@ -46,13 +47,16 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
                 return fileMap;
             }, {})
 
-        var hier = createHierarchy(fileMap, ".");
+        var hier = createHierarchy(fileMap, "");
         if (hier.children.length === 1) hier = hier.children[0];
-        var printed = Strings.printTree(hier, function(ea) { return ea.name.split(fileSplitter).last(); }, function(ea) { return ea.children; })
+        var printed = fileSplitter + Strings.printTree(hier,
+          function(ea) { return ea.name.split(fileSplitter).compact().last(); },
+          function(ea) { return ea.children; })
         $world.addCodeEditor({
             title: (title || "file listing"),
             content: printed,
-            textMode: 'texttree'
+            textMode: 'texttree',
+            extent: pt(400, 500)
         }).getWindow().comeForward();
 
         function createHierarchy(fileMap, currentPath) {

@@ -205,7 +205,7 @@ TextTreeMode.addMethods({
         exec: function(ed, args) {
           var path = lively.ide.codeeditor.modes.TextTree.rootPathFromRow(
             ed.getValue(), ed.getCursorPosition().row);
-          show(path.join((args && args.join) || "/"));
+          ed.$morph.setStatusMessage(path.join((args && args.join) || "/"));
           lively.ide.ace.require("ace/keyboard/emacs").killRing.add(path.join("/"));
         }
       },
@@ -280,14 +280,18 @@ TextTreeMode.addMethods({
         ed.commands.removeCommands(this.commands);
     },
 
-    morphMenuItems: function(items, editor) {
+    morphMenuItems: function(items, ed) {
         var mode = this;
-        // items.push(['text tree',[
-        //     ['change Clojure runtime environment (Command-e)', function() { mode.commands.changeClojureEnv.exec(editor.aceEditor); }],
-        //     ['interrupt eval (Command-.)', function() { mode.commands.evalInterrupt.exec(editor.aceEditor); }],
-        //     ['pretty print code (Tab)', function() { mode.commands.prettyPrint.exec(editor.aceEditor); }],
-        //     ['print doc for selected expression (Command-?)', function() { mode.commands.printDoc.exec(editor.aceEditor); }]
-        // ]]);
+
+        items.pushAll([
+          ["tree.move-to-parent (alt-left)",                     function() { ed.aceEditor.execCommand("tree.move-to-parent"); }],
+          ["tree.move-to-prev-sibling (alt-up)",                 function() { ed.aceEditor.execCommand("tree.move-to-prev-sibling"); }],
+          ["tree.move-to-next-sibling (alt-down)",               function() { ed.aceEditor.execCommand("tree.move-to-next-sibling"); }],
+          ["tree.path (alt-p)",                                  function() { ed.aceEditor.execCommand("tree.path"); }],
+          ["tree.open-as-file (alt-o)",                          function() { ed.aceEditor.execCommand("tree.open-as-file"); }],
+          ["tree.select-subtree (alt-space)",                    function() { ed.aceEditor.execCommand("tree.select-subtree"); }],
+          ["tree.select-subtrees-of-siblings (alt-shift-space)", function() { ed.aceEditor.execCommand("tree.select-subtrees-of-siblings"); }],
+          ["tree.select-siblings (ctrl-alt-space)",              function() { ed.aceEditor.execCommand("tree.select-siblings"); }]]);
 
         return items;
     },

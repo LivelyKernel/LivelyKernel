@@ -159,7 +159,46 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 exec: this.morphBinding("doInspect"),
                 multiSelectAction: "forEach",
                 readOnly: true
-            }, {
+            },
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            {
+                name: "openEvalResult",
+                multiSelectAction: 'forEach',
+                bindKey: {win: "Alt-o|Ctrl-o", mac: "Command-o|Alt-o"},
+                exec: function(ed, args) {
+                    args = args || {};
+                    var insert = args.insert; // either insert into current editor or open in window
+                    var content = args.content;
+            
+                    lively.lang.fun.composeAsync(triggerExpand)(function(err) { err && console.error(err); })
+            
+                    return true;
+            
+                    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            
+                    function triggerExpand(next) {
+                      var msgMorph = ed.$morph.ensureStatusMessageMorph();
+                      msgMorph = msgMorph && msgMorph.world() ? msgMorph : null;
+                      if (!msgMorph) return next(null, new Error("No statusmorph to expand!"));
+                      if (content) msgMorph.insertion = content;
+                      msgMorph.expand(insert ? ed.$morph : null, ed.$morph.getTextMode());
+                      next(null);
+                    }
+            
+                  }
+            },
+            {
+              name: "insertEvalResult",
+              bindKey: {win: "Alt-i", mac: "Alt-i"},
+              multiSelectAction: "forEach",
+              exec: function(ed) {
+                 ed.execCommand('openEvalResult', {insert: true}); 
+              },
+            },
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            {
                 name: 'togglePrintitAsComment',
                 exec: function(ed, args) {
                   ed.$morph.setPrintItAsComment(!ed.$morph.getPrintItAsComment());

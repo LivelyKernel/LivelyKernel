@@ -1,4 +1,4 @@
-module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles').toRun(function() {
+module('lively.morphic.MorphAddons').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.Widgets', 'lively.morphic.Styles', 'lively.morphic.TextCore').toRun(function() {
 
 /*
  * Extends the default morphic interface with convenience methods, methods that
@@ -1575,102 +1575,229 @@ Trait('lively.morphic.FixedPositioning.MorphTrait', {
     }
 });
 
-Trait('lively.morphic.SetStatusMessageTrait', {
+lively.morphic.Text.subclass("lively.morphic.StatusMessage",
+"properties", {
 
-  ensureStatusMessageMorph: function() {
-    if (this._statusMorph) return this._statusMorph;
+  style: {
+    fontFamily: 'Monaco,monospace',
+    padding: lively.Rectangle.inset(4, 2, 8, 2),
+    borderWidth: 0, borderRadius: 6,
+    fontSize: 10,
+    allowInput: false, selectable: true,
+    clipMode: "auto", whiteSpaceHandling: 'pre'
+  },
 
-    var ext = this.getExtent();
-    var sm = this._statusMorph = new lively.morphic.Text(ext.withY(80).extentAsRectangle());
-    sm.applyStyle({
-      fontFamily: 'Monaco,monospace',
-      padding: lively.Rectangle.inset(4, 2, 8, 2),
-      borderWidth: 0, borderRadius: 6,
-      fontSize: 10,
-      allowInput: false, selectable: true,
-      clipMode: "auto", whiteSpaceHandling: 'pre'
-    });
-    sm.isEpiMorph = true;
-    (function() {
+  isEpiMorph: true
+
+},
+"initializing", {
+
+  initialize: function($super, bounds) {
+    $super(bounds, "");
+    this.createCloseButton();
+    // should "internal" changes in the morph we are showing the message for
+    // (like cursor changes in a text morph) make this message morph disappear?
+    this.enableRemoveOnTargetMorphChange();
+  },
+
+  enableRemoveOnTargetMorphChange: function() {
+    this.removeOnTargetMorphChange = true;
+  },
+  
+  disableRemoveOnTargetMorphChange: function() {
+    this.removeOnTargetMorphChange = false;
+  },
+
+  createCloseButton: function() {
       var closeBtn = new lively.morphic.Button(lively.rect(0,0,18,18), "X");
       closeBtn.name = "closeButton";
-      lively.bindings.connect(closeBtn, 'fire', sm, 'remove');
-      sm.addMorph(closeBtn);
-      sm.addScript(function onMouseMove(evt) {
-        var closeBtn = this.get("closeButton");
-        if (closeBtn.innerBoundsContainsWorldPoint(evt.getPosition())) {
-          closeBtn.bringToFront();
-          closeBtn.focus();
-        }
-      });
-      sm.addScript(function expand() {
-        $world.addCodeEditor({
-          tile: 'message', textMode: "text",
-          content: this.textString.replace(/^expand\n/m, "")
-        }).getWindow().comeForward();
-      });
+      lively.bindings.connect(closeBtn, 'fire', this, 'remove');
+      this.addMorph(closeBtn);
       closeBtn.addScript(function onMouseMove(evt) { this.focus(); });
       closeBtn.addScript(function alignInOwner() {
         var offset = this.owner.showsVerticalScrollBar() ? this.owner.getScrollBarExtent().x + 3 : 2;
         this.align(this.bounds().topRight(), this.owner.innerBounds().topRight().addXY(-offset,2));
       });
       closeBtn.alignInOwner();
-    }).delay(0);
-    return sm;
+  }
+
+},
+"message interface", {
+
+    setMessage: function(forMorph, msg, color) {
+      // setting 'da message
+      this.lastUpdated = Date.now();
+      this.setVisible(false); // to avoid flickering
+      $world.addMorph(this);
+
+      var color = color || Global.Color.white,
+          fill = (color === Global.Color.green
+               || color === Global.Color.red
+               || color === Global.Color.black) ?
+            Global.Color.white :
+            Global.Color.black.lighter();
+
+      this.applyStyle({
+        textColor: color,
+        fill: fill,
+        fixedHeight: false, fixedWidth: false,
+        clipMode: 'visible'
+      });
+
+      if (!Array.isArray(msg)) {
+        msg = [
+          ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
+          ['\n'],
+          [String(msg)]
+        ]
+      }
+
+      this.setRichTextMarkup(msg);
+    },
+
+    ensureOpenFor: function(morph) {
+      if (this.owner) return;
+      this.openInWorld();
+      this.alignAtBottomOf(morph);
+    },
+
+    expand: function(insertionMorph, textMode) {
+      var ctx = lively.PropertyPath("textChunks.0.style.doit.context").get(this);
+      var content = (ctx && ctx.content) || this.insertion || this.textString.replace(/^expand\n?/, "");
+      delete this.insertion;
+
+      if (insertionMorph && insertionMorph.isCodeEditor) {
+        insertionMorph.withAceDo(function(ed) {
+          if (!ed.selection.isEmpty()) ed.selection.clearSelection();
+          ed.insert(content);
+        });
+      } else {
+        $world.addCodeEditor({
+          title: content.slice(0,60).replace(/\n/g, " "),
+          extent: pt(600, 300),
+          content: content,
+          textMode: textMode ? textMode : "text",
+          lineWrapping: true
+        }).getWindow().comeForward();
+      }
+    }
+
+},
+"events", {
+
+  onMouseMove: function(evt) {
+    var closeBtn = this.get("closeButton");
+    if (closeBtn.innerBoundsContainsWorldPoint(evt.getPosition())) {
+      closeBtn.bringToFront();
+      closeBtn.focus();
+    }
+  }
+
+},
+"layouting", {
+
+  alignAtBottomOf: function(forMorph) {
+    if (!this.owner) return;
+    var world = this.world();
+    if (!world) return;
+
+    var ext = forMorph.getExtent(),
+        maxX = ext.x,
+        maxY = Math.max(40, Math.min(ext.y-100, 250));
+
+    this.applyStyle({fixedHeight: false});
+    // this.fit();
+    this.setTextExtent(pt(maxX, 10));
+    this.fitThenDo(function() {
+      this.setVisible(true);
+      this.bringToFront();
+      this.setPosition(forMorph.worldPoint(forMorph.innerBounds().bottomLeft()));
+      var visibleBounds = world.visibleBounds(),
+          bounds = this.bounds(),
+          height = Math.min(bounds.height+3, maxY),
+          overlapY = bounds.top() + height - visibleBounds.bottom();
+      if (overlapY > 0) this.moveBy(pt(0, -overlapY));
+      this.applyStyle({
+        fixedHeight: true, fixedWidth: true,
+        clipMode: {x: 'hidden', y: 'auto'}
+      });
+      this.setExtent(pt(maxX, height));
+      var cb = this.get("closeButton");
+      if (cb) cb.alignInOwner();
+    });
+
+  }
+},
+"removal", {
+
+  onOwnerChanged: function($super, owner) {
+    $super(owner);
+  },
+
+  maybeRemoveAfter: function(delay) {
+    var self = this;
+    if (self._removeTimer) clearTimeout(self._removeTimer);
+    if (typeof delay === "number") {
+      self._removeTimer = setTimeout(function() {
+        self.owner && self.owner.removeStatusMessage();
+      }, 1000*delay);
+    }
+  }
+
+});
+
+Trait('lively.morphic.SetStatusMessageTrait', {
+
+  ensureStatusMessageMorph: function() {
+    return this._statusMorph ?
+      this._statusMorph :
+      this._statusMorph = new lively.morphic.StatusMessage(
+        this.getExtent().withY(80).extentAsRectangle());
+  },
+
+  removeStatusMessage: function() {
+    this._statusMorph && this._statusMorph.owner && this._statusMorph.remove();
+  },
+
+  hideStatusMessage: function () {
+    this.removeStatusMessage();
   },
 
   setStatusMessage: function(msg, color, delay) {
     var world = this.world();
     if (!world) return;
-    var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
-        ext = this.getExtent();
-  
-    sm.bringToFront();
-    // setting 'da message
-    sm.lastUpdated = Date.now();
-    if (!sm.owner) sm.setVisible(false); // to avoid flickering
-    world.addMorph(sm);
-    var color = color || Global.Color.white;
-    var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
-    var ext = this.getExtent(), maxX = ext.x, maxY = Math.max(40, Math.min(ext.y-100, 250));
-    sm.applyStyle({textColor: color, fill: fill, fixedHeight: false, fixedWidth: false, clipMode: 'visible'});
-    if (!Array.isArray(msg)) {
-      msg = [
-        ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
-        ['\n'],
-        [String(msg)]
-      ]
-    }
-    sm.setRichTextMarkup(msg);
-  
-    // aligning
-    sm.setTextExtent(pt(maxX, 10));
-    sm.fitThenDo(function() {
-      sm.setVisible(true);
-      sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
-      var visibleBounds = world.visibleBounds(),
-          bounds = sm.bounds(),
-          height = Math.min(bounds.height+3, maxY),
-          overlapY = bounds.top() + height - visibleBounds.bottom();
-      if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
-      sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
-      sm.setExtent(pt(maxX, height));
-      var cb = sm.get("closeButton");
-      if (cb) cb.alignInOwner();
-    });
+    var self = this,
+        sm = this._statusMorph || this.ensureStatusMessageMorph();
+
+    sm.setMessage(this, msg, color);
+    sm.alignAtBottomOf(this);
 
     (function() {
-      function removeStatusMessage() {
-        sm.remove();
-        // self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
+      sm.maybeRemoveAfter(delay);
+
+      // FIXME how to modularize this?
+      if (self && self.isCodeEditor) {
+        // either remove via timeout or when curs/selection changes occur. Note
+        // that via onOwnerChanged the statusMorph also is removed when the
+        // editors owner is null
+        self.withAceDo(function(ed) {
+          if (ed._livelyStatusMessageRemoverInstalled) return;
+          ed._livelyStatusMessageRemoverInstalled = true;
+          ed.on("changeSelection", function() {
+            if (Date.now() - sm.lastUpdated < 50) return;
+            if (!sm.removeOnTargetMorphChange) return;
+            self.removeStatusMessage();
+          });
+        });
       }
 
-      if (sm._removeTimer) clearTimeout(sm._removeTimer);
-      if (typeof delay === "number") {
-        sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
-      }
     }).delay(0);
+  },
+
+  showError: function (e, offset) {
+      this.setStatusMessage(String(e), Color.red);
   }
+
 });
 
 }) // end of module

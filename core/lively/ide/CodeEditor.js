@@ -55,6 +55,7 @@ lively.morphic.Shapes.External.subclass("lively.morphic.CodeEditorShape",
 
 
 lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
+Trait('lively.morphic.SetStatusMessageTrait'),
 'settings', {
     style: {
         enableGrabbing: false, enableDropping: false,
@@ -1083,9 +1084,14 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
 
     printInspect: function(options) {
         options = options || {};
+        var msgMorph = this._statusMorph;
         this.withAceDo(function(ed) {
-            var obj = this.evalSelection();
-            this.printObject(ed, Objects.inspect(obj, {maxDepth: options.depth || this.printInspectMaxDepth}));
+            if (msgMorph && msgMorph.world()) {
+              ed.execCommand('insertEvalResult');
+            } else {
+              var obj = this.evalSelection();
+              this.printObject(ed, Objects.inspect(obj, {maxDepth: options.depth || this.printInspectMaxDepth}));
+            }
         });
     },
 
@@ -1830,74 +1836,6 @@ lively.morphic.Morph.subclass('lively.morphic.CodeEditor',
           evt && evt.stop();
           return true;
          } else  return $super(evt);
-    }
-},
-'messaging', {
-
-    ensureStatusMessageMorph: Trait('lively.morphic.SetStatusMessageTrait').def.ensureStatusMessageMorph,
-
-    setStatusMessage: function (msg, color, delay) {
-        var world = this.world();
-        if (!world) return;
-        var self = this, sm = this._statusMorph || this.ensureStatusMessageMorph(),
-            ext = this.getExtent();
-      
-        sm.bringToFront();
-        // setting 'da message
-        sm.lastUpdated = Date.now();
-        if (!sm.owner) sm.setVisible(false); // to avoid flickering
-        world.addMorph(sm);
-        var color = color || Global.Color.white;
-        var fill = (color === Global.Color.green || color === Global.Color.red || color === Global.Color.black) ? Global.Color.white : Global.Color.black.lighter()
-        var ext = this.getExtent(), maxX = ext.x, maxY = Math.max(40, Math.min(ext.y-100, 250));
-        sm.applyStyle({textColor: color, fill: fill, fixedHeight: false, fixedWidth: false, clipMode: 'visible'});
-        if (!Array.isArray(msg)) {
-          msg = [
-            ['expand', {color: color, doit: {code: "evt.getTargetMorph().expand();"}}],
-            ['\n'],
-            [String(msg)]
-          ]
-        }
-        sm.setRichTextMarkup(msg);
-      
-        // aligning
-        sm.setTextExtent(pt(maxX, 10));
-        sm.fitThenDo(function() {
-          sm.setVisible(true);
-          sm.setPosition(self.worldPoint(self.innerBounds().bottomLeft()));
-          var visibleBounds = world.visibleBounds(),
-              bounds = sm.bounds(),
-              height = Math.min(bounds.height+3, maxY),
-              overlapY = bounds.top() + height - visibleBounds.bottom();
-          if (overlapY > 0) sm.moveBy(pt(0, -overlapY));
-          sm.applyStyle({fixedHeight: true, fixedWidth: true, clipMode: {x: 'hidden', y: 'auto'}});
-          sm.setExtent(pt(maxX, height));
-          var cb = sm.get("closeButton");
-          if (cb) cb.alignInOwner();
-        });
-
-        // either remove via timeout or when curs/selection changes occur. Note
-        // that via onOwnerChanged the statusMorph also is removed when the
-        // editors owner is null
-        (function() {
-          function removeStatusMessage() {
-            sm.remove();
-            self.withAceDo(function(ed) { ed.off("changeSelection", removeStatusMessage); })
-          }
-
-          if (sm._removeTimer) clearTimeout(sm._removeTimer);
-          if (typeof delay === "number") {
-            sm._removeTimer = setTimeout(removeStatusMessage, 1000*delay)
-          } else {
-            self.withAceDo(function(ed) { ed.once("changeSelection", removeStatusMessage); });
-          }
-        }).delay(0);
-    },
-    hideStatusMessage: function () {
-        if (this._statusMorph && this._statusMorph.owner) this._statusMorph.remove();
-    },
-    showError: function (e, offset) {
-        this.setStatusMessage(String(e), Color.red);
     }
 },
 'text operations', {

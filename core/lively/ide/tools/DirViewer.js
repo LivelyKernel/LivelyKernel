@@ -1029,6 +1029,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         case 'Alt-5': this.execItemAction(fl.selection, 4); break;
         case 'Alt-C': this.changeCwd(); break;
         case 'Alt-S': this.userQueryForSort(); break;
+        case 'Alt-P': this.printDirHierarchy(); break;
         default: wasHandled = false;
     }
 

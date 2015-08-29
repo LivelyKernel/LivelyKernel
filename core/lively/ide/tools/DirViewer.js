@@ -296,6 +296,15 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 _Extent: lively.pt(50.0,18.0),
                 _Position: lively.pt(2,0),
                 className: "lively.morphic.Button",
+                label: "hiera",
+                name: "printDirHieraButton",
+                connectionRebuilder: function connectionRebuilder() {
+                lively.bindings.connect(this, "fire", this.get("DirViewer"), "printDirHierarchy", {});
+            }
+            }, {
+                _Extent: lively.pt(50.0,18.0),
+                _Position: lively.pt(2,0),
+                className: "lively.morphic.Button",
                 label: "add dir",
                 name: "addDirButton",
                 connectionRebuilder: function connectionRebuilder() {
@@ -707,6 +716,13 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "lastFocused", this, "focusChanged", {});
     },
+
+        printDirHierarchy: function printDirHierarchy() {
+          lively.ide.commands.exec(
+            'lively.ide.CommandLineInterface.printDirectory',
+            {dir: this.dirState.path});
+        },
+
         createDirInteractively: function createDirInteractively() {
         var base = this.dirState.path,
             self = this;

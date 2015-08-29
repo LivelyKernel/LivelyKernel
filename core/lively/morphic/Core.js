@@ -812,12 +812,13 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     getMetaTags: function() {
         // append our own metaTags to the class's metaTags
         var allTags = Object.mergePropertyInHierarchy(this, 'metaTags');
-        // ... but make sure each only occurs once
-        var occurrences = {};
-        allTags.forEach(function(each) {
-            occurrences[each.name] = (occurrences[each.name] || 0) + 1});
-        return allTags.select(function(each) {
-            return occurrences[each.name]-- == 1});
+        
+        // ensure only one tag of a type is present
+        return allTags.uniqBy(function(a,b) {
+          if (("name" in a) && ("name" in b) && a == b) return true;
+          if (("property" in a) && ("property" in b) && a == b) return true;
+          return false;
+        });
     },
 
     getLinkTags: function() {

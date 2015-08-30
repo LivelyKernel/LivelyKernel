@@ -267,9 +267,13 @@ guard ^\s*
 	$0
 # Functions.composeAsync
 snippet async
-	Functions.composeAsync(
-		function(${1}next) { ${0:next(null);} }
+	lively.lang.fun.composeAsync(
+		function(${1}n) { ${0:n(null);} }
 	)(${1}function(err) { if (err) show(err); });
+snippet mapasync
+	lively.lang.arr.mapAsyncSeries(
+		function(ea, _, n) { ${0:n(null);} },
+		function(err, results) {});
 # typeof tests
 snippet typef
 	typeof ${1:object} === "function"${0}

@@ -179,8 +179,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         var line = this.getLine();
         if (!line) return;
         var editor = this.get('editor');
-        editor.scrollToRow(line);
-        editor.setCursorPosition(pt(0, line-1));
+        (function() {
+          editor.withAceDo(function(ed) {
+            ed.moveCursorTo(line, 0);
+            ed.centerSelection();
+          });
+        }).delay(0);
     },
     getLocation: function getLocation(asString) {
         var string = this.get('urlText').textString;

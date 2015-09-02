@@ -172,7 +172,7 @@ lively.BuildSpec("lively.morphic.tools.MenuBarEntry", {
     this.fitThenDo(function() {
       this.applyStyle({fixedWidth: true, clipMode: "hidden"});
       this.fixedWidth = true;
-      this.owner.relayout && this.owner.relayout();
+      this.owner && this.owner.relayout && this.owner.relayout();
     }.bind(this));
   },
 

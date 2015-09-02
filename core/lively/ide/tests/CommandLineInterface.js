@@ -553,6 +553,11 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',
 });
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProcess',
+'running', {
+  setUp: function(run) {
+    lively.net.SessionTracker.whenOnline(function() { run(); });
+  }
+},
 'testing', {
     testRunSimpleCommand: function() {
         var cmdString = 'echo 1', result = '',
@@ -652,14 +657,14 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
 
     testCommandsAreRecordedInHistory: function() {
         var t = Date.now(),
-            cmd1 = lively.ide.CommandLineInterface.run('echo 1', {addToHistory: true, }),
+            cmd1 = lively.ide.CommandLineInterface.run('echo 1', {addToHistory: true}),
             cmd2 = lively.ide.CommandLineInterface.run('echo 2', {addToHistory: true, group: 'test'});
             cmd2 = lively.ide.CommandLineInterface.run('echo 3', {addToHistory: false, group: 'test'});
         this.waitFor(function() { return cmd1.getStdout().trim() && cmd2.getStdout().trim(); }, 10, function() {
             var hist = lively.ide.CommandLineInterface.history.getCommands();
             this.assertMatches([
-                {group: null, commandString: "echo 1"},
-                {group: "test", commandString: "echo 2"}], hist);
+                {commandString: "echo 1"},
+                {commandString: "echo 2", group: "test"}], hist);
             this.done();
         })
     }
@@ -687,8 +692,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute',
 'running', {
-    setUp: function($super) {
-        $super();
+    setUp: function(run) {
 
         // 1. Prepare fake nslookup
         var nslookupTable = this.nslookupTable = {};
@@ -698,7 +702,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
                 var addr = cmd.match(/nslookup\s+(.*)$/)[1];
                 var c = new lively.ide.CommandLineInterface.PersistentCommand(cmd, options);
                 Object.extend(c, {_code: 0,_done: true, _stdout: nslookupTable[addr], _stderr: ""});
-                callback(c);
+                callback(null, c);
             } else return shellRun.call(lively.shell, cmd, options, callback);
         };
 
@@ -718,6 +722,8 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
             withTrackerSessionsDo.call(lively.net.tools.Functions, localSess, function(err, trackers) {
                 callback(err, trackers ? trackers.concat(fakeTrackers) : trackers); });
         };
+
+        lively.net.SessionTracker.whenOnline(function() { run(); });
     },
 
     tearDown: function($super) {
@@ -733,7 +739,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
 
     testExecuteRemoteShellCommand: function() {
         this.setMaxWaitDelay(2000);
-        var test = this;
+        var test = this, cmd, err;
 
         // 1. fake domain - ip mapping
         this.nslookupTable['foo.bar.com'] = "Server:		74.207.241.5\n"
@@ -757,10 +763,13 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
         };
 
         // Now run the actual test
-        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(err, cmd) {
-            test.assertEquals(1, cmd.getCode());
-            test.assertEquals("foobar", cmd.getStdout());
-            test.done();
+        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(_err, _cmd) { err = _err; cmd = _cmd; });
+        
+        this.waitFor(function() { return !!err || !!cmd; }, 10, function() {
+          err && this.assert(false, err.stack);
+          this.assertEquals("foobar", cmd.getStdout());
+          this.assertEquals(1, cmd.getCode());
+          this.done();
         });
     }
 

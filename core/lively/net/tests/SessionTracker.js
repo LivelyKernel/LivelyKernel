@@ -118,7 +118,7 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
         this.sut.remoteEval(this.sut.sessionId, expr, function(_result) { result = _result; });
-        this.waitFor(function() { return !!Global.remoteEvalHappened; }, 10, function() {
+        this.waitFor(function() { return !!result; }, 10, function() {
             this.assertMatches({data: {result: '4'}}, result);
             this.assert(Global.remoteEvalHappened, 'remoteEvalHappened no set');
             delete Global.remoteEvalHappened;

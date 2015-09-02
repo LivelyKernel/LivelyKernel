@@ -667,18 +667,19 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
 
     testRunSimpleCommand: function() {
         var cmd = new lively.ide.CommandLineInterface.PersistentCommand('echo 1; sleep 0.5; echo 2', {});
-        var result, listener = { onOut: function(out) { result = out; } };
+        var result, listener = {onOut: function(out) { result = out; }};
         lively.bindings.connect(cmd, 'stdout', listener, 'onOut');
         cmd.start();
-        this.delay(function() {
-            this.assertEquals('1', result.trim());
-        }, 200);
-        this.delay(function() {
+        this.waitFor(function() { return !!result; }, 10, function() {
+          this.assertEquals('1', result.trim());
+          result = null;
+          this.waitFor(function() { return !!result; }, 10, function() {
             this.assertEquals('2', result.trim());
             this.assert(cmd.isDone(), 'cmd is not done!');
             this.assertEquals(0, cmd.getCode(), 'code: ' + cmd.getCode());
             this.done();
-        }, 700);
+          });
+        });
     },
 
     testInterface: function() {

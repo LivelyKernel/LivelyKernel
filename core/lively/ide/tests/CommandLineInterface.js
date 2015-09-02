@@ -655,10 +655,13 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
 'running', {
+    shouldRun: !lively.Config.serverInvokedTest,
+
     setUp: function($super) {
         $super();
         lively.ide.CommandLineInterface.history.setId("cmd-history-" + this.currentSelector);
     },
+
     tearDown: function($super) {
         $super();
         lively.ide.CommandLineInterface.history.clear();
@@ -744,6 +747,8 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute',
 'running', {
+    shouldRun: !lively.Config.serverInvokedTest,
+
     setUp: function(run) {
 
         // 1. Prepare fake nslookup

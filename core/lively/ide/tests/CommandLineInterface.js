@@ -603,6 +603,8 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.AnsiColorParser',
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProcess',
 'running', {
+  shouldRun: !lively.Config.serverInvokedTest,
+
   setUp: function(run) {
     lively.net.SessionTracker.whenOnline(function() { run(); });
   }

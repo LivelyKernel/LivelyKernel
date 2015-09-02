@@ -413,6 +413,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                     sel.selectToPosition(to);
                 }
             }
+            ed.renderer.scrollCursorIntoView();
         });
     },
 
@@ -666,10 +667,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     doBrowseImplementors: function(ed) {
         this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__implementor');
     },
+
     doBrowseSenders: function() {
         this.world().openMethodFinderFor(this.getSelectionOrLineString(), '__sender')
-    },
-
+    }
 
 },
 'event handling', {
@@ -1478,10 +1479,8 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             this.tryBoundEval(this.savedTextString, {range: {start: {index: 0}, end: {index: this.textString.length}}});
         }
     },
-    clear: function() {
-        this.textString = '';
-    },
 
+    clear: function() { this.textString = ''; },
 
     setFontSize: function(size) {
         this.withAceDo(function(ed) { ed.setOption("fontSize", size); });
@@ -1675,6 +1674,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     }
 },
 'morph menu', {
+
     codeEditorMenuItems: function() {
         var editor = this, items = [], self = this, world = this.world(),
             range = this.getSelectionRangeAce(),
@@ -1828,9 +1828,11 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
         return items;
     },
+
     morphMenuItems: function($super) {
         return $super().concat([['CodeEditor...', this.codeEditorMenuItems()]]);
     },
+
     showMorphMenu: function ($super, evt) {
         if (evt && (evt.isRightMouseButtonDown()
          || (evt.isLeftMouseButtonDown() && (UserAgent.isMacOS && evt.isCtrlDown())))) {
@@ -1864,7 +1866,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     }
 
 },
-
 'file access', {
     getTargetFilePath: function() {
         // a codeeditor can target a file. This method figures out if the

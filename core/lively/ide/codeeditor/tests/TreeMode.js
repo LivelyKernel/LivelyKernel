@@ -1,5 +1,5 @@
 /*global describe, it, expect*/
-module('lively.ide.codeeditor.modes.tests.TreeMode').requires('lively.ide.codeeditor.modes.TextTree', 'lively.MochaTests').toRun(function() {
+module('lively.ide.codeeditor.tests.TreeMode').requires('lively.ide.codeeditor.modes.TextTree', 'lively.MochaTests').toRun(function() {
 
 describe("lively.ide.codeeditor.modes.TextTree", function() {
 

@@ -115,10 +115,16 @@ var browserTests = [
 
     // ide / SCB
     "lively.ide.tests.ASTEditingSupport",
+    'lively.ide.tests.BrowserAddonTests',
     "lively.ide.tests.CodeEditor",
+    'lively.ide.tests.CommandLineInterface',
     "lively.ide.codeeditor.tests.JumpChar",
     "lively.ide.codeeditor.tests.TextOverlays",
+    'lively.ide.codeeditor.tests.DiffMode',
+    'lively.ide.codeeditor.tests.TreeMode',
+    'lively.ide.git.tests.Interface',
     "lively.ide.tests.FileParserTests",
+    "lively.ide.tests.FileSystem",
     "lively.ide.tests.ModuleLookup",
     "lively.ide.tests.SCBTests",
     "lively.ide.tests.SyntaxHighlighting",

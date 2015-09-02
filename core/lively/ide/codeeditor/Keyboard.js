@@ -563,25 +563,25 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             }, {
                 name: "selecttolinestart",
                 bindKey: 'Shift-Home|Ctrl-Shift-A',
-                exec: function(ed) { ed.getSelection().selectLineStart(); },
+                exec: function(ed) { ed.getSelection().selectLineStart(); ed.renderer.scrollCursorIntoView(); },
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: "gotolinestart",
                 bindKey: {win: "Home", mac: "Home|Ctrl-A"},
-                exec: function(ed) { ed.navigateLineStart(); },
+                exec: function(ed) { ed.navigateLineStart(); ed.renderer.scrollCursorIntoView(); },
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: "selecttolineend",
                 bindKey: "Shift-End|Ctrl-Shift-E",
-                exec: function(ed) { ed.getSelection().selectLineEnd(); },
+                exec: function(ed) { ed.getSelection().selectLineEnd(); ed.renderer.scrollCursorIntoView(); },
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
                 name: "gotolineend",
                 bindKey: "End|Ctrl-E",
-                exec: function(ed) { ed.navigateLineEnd(); },
+                exec: function(ed) { ed.navigateLineEnd(); ed.renderer.scrollCursorIntoView(); },
                 multiSelectAction: "forEach",
                 readOnly: true
             }, {
@@ -591,6 +591,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     $world.prompt("Enter line number: ", function(input) {
                         var line = parseInt(input);
                         if (!isNaN(line)) editor.gotoLine(line);
+                        editor.renderer.scrollCursorIntoView();
                     }, String(editor.getCursorPositionScreen().row + 1));
                 },
                 readOnly: true
@@ -638,6 +639,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         if (!isEmptyLine(lines[i-1]) && isEmptyLine(lines[i])) break;
                     }
                     ed.selection[ed.emacsMark && ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: pos.row+found, column: 0});
+                    ed.renderer.scrollCursorIntoView();
                 },
                 readOnly: true
             }, {
@@ -653,6 +655,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                         if (!isEmptyLine(lines[i+1]) && isEmptyLine(lines[i])) break;
                     }
                     ed.selection[ed.emacsMark && ed.emacsMark() ? "selectToPosition": "moveToPosition"]({row: found, column: 0});
+                    ed.renderer.scrollCursorIntoView();
                 },
                 readOnly: true
             }, {

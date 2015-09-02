@@ -70,6 +70,7 @@ Object.extend(lively.ide.codeeditor.IyGotoChar, {
                 }
                 var newRange = foundRange.constructor.fromPoints(start, end);
                 sel.setRange(newRange, options.backwards);
+                ed.renderer.scrollCursorIntoView();
             },
             multiSelectAction: 'forEach',
             readOnly: true

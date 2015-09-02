@@ -237,7 +237,8 @@ function getCompletions(evalFunc, string, thenDo) {
           var needsBrackets = !lively.Class.isValidIdentifier(id);
           if (needsBrackets) {
             var pos = ed.getCursorPositionAce();
-            var beforeRange = {start: lively.lang.obj.merge(pos, {column:pos.column-1}), end: pos};
+            var Range = lively.ide.ace.require("ace/range").Range;
+            var beforeRange = Range.fromPoints(lively.lang.obj.merge(pos, {column:pos.column-1}), pos);
             if (ed.getTextRange(beforeRange) === '.') ed.replace(beforeRange, '');
             if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
             completion = '[' +  completion + ']';

@@ -163,6 +163,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             e = this.aceEditor || (this.aceEditor = ace.edit(node)),
             morph = this;
         e.$morph = this;
+        e.$blockScrolling = Infinity; // http://stackoverflow.com/questions/28936479/where-to-set-ace-editor-blockscrolling
         if (!initializedEarlier) {
             e.on('focus', function() { morph._isFocused = true; });
             e.on('blur', function() { morph._isFocused = false; });
@@ -1019,6 +1020,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             if (asComment) string = commentify(string, ed.session.getMode().lineCommentStart);
             ed.onPaste(string);
             if (!suppressSelection) self.extendSelectionRange(-string.length);
+            ed.renderer.scrollCursorIntoView();
         }
 
         function commentify(string, lineCommentStart) {

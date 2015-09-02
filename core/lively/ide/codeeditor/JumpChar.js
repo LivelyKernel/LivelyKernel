@@ -27,6 +27,7 @@ function jumpToOccurence(editor, occ) {
     var method = editor.emacsMark && editor.emacsMark() ?
         'selectToPosition' : 'moveCursorToPosition';
     editor.selection[method](forward(occ));
+    editor.renderer.scrollCursorIntoView();
 }
 
 function visibleRange(editor) {

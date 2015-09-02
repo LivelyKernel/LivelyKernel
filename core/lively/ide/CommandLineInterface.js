@@ -317,7 +317,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 cmd.start();
             }
         })
-        
+
         function getIpAddress(next) {
             lively.shell.run("nslookup " + url, {}, function(err, cmd) {
                 var nsLookupString = cmd.resultString(true);
@@ -326,12 +326,12 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 next(ip ? null : new Error("nslookup failed"), ip);
             });
         }
-        
+
         function getLively2LivelyId(ip, next) {
             lively.net.tools.Functions.withTrackerSessionsDo(sess,
             function(err, trackers) { next(err, ip, trackers); });
         }
-        
+
         function filterTrackerSessions(ip, trackers, next) {
             var sess = trackers.detect(function(sess) { return sess.remoteAddress === ip; });
             next(sess ? null : new Error("Could not find tracker session to run remote shell"), sess);
@@ -432,7 +432,7 @@ Object.extend(lively.ide.CommandLineInterface, {
 
         thenDo = Object.isFunction(options) ? options : thenDo;
         options = !options || Object.isFunction(options) ? {} : options;
-        
+
         // rk 2014-12-18: changed lively.shell.run to take two args (err +
         // cmd). In order to not break old code immediately we will fix things
         // here but make clear that the old usage with one arg is deprecated.
@@ -593,7 +593,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     cwdIsLivelyDir: function() { return !this.rootDirectory || this.cwd() === this.WORKSPACE_LK; },
-    
+
     initWORKSPACE_LK: function(sync) {
       var webR = URL.nodejsBase.withFilename("CommandLineServer/").asWebResource();
       webR.withJSONWhenDone(function(json, status) {
@@ -1397,16 +1397,25 @@ Object.subclass("lively.ide.FilePatchHunk",
             changedLine = this.changedLine,
             origLength = 0,
             changedLength = 0,
-            lines = [], header,
-            copyOp = forReverseApply ? "+" : "-";
+            header, copyOp = forReverseApply ? "+" : "-";
 
-        this.lines.clone().forEach(function(line, i) {
+        var selection = this.lines.reduce(function(akk, line, i) {
+            if (akk.atEnd) return akk;
             i++; // compensate for header
-            if (i < startRow || i > endRow) {
+            if (i < startRow) {
                 switch (line[0]) {
-                    case copyOp: line = ' ' + line.slice(1);
+                    case    '+':
+                    case    '-': origLine = origLine + akk.lines.length;
+                                 changedLine = changedLine + akk.lines.length;
+                                 changedLength = 0; origLength = 0;
+                                 akk.lines = [];
+                                 return akk;
                     case    ' ': changedLength++; origLength++; break;
-                    default    : return;
+                }
+            } else if (i > endRow) {
+                switch (line[0]) {
+                    case    ' ': changedLength++; origLength++; break;
+                    default    : akk.atEnd = true; return akk;
                 }
             } else {
                 switch (line[0]) {
@@ -1421,8 +1430,11 @@ Object.subclass("lively.ide.FilePatchHunk",
                   case '+': line = "-" + line.slice(1); break;
               }
             }
-            lines.push(line);
-        });
+            akk.lines.push(line);
+            return akk;
+        }, {atEnd: false, lines: []});
+
+        var lines = selection.lines;
 
         if (lines.length === 0) return null;
         var fileHeader = "";
@@ -1439,7 +1451,7 @@ Object.subclass("lively.ide.FilePatchHunk",
 
 },
 "accessing", {
-  
+
     changesByLines: function() {
         var self = this;
         var baseLineAdded = this.changedLine;
@@ -1497,7 +1509,7 @@ Object.subclass("lively.ide.FilePatchHunk",
     },
 
     printLines: function(reverse) {
-      return (reverse ? 
+      return (reverse ?
         this.lines.map(function(line) {
           switch (line[0]) {
             case ' ': return line;

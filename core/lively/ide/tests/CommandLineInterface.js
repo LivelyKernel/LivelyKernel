@@ -149,39 +149,22 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         var result, expected;
 
         result = hunk.createPatchStringFromRows(4,6);
-        expected = "@@ -2,4 +2,5 @@\n"
-                 + " hello world\n"
-                 + " this lines is removed\n"
+        expected = "@@ -3,2 +3,3 @@\n"
                  + "+this line as well\n"
                  + " foo bar baz\n"
                  + " har har har";
-        // expected = "@@ -4,2 +4,3 @@\n"
-        //     + "+this line as well\n"
-        //     + " foo bar baz\n"
-        //     + " har har har";
         this.assertEquals(expected, result, 'at end');
-        
+
         result = hunk.createPatchStringFromRows(2,3);
-        expected = "@@ -2,4 +2,4 @@\n"
-                 + " hello world\n"
-                 + "-this lines is removed\n"
-                 + "+this lines is added\n"
-                 + " foo bar baz\n"
-                 + " har har har";
-        // expected = "@@ -3,1 +3,1 @@\n"
-        //     + "-this lines is removed\n"
-        //     + "+this lines is added"
+        expected = "@@ -2,2 +2,2 @@\n"
+                + " hello world\n"
+                + "-this lines is removed\n"
+                + "+this lines is added";
         this.assertEquals(expected, result, 'add and remove');
 
         result = hunk.createPatchStringFromRows(3,3);
-        expected = "@@ -2,4 +2,5 @@\n"
-                 + " hello world\n"
-                 + " this lines is removed\n"
-                 + "+this lines is added\n"
-                 + " foo bar baz\n"
-                 + " har har har";
-        // expected = "@@ -4,0 +4,1 @@\n"
-        //     + "+this lines is added"
+        expected = "@@ -3,0 +3,1 @@\n"
+                + "+this lines is added"
         this.assertEquals(expected, result, 'just add');
 
         result = hunk.createPatchStringFromRows(7,9);
@@ -189,16 +172,10 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         this.assertEquals(expected, result, 'outside');
 
         result = hunk.createPatchStringFromRows(4,9);
-        expected = "@@ -2,4 +2,5 @@\n"
-                 + " hello world\n"
-                 + " this lines is removed\n"
-                 + "+this line as well\n"
-                 + " foo bar baz\n"
-                 + " har har har";
-        // expected = "@@ -4,2 +4,3 @@\n"
-        //     + "+this line as well\n"
-        //     + " foo bar baz\n"
-        //     + " har har har";
+        expected = "@@ -3,2 +3,3 @@\n"
+                + "+this line as well\n"
+                + " foo bar baz\n"
+                + " har har har";
         this.assertEquals(expected, result, 'too long');
     },
     
@@ -207,19 +184,19 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                         + "--- a/test.txt\n"
                         + "+++ b/test.txt\n"
                         + "@@ -2,3 +2,3 @@ Bitcoins are used in a small, open, pure-exchange economy embedded within many\n"
-                        + " of the world's largest, open, production economies. Even with a market\n"
-                        + "-capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-                        + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-                        + " economies such as the U.S. Therefore, sudden and large increases in the user\n"
-                        + "@@ -20,2 +20,3 @@ information does not correspond with the number of lines in the hunk, then the\n"
-                        + " diff could be considered invalid and be rejected. Optionally, the hunk range\n"
+                        + " of the world's largest\n"
+                        + "-capitalization of $2.5 billion\n"
+                        + "+capitalization of $3.5 billion\n"
+                        + " economies such as the U.S.\n"
+                        + "@@ -20,2 +20,3 @@ information does not\n"
+                        + " diff could be considered\n"
                         + "+123\n"
-                        + " can be followed by the heading of the section or function that the hunk is\n"
-                        + "@@ -25,3 +26,3 @@ matching.[8] If a line is modified, it is represented as a deletion and\n"
-                        + " addition. Since the hunks of the original and new file appear in the same\n"
-                        + "-hunk, such changes would appear adjacent to one another.[9] An occurrence of\n"
-                        + "+hunk, foo such changes would appear adjacent to one another.[9] An occurrence of\n"
-                        + " this in the example below is:";
+                        + " can be followed by the heading\n"
+                        + "@@ -25,3 +26,3 @@ matching.[8]\n"
+                        + " addition. Since the hunks\n"
+                        + "-hunk, such changes\n"
+                        + "+hunk, foo such changes\n"
+                        + " this in the";
         var patch = lively.ide.FilePatch.read(patchString);
         var result, expected;
 
@@ -232,10 +209,8 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- a/test.txt\n"
                  + "+++ b/test.txt\n"
-                 + "@@ -2,3 +2,3 @@\n"
-                 + " of the world's largest, open, production economies. Even with a market\n"
-                 + " capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-                 + " economies such as the U.S. Therefore, sudden and large increases in the user\n";
+                 + "@@ -2,1 +2,1 @@\n"
+                 + " of the world's largest\n";
         this.assertEquals(expected, result, "just the hunk header and one context line");
 
         result = patch.createPatchStringFromRows(3,7);
@@ -243,25 +218,23 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
                  + "--- a/test.txt\n"
                  + "+++ b/test.txt\n"
                  + "@@ -2,3 +2,3 @@\n"
-                 + " of the world's largest, open, production economies. Even with a market\n"
-                 + "-capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-                 + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-                 + " economies such as the U.S. Therefore, sudden and large increases in the user\n";
+                 + " of the world's largest\n"
+                 + "-capitalization of $2.5 billion\n"
+                 + "+capitalization of $3.5 billion\n"
+                 + " economies such as the U.S.\n";
         this.assertEquals(expected, result, "first hunk");
 
         result = patch.createPatchStringFromRows(6, 10);
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- a/test.txt\n"
                  + "+++ b/test.txt\n"
-                 + "@@ -2,3 +2,4 @@\n"
-                 + " of the world's largest, open, production economies. Even with a market\n"
-                 + " capitalization of $2.5 billion, the bitcoin economy is dwarfed by $15 trillion\n"
-                 + "+capitalization of $2.5 billion, the bitcoin economy is dwarfed hey by $15 trillion\n"
-                 + " economies such as the U.S. Therefore, sudden and large increases in the user\n"
+                 + "@@ -3,1 +3,2 @@\n"
+                 + "+capitalization of $3.5 billion\n"
+                 + " economies such as the U.S.\n"
                  + "@@ -20,2 +20,3 @@\n"
-                 + " diff could be considered invalid and be rejected. Optionally, the hunk range\n"
+                 + " diff could be considered\n"
                  + "+123\n"
-                 + " can be followed by the heading of the section or function that the hunk is\n";
+                 + " can be followed by the heading\n";
         this.assertEquals(expected, result, "first two hunks overlapping");
     },
 
@@ -284,8 +257,7 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- b/test.txt\n"
                  + "+++ a/test.txt\n"
-                 + "@@ -2,4 +2,2 @@\n"
-                 + " a\n"
+                 + "@@ -3,3 +3,1 @@\n"
                  + "+c\n"
                  + "+d\n"
                  + " e\n"
@@ -308,12 +280,10 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- b/test.txt\n"
                  + "+++ a/test.txt\n"
-                 + "@@ -2,5 +2,3 @@\n"
-                 + " a\n"
+                 + "@@ -3,3 +3,1 @@\n"
                  + "+c\n"
                  + "+d\n"
                  + " e\n"
-                 + " f\n"
         this.assertEquals(expected, result, "2");
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -322,7 +292,6 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
             + "--- a/test.txt\n"
             + "+++ b/test.txt\n"
             + "@@ -2,2 +2,5 @@\n"
-            + " a\n"
             + "+b\n"
             + "+c\n"
             + "+d\n"
@@ -332,11 +301,8 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- b/test.txt\n"
                  + "+++ a/test.txt\n"
-                 + "@@ -2,4 +2,5 @@\n"
-                 + " a\n"
-                 + " b\n"
-                 + "-c\n"
-                 + " d\n"
+                 + "@@ -2,1 +2,2 @@\n"
+                 + "-d\n"
                  + " e\n"
         this.assertEquals(expected, result, "3");
 
@@ -354,10 +320,8 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- b/test.txt\n"
                  + "+++ a/test.txt\n"
-                 + "@@ -2,2 +2,3 @@\n"
-                 + " a\n"
+                 + "@@ -3,0 +3,1 @@\n"
                  + "-b2\n"
-                 + " c\n";
         this.assertEquals(expected, result, "4");
 
         patchString = "diff --git a/test.txt b/test.txt\n"
@@ -375,11 +339,9 @@ TestCase.subclass('lively.ide.tests.CommandLineInterface.Differ',
         expected = "diff --git a/test.txt b/test.txt\n"
                  + "--- b/test.txt\n"
                  + "+++ a/test.txt\n"
-                 + "@@ -2,3 +2,3 @@\n"
-                 + " a\n"
+                 + "@@ -3,1 +3,1 @@\n"
                  + "+c1\n"
                  + "-b2\n"
-                 + " c2\n";
         this.assertEquals(expected, result, "5");
     },
 

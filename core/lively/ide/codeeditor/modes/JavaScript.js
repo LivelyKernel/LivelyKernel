@@ -51,6 +51,7 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
       range[isBackward ? "setStart" : "setEnd"](newPos.row, newPos.column);
       if (!select) range[isBackward ? "setEnd" : "setStart"](newPos.row, newPos.column);
       sel.setRange(range, isBackward);
+      ed.renderer.scrollCursorIntoView();
     }
 
 },

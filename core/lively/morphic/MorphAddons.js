@@ -1756,7 +1756,10 @@ Trait('lively.morphic.SetStatusMessageTrait', {
   },
 
   removeStatusMessage: function() {
-    this._statusMorph && this._statusMorph.owner && this._statusMorph.remove();
+    if (this._statusMorph
+     && this._statusMorph.isVisible()
+     && this._statusMorph.owner)
+       this._statusMorph.remove();
   },
 
   hideStatusMessage: function () {

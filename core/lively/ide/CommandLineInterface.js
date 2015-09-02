@@ -1173,7 +1173,9 @@ Object.subclass("lively.ide.FilePatch",
     read: function(patchString) {
         // simple parser for unified patch format;
         var lines = Strings.lines(patchString),
-            line, hunks = this.hunks = [];
+            line,
+            hunks = this.hunks = [],
+            pathOriginal, pathChanged;
         if (lines[lines.length-1] === '') lines.pop();
 
         // 1: parse header
@@ -1181,26 +1183,23 @@ Object.subclass("lively.ide.FilePatch",
         // directly parse hunks if we see no header.
         if (!lines[0].startsWith("@@")) { // otherwise, no header
             line = lines.shift();
-            this.command = line; line = lines.shift();
-    
-            // line 1 customized, depending on tool like "======" or "index zyx...abc"
-            if (!line.startsWith("---")) line = lines.shift();
-    
-            // lines 2,3 file name removed, file name added
-            var match = line.match(/^---\s*(.*)/);
-    
-            lively.assert(match && match[1], 'patch parser line 2 ' + match);
-            this.pathOriginal = match[1];
-            line = lines.shift();
-    
-            var match = line.match(/^\+\+\+\s*(.*)/);
-            lively.assert(match && match[1], 'patch parser line 3 ' + match);
-            this.pathChanged = match[1];
+            if (!line.startsWith("---")) { // not at hunk header yet...
+              this.command = line;
+              var names = line.split(" ").slice(-2);
+              pathOriginal = this.pathOriginal = names[0];
+              pathChanged = this.pathChanged = names[1];
+              this.fileNameA = names[0].replace(/^a\//, "");
+              this.fileNameB = names[1].replace(/^b\//, "");
+            }
         }
 
         while (lines.length > 0) {
-            hunks.push(lively.ide.FilePatchHunk.read(lines));
+            var hunk = lively.ide.FilePatchHunk.read(lines, pathOriginal, pathChanged);
+            pathOriginal = hunk.pathOriginal;
+            pathChanged = hunk.pathChanged;
+            hunks.push(hunk);
         }
+
         return this;
     }
 },
@@ -1213,14 +1212,12 @@ Object.subclass("lively.ide.FilePatch",
     createPatchStringHeader: function(reverse) {
         var parts = [];
         if (this.command) parts.push(this.command);
-        parts.push('--- ' + (reverse ? this.pathChanged : this.pathOriginal));
-        parts.push('+++ ' + (reverse ? this.pathOriginal : this.pathChanged));
         return parts.join('\n');
     },
 
     createPatchString: function(reverse) {
         return this.createPatchStringHeader(reverse) + '\n'
-             + this.hunks.invoke('createPatchString', reverse).join('\n')
+             + this.hunks.map(function(hunk, i) { return hunk.createPatchString(reverse, i === 0); }).join('\n')
              + "\n"
     },
 
@@ -1229,8 +1226,11 @@ Object.subclass("lively.ide.FilePatch",
             hunkPatches = [];
         startRow = Math.max(startRow, nHeaderLines)-nHeaderLines;
         endRow -= nHeaderLines;
-        var hunkPatches = this.hunks.map(function(hunk) {
-            var patch = hunk.createPatchStringFromRows(startRow, endRow, forReverseApply);
+        var fileInfoIncluded = false;
+        var hunkPatches = this.hunks.map(function(hunk, i) {
+            var patch = hunk.createPatchStringFromRows(
+                  startRow, endRow, forReverseApply, !fileInfoIncluded);
+            fileInfoIncluded = fileInfoIncluded || !!patch;
             startRow -= hunk.length;
             endRow -= hunk.length;
             return patch;
@@ -1243,6 +1243,10 @@ Object.subclass("lively.ide.FilePatch",
 
   changesByLines: function() {
       return this.hunks.invoke("changesByLines").flatten();
+  },
+
+  length: function() {
+    return lively.lang.string.lines(this.createPatchString()).length;
   }
 
 },
@@ -1275,24 +1279,77 @@ Object.subclass("lively.ide.FilePatch",
 });
 
 Object.extend(lively.ide.FilePatch, {
-    read: function(patchString) { return new this().read(patchString); }
+
+    read: function(patchString) { return new this().read(patchString); },
+
+    readAll: function(patchString) {
+      // read a patch string that contains multiple patches to files
+      var patchLines = lively.lang.string.lines(patchString)
+        .reduce(function(patchLines, line) {
+          // A typical patch looks like
+          // diff --git a/foo.js b/foo.js
+          // index eff30c3..49a21ef 100644
+          // --- a/foo.js
+          // +++ b/foo.js
+          // @@ -781,5 +781,5 @@ ...
+          //    a
+          // -  b
+          // +  c
+          // split it at diff ... index
+          var last = patchLines.last();
+          if (!last) patchLines.push([line]);
+          else if (line.match(/^(---|\+\+\+|@@|-|\+| )/)) last.push(line);
+          else if (last.length === 1) {
+            // if we have just read the command the next line is probably an index... that we don't need
+            /*ignore*/
+          }
+          else if (line === "") { /*ignore*/ }
+          else patchLines.push([line]);
+          return patchLines;
+        }, []);
+
+      return patchLines.map(function(ea) {
+        return lively.ide.FilePatch.read(ea.join("\n")); })
+    }
 });
 
 Object.subclass("lively.ide.FilePatchHunk",
 'initialize', {
-    read: function(lines) {
+    read: function(lines, optPathOriginal, optPathChanged) {
+        this.pathOriginal = optPathOriginal || "";
+        this.pathChanged = optPathChanged || "";
+        var length = 0;
+        var line = lines.shift();
+
         // parse header
-        var header = lines.shift(),
-            headerMatch = header.match(/^@@\s*-([0-9]+),?([0-9]*)\s*\+([0-9]+),?([0-9]*)\s*@@/);
-        lively.assert(headerMatch, 'hunk header ' + header);
+        // line 1 customized, depending on tool like "======" or "index zyx...abc"
+        while (!line.startsWith("---") && !line.startsWith("@@")) { line = lines.shift(); }
+
+        // lines 2,3 file name removed, file name added
+        if (line.startsWith("---")) {
+          this.pathOriginal = line.split(" ")[1] || this.pathOriginal;
+          line = lines.shift();
+        }
+        this.fileNameA = this.pathOriginal.replace(/^a\//, "");
+
+        if (line.startsWith("+++")) {
+          this.pathChanged = line.split(" ")[1] || this.pathChanged;
+          line = lines.shift();
+        }
+        this.fileNameB = this.pathChanged.replace(/^b\//, "");
+
+        // position in file, like @@ -781,7 +781,7 @@ ...
+        var headerMatch = line.match(/^@@\s*-([0-9]+),?([0-9]*)\s*\+([0-9]+),?([0-9]*)\s*@@/);
+        lively.assert(headerMatch, 'hunk header ' + line);
         this.header = headerMatch[0];
         this.originalLine = Number(headerMatch[1]);
         this.originalLength = Number(headerMatch[2]);
         this.changedLine = Number(headerMatch[3]);
         this.changedLength = Number(headerMatch[4]);
+
         // parse context/addition/deletions
         this.lines = [];
-        while (lines[0] && !lines[0].match(/^@@/)) {
+        while (lines[0] && lines[0].match(/^[\+\-\s]/)) {
             this.lines.push(lines.shift());
         }
         this.length = this.lines.length + 1; // for header
@@ -1301,11 +1358,12 @@ Object.subclass("lively.ide.FilePatchHunk",
 },
 'patch creation', {
 
-    createPatchString: function(reverse) {
-        return this.printHeader(reverse) + "\n" + this.printLines(reverse);
+    createPatchString: function(reverse, includeOriginalChangedFile) {
+        return this.printHeader(reverse, includeOriginalChangedFile)
+             + "\n" + this.printLines(reverse);
     },
 
-    createPatchStringFromRows: function(startRow, endRow, forReverseApply) {
+    createPatchStringFromRows: function(startRow, endRow, forReverseApply, includeOriginalChangedFile) {
         // this methods takes the diff hunk represented by "this" and produces
         // a new hunk (as a string) that will change only the lines from startRow
         // to endRow. For that it is important to consider whether this patch
@@ -1357,12 +1415,25 @@ Object.subclass("lively.ide.FilePatchHunk",
                     case '+': changedLength++; break;
                 }
             }
+            if (forReverseApply) {
+              switch (line[0]) {
+                  case '-': line = "+" + line.slice(1); break;
+                  case '+': line = "-" + line.slice(1); break;
+              }
+            }
             lines.push(line);
         });
 
         if (lines.length === 0) return null;
-        header = Strings.format('@@ -%s,%s +%s,%s @@',
-            origLine, origLength, changedLine, changedLength);
+        var fileHeader = "";
+        if (includeOriginalChangedFile) {
+          fileHeader = "--- " + (forReverseApply ? this.pathChanged : this.pathOriginal)
+                     + "\n"
+                     + "+++ " + (forReverseApply ? this.pathOriginal : this.pathChanged)
+                     + "\n";
+        }
+        header = Strings.format('%s@@ -%s,%s +%s,%s @@',
+            fileHeader, origLine, origLength, changedLine, changedLength);
         return [header].concat(lines).join('\n');
     }
 
@@ -1395,19 +1466,34 @@ Object.subclass("lively.ide.FilePatchHunk",
         }, {changes: [], current: null});
         if (result.current) result.changes.push(result.current);
         return result.changes;
-    }
+    },
 
+    relativeOffsetToFileLine: function(offset) {
+      // given a line offset into the hunk, to which line no of the patched
+      // file does it translate?
+      return offset <= 0 ? this.changedLine -1 : this.lines.slice(0, offset).reduce(function(lineNo, line) {
+        var c = line[0];
+        return (c === '+' || c === ' ') ? lineNo + 1 : lineNo;
+      }, this.changedLine-2);
+    }
 },
 "printing", {
 
-    printHeader: function(reverse) {
+    printHeader: function(reverse, includeOriginalChangedFile) {
+        var fileHeader = "";
+        if (includeOriginalChangedFile) {
+          fileHeader = "--- " + (reverse ? this.pathChanged : this.pathOriginal)
+                     + "\n"
+                     + "+++ " + (reverse ? this.pathOriginal : this.pathChanged)
+                     + "\n";
+        }
         var sub = reverse ?
           this.changedLine + "," + this.changedLength :
           this.originalLine + "," + this.originalLength;
         var add = reverse ?
           this.originalLine + "," + this.originalLength :
           this.changedLine + "," + this.changedLength
-        return Strings.format("@@ -%s +%s @@", sub, add);
+        return Strings.format("%s@@ -%s +%s @@", fileHeader, sub, add);
     },
 
     printLines: function(reverse) {
@@ -1424,7 +1510,9 @@ Object.subclass("lively.ide.FilePatchHunk",
 });
 
 Object.extend(lively.ide.FilePatchHunk, {
-    read: function(patchString) { return new this().read(patchString); }
+    read: function(patchString, optOriginalPath, optChangedPath) {
+      return new this().read(patchString, optOriginalPath, optChangedPath);
+    }
 });
 
 lively.ide.CommandLineInterface.SpellChecker = {

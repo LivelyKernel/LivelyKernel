@@ -3,15 +3,16 @@ module('lively.net.tests.SessionTracker').requires('lively.TestFramework', 'live
 AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
 'running', {
 
-    setUp: function($super) {
-        $super();
+    setUp: function() {
         this.setMaxWaitDelay(20*1000);
         this.serverURL = URL.create(Config.nodeJSURL+'/SessionTrackerUnitTest/');
+        lively.net.SessionTracker.removeSessionTrackerServer(this.serverURL)
         lively.net.SessionTracker.createSessionTrackerServer(this.serverURL, {inactiveSessionRemovalTime: 1*500});
         this.sut = new lively.net.SessionTrackerConnection({
             sessionTrackerURL: this.serverURL,
             username: 'SessionTrackerTestUser'
         });
+        lively.Config.set('lively2livelyAllowRemoteEval', true);
     },
 
     tearDown: function($super) {
@@ -111,16 +112,18 @@ AsyncTestCase.subclass('lively.net.tests.SessionTracker.Register',
     },
 
     testRemoteEval: function() {
+        var result;
         this.sut.register();
         this.sut.openForRequests();
         Global.remoteEvalHappened = false;
         var expr = 'Global.remoteEvalHappened = true; 1 + 3';
-        this.sut.remoteEval(this.sut.sessionId, expr, function(result) {
+        this.sut.remoteEval(this.sut.sessionId, expr, function(_result) { result = _result; });
+        this.waitFor(function() { return !!Global.remoteEvalHappened; }, 10, function() {
             this.assertMatches({data: {result: '4'}}, result);
             this.assert(Global.remoteEvalHappened, 'remoteEvalHappened no set');
             delete Global.remoteEvalHappened;
             this.done();
-        }.bind(this));
+        })
     },
 
     testCopy: function() {

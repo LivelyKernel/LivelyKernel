@@ -764,7 +764,7 @@ Object.subclass('TestResult', {
             selector: selector,
             err: error,
             toString: function(){ return Strings.format('%s.%s failed: \n\t%s (%s)',
-                className, selector, error.toString(), error.constructor? error.constructor.type : '' )
+                className, selector, error.stack || String(error), error.constructor? error.constructor.type : '' )
             }
         });
     },
@@ -785,7 +785,7 @@ Object.subclass('TestResult', {
             string += ' -- Failed tests: \n';
             this.failed.each(function(ea) {
                 string +=  ea.classname + '.' + ea.selector + '\n   -->'
-                    + ea.err.message +  '\n';
+                    + (ea.err.stack || ea.err.message) +  '\n';
             });
         }
         string += ' -- TestCases timeToRuns: \n';

@@ -284,6 +284,45 @@ Object.extend(lively.ide, {
     diffVersions: function(urlOrPath, versionA, versionB, options, thenDo) { return createDiffer().diffVersions(urlOrPath, versionA, versionB, options, thenDo); },
     diffNonInteractive: function(file, stringA, stringB, thenDo) {
         thenDo(null, JsDiff.createPatch(file, stringA, stringB));
+    },
+    diffNonInteractiveIgnoringWhitespace: function(file, stringA, stringB, thenDo) {
+        // FIXME this is a hack
+        stringA = stringA.replace(/^\s*/gm, "");
+        stringB = stringB.replace(/^\s*/gm, "");
+        return lively.ide.diffNonInteractive(file, stringA, stringB, thenDo);
+    },
+
+    diffNonInteractiveMorphScripts: function(morphA, morphB, options, thenDo) {
+      // options ignoreWhitespace, open
+      if (typeof options === "function") { thenDo = options; options = null; }
+      options = lively.lang.obj.merge({open: true, ignoreWhitespace: false}, options);
+
+      var morphsA = morphA.withAllSubmorphsDo(function(ea) { return ea; });
+      var morphsB = morphB.withAllSubmorphsDo(function(ea) { return ea; });
+      var diffMethod = options.ignoreWhitespace ?
+        "diffNonInteractiveIgnoringWhitespace" : "diffNonInteractive"
+
+      morphsA.zip(morphsB).mapAsyncSeries(
+        function(ab, _, n) {
+          var scriptsA = ab[0].getAllScripts().sortByKey("name").join("\n\n"),
+              scriptsB = ab[1].getAllScripts().sortByKey("name").join("\n\n");
+          
+          if (scriptsA === scriptsB) return n();
+        
+          lively.ide[diffMethod](
+            ab[0] + "vs" + ab[1], scriptsA, scriptsB,
+              function(err, result) {
+                if (options.open) {
+                  $world.addCodeEditor({
+                    title: ab[0] + "vs" + ab[1],
+                    content: result,
+                    textMode: "diff",
+                    extent: pt(600, 500)
+                  }).getWindow().comeForward();
+                }
+                n(null, {morphA: ab[0], morphB: ab[1], diff: result});
+            });
+        }, function(err, results) { thenDo(err, results && results.flatten()); })
     }
 });
 

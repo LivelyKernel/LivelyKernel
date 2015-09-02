@@ -1418,7 +1418,7 @@ Object.extend(lively.ide.commands.byName, {
                 var fn1 = ed1.getTargetFilePath() || 'no file',
                     fn2 = ed2.getTargetFilePath() || 'no file';
                 var fn = fn1 === fn2 ? fn1 : fn1 + ' vs. ' + fn2;
-                lively.ide.diffNonInteractive(fn, ed1.textString, ed2.textString, function(err, diff) {
+                lively.ide.diffNonInteractiveIgnoringWhitespace(fn, ed1.textString, ed2.textString, function(err, diff) {
                     next(err, fn, diff); });
             }
 
@@ -1450,6 +1450,67 @@ Object.extend(lively.ide.commands.byName, {
             // require('lively.ide.tools.Differ').toRun(function() {
             //     lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward();
             // });
+
+            return true;
+        }
+    },
+
+    'lively.morphic.diffMorphScripts': {
+        description: 'diff morph scripts',
+        exec: function(morph1, morph2) {
+
+            var morphs;
+
+            lively.lang.fun.composeAsync(
+                loadRequiredModules,
+                fetchMorphssIfRequired,
+                selectMorph1,
+                selectMorph2,
+                doDiff
+            )();
+
+            function loadRequiredModules(next) {
+                lively.require('lively.ide.tools.Differ').toRun(function() { next(); });
+            }
+
+            function fetchMorphssIfRequired(next) {
+                var world = $world;
+                if (!morph1 || !morph2) morphs = $world.withAllSubmorphsSelect(function(ea) {
+                    return ea.owner === $world || (ea.owner && ea.owner.owner === $world);
+                }).reverse();
+                next(null);
+            }
+
+            function selectMorph1(next) {
+                if (morph1) next(null, morph1);
+                else selectMorph(morphs, next);
+            }
+
+            function selectMorph2(morph1, next) {
+                if (morph2) next(null, morph1, morph2);
+                else selectMorph(morphs.without(morph1), function(err, morph2) {
+                    next(err, morph1, morph2); });
+            }
+
+            function doDiff(m1, m2, next) {
+                lively.ide.diffNonInteractiveMorphScripts(m1, m2, function(err, diff) { next(err); });
+            }
+
+            function selectMorph(morphs, thenDo) {
+                var candidates = morphs.map(function(ea) {
+                    return {isListItem: true, value: ea, string: ea.name || String(ea)};
+                });
+                lively.ide.tools.SelectionNarrowing.getNarrower({
+                    name: 'lively.ide.diffMorphScripts',
+                    setup: function(narrower) { lively.bindings.connect(narrower, 'selection', Global, 'show'); },
+                    input: '',
+                    spec: {
+                        prompt: 'choose editor: ',
+                        candidates: candidates,
+                        actions: [function choose(morph) { thenDo(null, morph); }]
+                    }
+                });
+            }
 
             return true;
         }

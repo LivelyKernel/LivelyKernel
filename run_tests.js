@@ -117,7 +117,9 @@ var browserTests = [
     "lively.ide.tests.ASTEditingSupport",
     'lively.ide.tests.BrowserAddonTests',
     "lively.ide.tests.CodeEditor",
-    'lively.ide.tests.CommandLineInterface',
+    // rk 2015-09-02: travis seems to have issues with maintining the l2l
+    // connection needed for the shell tests and the shell environment itself
+    // 'lively.ide.tests.CommandLineInterface',
     "lively.ide.codeeditor.tests.JumpChar",
     "lively.ide.codeeditor.tests.TextOverlays",
     'lively.ide.codeeditor.tests.DiffMode',

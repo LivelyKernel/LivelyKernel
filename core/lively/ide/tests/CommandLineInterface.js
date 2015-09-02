@@ -726,6 +726,9 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunCommand',
 });
 
 AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.SpellChecker',
+'running', {
+  shouldRun: !lively.Config.serverInvokedTest
+},
 'testing', {
     testCheckWord: function() {
         var suggestions;

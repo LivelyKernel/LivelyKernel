@@ -21610,7 +21610,10 @@ exports.handler.addCommands({
 
             function moveToMark() {
                 var mark = editor.popEmacsMark();
-                mark && editor.moveCursorToPosition(mark);
+                if (mark) {
+                    editor.moveCursorToPosition(mark);
+                    editor.renderer.scrollCursorIntoView();
+                };
             }
 
         },
@@ -21622,16 +21625,14 @@ exports.handler.addCommands({
             var sel = editor.selection;
             if (!args.count && !sel.isEmpty()) { // just invert selection
                 sel.setSelectionRange(sel.getRange(), !sel.isBackwards());
-                return;
-            }
-
-            if (args.count) { // replace mark and point
+            } else if (args.count) { // replace mark and point
                 var pos = {row: sel.lead.row, column: sel.lead.column};
                 sel.clearSelection();
                 sel.moveCursorToPosition(editor.emacsMarkForSelection(pos));
             } else { // create selection to last mark
                 sel.selectToPosition(editor.emacsMarkForSelection());
             }
+            editor.renderer.scrollCursorIntoView();
         },
         readOnly: true,
         handlesCount: true,

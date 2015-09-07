@@ -1305,6 +1305,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                 preventScroll: true
             });
             ed.selection.addRange(foundRange);
+            ed.renderer.scrollCursorIntoView();
         });
     },
 
@@ -1327,6 +1328,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
           sel.setRange(newRange);
           ranges.without(newRange).forEach(function(ea) { sel.addRange(ea, true); });
           ed.centerSelection();
+          ed.renderer.scrollCursorIntoView();
         });
     },
 
@@ -1411,11 +1413,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     set textString(string) {
         string = String(string);
-        if (!this.aceEditor) {
-          this.storedString = string;
-          this.withAceDo(function(ed) { delete this.storedString });
-        }
+        var aceInitialized = !!this.aceEditor;
+        if (!aceInitialized) this.storedString = string;
         this.withAceDo(function(ed) {
+            if (!aceInitialized) delete this.storedString;
             ed.selection.clearSelection();
             var pos = ed.getCursorPosition(),
                 scroll = ed.session.getScrollTop();

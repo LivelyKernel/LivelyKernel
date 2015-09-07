@@ -1298,7 +1298,7 @@ Object.extend(lively.ide.FilePatch, {
           // split it at diff ... index
           var last = patchLines.last();
           if (!last) patchLines.push([line]);
-          else if (line.match(/^(---|\+\+\+|@@|-|\+| )/)) last.push(line);
+          else if (line.match(/^(---|\+\+\+|@@|-|\+|\\| )/)) last.push(line);
           else if (last.length === 1) {
             // if we have just read the command the next line is probably an index... that we don't need
             /*ignore*/
@@ -1349,7 +1349,7 @@ Object.subclass("lively.ide.FilePatchHunk",
 
         // parse context/addition/deletions
         this.lines = [];
-        while (lines[0] && lines[0].match(/^[\+\-\s]/)) {
+        while (lines[0] && lines[0].match(/^[\+\-\s\\]/)) {
             this.lines.push(lines.shift());
         }
         this.length = this.lines.length + 1; // for header

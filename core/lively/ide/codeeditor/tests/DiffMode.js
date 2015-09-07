@@ -3,7 +3,17 @@ module('lively.ide.codeeditor.tests.DiffMode').requires('lively.ide.codeeditor.m
 var git = lively.ide.git.Interface;
 
 AsyncTestCase.subclass('lively.ide.tests.DiffMode.Test',
+'helper', {
+  range: function(rangeString) {
+    var match = rangeString
+      .replace(/^Range:\s*/, "")
+      .match(/\[([0-9]+)\/([0-9]+)\][^\[]*\[([0-9]+)\/([0-9]+)\]/);
+    if (!match) throw new Error("Cannot parse range " + rangeString);
+    return new (ace.require("ace/range").Range)(Number(match[1]), Number(match[2]), Number(match[3]), Number(match[4]));
+  },
+},
 'running', {
+
     setUp: function($super, run) {
         var self = this;
         this.origFileStatus = git.fileStatus;
@@ -51,16 +61,16 @@ AsyncTestCase.subclass('lively.ide.tests.DiffMode.Test',
           content: this.patchString,
           textMode: "diff"
         });
-        
+
         this.editor.withAceDo(function(ed) {
           lively.lang.fun.waitFor(3000,
             function() { return !!ed.commands.commands["lively.ide.git.stageAll"]; },
             run);
         });
-        
+
         this.focusedMorph = lively.morphic.Morph.focusedMorph();
     },
-    
+
     tearDown: function(whenDone) {
       this.editor.getWindow().remove();
       if (this.focusedMorph) this.focusedMorph.focus();
@@ -192,7 +202,7 @@ AsyncTestCase.subclass('lively.ide.tests.DiffMode.Test',
                           + "-b\n"
                           + "+c\n"
                           + " d\n"]
-        }, 
+        },
         {
           exec: "discardSelection",
           selection: {start: {row: 6, column: 0}, end: {row: 7, column: 2}},
@@ -222,12 +232,12 @@ AsyncTestCase.subclass('lively.ide.tests.DiffMode.Test',
             var err, commands;
 
             test.editor.setSelectionRangeAce(data.selection);
-    
+
             test.editor.aceEditor.execCommand("lively.ide.git." + data.exec, {
               dryRun: true,
               thenDo: function(_err, fileObjects, _commands) { err = _err; commands = _commands; }
             });
-    
+
             test.waitFor(function() { return !!err || !!commands; }, 10, function() {
               err && this.assert(false, String(err.stack));
               var expected = data.expectedCommands.map(function(_, i) {
@@ -240,8 +250,43 @@ AsyncTestCase.subclass('lively.ide.tests.DiffMode.Test',
               n(null);
             });
           }, function(err, results) { done = true; });
-        
+
         this.waitFor(function() { return !!done; }, 10, function() { this.done(); });
+    }
+
+});
+
+lively.ide.tests.DiffMode.Test.subclass('lively.ide.tests.DiffMode.NavigatorTest',
+"testing", {
+
+    testFindHunkStartEnd: function() {
+      var r = this.range;
+      var ed = this.editor.aceEditor;
+      var Navigator = lively.ide.codeeditor.modes.Diff.Navigator;
+      var Range = ace.require("ace/range").Range;
+      var result;
+
+      // Null selection
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[0/0] -> [0/0]"));
+      this.assertEqualState(r("[0/0] -> [14/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[11/0] -> [11/0]"));
+      this.assertEqualState(r("[9/0] -> [14/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[4/0] -> [4/0]"));
+      this.assertEqualState(r("[4/0] -> [9/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[4/0] -> [4/0]"));
+      this.assertEqualState(r("[4/0] -> [9/0]"), result);
+
+      // ranges
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[6/0] -> [8/0]"));
+      this.assertEqualState(r("[4/0] -> [9/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[7/2] -> [11/2]"));
+      this.assertEqualState(r("[0/0] -> [14/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[9/0] -> [14/0]"));
+      this.assertEqualState(r("[0/0] -> [14/0]"), result);
+      result = Navigator.findContainingHunkOrPatchRange(ed, r("[15/0] -> [17/0]"));
+      this.assertEqualState(r("[14/0] -> [23/0]"), result);
+      
+      this.done();
     }
 
 });

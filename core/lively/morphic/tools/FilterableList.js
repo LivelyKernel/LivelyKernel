@@ -19,6 +19,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
 }",
     className: "lively.morphic.Box",
     connections: {rendered: {}},
+    doNotSerialize: ["lastFocused"],
     droppingEnabled: false,
     filterState: {
         filterTimeout: 100,

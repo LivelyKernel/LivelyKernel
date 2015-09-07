@@ -819,7 +819,8 @@ lively.morphic.Box.subclass('lively.morphic.Menu',
     paddingLeft: 20,
     isEpiMorph: true,
     isMenu: true,
-    removeOnMouseOut: false
+    removeOnMouseOut: false,
+    doNotSerialize: ["lastFocusedMorph"]
 
 },
 'initializing', {
@@ -3059,18 +3060,12 @@ Object.subclass('lively.morphic.App',
 
 lively.morphic.App.subclass('lively.morphic.AbstractDialog',
 'documentation', {
-
     connections: ['result']
-
 },
 'properties', {
-
     doNotSerialize: ['lastFocusedMorph'],
-
     initialViewExtent: lively.pt(300, 90),
-
     inset: 4
-
 },
 'initializing', {
 

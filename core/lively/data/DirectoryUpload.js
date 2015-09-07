@@ -40,8 +40,15 @@ lively.data.FileUpload.Handler.subclass('lively.data.DirectoryUpload.Handler', {
     printFileNameListAsTree: function(files, title) {
         // files: [{path: STTRING}*]
         var fileSplitter = "/";
+        var doubleSplitterRe = new RegExp(fileSplitter + fileSplitter + "+");
+        var splitterStartRe = new RegExp("^" + fileSplitter);
+        var splitterEndRe = new RegExp(fileSplitter + "\s*$");
         var fileMap = files
-            .map(function(ea) { return ea.startsWith(fileSplitter) ? ea.slice(1) : ea; })
+            .map(function(ea) {
+              return ea.replace(splitterStartRe, "")
+                       .replace(splitterEndRe, "")
+                       .replace(doubleSplitterRe, fileSplitter);
+              })
             .reduce(function(fileMap, file) {
                 lively.PropertyPath(file, fileSplitter).set(fileMap, file, true);
                 return fileMap;

@@ -169,7 +169,8 @@ TextTreeMode.addMethods({
           var pos = ed.getCursorPosition();
           var r = pos.row;
           var upPos = lively.ide.codeeditor.modes.TextTree.parentItemTextStartPosition(ed.getValue(), r);
-          ed.moveCursorTo(upPos.row, upPos.column+1)
+          ed.moveCursorTo(upPos.row, upPos.column+1);
+          ed.renderer.scrollCursorIntoView();
           ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
         }
       },
@@ -183,6 +184,7 @@ TextTreeMode.addMethods({
               prev = siblings.siblings[siblings.index-1],
               col = treeFuncs.itemTextStartColumn(ed.getValue(), pos.row);
           ed.moveCursorTo(prev[0], ed.session.getLine(prev[0]).length);
+          ed.renderer.scrollCursorIntoView();
           ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
         }
       },
@@ -196,6 +198,7 @@ TextTreeMode.addMethods({
               prev = siblings.siblings[siblings.index+1],
               col = treeFuncs.itemTextStartColumn(ed.getValue(), pos.row);
           ed.moveCursorTo(prev[0], ed.session.getLine(prev[0]).length);
+          ed.renderer.scrollCursorIntoView();
           ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
         }
       },

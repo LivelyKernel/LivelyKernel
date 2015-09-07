@@ -24,6 +24,61 @@ Object.extend(lively.ide.commands, {
 
     getKeyboardBindings: function() { return this.defaultBindings; },
 
+    getCommands: function(context) {
+      var platform = UserAgent.isMacOS ? "mac" : "win",
+          commands = getDefaultCommands();
+      context && context.editor && commands.pushAll(getCodeEditorCommands(context.editor));
+      return commands;
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      function getGlobalCommandKeyBindings() {
+        var h = lively.morphic.KeyboardDispatcher.global();
+        return h.getGlobalKeybindings().reduce(function(bindings, ea) {
+          (bindings[ea.name] || (bindings[ea.name] = [])).push(ea.keys);
+          return bindings;
+        }, {});
+      }
+
+      function readableKeys(keys) {
+        return keys.replace(/c-/gi, "Control-")
+                .replace(/m-/gi, "Alt-")
+                .replace(/cmd-/gi, "Command-")
+                .replace(/s-/gi, "Shift-");
+      }
+
+      function getDefaultCommands() {
+          var globalBindings = getGlobalCommandKeyBindings();
+          return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
+              var label = cmd.description || name;
+              if (globalBindings[name]) {
+                label += " (" + readableKeys(globalBindings[name].join(" | ")) + ")";
+              }
+              return {isListItem: true, string: label, value: cmd}
+          });
+      }
+
+      function printBoundKeys(cmd) {
+        if (!cmd.bindKey) return ""
+        if (typeof cmd.bindKey === "string") return "(" + cmd.bindKey + ")";
+        return cmd.bindKey[platform] ? "(" + cmd.bindKey[platform] + ")" : "";
+      }
+
+      function getCodeEditorCommands(codeEditor) {
+          var shortcutMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
+              cmds = shortcutMgr.allCommandsOf(codeEditor),
+              candidates = Properties.forEachOwn(cmds, function(name, cmd) {
+                  return {
+                      isListItem: true,
+                      string: '[text] ' + name + " " + printBoundKeys(cmd),
+                      value: {exec: function(attribute) { cmd.exec(codeEditor.aceEditor); }}
+                  };
+              });
+          return candidates;
+      }
+
+    },
+
     helper: {
         noCodeEditorActive: function() {
             return !lively.ide.commands.helper.codeEditorActive();
@@ -537,41 +592,20 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.commands.execute': {
         description: 'execute command',
         exec: function() {
-            function getDefaultCommands() {
-                return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
-                    var label = cmd.description || name;
-                    return {isListItem: true, string: label, value: cmd}
-                });
-            }
-            function getCodeEditorCommands(codeEditor) {
-                var shortcutMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
-                    cmds = shortcutMgr.allCommandsOf(codeEditor),
-                    candidates = Properties.forEachOwn(cmds, function(name, cmd) {
-                        return {
-                            isListItem: true,
-                            string: '[text] ' + name,
-                            value: {exec: function(attribute) { cmd.exec(codeEditor.aceEditor); }}
-                        };
-                    });
-                return candidates;
-            }
-            function getCommands() {
-                var commands = getDefaultCommands(),
-                    focused = lively.morphic.Morph.focusedMorph();
-                focused.isCodeEditor && commands.pushAll(getCodeEditorCommands(focused));
-                return commands;
-            }
-            lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: 'lively.ide.commands.execute.NarrowingList',
-                spec: {
-                    prompt: 'exec command: ',
-                    candidates: getCommands(),
-                    maxItems: 25,
-                    keepInputOnReactivate: true,
-                    actions: [function(candidate) { candidate.exec(); }]
-                }
-            });
-            return true;
+          var focused = lively.morphic.Morph.focusedMorph(),
+              commands = lively.ide.commands.getCommands(
+                {editor: focused.isCodeEditor && focused});
+          lively.ide.tools.SelectionNarrowing.getNarrower({
+              name: 'lively.ide.commands.execute.NarrowingList',
+              spec: {
+                  prompt: 'exec command: ',
+                  candidates: commands,
+                  maxItems: 25,
+                  keepInputOnReactivate: true,
+                  actions: [function(candidate) { candidate.exec(); }]
+              }
+          });
+          return true;
         }
     },
 

@@ -1243,6 +1243,113 @@ ObjectLinearizerPlugin.subclass('lively.persistence.ExprPlugin', {
     }
 });
 
+ObjectLinearizerPlugin.subclass('lively.persistence.AttributeConnectionGarbageCollectionPlugin', {
+    // Find attribute connection targets that are only referenced by attribute
+    // connections themselves. Here is how it works:
+    // 1. Remember the ids of the target objs while serializing. Also remember the
+    //    ids of a) the attribute connection and b) their varMapping onjs since those reference
+    //    the target object anyway but need to be filtered out later.
+    // 2. After the serialization traverse, run through the registry and create a
+    //    mapping from ref ids to owning object ids.
+    // 3. For each attribute target object figure out if it is referenced by
+    //    other objects except attribute connections (and their internals). If nothing, remove.
+
+
+    initialize: function($super) {
+      this.attributeConnectionClass = lively.bindings && lively.bindings.AttributeConnection;
+
+      this.persistentAttributeConnections = [];
+      this.persistentMetaAttributeConnections = [];
+
+      this.connectionTargetIds = [];
+      // those can be filtered out when we decide to retain the object or not
+      this.metaConnectionIds = [];
+
+      this.disconnectOnDeserializationObjs = [];
+      this.attributeConnectionObjects = [];
+    },
+
+    weakRefsOfConnection: function(persistedConnectionId, persistedConnection) {
+      var ignore = [String(persistedConnectionId)]
+      var serializer = this.getSerializer();
+      ignore.pushAll(
+          serializer.allIdsReferencedBy(persistedConnection)
+            .without(persistedConnection.sourceObj
+              && String(persistedConnection.sourceObj.id)));
+      return ignore.uniq();
+    },
+
+    additionallySerialize: function(original, persistentCopy) {
+      var klassName = persistentCopy && persistentCopy.__LivelyClassName__;
+      if (!this.attributeConnectionClass
+       || !(original instanceof this.attributeConnectionClass)
+       || !original.targetObj
+       || !original.garbageCollect) return;
+      var id = this.getSerializer().getIdFromObject(original);
+      this.persistentAttributeConnections.push(id);
+      if (persistentCopy.dependedBy)
+        this.persistentMetaAttributeConnections.push(id)
+    },
+
+    serializationDone: function(registry, roots) {
+      var serializer = this.getSerializer(),
+          plugin = this;
+
+      // 1. find the ids that belong to attribute connections and the
+      // connection targets
+      var connectionData = plugin.persistentAttributeConnections.reduce(function(data, id) {
+        var persistentCopy = serializer.getRegisteredObjectFromId(id);
+        data.weakRefs.pushAll(plugin.weakRefsOfConnection(id, persistentCopy));
+        data.weakRefs = data.weakRefs.uniq();
+        if (persistentCopy.targetObj)
+          data.targets.pushIfNotIncluded(String(persistentCopy.targetObj.id))
+        return data;
+      }, {targets: [], weakRefs: [this.persistentMetaAttributeConnections]});
+
+      // 2. For each target obj, find all references (as ids) pointing to it
+      var graph = serializer.invertedReferenceGraph(registry);
+      // 3. Those target objs having more than just the attribute connection
+      // stuff pointing to it should be kept. The rest can go.
+      var toBeRemoved = connectionData.targets.filter(function(id) {
+
+        // EXCEPTION: when objects get copied as references we still keep them around
+        var registered = serializer.getRegisteredObjectFromId(id);
+        if (registered && registered.isCopyMorphRef) return false;
+        if (registered.name === "rotation ->setRotation") debugger;
+
+        // return !graph[id].withoutAll(connectionData.weakRefs).length;
+        var weakRefs = connectionData.weakRefs;
+        // if (registered.sourceObj) weakRefs = weakRefs.concat([registered.sourceObj.id]);
+        if (registered.sourceObj) graph[id].remove(registered.sourceObj.id);
+
+        var hull = lively.lang.graph.hull(graph, id, weakRefs);
+        return !hull.length;
+      }, this);
+
+      toBeRemoved.pushAll(this.persistentMetaAttributeConnections);
+
+      return serializer.compactRegistry(registry, toBeRemoved, roots);
+    },
+
+    afterDeserializeObj: function(recreated) {
+      if (!recreated) return;
+      if (recreated.attributeConnections) {
+        this.attributeConnectionObjects.push(recreated);
+      }
+      var klass = lively.bindings && lively.bindings.AttributeConnection;
+      if (!klass || !(recreated instanceof klass) || !!recreated.targetObj) return;
+      this.disconnectOnDeserializationObjs.push(recreated);
+    },
+
+    deserializationDone: function() {
+      this.attributeConnectionObjects.forEach(function(ea) {
+        ea.attributeConnections = ea.attributeConnections.compact();
+      });
+      this.disconnectOnDeserializationObjs.invoke("disconnect");
+    }
+
+});
+
 ObjectLinearizerPlugin.subclass('lively.persistence.TypedArrayPlugin',
 'interface', {
     serializeObj: function(obj) {
@@ -1530,6 +1637,7 @@ Object.extend(lively.persistence, {
     },
 
     pluginsForLively: [
+        // lively.persistence.AttributeConnectionGarbageCollectionPlugin,
         ClosurePlugin,
         StoreAndRestorePlugin,
         lively.persistence.TraitPlugin,
@@ -1543,7 +1651,8 @@ Object.extend(lively.persistence, {
         LayerPlugin,
         lively.persistence.DatePlugin,
         lively.persistence.TypedArrayPlugin,
-        lively.persistence.ExprPlugin]
+        lively.persistence.ExprPlugin,
+    ]
 });
 
 Object.extend(ObjectGraphLinearizer, {

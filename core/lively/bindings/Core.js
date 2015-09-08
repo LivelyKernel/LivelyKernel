@@ -42,7 +42,8 @@ Object.subclass('AttributeConnection',
         if (spec) {
             if (spec.removeAfterUpdate) this.removeAfterUpdate = true;
             if (spec.forceAttributeConnection) this.forceAttributeConnection = true;
-            this.garbageCollect = typeof spec.garbageCollect === "boolean" ? spec.garbageCollect : true;
+            if (spec.hasOwnProperty("garbageCollect"))
+              this.garbageCollect = typeof spec.garbageCollect === "boolean" ? spec.garbageCollect : true;
             // when converter function references objects from its environment
             // we can't serialize it. To fail as early as possible we will
             // serialize the converter / updater already in the setters
@@ -118,6 +119,7 @@ Object.subclass('AttributeConnection',
         if (this.converterString) spec.converter = this.getConverter();
         if (this.removeAfterUpdate) spec.removeAfterUpdate = true;
         if (this.forceAttributeConnection) spec.forceAttributeConnection = true;
+        if (this.hasOwnProperty("garbageCollect")) spec.garbageCollect = this.garbageCollect;
         return spec;
     },
 

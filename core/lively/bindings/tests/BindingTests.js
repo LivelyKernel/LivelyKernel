@@ -556,10 +556,10 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
         var obj = {value: 0}, target1 = {}, target2 = {};
 
         (function update() { return this.value += 1; }).asScriptOf(obj);
-        
+
         lively.bindings.connect(obj, 'update', target1, 'value');
         lively.bindings.connect(obj, 'update', target2, 'value');
-        
+
         (function update() { return this.value += 1; }).asScriptOf(obj);
 
         obj.update();
@@ -897,9 +897,10 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
     test01ObjConnectedToMethodDeserialization: function() {
         var obj1 = {m: function m(arg) { this.b = arg }.asScript()},
             obj2 = {a: 5, ref: obj1};
-        connect(obj2, 'a', obj1, 'm')
+        lively.bindings.connect(obj2, 'a', obj1, 'm')
         obj2.a = 12;
         this.assertEquals(12, obj2.ref.b, 'connection not working');
+
         var jso = lively.persistence.Serializer.serialize(obj2),
             newObj2 = lively.persistence.Serializer.deserialize(jso);
         newObj2.a = 23;
@@ -911,7 +912,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
 TestCase.subclass('lively.bindings.tests.BindingTests.CloneTest', {
     testClone: function() {
         var obj1 = {}, obj2 = {};
-        connect(obj1, 'a', obj2, 'a')
+        lively.bindings.connect(obj1, 'a', obj2, 'a');
         var orig = obj1.attributeConnections[0];
         var clone = orig.clone();
         this.assert(clone.isSimilarConnection(orig));

@@ -19,7 +19,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var obj = {foo: 23};
         var ref = this.sut.register(obj);
         this.assertEquals(23, this.sut.getRegisteredObjectFromId(ref.id).foo);
-        this.sut.cleanup()
+        this.sut.cleanup(this.sut.registry)
         this.assert(!this.sut.getIdFromObject(obj), 'id property not removed from original objects');
     },
     test02RegisterObjectsWithReferences: function() {

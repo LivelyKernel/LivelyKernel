@@ -564,7 +564,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.CopyMorphTests',
     test06KeepReferenceToOtherMorphs: function() {
         var m = new lively.morphic.Morph();
         var m2 = new lively.morphic.Morph();
-        connect(m, 'a', m2, 'b');
+        lively.bindings.connect(m, 'a', m2, 'b');
         m2.addMorph(m);
         this.world.addMorph(m2);
         m.a = 23;

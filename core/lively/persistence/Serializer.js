@@ -287,7 +287,7 @@ Object.subclass('ObjectGraphLinearizer',
         try {
             var start = new Date();
             var ref = this.register(obj);
-            this.letAllPlugins('serializationDone', [this.registry]);
+            this.letAllPlugins('serializationDone', [this.registry, [ref.id]/*roots*/]);
             var simplifiedRegistry = this.simplifyRegistry(this.registry);
             var root = {id: ref.id, registry: simplifiedRegistry};
             this.log('Serializing done in ' + (new Date() - start) + 'ms');

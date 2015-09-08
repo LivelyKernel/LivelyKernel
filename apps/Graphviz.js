@@ -86,13 +86,37 @@ lively.BuildSpec('lively.morphic.SVGViewer', {
             value: 1,
             valueScale: 1,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-            lively.bindings.connect(this, "value", this.get("SVGViewer"), "doZoomBy", {
-                updater: function ($upd, newV, oldV) {
-                    $upd(1+(newV-oldV), this.targetObj.get('clip').innerBounds().center());;
-                }});
-        }
-        },{
+              lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
+              lively.bindings.connect(this, "value", this.get("SVGViewer"), "doZoomBy", {
+                  updater: function ($upd, newV, oldV) {
+                      $upd(1+(newV-oldV), this.targetObj.get('clip').innerBounds().center());;
+                  }});
+            }
+        },
+
+        {
+          _BorderColor: Color.rgb(189,190,192),
+          _BorderRadius: 5,
+          _BorderWidth: 1,
+          _Extent: lively.pt(100.0,20.0),
+          _Position: lively.pt(175.0,8.0),
+          _StyleClassNames: ["Morph", "Button"],
+          className: "lively.morphic.Button",
+          droppingEnabled: false,
+          grabbingEnabled: false,
+          isPressed: true,
+          label: "as morph",
+          name: "asMoprhButton",
+          sourceModule: "lively.morphic.Widgets",
+          connectionRebuilder: function connectionRebuilder() {
+              lively.bindings.connect(this, "fire", this, "doAction", {});
+          },
+          doAction: function doAction() {
+            apps.Graphviz.MorphGraph.openMorphForSVGViewer(this.get("SVGViewer"));
+          }
+      },
+
+      {
             _BorderColor: Color.rgb(95,94,95),
             _BorderWidth: 1,
             _ClipMode: "scroll",
@@ -246,9 +270,9 @@ apps.Graphviz.Renderer = {
             // "graph [ranksep=30];",
             // "layout=sfdp;",
             // "size=67;",
-            // "K=10;",
+            // "K=3;",
             // "ranksep=30;",
-            "overlap=prism;",
+            // "overlap=prism;",
             // "concentrate=true;",
             // "ranksep=1.75;",
             // "overlap=scale;",
@@ -353,6 +377,233 @@ var window = lively.BuildSpec('lively.morphic.SVGViewer').createMorph();
 window.targetMorph.renderSVG(svgString);
 return window;
     },
+}
+
+apps.Graphviz.MorphGraph = {
+  openMorphForSVGViewer: function(svgViewer) {
+
+    var svgMorph = svgViewer.get("svgMorph");
+    var scale = svgMorph.get("SVGViewer").getSVGScale();
+    var svgNode = svgMorph.renderContext().shapeNode.getElementsByTagName("svg")[0];
+    var container = makeContainer();
+    var morphs = graphToMorphs();
+
+    open(container, morphs);
+
+    var worldExtent = $world.getExtent();
+    if (worldExtent.x < container.getExtent().x)
+      $world.setExtent(worldExtent.withX(container.getExtent().x));
+
+    return container;
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function open(container, morphs) {
+      container.removeAllMorphs();
+      morphs.forEach(function(ea) { container.addMorph(ea); });
+      var fullBounds = morphs.invoke("bounds").reduce(function(fullBnds, bnds) { return fullBnds.union(bnds); })
+      container.setExtent(fullBounds.extent());
+      container.openInWorld();
+    }
+
+    function makeContainer() {
+      var container = lively.morphic.Morph.makeRectangle(0,0,100,100);
+      container.openInWorld();
+      container.setClipMode("auto");
+      container.disableDragging()
+      container.disableGrabbing()
+      container.setFill(Color.white);
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      container.addScript(function edges() {
+        return this.submorphs.filterByKey("isEdge");
+      });
+
+      container.addScript(function nodes() {
+        return this.submorphs.filterByKey("isNode");
+      });
+
+      container.addScript(function onMouseMove(evt) {
+        var self = this, pos = evt.getPosition();
+        lively.lang.fun.debounceNamed(this.id + "-highlighEdgesAndNodes", 300,
+          function() { self.highlightEdgesAndNodes(pos); }, true)();
+      });
+
+      container.addScript(function highlightEdgesAndNodes(pos) {
+        var m = this.morphsContainingPoint(pos).without(this).last();
+        var edges = this.edges();
+        var nodes = this.nodes();
+        edges.concat(nodes).without(m).invoke("setHighlight", false);
+
+        if (!m) return;
+
+        var selectedEdges = [];
+
+        if (m.isEdge) { selectedEdges = [m]; }
+        else if (m.isNode) {
+          selectedEdges = edges.filter(function(ea) { return ea.getNodes().from === m; });
+        }
+
+        selectedEdges.forEach(function(edge) {
+          edge.setHighlight(true);
+          var nodes = edge.getNodes();
+          nodes.from.setHighlight(true);
+          nodes.to.setHighlight(true);
+        });
+
+        // var m = this.morphsContainingPoint($world.hands[0].getPosition());
+
+      });
+
+      container.addScript(function onMouseUp(evt) {
+        var m = this.morphsContainingPoint(evt.getPosition()).without(this).last();
+        if (m) m.showHalos();
+      });
+
+      return container;
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    function extractEdge(nodeMorphsByName, element) {
+      var morph = extractElement(element);
+      morph.isEdge = true;
+
+      var fromTo = morph.name.split("->");
+      morph.from = nodeMorphsByName[fromTo[0]];
+      morph.to = nodeMorphsByName[fromTo[0]];
+
+      morph.addScript(function getNodes(bool) {
+        return this.fromTo || (this.fromTo = {from: this.from, to: this.to});
+      });
+
+      var edge = morph.renderContext().shapeNode.getElementsByClassName("edge")[0];
+      var path = edge && edge.getElementsByTagName("path")[0];
+
+      if (path) {
+
+        morph.addScript(function sampledPath() {
+          var edge = this.renderContext().shapeNode.getElementsByClassName("edge")[0],
+              path = edge.getElementsByTagName("path")[0],
+              length = path.getTotalLength(),
+              nSamples = 100,
+              step = length / nSamples,
+              svgTfm = path.ownerSVGElement.getTransformToElement(path),
+              tfm = new lively.morphic.Similitude(svgTfm).inverse(),
+              globalTfm = tfm.preConcatenate(this.getGlobalTransform()),
+              sampled = lively.lang.arr.range(0, length, step).map(function(l) {
+                return lively.Point.ensure(path.getPointAtLength(l))
+                  .matrixTransform(globalTfm);
+          }, this);
+          return sampled;
+        });
+
+        morph.addScript(function sampledRectsAlongPath(width) {
+          return this.sampledPath().map(function(p) {
+            var w2 = width/2;
+            // return lively.rect(p.x - w2, p.y - w2, w2, w2);
+            return lively.rect(p.x-w2, p.y-w2, width, width);
+          });
+        });
+
+        morph.addScript(function innerBoundsContainsPoint(p) {
+          return this.shape.reallyContainsPoint(p);
+        });
+
+        morph.shape.reallyContainsPoint = function(p) {
+          var morph = lively.$(this.renderContext().getMorphNode()).data().morph;
+          var globalP = morph.worldPoint(p);
+          var r = morph.sampledRectsAlongPath(20).detect(function(r) { return r.containsPoint(globalP); })
+          return !!r;
+        };
+      }
+
+      return morph;
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    function extractNode(element) {
+      var morph = extractElement(element);
+      morph.isNode = true;
+
+      morph.addScript(function remove() {
+        if (this.owner && typeof this.owner.edges === "function") {
+          this.owner.edges()
+            .filter(function(edge) { var nodes = edge.getNodes(); return nodes.from === this || nodes.to === this; }, this)
+            .invoke("remove");
+        }
+        $super();
+      });
+
+      return morph;
+    }
+
+    function extractElement(element) {
+      var wrapper = new lively.morphic.HtmlWrapperMorph(pt(100,100));
+      wrapper.setFill(null)
+      var el = typeof element === "string" ? document.getElementById(element) : element;
+      if (!el) { show("no element found for id " + element); return; }
+
+      wrapper.disableDragging()
+      wrapper.disableGrabbing()
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      // transform
+
+      var w = svgNode.getAttribute("width"), h = svgNode.getAttribute("height");
+      var bb = el.getBBox();
+      var bounds = lively.rect(bb.x, bb.y, bb.width, bb.height);
+      var offsetTfm = new lively.morphic.Similitude(bounds.topLeft()).inverse()
+
+      wrapper.setHTML(lively.lang.string.format("<svg width=\"%s\" height=\"%s\"><g transform=\"%s\">%s</g></svg>",
+        bounds.width, bounds.height, offsetTfm.toSVGAttributeValue(), el.outerHTML));
+
+      wrapper.setExtent(bounds.extent());
+
+      var offsetInGraphTfm = new lively.morphic.Similitude(svgNode.getTransformToElement(el))
+        .preConcatenate(offsetTfm).inverse();
+      wrapper.setTransform(offsetInGraphTfm);
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      // graph data
+
+      // var id = el.getAttribute("id");
+      // if (id) wrapper.setName(id);
+
+      var name = el.getElementsByTagName("title")[0].textContent;
+      wrapper.setName(name);
+
+
+      wrapper.addScript(function setHighlight(bool) {
+        var node = this.renderContext().getShapeNode(),
+            ellipse = node.getElementsByTagName("ellipse")[0],
+            path = node.getElementsByTagName("path")[0],
+            node = ellipse || path,
+            attribute = !!ellipse ? "fill" : "stroke",
+            fillColor = bool ? Color.orange : Color.white,
+            strokeColor = bool ? Color.orange : Color.black,
+            color = !!ellipse ? fillColor : strokeColor;
+        node.setAttribute(attribute, color);
+      });
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      return wrapper;
+    }
+
+    function graphToMorphs() {
+      var graphs = lively.lang.arr.from(svgNode.getElementsByClassName("graph"));
+      return lively.lang.arr.flatmap(graphs, function(graph) {
+        var nodes = lively.lang.arr.from(graph.getElementsByClassName("node"));
+        var edges = lively.lang.arr.from(graph.getElementsByClassName("edge"));
+        var nodeMorphs = nodes.map(extractNode);
+        var nodeMorphsByName = nodeMorphs.groupByKey("name").mapGroups(function(_, g) { return g.first(); })
+        var edgeMorphs = edges.map(extractEdge.curry(nodeMorphsByName));
+        return nodeMorphs.concat(edgeMorphs);
+      });
+    }
+
+  },
 }
 
 }); // end of module

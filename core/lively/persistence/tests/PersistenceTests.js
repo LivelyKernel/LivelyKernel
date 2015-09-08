@@ -7,7 +7,6 @@ Object.subclass('lively.persistence.tests.PersistenceTests.SmartRefTestDummy', /
     toString: function() { return 'a ' + this.constructor.name }
 });
 
-
 TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest',
 'running', {
     setUp: function($super) {
@@ -168,7 +167,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         instance1.friend = instance2;
         instance2.specialProperty = 'some string';
 
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var result = this.serializeAndDeserialize(instance1)
 
         this.assertEquals(instance2.specialProperty, result.friend.specialProperty);
@@ -194,7 +193,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var layer = cop.create('TestSerializeLayersLayer');
         instance1.withLayers = [layer];
 
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var result = this.serializeAndDeserialize(instance1)
 
         this.assert(result.withLayers, 'deserialized has no withLayers');
@@ -208,7 +207,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var layer = cop.create('TestSerializeLayersLayer');
         instance1.withoutLayers = [layer];
 
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var result = this.serializeAndDeserialize(instance1)
 
         this.assert(result.withoutLayers, 'deserialized has no withLayers');
@@ -223,7 +222,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
             foo: 23,
             bar: 42,
         };
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var result = this.serializeAndDeserialize(obj);
         this.assert(!result.foo, 'property that was supposed to be ignored was serialized');
         this.assertEquals(42, result.bar, 'property that shouldn\'t be ignored was removed');
@@ -232,7 +231,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         var obj = {
             list: [1, 2, {ignoreMe: true}, 3]
         };
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var filter = new GenericFilter();
         filter.addFilter(function(obj, propName, value) { return value.ignoreMe })
         this.serializer.addPlugin(filter);
@@ -264,7 +263,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assert(!sut.doNotSerialize(obj, 'foo'), 'foo');
     },
     testRaiseErrorWhenClassNotFound: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         try {
             var klass = Object.subclass('Dummy_testDontRaiseErrorWhenClassNotFound', {}),
                 instance = new klass(),
@@ -283,7 +282,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
 
     },
     testRaiseNoErrorWhenClassNotFoundWhenOverridden: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         try {
             var className = 'Dummy_testRaiseNoErrorWhenClassNotFoundWhenOverridden',
                 klass = Object.subclass(className, {}),
@@ -306,21 +305,21 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
 
     },
     testSerializeRegexp: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var obj = {regexp:  /.*/i},
             result = this.serializeAndDeserialize(obj);
         this.assert(result.regexp instanceof RegExp, 'not a regular expression')
         this.assert(result.regexp.test('aab'), 'regular expression not working')
     },
     testSerializeClosure: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var obj = {foo: lively.Closure.fromFunction(function() { return y + 3 }, {y: 2}).recreateFunc()},
             result = this.serializeAndDeserialize(obj);
         this.assert(result.foo, 'function not deserialized')
         this.assertEquals(5, result.foo(), 'closure not working')
     },
     testClosureSerializationWithBoundThis: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var obj = {myName: function myName() { return this.name }.asScript(), name: 'SomeName2'};
         this.assertEquals('SomeName2', obj.myName());
         var copy = this.serializer.copy(obj);
@@ -330,24 +329,24 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assertEquals('SomeName2', obj.myName());
     },
     testSerializeChangeAndSerializeClosure: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var obj = {foo: function() { return 23 }.asScript()};
         var copy = this.serializer.copy(obj);
         this.assertEquals(23, copy.foo());
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         (function() { return 42 }).asScriptOf(obj, 'foo');
         var copy2 = this.serializer.copy(obj);
         this.assertEquals(42, copy2.foo(), 'copy 2 deserialized wrong function');
     },
 
     testSerializeAndDeserializeDate: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var obj = {date: new Date()},
             result = this.serializeAndDeserialize(obj);
         this.assertEquals(String(obj.date), String(result.date), 'date not correctly (de)serialized')
     },
     testDoNotSerializeWeakReferences: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
 
         var obj1 = {n: 1},
             obj2 = {n: 2, o: obj1, doWeakSerialize: ['o']},
@@ -357,7 +356,7 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assert(!obj2Copy.o, "weak ref was serialized");
     },
     testSerializeWeakReferencesWhenRealReferenceIsFound: function() {
-        this.serializer = ObjectGraphLinearizer.forLively();
+        this.serializer = ObjectGraphLinearizer.forNewLively();
 
         var obj1 = {n: 1},
             obj2 = {n: 2, o: obj1, doWeakSerialize: ['o']},
@@ -371,10 +370,10 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
         this.assert(obj2Copy.o !== undefined, "weak ref was not serialized");
     },
     testSerializeDependendConnections: function() {
-        this.serializer = ObjectGraphLinearizer.forLively(); // plugin creation should happen there
+        this.serializer = ObjectGraphLinearizer.forNewLively(); // plugin creation should happen there
         var m1 = new lively.morphic.Morph();
         var m2 = new lively.morphic.Morph();
-        lively.bindings.connect(m1, 'rotation', m2, 'setRotation');
+        lively.bindings.connect(m1, 'rotation', m2, 'setRotation', {garbageCollect: false});
         var oldCount = m1.attributeConnections[0].dependendConnections.length;
         var copy = this.serializer.copy(m1);
         var newCount = copy.attributeConnections[0].dependendConnections.length;
@@ -582,6 +581,48 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
         var obj = {foo: [{arrayWithPoint: [lively.pt(1,2),lively.pt(1,2),lively.pt(1,2),lively.pt(1,2)]}]},
             deserialized = this.sut.deserializeJso(this.sut.serializeToJso(obj));
         this.assertEqualState(obj, deserialized, 'deserialized: ' + Objects.inspect(deserialized));
+    }
+});
+
+lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('lively.persistence.tests.Compaction',
+'running', {
+    setUp: function($super) {
+        $super();
+        // this.sut.addPlugin(new lively.persistence.ExprPlugin());
+    },
+},
+'testing', {
+
+    testDirectCompaction: function() {
+      var objs = [{name: "1"}, {name: "2"}, {name: "3"}, {name: "4"}, {name: "5"}];
+      objs[0].ref = objs[1];
+      objs[1].ref1 = objs[2];
+      objs[1].ref2 = objs[3];
+      objs[2].refs = [objs[3], [objs[4]], objs[0]];
+
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizer(),
+          snapshot = serializer.serializeToJso(objs[0]),
+          compacted;
+
+      // no changes
+      compacted = serializer.compactRegistry(lively.lang.obj.deepCopy(snapshot));
+      this.assertEqualState(snapshot, compacted, "1");
+      this.assertEquals(
+          lively.lang.obj.inspect(objs[0], {maxDepth: 5}),
+          lively.lang.obj.inspect(serializer.deserializeJso(compacted), {maxDepth: 5}));
+
+      // removals
+      compacted = serializer.compactRegistry(lively.lang.obj.deepCopy(snapshot), [2]);
+      this.assertEqualState(["0", "1", "3", "isSimplifiedRegistry"], Object.keys(compacted.registry), "2");
+      this.assertEqualState(
+        {name: "1", ref: {name: "2", ref1: null, ref2: {name: "4"}}},
+        serializer.deserializeJso(compacted), "2 deserialized");
+
+      compacted = serializer.compactRegistry(lively.lang.obj.deepCopy(snapshot), [3]);
+      this.assertEqualState(["0", "1", "2", "4", "isSimplifiedRegistry"], Object.keys(compacted.registry), "3");
+      this.assertEqualState(
+        {name: "1",ref: {name: "2",ref1: null,ref2: null}},
+        serializer.deserializeJso(compacted), "2 deserialized");
     }
 });
 

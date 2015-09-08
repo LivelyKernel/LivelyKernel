@@ -204,16 +204,16 @@ Object.subclass('ObjectGraphLinearizer',
         }
     },
     copyPropertiesAndRegisterReferences: function(source, copy) {
-        for (var key in source) {
-            if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) continue;
+        Object.keys(source).forEach(function(key) {
+            if (!source.hasOwnProperty(key) || (key === this.idProperty && !this.keepIds)) return;
             try {
                 var value = source[key];
-                if (this.somePlugin('ignoreProp', [source, key, value, copy])) continue;
+                if (this.somePlugin('ignoreProp', [source, key, value, copy])) return;
                 copy[key] = this.registerWithPath(value, key);
             } catch(e) {
                 console.error('Serialization error: %s\n%s', e, e.stack);
             }
-        }
+        }, this);
     },
     copyObjectAndRegisterReferences: function(obj) {
         if (this.copyDepth > this.defaultCopyDepth) {
@@ -248,14 +248,14 @@ Object.subclass('ObjectGraphLinearizer',
         }
         recreated = this.somePlugin('deserializeObj', [registeredObj]) || {};
         this.setRecreatedObject(recreated, id); // important to set recreated before patching refs!
-        for (var key in registeredObj) {
+        Object.keys(registeredObj).forEach(function(key) {
             var value = registeredObj[key];
-            if (this.somePlugin('ignorePropDeserialization', [registeredObj, key, value])) continue;
+            if (this.somePlugin('ignorePropDeserialization', [registeredObj, key, value])) return;
             this.path.push(key); // for debugging
             recreated[key] = this.patchObj(value);
             this.path.pop();
-        };
-        this.letAllPlugins('afterDeserializeObj', [recreated, registeredObj]);
+        }, this);
+        this.letAllPlugins('afterDeserializeObj', [recreated, registeredObj, id]);
         return recreated;
     },
     patchObj: function(obj) {
@@ -351,6 +351,54 @@ Object.subclass('ObjectGraphLinearizer',
         if (!rawCopy) throw new Error('Cannot copy ' + obj)
         return this.deserializeJso(rawCopy);
     },
+},
+'compaction', {
+
+    compactRegistry: function(registry, objectsToRemove, roots) {
+      // kind of a garbage collection on an existing registry object
+      // objectsToRemove and roots are optional
+      // Take registry, optionally remove objectsToRemove and then repeatedly
+      // remove those objects that aren't referenced anymore
+
+      var simplifiedRegistry = registry.registry ? registry : null;
+      registry = this.createRealRegistry(registry.registry || registry);
+      var invertedReferenceGraph = this.invertedReferenceGraph(registry);
+      roots = (roots || []).map(String);
+      if (simplifiedRegistry) roots.pushIfNotIncluded(String(simplifiedRegistry.id));
+      objectsToRemove = (objectsToRemove || []).map(String).withoutAll(roots);
+      var removed = {};
+
+      // show("Compacting registry, removing %s", objectsToRemove.map(function(id) {
+      //   return id + " " + JSON.stringify(registry[id].registeredObject)
+      // }).join("\n"));
+
+      do {
+        // removal
+        objectsToRemove.forEach(function(removeId) {
+          removed[removeId] = registry[removeId];
+          delete registry[removeId];
+          delete invertedReferenceGraph[removeId];
+        });
+
+        // figure out what objects aren't referenced anymore...
+        var toBeRemoved = [];
+        for (var id in invertedReferenceGraph) {
+          if (invertedReferenceGraph[id])
+            invertedReferenceGraph[id] = invertedReferenceGraph[id].withoutAll(objectsToRemove);
+          if (!invertedReferenceGraph[id] || !invertedReferenceGraph[id].length)
+            toBeRemoved.push(id);
+        }
+
+        // ...and remove those next
+        objectsToRemove = toBeRemoved.withoutAll(roots);
+      } while(objectsToRemove.length);
+
+      this.cleanup(removed);
+
+      return simplifiedRegistry ?
+        {id: simplifiedRegistry.id, registry: this.simplifyRegistry(registry)} :
+        registry;
+    }
 },
 'debugging', {
     log: function(msg) {

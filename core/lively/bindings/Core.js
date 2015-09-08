@@ -25,7 +25,8 @@ module('lively.bindings.Core').requires().toRun(function() {
 
 Object.subclass('AttributeConnection',
 'settings', {
-    doNotSerialize: ['isActive', 'converter', 'updater']
+    doNotSerialize: ['isActive', 'converter', 'updater'],
+    garbageCollect: true
 },
 'initializing', {
 
@@ -41,6 +42,7 @@ Object.subclass('AttributeConnection',
         if (spec) {
             if (spec.removeAfterUpdate) this.removeAfterUpdate = true;
             if (spec.forceAttributeConnection) this.forceAttributeConnection = true;
+            this.garbageCollect = typeof spec.garbageCollect === "boolean" ? spec.garbageCollect : true;
             // when converter function references objects from its environment
             // we can't serialize it. To fail as early as possible we will
             // serialize the converter / updater already in the setters
@@ -490,8 +492,7 @@ Object.extend(AttributeConnection, {
 AttributeConnection.addMethods('serialization', {
     onrestore: function() {
         try {
-            if (!this.sourceObj) { throw new Error("Restoring AttributeConnection, but lost its source."); }
-            this.connect();
+            if (this.targetObj && this.sourceObj) this.connect();
         } catch(e) {
             dbgOn(true);
             console.error('AttributeConnection>>onrestore: Cannot restore ' + this + '\n' + e);

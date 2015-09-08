@@ -412,6 +412,7 @@ Object.subclass('ObjectGraphLinearizer',
 
 Object.extend(ObjectGraphLinearizer, {
     forLively: function() {
+        throw new Error("Deprecated");
         return this.withPlugins([
             new DEPRECATEDScriptFilter(),
             new ClosurePlugin(),

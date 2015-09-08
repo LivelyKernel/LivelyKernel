@@ -25,11 +25,13 @@ Object.subclass('ObjectGraphLinearizer',
         // (de)serialized
         this.objStack = [];
     },
-    cleanup: function() {
+
+    cleanup: function(registry) {
         // remove ids from all original objects and the original objects as
         // well as any recreated objects
-        for (var id in this.registry) {
-            var entry = this.registry[id];
+        for (var id in registry) {
+            var entry = registry[id];
+            if (!entry) continue;
             if (!this.keepIds && entry.originalObject)
                 delete entry.originalObject[this.idProperty]
             if (!this.keepIds && entry.recreatedObject)
@@ -53,7 +55,8 @@ Object.subclass('ObjectGraphLinearizer',
     escapedCDATAEnd: '<=CDATAEND=>',
     CDATAEnd: '\]\]\>',
 
-    newId: function() {    return this.idCounter++ },
+    newId: function() { return String(this.idCounter++); },
+
     getIdFromObject: function(obj) {
         return obj.hasOwnProperty(this.idProperty) ? obj[this.idProperty] : undefined;
     },
@@ -76,6 +79,43 @@ Object.subclass('ObjectGraphLinearizer',
     getRefFromId: function(id) {
         return this.registry[id] && this.registry[id].ref;
     },
+
+    allIdsReferencedBy: function(registeredObject) {
+      var vals = Object.isArray(registeredObject) ?
+        registeredObject : Object.values(registeredObject);
+      return lively.lang.arr.flatmap(vals, function(ref) {
+          if (this.isReference(ref)) return [String(ref.id)];
+          if (Object.isArray(ref)) return this.allIdsReferencedBy(ref);
+          return [];
+      }, this).uniq();
+    },
+
+    referenceGraph: function(registry) {
+      // creates a mapping ID -> [ID], key - owning object, val - all ids of
+      // objects referenced by it
+      var formerRegistry = this.registry;
+      registry = this.registry = this.createRealRegistry(registry);
+      var refs = {};
+      for (var id in registry) {
+        refs[id] = this.allIdsReferencedBy(registry[id].registeredObject);
+      }
+      this.registry = formerRegistry;
+      return refs;
+    },
+
+    invertedReferenceGraph: function(registry) {
+      // creates a mapping ID -> [ID], key - an object in the registry, val -
+      // all ids pointing to it
+      // Useful for reference counting and garbage collection
+      var graph = this.referenceGraph(registry), refs = {};
+      for (var owningObjId in graph) {
+        refs = graph[owningObjId].reduce(function(refs, id) {
+          (refs[id] || (refs[id] = [])).pushIfNotIncluded(owningObjId);
+          return refs;
+        }, refs);
+      }
+      return refs;
+    }
 },
 'plugins', {
     addPlugin: function(plugin) {
@@ -138,6 +178,11 @@ Object.subclass('ObjectGraphLinearizer',
     },
     addIdAndAddToRegistryIfNecessary: function(obj) {
         var id = this.getIdFromObject(obj);
+        if (this.registry[id] && this.registry[id].originalObject && this.registry[id].originalObject !== obj) {
+          // This only happens when something went wrong while serializing and
+          // the registry + registeredObjects weren't cleaned up...
+          id = undefined;
+        }
         if (id === undefined) id = this.addIdToObject(obj);
         if (!this.registry[id]) this.addNewRegistryEntry(id, obj)
         return id
@@ -251,7 +296,7 @@ Object.subclass('ObjectGraphLinearizer',
             this.log('Cannot serialize ' + obj + ' because ' + e + '\n' + e.stack);
             return null;
         } finally {
-            this.cleanup();
+            this.cleanup(this.registry);
         }
     },
     simplifyRegistry: function(registry) {
@@ -284,7 +329,7 @@ Object.subclass('ObjectGraphLinearizer',
         this.registry = this.createRealRegistry(jsoObj.registry);
         var result = this.recreateFromId(id);
         this.letAllPlugins('deserializationDone', [jsoObj]);
-        this.cleanup();
+        this.cleanup(this.registry);
         this.log('Deserializing done in ' + (new Date() - start) + 'ms');
         return result;
     },
@@ -295,6 +340,7 @@ Object.subclass('ObjectGraphLinearizer',
         if (!registry.isSimplifiedRegistry) return registry;
         var realRegistry = {};
         for (var id in registry)
+          if (id !== 'isSimplifiedRegistry')
             realRegistry[id] = this.createRegistryEntry(null, registry[id], id);
         return realRegistry;
     },

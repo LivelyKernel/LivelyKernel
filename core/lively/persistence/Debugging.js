@@ -23,6 +23,82 @@
 
 module('lively.persistence.Debugging').requires().toRun(function() {
 
+Object.extend(lively.persistence.Debugging, {
+
+  svgGrawGraph: function(graphMap, snapshot, inverse, idsToHighlight) {
+
+    require("apps.Graphviz").toRun(function() { drawGraph(graphMap, snapshot, idsToHighlight); })
+
+    function drawGraph(graphMap, snapshot, idsToHighlight) {
+      var dotLines = lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
+        return lively.lang.arr.flatmap(graphMap[id] || [], function(id2) {
+          var lines = [];
+          var from = inverse ? id2 : id;
+          var to = inverse ? id : id2;
+          lines.push(lively.lang.string.format("%s -> %s", graphName(from, snapshot), graphName(to, snapshot)));
+          return lines;
+        });
+      }).uniq();
+
+      dotLines.pushAll((idsToHighlight || []).map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }))
+
+      var svgGraphWindow = apps.Graphviz.Renderer.render({
+          asWindow: true,
+          createNodesAndEdges: function() { return dotLines; }
+      }).openInWorldCenter();
+
+      return svgGraphWindow;
+    }
+
+    function createDotFile(graphMap, snapshot) {
+      var dotLines = lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
+        return (graphMap[id] || []).map(function(id2) { return graphName(id, snapshot) + " -> " + graphName(id2, snapshot); });
+      }).uniq();
+      var dotContent = "digraph G {\n" + dotLines.join("\n") + "}\n";
+
+      lively.lang.fun.composeAsync(
+        function(n) {
+          lively.shell.writeFile("/Users/robert/Lively/LivelyKernel/test.dot", dotContent, function(err, cmd) { n(); });
+        }
+        // function(n) {
+        //   lively.shell.run("dot test.dot -Tpng -o test.png;", n);
+        // }
+      )(function(err) { show(err ? String(err) : "done"); });
+    }
+
+    function graphName(id, snapshot) {
+      var className = snapshot.registry[id][ClassPlugin.prototype.classNameProperty];
+      return '"' + id + ":" + (className || "obj") + '"';
+    }
+
+  },
+
+  svgGraphForSerializedObjectGraph: function(snapshot, inverse, idsToHighlight) {
+    var serializer = lively.persistence.Serializer.createObjectGraphLinearizer()
+    serializer.registry = serializer.createRealRegistry(snapshot.registry);
+    var graph = serializer.invertedReferenceGraph(snapshot.registry);
+    var graphMethod = inverse ? "invertedReferenceGraph" : "referenceGraph";
+    var graph = serializer[graphMethod](snapshot.registry);
+    this.svgGrawGraph(graph, snapshot, inverse, idsToHighlight)
+  },
+
+  svgGraphForWorld: function(url, inverse, idsToHighlight) {
+    var html=new URL("http://localhost:9001/blank.html").asWebResource().get().content;
+    var roughly = html.slice(html.indexOf('"text/x-lively-world"')+6, html.lastIndexOf("</script>"))
+    var json = roughly.slice(roughly.indexOf('{'))
+    var jso = JSON.parse(json);
+    this.svgGraphForSerializedObjectGraph(jso, inverse, idsToHighlight);
+  },
+
+  svgGraphForPart: function(partName, partCategory, inverse, idsToHighlight) {
+    var url = lively.PartsBin.getPartItem(partName, partCategory).getFileURL();
+    var json = url.asWebResource().get().content;
+    var jso = JSON.parse(json);
+    this.svgGraphForSerializedObjectGraph(jso, inverse, idsToHighlight);
+  }
+
+});
+
 ObjectGraphLinearizer.addMethods(
 'debugging', {
     serializedPropertiesOfId: function(id) {
@@ -257,7 +333,7 @@ Object.subclass('lively.persistence.Debugging.Helper',
             toString: function() {
                 var classItems = this.sortedEntries().collect(function(tuple) {
                         return [Numbers.humanReadableByteSize(tuple.bytes),
-                            tuple.count, 
+                            tuple.count,
                             Numbers.humanReadableByteSize(tuple.bytes / tuple.count),
                             tuple.name];
                     }, this);

@@ -26,16 +26,27 @@ module('lively.persistence.Debugging').requires().toRun(function() {
 Object.extend(lively.persistence.Debugging, {
 
   svgGrawGraph: function(graphMap, snapshot, options) {
-    options = lively.lang.obj.merge({asWindow: true, idsToHighlight: [], inverse: true}, options);
+    options = lively.lang.obj.merge({
+      asWindow: true,
+      idsToHighlight: [],
+      inverse: true,
+      convertNodesAndEdgesToMorphs: false,
+      graphSettings: [],
+      labelWithReferencePaths: true
+    }, options);
 
     if (!module("apps.Graphviz").isLoaded()) module("apps.Graphviz").load(true);
 
-    return drawGraph(graphMap, snapshot, options.idsToHighlight);
+    var lines = options.labelWithReferencePaths ?
+      createDotLinesForEachRefPath(graphMap, snapshot) :
+      createDotLinesSimple(graphMap, snapshot);
+
+    return drawGraph(lines, options.idsToHighlight);
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-    function drawGraph(graphMap, snapshot) {
-      var dotLines = lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
+    function createDotLinesSimple(graphMap, snapshot) {
+      return lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
         return lively.lang.arr.flatmap(graphMap[id] || [], function(id2) {
           var lines = [];
           var from = options.inverse ? id2 : id;
@@ -43,9 +54,31 @@ Object.extend(lively.persistence.Debugging, {
           lines.push(lively.lang.string.format("%s -> %s", graphName(from, snapshot), graphName(to, snapshot)));
           return lines;
         });
-      }).uniq();
+      }).uniq().concat((options.idsToHighlight || []).map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }));
+    }
 
-      dotLines.pushAll(options.idsToHighlight.map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }))
+    function createDotLinesForEachRefPath(graphMap, snapshot) {
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizer();
+      var refGraph = serializer.referenceGraphWithPaths(snapshot.registry || snapshot);
+
+      return lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
+        return lively.lang.arr.flatmap(graphMap[id] || [], function(id2) {
+          var lines = [];
+          var from = options.inverse ? id2 : id;
+          var to = options.inverse ? id : id2;
+          var paths = refGraph[from][to] || [];
+          paths.forEach(function(path) {
+            lines.push(lively.lang.string.format("%s -> %s [label=%s]",
+              graphName(from, snapshot), graphName(to, snapshot),
+              labelName(from, to, path)));
+          })
+          return lines;
+        });
+      }).uniq().concat((options.idsToHighlight || []).map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }));
+    }
+
+    function drawGraph(dotLines) {
+      
 
       options = lively.lang.obj.merge(options, {createNodesAndEdges: function() { return dotLines; }});
       var svgGraph = apps.Graphviz.Renderer.render(options).openInWorld().comeForward();
@@ -53,10 +86,7 @@ Object.extend(lively.persistence.Debugging, {
       return svgGraph;
     }
 
-    function createDotFile(graphMap, snapshot) {
-      var dotLines = lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
-        return (graphMap[id] || []).map(function(id2) { return graphName(id, snapshot) + " -> " + graphName(id2, snapshot); });
-      }).uniq();
+    function createDotFile(dotLines) {
       var dotContent = "digraph G {\n" + dotLines.join("\n") + "}\n";
 
       lively.lang.fun.composeAsync(
@@ -76,6 +106,12 @@ Object.extend(lively.persistence.Debugging, {
       else if (obj[ClassPlugin.prototype.classNameProperty])
         name = obj[ClassPlugin.prototype.classNameProperty]
       return lively.lang.string.format('"%s:%s"', id, name);
+    }
+
+    function labelName(fromId, toId, path) {
+      return '"' + path.reduce(function(pathString, part) {
+        return pathString + (typeof part === "number" ? "[" + part + "]" : "." + part);
+      }, "") + '"';
     }
 
   },

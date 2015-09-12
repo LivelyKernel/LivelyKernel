@@ -69,8 +69,9 @@ lively.data.FileUpload.Handler.subclass('lively.Clipboard.ImageUploader', {
     },
 
     openImage: function(url, mime, pos, optName) {
-        var name = optName || new URL(url).filename(),
-            img = new lively.morphic.Image(pos.extent(pt(200,200)), url, true).openInWorld();
+        var name = optName;
+        if (!name) try { name = new URL(url).filename() } catch (e) { name = "image"; }
+        var img = new lively.morphic.Image(pos.extent(pt(200,200)), url, true).openInWorld();
         img.name = name;
     }
 });

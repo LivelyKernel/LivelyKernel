@@ -25,29 +25,32 @@ module('lively.persistence.Debugging').requires().toRun(function() {
 
 Object.extend(lively.persistence.Debugging, {
 
-  svgGrawGraph: function(graphMap, snapshot, inverse, idsToHighlight) {
+  svgGrawGraph: function(graphMap, snapshot, options) {
+    options = lively.lang.obj.merge({asWindow: true, idsToHighlight: [], inverse: true}, options);
 
-    require("apps.Graphviz").toRun(function() { drawGraph(graphMap, snapshot, idsToHighlight); })
+    if (!module("apps.Graphviz").isLoaded()) module("apps.Graphviz").load(true);
 
-    function drawGraph(graphMap, snapshot, idsToHighlight) {
+    return drawGraph(graphMap, snapshot, options.idsToHighlight);
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function drawGraph(graphMap, snapshot) {
       var dotLines = lively.lang.arr.flatmap(Object.keys(graphMap), function(id) {
         return lively.lang.arr.flatmap(graphMap[id] || [], function(id2) {
           var lines = [];
-          var from = inverse ? id2 : id;
-          var to = inverse ? id : id2;
+          var from = options.inverse ? id2 : id;
+          var to = options.inverse ? id : id2;
           lines.push(lively.lang.string.format("%s -> %s", graphName(from, snapshot), graphName(to, snapshot)));
           return lines;
         });
       }).uniq();
 
-      dotLines.pushAll((idsToHighlight || []).map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }))
+      dotLines.pushAll(options.idsToHighlight.map(function(id) { return graphName(id, snapshot) + " [style=filled, fillcolor=orange]"; }))
 
-      var svgGraphWindow = apps.Graphviz.Renderer.render({
-          asWindow: true,
-          createNodesAndEdges: function() { return dotLines; }
-      }).openInWorldCenter();
+      options = lively.lang.obj.merge(options, {createNodesAndEdges: function() { return dotLines; }});
+      var svgGraph = apps.Graphviz.Renderer.render(options).openInWorld().comeForward();
 
-      return svgGraphWindow;
+      return svgGraph;
     }
 
     function createDotFile(graphMap, snapshot) {
@@ -67,36 +70,56 @@ Object.extend(lively.persistence.Debugging, {
     }
 
     function graphName(id, snapshot) {
-      var className = snapshot.registry[id][ClassPlugin.prototype.classNameProperty];
-      return '"' + id + ":" + (className || "obj") + '"';
+      var obj = snapshot.registry[id],
+          name = "obj";
+      if (!obj) name = "deleted-object";
+      else if (obj[ClassPlugin.prototype.classNameProperty])
+        name = obj[ClassPlugin.prototype.classNameProperty]
+      return lively.lang.string.format('"%s:%s"', id, name);
     }
 
   },
 
-  svgGraphForSerializedObjectGraph: function(snapshot, inverse, idsToHighlight) {
+  svgGraphForSerializedObjectGraph: function(snapshot, options) {
+    options = lively.lang.obj.merge({inverse: true}, options);
     var serializer = lively.persistence.Serializer.createObjectGraphLinearizer()
     serializer.registry = serializer.createRealRegistry(snapshot.registry);
     var graph = serializer.invertedReferenceGraph(snapshot.registry);
-    var graphMethod = inverse ? "invertedReferenceGraph" : "referenceGraph";
+    var graphMethod = options.inverse ? "invertedReferenceGraph" : "referenceGraph";
     var graph = serializer[graphMethod](snapshot.registry);
-    this.svgGrawGraph(graph, snapshot, inverse, idsToHighlight)
+    return this.svgGrawGraph(graph, snapshot, options);
   },
 
-  svgGraphForWorld: function(url, inverse, idsToHighlight) {
-    var html=new URL("http://localhost:9001/blank.html").asWebResource().get().content;
+  svgGraphForWorld: function(url, options) {
+    var html = new URL(url).asWebResource().forceUncached().get().content;
     var roughly = html.slice(html.indexOf('"text/x-lively-world"')+6, html.lastIndexOf("</script>"))
     var json = roughly.slice(roughly.indexOf('{'))
     var jso = JSON.parse(json);
-    this.svgGraphForSerializedObjectGraph(jso, inverse, idsToHighlight);
+    return this.svgGraphForSerializedObjectGraph(jso, options);
   },
 
-  svgGraphForPart: function(partName, partCategory, inverse, idsToHighlight) {
+  svgGraphForPart: function(partName, partCategory, options) {
     var url = lively.PartsBin.getPartItem(partName, partCategory).getFileURL();
     var json = url.asWebResource().get().content;
     var jso = JSON.parse(json);
-    this.svgGraphForSerializedObjectGraph(jso, inverse, idsToHighlight);
-  }
+    return this.svgGraphForSerializedObjectGraph(jso, options);
+  },
 
+  svgGraphForObject: function(obj, options) {
+    options = lively.lang.obj.merge({withoutWorld: true}, options);
+    return this.svgGraphForSerializedObjectGraph(snapshot(obj), options);
+
+    function snapshot(obj) {
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizerForCopy(),
+          dontCopyWorldPlugin = new GenericFilter();
+      dontCopyWorldPlugin.addFilter(function(obj, propName, value) {
+          return value === lively.morphic.World.current(); });
+      if (options.withoutWorld)
+        serializer.addPlugin(dontCopyWorldPlugin);
+      serializer.serializeToJso(obj)
+      return {registry: serializer.simplifyRegistry(serializer.registry)};
+    }
+  }
 });
 
 ObjectGraphLinearizer.addMethods(

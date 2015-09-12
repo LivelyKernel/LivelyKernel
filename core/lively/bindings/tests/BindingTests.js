@@ -566,8 +566,36 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionTest', {
 
         this.assertEquals(1, target1.value, 'target1');
         this.assertEquals(1, target2.value, 'target2');
-    }
+    },
 
+    test47DontSignalOnAssignment: function() {
+        var obj = {triggerCount: 0}, obj2 = {};
+
+        lively.bindings.connect(obj, 'foo', obj2, 'bar', {
+          converter: function(val) {
+            this.sourceObj.triggerCount++;
+            return val;
+          },
+          signalOnAssignment: false
+        });
+
+        obj.foo = 23;
+        this.assertEquals(undefined, obj2.bar, 'obj2 has value through connection');
+        this.assertEquals(0, obj.triggerCount, 'triggered?');
+
+        lively.bindings.signal(obj, 'foo', 24);
+        this.assertEquals(24, obj2.bar, 'manually signal not working');
+        this.assertEquals(1, obj.triggerCount, 'trigger count after manual signal');
+    },
+
+    test48ConnectionPointsCanPassOptionsToConnect: function() {
+        var obj = {connections: {foo: {converter: function(x) { return x + 1; }}}},
+            obj2 = {};
+
+        lively.bindings.connect(obj, 'foo', obj2, 'bar');
+        obj.foo = 23;
+        this.assertEquals(24, obj2.bar);
+    }
 });
 
 TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionSerializationTest', {
@@ -982,24 +1010,3 @@ TestCase.subclass('lively.bindings.tests.BindingTests.CloneTest', {
 });
 
 }); // end of module
-
-    test47DontSignalOnAssignment: function() {
-        var obj = {triggerCount: 0}, obj2 = {};
-
-        lively.bindings.connect(obj, 'foo', obj2, 'bar', {
-          converter: function(val) {
-            this.sourceObj.triggerCount++;
-            return val;
-          },
-          signalOnAssignment: false
-        });
-
-        obj.foo = 23;
-        this.assertEquals(undefined, obj2.bar, 'obj2 has value through connection');
-        this.assertEquals(0, obj.triggerCount, 'triggered?');
-
-        lively.bindings.signal(obj, 'foo', 24);
-        this.assertEquals(24, obj2.bar, 'manually signal not working');
-        this.assertEquals(1, obj.triggerCount, 'trigger count after manual signal');
-    },
-

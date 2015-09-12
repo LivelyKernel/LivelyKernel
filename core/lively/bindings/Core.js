@@ -538,6 +538,8 @@ Object.extend(lively.bindings, {
             spec = specOrConverter;
         }
 
+        if (connectionPoint) spec = lively.lang.obj.merge(connectionPoint, spec);
+
         // 3: does a similar connection exist? Yes: update it with new specs,
         //    no: create new connection
         var connection = new klass(sourceObj, attrName, targetObj, targetMethodName, spec),

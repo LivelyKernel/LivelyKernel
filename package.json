@@ -22,7 +22,7 @@
     "sqlite3": "~3.0.5",
     "watch": "~0.8.0",
     "websocket": "1.0.17",
-    "lively.lang": ">=0.4.4",
+    "lively.lang": ">=0.4.5",
     "lively-loader": "^0.2.5"
   },
   "scripts": {

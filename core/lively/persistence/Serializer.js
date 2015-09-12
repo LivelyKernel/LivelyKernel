@@ -90,6 +90,30 @@ Object.subclass('ObjectGraphLinearizer',
       }, this).uniq();
     },
 
+    directReferencePaths: function(registeredObject) {
+      // lists all direct references of registeredObject in a map form like
+      // {
+      //   1: [["hands", 0], ["submorphs", 1]],
+      //   3: [["shape"]],
+      //   ...
+      // }
+      var serializer = this;
+
+      return gatherReferences(registeredObject, []).reduce(function(refMap, ea) {
+        var ref = refMap[ea.id] || (refMap[ea.id] = []);
+        ref.push(ea.path);
+        return refMap
+      }, {});
+
+      function gatherReferences(obj, path) {
+        if (!obj || typeof obj === "string" || typeof obj === "number" || typeof obj === "boolean") return [];
+        if (serializer.isReference(obj)) return {path: path, id: String(obj.id)};
+        else if (Array.isArray(obj)) return lively.lang.arr.flatmap(obj, function(ea, i) { return gatherReferences(ea, path.concat([i])); })
+        else if (Object.isObject(obj)) return lively.lang.arr.flatmap(Object.keys(obj), function(key) { return gatherReferences(obj[key], path.concat([key])); })
+        else return [];
+      }
+    },
+
     referenceGraph: function(registry) {
       // creates a mapping ID -> [ID], key - owning object, val - all ids of
       // objects referenced by it
@@ -101,6 +125,19 @@ Object.subclass('ObjectGraphLinearizer',
       }
       this.registry = formerRegistry;
       return refs;
+    },
+
+    referenceGraphWithPaths: function(registry) {
+      // creates a mapping ID -> {ID: [path1, path2, ...], ...}
+      var formerRegistry = this.registry;
+      var serializer = this;
+      registry = this.registry = this.createRealRegistry(registry);
+      var graph = Object.keys(registry).reduce(function(map, id) {
+        map[id] = serializer.directReferencePaths(registry[id].registeredObject);
+        return map;
+      }, {});
+      this.registry = formerRegistry;
+      return graph;
     },
 
     invertedReferenceGraph: function(registry) {

@@ -1649,8 +1649,9 @@ Object.extend(lively.persistence, {
         })
     },
 
-    pluginsForLively: [
-        lively.persistence.AttributeConnectionGarbageCollectionPlugin,
+    pluginsForLively: 
+      (lively.Config.get("garbageCollectAttributeConnections") ?
+        [lively.persistence.AttributeConnectionGarbageCollectionPlugin] : []).concat([
         ClosurePlugin,
         StoreAndRestorePlugin,
         lively.persistence.TraitPlugin,
@@ -1665,7 +1666,7 @@ Object.extend(lively.persistence, {
         lively.persistence.DatePlugin,
         lively.persistence.TypedArrayPlugin,
         lively.persistence.ExprPlugin,
-    ]
+    ])
 });
 
 Object.extend(ObjectGraphLinearizer, {

@@ -1047,7 +1047,9 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             this.world().logError(result, "doit error");
         }
         if (lively.Config.get("showDoitInMessageMorph")) {
-          this.setStatusMessage(String(result), isError ? Color.red : null);
+          if (result !== undefined) {
+            this.setStatusMessage(String(result), isError ? Color.red : null);
+          }
         }
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();

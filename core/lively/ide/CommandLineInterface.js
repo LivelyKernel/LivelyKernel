@@ -38,6 +38,10 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 
     getGroup: function() { return this._options.group || null; },
 
+    getStartTime: function() { return this._startTime ? new Date(this._startTime) : null; },
+
+    getEndTime: function() { return this._endTime ? new Date(this._endTime) : null; },
+
     kill: function(signal, thenDo) {
       var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
       if (this._done) {
@@ -108,6 +112,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 
     startRequest: function() {
         var webR = this.getWebResource();
+        this._startTime = Date.now();
         if (this._options.sync) webR.beSync(); else webR.beAsync();
         lively.bindings.connect(webR, 'status', this, 'endRequest', {
             updater: function($upd, status) {
@@ -129,6 +134,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 
     endRequest: function(status) {
         this._done = true;
+        this._endTime = Date.now();
         this.endInterval();
         this.read(status.transport.responseText);
         lively.bindings.signal(this, 'end', this);
@@ -188,6 +194,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         if (this._started) return this;
 
         this._started = true;
+        this._startTime = Date.now();
         var cmdInstructions = {
             command: this.getCommand(),
             cwd: this._options.cwd,
@@ -228,6 +235,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     onEnd: function(exitCode) {
         this._code = exitCode;
         this._done = true;
+        this._endTime = Date.now();
         lively.bindings.signal(this, 'end', this);
         var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
         if (lively.shell.isScheduled(this, group)) lively.shell.unscheduleCommand(this, group);

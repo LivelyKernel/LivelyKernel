@@ -963,16 +963,16 @@ Object.extend(lively.ide.CommandLineSearch, {
             parseDirectoryList = lively.ide.FileSystem.parseDirectoryListFromLs,
             lastFind = lively.ide.CommandLineSearch.lastFind;
         if (lastFind) lastFind.kill();
-        var result = [],
-            cmd = lively.ide.CommandLineInterface.exec(commandString, options, function(err, cmd) {
-              lively.ide.CommandLineSearch.lastFind = null;
-              var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
-              if (err) console.warn(err);
-              result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);
-              callback && callback(err, result || []);
-            });
-        lively.ide.CommandLineSearch.lastFind = cmd;
-        return options.sync ? result : cmd;
+        var result = [];
+        lively.ide.CommandLineSearch.lastFind = lively.shell.run(commandString, options, function(err, cmd) {
+          if (cmd === lively.ide.CommandLineSearch.lastFind)
+            lively.ide.CommandLineSearch.lastFind = null;
+          var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
+          if (err) console.warn(err);
+          result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);
+          callback && callback(err, result || [], cmd);
+        });
+        return options.sync ? result : lively.ide.CommandLineSearch.lastFind;
     },
 
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates, offerCreation) {

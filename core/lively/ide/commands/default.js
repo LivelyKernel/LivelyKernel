@@ -648,7 +648,9 @@ Object.extend(lively.ide.commands.byName, {
             var showsInitialCandidates = true,
                 initialCandidates = [],
                 searchForMatchingDebounced = lively.lang.fun.debounce(1000, searchForMatching),
-                lastSearchInput = null, lastFiles;
+                lastSearchInput = null, lastMatchParts = [],
+                ignoreResult = {}, // flag
+                lastFiles, lastFindCmd;
 
             lively.ide.tools.SelectionNarrowing.getNarrower({
                   name: 'lively.ide.browseFiles.NarrowingList',
@@ -681,14 +683,17 @@ Object.extend(lively.ide.commands.byName, {
               var parts = input.split(" "),
                   matchParts = parts.slice(1).compact().map(function(ea) { return new RegExp(ea, "i"); }),
                   searchAgain = lastSearchInput !== parts[0];
+
               lastSearchInput = parts[0];
+              lastMatchParts = matchParts;
               doSearch(searchAgain, parts[0], matchParts, callback);
             }
 
             function makeCandidates(dir, files) {
-                return files.map(function(fullPath) {
-                    var relativePath = fullPath.slice(dir.length+1).replace(/\\/g, '/');
+                return files.map(function(fileName) {
+                    var relativePath = fileName;
                     if (relativePath.length === 0) return null;
+                    var fullPath = lively.lang.string.joinPath(dir, fileName)
                     return {
                         string: relativePath,
                         value: {dir: dir, fullPath: fullPath, relativePath: relativePath},
@@ -705,8 +710,10 @@ Object.extend(lively.ide.commands.byName, {
                       var opts = {sync: false, matchPath: true}
                       if (input.length < 3) opts.depth = 2;
                       input = "*" + input.replace(/^\*?|\*?$/g, "") + "*";
-                      lively.ide.CommandLineSearch.findFiles(
-                        input, opts, function(err, files) {
+                      lastFindCmd = lively.ide.CommandLineSearch.findFiles(
+                        input, opts, function(err, files, cmd) {
+                          if (lastFindCmd && lastFindCmd.getStartTime() > cmd.getStartTime()) return next(ignoreResult);
+                          lastFindCmd = null;
                           if (err) next(new Error('Cannot fetch files for ' + dir + ":\n" + err));
                           else { lastFiles = files; next(null, files, dir); }
                       });
@@ -714,19 +721,25 @@ Object.extend(lively.ide.commands.byName, {
                     function(files, dir, next) {
                       var paths = files
                         .filter(function(ea) { return !ea.isDirectory; })
-                        .map(function(ea) { return lively.lang.string.joinPath(dir, ea.fileName); })
-                        .filter(function(ea) { return matchParts.every(function(match) { return match.test(ea); })});
+                        // .map(function(ea) { return lively.lang.string.joinPath(dir, ea.fileName); })
+                        .map(function(ea) { return ea.fileName; })
+                        .filter(function(ea) { return lastMatchParts.every(function(match) { return match.test(ea); })});
                       next(null, paths, dir);
                     },
                     function(files, dir, next) { next(null, makeCandidates(dir, files)); }
                 )(function(err, candidates) {
-                    if (err) show("Error browsing files: %s", err);
+                    if (err === ignoreResult) {/*...*/}
+                    else if (err) show("Error browsing files: %s", err);
                     else thenDo(candidates);
                 });
             }
 
         } :
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // This is the old version that might be faster but relays
+        // on the currently broken  dir watcher
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
           function browseFilesWithDirWatcher() {
 
             var actions = [

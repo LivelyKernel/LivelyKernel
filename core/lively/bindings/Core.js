@@ -26,13 +26,15 @@ module('lively.bindings.Core').requires().toRun(function() {
 Object.subclass('AttributeConnection',
 'settings', {
     doNotSerialize: ['isActive', 'converter', 'updater'],
-    garbageCollect: true
+    garbageCollect: true,
+    signalOnAssignment: true
 },
 'initializing', {
 
     initialize: function(source, sourceProp, target, targetProp, spec) {
         this.init(source, sourceProp, target, targetProp, spec);
     },
+
     init: function(source, sourceProp, target, targetProp, spec) {
         this.sourceObj = source;
         this.sourceAttrName = sourceProp;
@@ -42,8 +44,10 @@ Object.subclass('AttributeConnection',
         if (spec) {
             if (spec.removeAfterUpdate) this.removeAfterUpdate = true;
             if (spec.forceAttributeConnection) this.forceAttributeConnection = true;
-            if (spec.hasOwnProperty("garbageCollect"))
-              this.garbageCollect = typeof spec.garbageCollect === "boolean" ? spec.garbageCollect : true;
+            if (spec.hasOwnProperty("garbageCollect") && typeof spec.garbageCollect === "boolean")
+              this.garbageCollect = spec.garbageCollect;
+            if (spec.hasOwnProperty("signalOnAssignment") && typeof spec.signalOnAssignment === "boolean")
+              this.signalOnAssignment = spec.signalOnAssignment;
             // when converter function references objects from its environment
             // we can't serialize it. To fail as early as possible we will
             // serialize the converter / updater already in the setters
@@ -120,10 +124,13 @@ Object.subclass('AttributeConnection',
         if (this.removeAfterUpdate) spec.removeAfterUpdate = true;
         if (this.forceAttributeConnection) spec.forceAttributeConnection = true;
         if (this.hasOwnProperty("garbageCollect")) spec.garbageCollect = this.garbageCollect;
+        if (this.hasOwnProperty("signalOnAssignment")) spec.signalOnAssignment = this.signalOnAssignment;
         return spec;
     },
 
     resetSpec: function() {
+        delete this.garbageCollect;
+        delete this.signalOnAssignment;
         delete this.removeAfterUpdate;
         delete this.forceAttributeConnection;
         delete this.converter;
@@ -303,13 +310,10 @@ Object.subclass('AttributeConnection',
                 console.error('Sth wrong with sourceObj, has no attributeConnections');
                 return null;
             }
-            var conns = sourceObj.attributeConnections.clone();
-            for (var i = 0; i < conns.length; i++) {
-                var c = conns[i];
-                if (c && c.getSourceAttrName() === sourceAttrName) {
-                    c.update(newVal, oldVal);
-                }
-            }
+            sourceObj.attributeConnections.forEach(function(c) {
+              if (c && c.getSourceAttrName() === sourceAttrName && c.signalOnAssignment)
+                c.update(newVal, oldVal);
+            });
             return newVal;
         });
         this.sourceObj.__lookupSetter__(sourceAttrName).isAttributeConnectionSetter = true;
@@ -330,12 +334,12 @@ Object.subclass('AttributeConnection',
         sourceObj[methodName] = function connectionWrapper() {
             if (this.attributeConnections === undefined)
                 throw new Error('Sth wrong with this, has no attributeConnections')
-            var conns = this.attributeConnections.clone(),
+            var conns = lively.lang.obj.clone(this.attributeConnections),
                 result = this[methodName].originalFunction.apply(this, arguments);
-            for (var i = 0, len = conns.length; i < len; i++) {
-                var c = conns[i];
-                if (c.getSourceAttrName() === methodName) result = c.update(result);
-            }
+            conns.forEach(function(c) {
+              if (c.getSourceAttrName() === methodName)
+                result = c.update(result);
+            });
             return result;
         };
 
@@ -522,7 +526,7 @@ Object.extend(lively.bindings, {
             connectionPoint = connectionPoints && connectionPoints[attrName],
             klass = (connectionPoint && connectionPoint.map && lively.morphic && lively.morphic.GeometryConnection)
                  || (connectionPoint && connectionPoint.connectionClassType && lively.Class.forName(connectionPoint.connectionClassType))
-                 || AttributeConnection,
+                 || lively.bindings.AttributeConnection,
             spec;
 
         // 2: connection settings: converter/updater/...

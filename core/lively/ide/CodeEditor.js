@@ -83,7 +83,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     isCodeEditor: true,
     isText: true,
     showsMorphMenu: true,
-    connections: {textChange: {}, textString: {}, savedTextString: {}}
+    connections: {textChange: {}, textString: {signalOnAssignment: false}, savedTextString: {}}
 },
 'initializing', {
     initialize: function($super, bounds, stringOrOptions) {

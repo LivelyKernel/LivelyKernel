@@ -97,12 +97,25 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
         this.done();
     },
     testConnectToTextChange: function() {
-        var e = this.editor, changeTriggered, obj = {onChange: function(evt) { changeTriggered = true; }};
+        var e = this.editor,
+            triggerCount = 0,
+            obj = {onChange: function(evt) { triggerCount++; }};
         e.textString = "some\ncontent";
         lively.bindings.connect(e, 'textChange', obj, 'onChange');
         e.insertAtCursor('foo');
         this.delay(function() {
-            this.assert(changeTriggered, 'textChange connection not working');
+            this.assertEquals(1,triggerCount, 'textChange connection not working');
+            this.done();
+        }, 300);
+    },
+    testConnectToTextString: function() {
+        var e = this.editor,
+            triggerCount = 0,
+            obj = {onChange: function(evt) { triggerCount++; }};
+        lively.bindings.connect(e, 'textString', obj, 'onChange');
+        e.textString = "some\ncontent";
+        this.delay(function() {
+            this.assertEquals(1,triggerCount, 'textString connection not working');
             this.done();
         }, 300);
     },

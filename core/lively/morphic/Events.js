@@ -1322,6 +1322,8 @@ handleOnCapture);
         var placeholder = this.placeholder,
             layouter = aMorph.getLayouter();
 
+        this.setFixedPosition(this.previouslyFixed);
+        delete this.previouslyFixed;
         if (placeholder) {
             var placeHolderPos = placeholder.getPosition();
             this.noLayoutDuring(function() {
@@ -1985,6 +1987,8 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     grabMorph: function(morph, evt) {
         morph.previousOwner = morph.owner;
         morph.previousPosition = morph.getPosition();
+        morph.previouslyFixed = morph.hasFixedPosition();
+        morph.setFixedPosition(false);
         return this.grabMorphs([morph], evt)
     },
     grabMorphs: function(morphs, evt) {

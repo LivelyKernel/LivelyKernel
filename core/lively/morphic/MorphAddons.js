@@ -532,7 +532,7 @@ lively.morphic.Morph.addMethods(
         this.cachedBounds = null;
         return this.morphicSetter('FixedPosition', bool);
     },
-    hasFixedPosition: function(bool) {
+    hasFixedPosition: function() {
         return this.morphicGetter('FixedPosition') || false;
     },
     setFixed: function(optFixed) {

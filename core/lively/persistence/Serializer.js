@@ -362,38 +362,50 @@ Object.subclass('ObjectGraphLinearizer',
 
       var simplifiedRegistry = registry.registry ? registry : null;
       registry = this.createRealRegistry(registry.registry || registry);
+      var referenceGraph = this.referenceGraph(registry);
       var invertedReferenceGraph = this.invertedReferenceGraph(registry);
       roots = (roots || []).map(String);
       if (simplifiedRegistry) roots.pushIfNotIncluded(String(simplifiedRegistry.id));
       objectsToRemove = (objectsToRemove || []).map(String).withoutAll(roots);
       var removed = {};
+      var step = 0;
 
-      // show("Compacting registry, removing %s", objectsToRemove.map(function(id) {
-      //   return id + " " + JSON.stringify(registry[id].registeredObject)
-      // }).join("\n"));
-
-      do {
+      while (objectsToRemove.length && step++ < 10000) {
         // removal
-        objectsToRemove.forEach(function(removeId) {
+        var toUpdate = objectsToRemove.reduce(function(toUpdate, removeId) {
+          if (removeId in removed) return toUpdate;
+
           removed[removeId] = registry[removeId];
+          var refs = referenceGraph[removeId];
+          if (refs) {
+            toUpdate.pushAll(refs);
+            refs.forEach(function(id) {
+              if (invertedReferenceGraph[id])
+                invertedReferenceGraph[id].remove(removeId);
+            });
+          }
           delete registry[removeId];
           delete invertedReferenceGraph[removeId];
-        });
+          delete referenceGraph[removeId];
+          return toUpdate;
+        }, []);
 
-        // figure out what objects aren't referenced anymore...
-        var toBeRemoved = [];
-        for (var id in invertedReferenceGraph) {
-          if (invertedReferenceGraph[id])
-            invertedReferenceGraph[id] = invertedReferenceGraph[id].withoutAll(objectsToRemove);
-          if (!invertedReferenceGraph[id] || !invertedReferenceGraph[id].length)
+        // figure out what objects aren't referenced anymore to remove those next
+        objectsToRemove = toUpdate.reduce(function(toBeRemoved, id) {
+          if (!invertedReferenceGraph[id]
+           || !invertedReferenceGraph[id].length
+           || !Object.keys(lively.lang.graph.subgraphReachableBy(invertedReferenceGraph, id))
+                 .some(function(id) { return roots.indexOf(id) > -1; })) {
             toBeRemoved.push(id);
-        }
+          }
+          return toBeRemoved;
+        }, []).withoutAll(roots);
 
-        // ...and remove those next
-        objectsToRemove = toBeRemoved.withoutAll(roots);
-      } while(objectsToRemove.length);
+      };
 
       this.cleanup(removed);
+
+      if (step >= 10000) console.error("Endless compaction");
 
       return simplifiedRegistry ?
         {id: simplifiedRegistry.id, registry: this.simplifyRegistry(registry)} :
@@ -1259,12 +1271,6 @@ ObjectLinearizerPlugin.subclass('lively.persistence.AttributeConnectionGarbageCo
       this.attributeConnectionClass = lively.bindings && lively.bindings.AttributeConnection;
 
       this.persistentAttributeConnections = [];
-      this.persistentMetaAttributeConnections = [];
-
-      this.connectionTargetIds = [];
-      // those can be filtered out when we decide to retain the object or not
-      this.metaConnectionIds = [];
-
       this.disconnectOnDeserializationObjs = [];
       this.attributeConnectionObjects = [];
     },
@@ -1279,16 +1285,18 @@ ObjectLinearizerPlugin.subclass('lively.persistence.AttributeConnectionGarbageCo
       return ignore.uniq();
     },
 
-    additionallySerialize: function(original, persistentCopy) {
+    isGarbageCollectableConnection: function(original, persistentCopy) {
       var klassName = persistentCopy && persistentCopy.__LivelyClassName__;
-      if (!this.attributeConnectionClass
-       || !(original instanceof this.attributeConnectionClass)
-       || !original.targetObj
-       || !original.garbageCollect) return;
+      return this.attributeConnectionClass
+          && original instanceof this.attributeConnectionClass
+          && original.targetObj
+          && !!original.garbageCollect;
+    },
+
+    additionallySerialize: function(original, persistentCopy) {
+      if (!this.isGarbageCollectableConnection(original, persistentCopy)) return;
       var id = this.getSerializer().getIdFromObject(original);
       this.persistentAttributeConnections.push(id);
-      if (persistentCopy.dependedBy)
-        this.persistentMetaAttributeConnections.push(id)
     },
 
     serializationDone: function(registry, roots) {
@@ -1297,54 +1305,59 @@ ObjectLinearizerPlugin.subclass('lively.persistence.AttributeConnectionGarbageCo
 
       // 1. find the ids that belong to attribute connections and the
       // connection targets
-      var connectionData = plugin.persistentAttributeConnections.reduce(function(data, id) {
+      var connectionData = plugin.persistentAttributeConnections.map(function(id) {
         var persistentCopy = serializer.getRegisteredObjectFromId(id);
-        data.weakRefs.pushAll(plugin.weakRefsOfConnection(id, persistentCopy));
-        data.weakRefs = data.weakRefs.uniq();
-        if (persistentCopy.targetObj)
-          data.targets.pushIfNotIncluded(String(persistentCopy.targetObj.id))
-        return data;
-      }, {targets: [], weakRefs: [this.persistentMetaAttributeConnections]});
+        return {
+          id: id,
+          persistentCopy: persistentCopy,
+          target: persistentCopy.targetObj && String(persistentCopy.targetObj.id),
+          weakRefs: plugin.weakRefsOfConnection(id, persistentCopy)
+        }
+      });
 
       // 2. For each target obj, find all references (as ids) pointing to it
       var graph = serializer.invertedReferenceGraph(registry);
+
       // 3. Those target objs having more than just the attribute connection
       // stuff pointing to it should be kept. The rest can go.
-      var toBeRemoved = connectionData.targets.filter(function(id) {
+      var toBeRemoved = lively.lang.arr.flatmap(connectionData, function(data) {
 
-        // EXCEPTION: when objects get copied as references we still keep them around
-        var registered = serializer.getRegisteredObjectFromId(id);
-        if (registered && registered.isCopyMorphRef) return false;
-        if (registered.name === "rotation ->setRotation") debugger;
+        if (!data.target) return [data.id];
 
-        // return !graph[id].withoutAll(connectionData.weakRefs).length;
-        var weakRefs = connectionData.weakRefs;
-        // if (registered.sourceObj) weakRefs = weakRefs.concat([registered.sourceObj.id]);
-        if (registered.sourceObj) graph[id].remove(registered.sourceObj.id);
+        // exception
+        var registeredTarget = serializer.getRegisteredObjectFromId(data.target);
+        if (registeredTarget && registeredTarget.isCopyMorphRef) return [];
 
-        var hull = lively.lang.graph.hull(graph, id, weakRefs);
-        return !hull.length;
-      }, this);
+        // can we reach roots from target without using the connection?
+        graph[data.target] = graph[data.target].withoutAll(data.weakRefs);
+        var hull = Object.keys(lively.lang.graph.subgraphReachableBy(graph, data.target));
+        if (roots.some(function(root) { return hull.indexOf(root) > -1; })) return [];
 
-      toBeRemoved.pushAll(this.persistentMetaAttributeConnections);
+        return data.weakRefs.concat([data.id, data.target]) ;
+      });
 
       return serializer.compactRegistry(registry, toBeRemoved, roots);
     },
 
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
     afterDeserializeObj: function(recreated) {
       if (!recreated) return;
-      if (recreated.attributeConnections) {
+      // 1.
+      if (recreated.attributeConnections)
         this.attributeConnectionObjects.push(recreated);
-      }
+      // 2.
       var klass = lively.bindings && lively.bindings.AttributeConnection;
-      if (!klass || !(recreated instanceof klass) || !!recreated.targetObj) return;
-      this.disconnectOnDeserializationObjs.push(recreated);
+      if (klass && recreated instanceof klass && !recreated.targetObj)
+        this.disconnectOnDeserializationObjs.push(recreated);
     },
 
     deserializationDone: function() {
+      // 1.
       this.attributeConnectionObjects.forEach(function(ea) {
         ea.attributeConnections = ea.attributeConnections.compact();
       });
+      // 2.
       this.disconnectOnDeserializationObjs.invoke("disconnect");
     }
 
@@ -1637,7 +1650,7 @@ Object.extend(lively.persistence, {
     },
 
     pluginsForLively: [
-        // lively.persistence.AttributeConnectionGarbageCollectionPlugin,
+        lively.persistence.AttributeConnectionGarbageCollectionPlugin,
         ClosurePlugin,
         StoreAndRestorePlugin,
         lively.persistence.TraitPlugin,

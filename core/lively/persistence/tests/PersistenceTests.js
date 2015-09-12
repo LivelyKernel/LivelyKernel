@@ -381,6 +381,37 @@ TestCase.subclass('lively.persistence.tests.PersistenceTests.ObjectGraphLineariz
     }
 });
 
+
+TestCase.subclass('lively.persistence.tests.PersistenceTests.AttributeConnectionGarbageCollectionPluginTest',
+'testing', {
+
+  testGarbageCollectConnectionIfNoOtherRef: function() {
+    var obj1 = {}, obj2 = {};
+    lively.bindings.connect(obj1, 'x', obj2, 'y');
+    var copied = lively.persistence.Serializer.deserialize(
+      lively.persistence.Serializer.serialize(obj1));
+    this.assert(!copied.attributeConnections || !copied.attributeConnections.length,
+      "connection not garbage collected");
+  },
+
+  testDontGarbageCollectConnectionIfTargetIsRefed: function() {
+    var obj1 = {}, obj2 = {};
+    obj1.ref = obj2;
+    lively.bindings.connect(obj1, 'x', obj2, 'y');
+    var copied = lively.persistence.Serializer.deserialize(
+      lively.persistence.Serializer.serialize(obj1));
+    this.assertIdentity(copied.ref, copied.attributeConnections[0].targetObj);
+  },
+
+  testDontGarbageCollectConnectionIfNotCollectable: function() {
+    var obj1 = {}, obj2 = {};
+    lively.bindings.connect(obj1, 'x', obj2, 'y', {garbageCollect: false});
+    var copied = lively.persistence.Serializer.deserialize(
+      lively.persistence.Serializer.serialize(obj1));
+    this.assert(copied.attributeConnections[0].targetObj);
+  }
+});
+
 TestCase.subclass('lively.persistence.tests.PersistenceTests.RestoreTest',
 'running', {
     setUp: function($super) {
@@ -623,6 +654,51 @@ lively.persistence.tests.PersistenceTests.ObjectGraphLinearizerTest.subclass('li
       this.assertEqualState(
         {name: "1",ref: {name: "2",ref1: null,ref2: null}},
         serializer.deserializeJso(compacted), "2 deserialized");
+    },
+
+    testRemoveAllReferences: function() {
+      var objs = [{}, {}, {}, {}, {}, {}];
+      objs[0].ref = objs[1];
+      objs[1].ref = objs[2];
+      objs[2].ref = objs[3];
+      objs[3].ref = objs[4];
+      objs[4].ref = objs[5];
+      objs[5].ref = objs[3];
+
+      // There is a loop 3 -> 4 -> 5
+      //                 ^---------|
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizer(),
+          snapshot = serializer.serializeToJso(objs[0]),
+          compacted = serializer.compactRegistry(lively.lang.obj.deepCopy(snapshot), ["1"]);
+      this.assertEqualState(["0", "isSimplifiedRegistry"], Object.keys(compacted.registry));
+
+      objs[0].ref2 = objs[5];
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizer(),
+          snapshot = serializer.serializeToJso(objs[0]);
+          compacted = serializer.compactRegistry(lively.lang.obj.deepCopy(snapshot), ["1"]);
+      this.assertEqualState(["0", "3", "4", "5", "isSimplifiedRegistry"], Object.keys(compacted.registry));
+    },
+
+    testCompactionHappensWithNormalSerialization: function() {
+      var objs = [{}, {}, {}, {}, {}, {}];
+      objs[0].ref = objs[1];
+      objs[1].ref = objs[2];
+      objs[2].ref = objs[3];
+      objs[3].ref = objs[4];
+      objs[4].ref = objs[5];
+      objs[5].ref = objs[3];
+
+      // There is a loop 3 -> 4 -> 5
+      //                 ^---------|
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizer();
+      var filter = new GenericFilter();
+      filter.addFilter(function(obj, propName, value) { return value === objs[1]; })
+      serializer.addPlugin(filter);
+      var snapshot = serializer.serializeToJso(objs[0]);
+      this.assertEqualState(["0", "isSimplifiedRegistry"], Object.keys(snapshot.registry));
+
+      this.assert(!objs[1][lively.persistence.ObjectGraphLinearizer.prototype.idProperty],
+        "removed object not cleaned up!");
     }
 });
 

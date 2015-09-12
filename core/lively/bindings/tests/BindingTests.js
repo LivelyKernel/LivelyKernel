@@ -905,6 +905,67 @@ TestCase.subclass('lively.bindings.tests.BindingTests.ConnectionJSONSerializatio
             newObj2 = lively.persistence.Serializer.deserialize(jso);
         newObj2.a = 23;
         this.assertEquals(23, newObj2.ref.b, 'connection not working after deserialization');
+    },
+
+    test02GarbageCollectAttributeConnectionRefs: function() {
+      var objs = [{}, {}];
+      lively.bindings.connect(objs[0], 'foo', objs[1], 'bar');
+
+      objs[0].foo = 15;
+      this.assertEquals(15, objs[1].bar, "connection?");
+
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizerForCopy();
+      var copied = serializer.copy(objs[0]);
+
+      this.assert(!copied.attributeConnections || !copied.attributeConnections.length,
+        "attribute connections existing?!");
+
+      this.assert(!objs[1][lively.persistence.ObjectGraphLinearizer.prototype.idProperty],
+        "removed object not cleaned up!");
+      // no error...
+      copied.foo = 10;
+    },
+
+    test02bGarbageCollectMultipleAttributeConnectionRefs: function() {
+      var objs = [{}, {}];
+      lively.bindings.connect(objs[0], 'foo', objs[1], 'bar');
+      lively.bindings.connect(objs[0], 'foo', objs[1], 'baz');
+
+      objs[0].foo = 15;
+      this.assertEquals(15, objs[1].bar, "connection?");
+
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizerForCopy();
+      var copied = serializer.copy(objs[0]);
+
+      this.assert(!copied.attributeConnections, "attribute connections existing?!");
+      // no error...
+      copied.foo = 10;
+    },
+
+    test03DontGarbageCollectAttributeConnectionWhenDirectRefExists: function() {
+      var objs = [{}, {}];
+      lively.bindings.connect(objs[0], 'foo', objs[1], 'bar');
+
+      objs[0].ref = objs[1];
+      objs[0].foo = 15;
+      this.assertEquals(15, objs[1].bar, "connection?")
+
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizerForCopy();
+      var copied = serializer.copy(objs[0]);
+
+      this.assertIdentity(copied.ref, copied.attributeConnections[0].targetObj, "obj 2 is gone!");
+      // no error...
+      copied.foo = 10;
+      this.assertEquals(10, copied.ref.bar, "connection of copy?")
+    },
+
+    test03bDontGarbageCollectAttributeConnectionWhenItsFlagged: function() {
+      var objs = [{}, {}];
+      lively.bindings.connect(objs[0], 'foo', objs[1], 'bar', {garbageCollect: false});
+      objs[0].foo = 15;
+      var serializer = lively.persistence.Serializer.createObjectGraphLinearizerForCopy();
+      var copied = serializer.copy(objs[0]);
+      this.assert(!!lively.PropertyPath("attributeConnections.0.targetObj").get(copied), "obj 2 is gone!");
     }
 
 });

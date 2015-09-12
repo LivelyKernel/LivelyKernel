@@ -81,12 +81,15 @@ lively.morphic.tests.MorphTests.subclass('lively.bindings.tests.GeometryBindingT
             observer = {changed: function(source) { this.source = source }};
         parent.addMorph(morph);
 
-        var c = lively.bindings.connect(morph, 'globalTransform', observer, 'changed'),
+        var c = lively.bindings.connect(morph, 'globalTransform', observer, 'changed', {garbageCollect: false}),
             numberOfOldConnections = morph.attributeConnections.length,
             morph2 = morph.copy();
-
         this.assertEquals(numberOfOldConnections, morph2.attributeConnections.length);
+        morph2.moveBy(pt(10,10));
 
+        this.assertEquals(
+          "translate(10px,10px)",
+          String(lively.PropertyPath("attributeConnections.0.targetObj.changed").get(morph2)));
     },
 
     test08removeSourceObjGetterAndSetter: function() {

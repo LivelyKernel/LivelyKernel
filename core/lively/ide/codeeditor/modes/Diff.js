@@ -29,13 +29,13 @@ var Navigator = {
       return range ? range.start : null;
     },
 
-    findPatchStart: function(ed, startPos) { return this.findAny(ed, [/^diff --git/, /^index/, /^---/, /^\s*$/], true, startPos); },
+    findPatchStart: function(ed, startPos) { return this.findAny(ed, [/^diff --git/, /^index/, /^---/, /^$/], true, startPos); },
     findPatchEnd: function(ed, startPos) {
       if (this.isInPatchHeader(ed, startPos)) {
-        var patchStart = this.findAny(ed, [/^@@ /, /^\s*$/], false, startPos);
+        var patchStart = this.findAny(ed, [/^@@ /, /^$/], false, startPos);
         startPos = patchStart || startPos
       }
-      return this.findAny(ed, [/^diff --git/, /^index/, /^---/, /^\+\+\+/, /^\s*$/], false, patchStart);
+      return this.findAny(ed, [/^diff --git/, /^index/, /^---/, /^\+\+\+/, /^$/], false, patchStart);
     },
     findHunkStart: function(ed, startPos) {  return this.findAny(ed, [/^@@ /], true, startPos); },
     findHunkEnd: function(ed, startPos) {

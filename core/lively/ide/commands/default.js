@@ -1054,22 +1054,21 @@ Object.extend(lively.ide.commands.byName, {
 
             // If there is a list of known dirs first offer to choose from those
             function chooseFromKnownWorkingDirectories(n) {
-              if (!$world.knownWorkingDirectories || !$world.knownWorkingDirectories.length)
-                return n();
-                lively.ide.tools.SelectionNarrowing.getNarrower({
-                  name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
-                  spec: {
-                    candidates: ['choose different directory...'].concat(knownDirectories()),
-                    preselect: 1,
-                    actions: [
-                      function select(c) { n(null, c === 'choose different directory...' ? null : c); },
-                      function remove(c) {
-                        var path = (c && (Object.isString(c) ? c : c.path)) || null;
-                        ($world.knownWorkingDirectories || []).remove(c);
-                        lively.ide.commands.exec('lively.ide.CommandLineInterface.changeShellBaseDirectory');
-                      }]
-                  }
-                })
+              if (!$world.knownWorkingDirectories || !$world.knownWorkingDirectories.length) return n(null,null);
+              lively.ide.tools.SelectionNarrowing.getNarrower({
+                name: 'lively.ide.CommandLineInterface.changeShellBaseDirectory.chooseKnown',
+                spec: {
+                  candidates: ['choose different directory...'].concat(knownDirectories()),
+                  preselect: 1,
+                  actions: [
+                    function select(c) { n(null, c === 'choose different directory...' ? null : c); },
+                    function remove(c) {
+                      var path = (c && (Object.isString(c) ? c : c.path)) || null;
+                      ($world.knownWorkingDirectories || []).remove(c);
+                      lively.ide.commands.exec('lively.ide.CommandLineInterface.changeShellBaseDirectory');
+                    }]
+                }
+              })
             },
 
             // Otherwise choose by navigating the fs

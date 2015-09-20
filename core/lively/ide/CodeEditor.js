@@ -176,6 +176,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         }
         node.setAttribute('id', 'ace-editor');
         this.disableTextResizeOnZoom(e);
+        e.setOption("dragEnabled", false); // HTML5 drag / drop of text
 
         // 2) let the shape know about the editor, this let's us do some optimizations
         this.getShape().aceEditor = e;

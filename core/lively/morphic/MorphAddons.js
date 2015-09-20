@@ -1799,6 +1799,7 @@ Trait('lively.morphic.SetStatusMessageTrait', {
 
   showError: function (e, offset) {
       this.setStatusMessage(String(e), Color.red);
+      if (e.stack) this._statusMorph.insertion = e.stack;
   }
 
 });

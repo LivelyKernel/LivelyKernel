@@ -146,6 +146,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTabSize', {updater: function($upd) {
             this.sourceObj.get('editor').guessAndSetTabSize();
         }});
+
         lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
             var ext = this.sourceObj.getFileExtension().toLowerCase();
             switch(ext) {
@@ -212,7 +213,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     },
     loadFileFileSystem: function loadFileFileSystem() {
         var path = this.getLocation(true),
-            cwd = lively.shell.cwd();
+            cwd = lively.shell.cwd(),
+            self = this;
         // if (path.indexOf(cwd) === 0) {
         //     path = path.slice(cwd.length);
         //     if (path[0] === '/' || path[0] === '\\') path = path.slice(1);
@@ -223,13 +225,20 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         // }
         lively.ide.CommandLineInterface.readFile(path, {}, function(cmd) {
             var err = cmd.getCode() && cmd.getStderr();
-            if (err) { this.message(Strings.format("Could not read file.\nError: %s", err)); return; }
-            lively.bindings.signal(this, 'contentLoaded', cmd.getStdout());
-        }.bind(this));
+            if (err) { self.message(Strings.format("Could not read file.\nError: %s", err)); return; }
+            lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded", 300, function() {
+              lively.bindings.signal(self, 'contentLoaded', cmd.getStdout());
+            })();
+        });
     },
     loadFileNetwork: function loadFileNetwork() {
-        var webR = this.getWebResource();
-        connect(webR, 'content', this, 'contentLoaded');
+        var webR = this.getWebResource(), self = this;
+        lively.bindings.connect(webR, 'content', this, 'contentLoaded', {
+          updater: function($upd) {
+            var sourceObj = this.sourceObj;
+            lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded-net", 100, function() { $upd(sourceObj.content); })();
+          }
+        });
         webR.beAsync().forceUncached().get();
     },
 
@@ -237,7 +246,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         var loc = this.getLocation(),
             selector = loc.isURL ? "saveFileNetwork" : "saveFileFileSystem",
             self = this;
-        Functions.composeAsync(
+        lively.lang.fun.composeAsync(
             function(next) {
                 self[selector](function(err) {
                     if (!err) {

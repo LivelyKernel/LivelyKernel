@@ -167,6 +167,26 @@ regex /^\s*/TestCl?a?s?s?/
 	'testing', {
 		${2:test1}: function() {${0}}
 	});
+# mocha / chai / expect
+snippet describe
+regex /^\s*/desc?r?i?b?e?/
+	describe("${1:test-subject}", function() {
+		${0}
+	});
+snippet it
+	it("${1:tested-action}", function() {
+		${0}
+	});
+snippet beforeEach
+regex /^\s*/before?E?a?c?h?/
+	beforeEach(function(${1:done}) {
+		${0}
+	});
+snippet afterEach
+regex /^\s*/after?E?a?c?h?/
+	afterEach(function() {
+		${0}
+	});
 # initialize methods
 snippet init
 	initialize: function(${1}) {${0}}

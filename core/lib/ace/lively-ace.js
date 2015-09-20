@@ -21436,7 +21436,7 @@ exports.handler.handleKeyboard = function(data, hashId, key, keyCode) {
     if (command === "null") return {command: "null"};
 
     if (command === "universalArgument") {
-        data.count = -4;
+        data.count = 4;
         return {command: "null"};
     }
     var args;

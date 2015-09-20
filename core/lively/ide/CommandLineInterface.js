@@ -674,7 +674,7 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     ls: function(path, thenDo) {
-      return lively.ide.CommandLineSearch.findFiles("*", {cwd: path, depth: 1}, function(err, result) {
+      return lively.ide.CommandLineSearch.findFiles("*", {rootDirectory: path, cwd: path, depth: 1}, function(err, result) {
         thenDo && thenDo(null, result); });
     },
 

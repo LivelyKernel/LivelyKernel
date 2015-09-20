@@ -259,12 +259,8 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                     }
                 });
             },
-            function(next) {
-              var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
-              rt && lively.lang.Runtime.resourceChanged(
-                String(loc), self.get('editor').textString, next);
-            }
-        )();
+            function(next) { self.livelyRuntimeSignalChange(); next(); }
+        )(thenDo);
     },
 
     saveFileFileSystem: function saveFileFileSystem(thenDo) {
@@ -324,7 +320,44 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
                 evt.stop(); return true;
             default: return $super(evt);
         }
-    }
+    },
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // lively.lang.Runtime:
+
+    livelyRuntimeUpdateDoitContext: function livelyRuntimeUpdateDoitContext(thenDo) {
+      var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
+      if (!rt) return thenDo(null,null);
+      var editor = this.get("editor");
+      lively.lang.Runtime.findProjectForResource(this.getLocation(), function(err, proj) {
+        editor.doitContext = (proj && proj.doitContext) || null;
+        thenDo && thenDo();
+      });
+    },
+
+    livelyRuntimeWithProjectDo: function livelyRuntimeWithProjectDo(doFunc) {
+      var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
+      if (!rt) return doFunc(null,null);
+      lively.lang.Runtime.findProjectForResource(this.getLocation(), doFunc);
+    },
+
+    livelyRuntimeSignalChange: function livelyRuntimeSignalChange(thenDo) {
+      var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
+      if (!rt) return thenDo(null, null);
+      var loc = this.getLocation(),
+          self = this;;
+      lively.lang.fun.composeAsync(
+        function(n) { lively.shell.cwd(n); },
+        function(cwd, n) {
+          lively.lang.Runtime.resourceChanged(
+            String(loc), self.get("editor").textString, cwd, n);
+        },
+        function(n) { self.livelyRuntimeUpdateDoitContext(n); }
+      )(function(err) {
+        if (err && !String(err).match(/no project.*found/i)) self.get("editor").showError(err);
+        thenDo && thenDo(err);
+      });
+    },
 });
 
 }) // end of module

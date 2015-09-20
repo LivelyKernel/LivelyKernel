@@ -6,12 +6,14 @@ var comp = lively.lang.fun.composeAsync;
 
 describe('lively.lang.Runtime', function() {
 
+  var runtime = lively.lang.Runtime;
+
   describe("registry", function() {
 
     var sut, registry;
     beforeEach(function() {
       registry = {projects: {}};
-      sut = lively.lang.Runtime.Registry;
+      sut = runtime.Registry;
     });
 
     it("registers projects", function() {
@@ -20,14 +22,118 @@ describe('lively.lang.Runtime', function() {
         resources: {
           "foo.js": {name: "foo.js", code: "var x = 23;"},
           "all tests": {name: "all tests", matches: /tests\/.*\.js/}}
-      })
+      });
       expect(sut.hasProject(registry, "test project")).equals(true);
       expect(sut.hasProject(registry, "nononono")).equals(false);
       expect(sut.getProjectWithResource(registry, "foo.js")).to.be.an("object");
       expect(sut.getProjectWithResource(registry, "bar.js")).to.be.undefined();
       expect(sut.getProjectWithResource(registry, "tests/baz.js")).to.be.an("object")
         .with.deep.property("resources.all tests");
-    })
+    });
+
+    describe("with two projects", function() {
+      beforeEach(function() {
+        sut.addProject(registry, {
+          name: "project-1",
+          rootDir: "/projects/first",
+          resources: {
+            "foo.js": {name: "foo.js", code: "var x = 23;"},
+            "all tests": {name: "all tests", matches: /tests\/.*\.js/}}
+        });
+        sut.addProject(registry, {
+          name: "project-2",
+          rootDir: "/projects/second/",
+          resources: {
+            "foo.js": {name: "foo.js", code: "var x = 2;"}
+          }
+        });
+      });
+
+      it("runtime finds project for absolute file name", function(done) {
+        comp(
+          runtime.findProjectForResource.curry(registry, "/projects/first/foo.js"),
+          function(proj, n) { expect(proj).property("name").equal("project-1"); n(); },
+          runtime.findProjectForResource.curry(registry, "/projects/second/foo.js"),
+          function(proj, n) { expect(proj).property("name").equal("project-2"); n(); },
+          runtime.findProjectForResource.curry(registry, "/projects/first/tests/x-test.js"),
+          function(proj, n) { expect(proj).property("name").equal("project-1"); n(); }
+        )(done);
+      });
+
+      it("runtime finds project for relative file name but guesses", function(done) {
+        comp(
+          runtime.findProjectForResource.curry(registry, "foo.js"),
+          function(proj, n) { expect(proj).property("name").equal("project-1"); n(); }
+        )(done);
+      });
+
+      it("runtime finds project for runtime conf file", function(done) {
+        comp(
+          runtime.findProjectForResource.curry(registry, "/projects/first/lively-runtime.js"),
+          function(proj, n) { expect(proj).property("name").equal("project-1"); n(); }
+        )(done);
+      });
+    });
+  });
+
+  describe("reading runtime conf file", function() {
+
+    var sut, registry;
+    var projectConfSourceTemplate = lively.lang.fun.extractBody(function() {
+      lively.require("lively.lang.Runtime").toRun(function() {
+        var r = lively.lang.Runtime.Registry;
+        r.addProject(r.current(), { name: "__PROJECTNAME__", prop: "foo"});
+      });
+    });
+
+    beforeEach(function() {
+      registry = {projects: {}};
+      runtime.Registry.addProject(registry, {name: "project-1"});
+    });
+
+
+    it("updates existing project", function(done) {
+      comp(
+        function(n) { expect(runtime.Registry.get(registry, "project-1")).to.not.have.property("prop"); n() },
+        function(n) {
+          runtime.resourceChanged(registry,
+            "/foo/first-project/lively-runtime.js",
+            projectConfSourceTemplate.replace("__PROJECTNAME__", "project-1"), null, n)
+        },
+        function(n) { expect(runtime.Registry.get(registry, "project-1")).property("prop").equal("foo"); n(); }
+      )(done);
+    });
+
+    it("adds rootDir property", function(done) {
+      comp(
+        function(n) { expect(runtime.Registry.get(registry, "project-1")).to.not.have.property("rootDir"); n() },
+        function(n) {
+          runtime.resourceChanged(registry,
+            "/foo/first-project/lively-runtime.js",
+            projectConfSourceTemplate.replace("__PROJECTNAME__", "project-1"), null, n)
+        },
+        function(n) {
+          expect(runtime.Registry.get(registry, "project-1"))
+            .property("rootDir").equal("/foo/first-project");
+          n();
+        }
+      )(done);
+    });
+
+    it("creates project if none exists", function(done) {
+      comp(
+        function(n) {
+          runtime.resourceChanged(registry,
+            "/foo/first-project/lively-runtime.js",
+            projectConfSourceTemplate.replace("__PROJECTNAME__", "project-2"), null, n)
+        },
+        function(n) {
+          expect(runtime.Registry.hasProject(registry, "project-2")).equals(true);
+          expect(runtime.Registry.hasProject(registry, "project-1")).equals(true);
+          n();
+        }
+      )(done);
+    });
   });
 
   describe("project change handling", function() {

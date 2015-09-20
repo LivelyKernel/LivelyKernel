@@ -2,41 +2,100 @@ module('lively.lang.Runtime').requires("lively.lang.VM").toRun(function() {
 
 Object.extend(lively.lang.Runtime, {
 
+  _livelyRuntimeFileName: "lively-runtime.js",
+  _noLivelyRuntimeFileMarker: "no lively-runtime file",
+
   loadLivelyRuntimeInProjectDir: function(dir, thenDo) {
       dir = dir || "./";
-      var livelyRuntimeFileName = "lively-runtime.js",
-          fullName = dir + (dir.endsWith("/") ? "" : "/") + livelyRuntimeFileName,
-          noLivelyRuntimeFileMarker = "no lively-runtime file";
+      var fn = lively.lang.Runtime._livelyRuntimeFileName,
+          marker = lively.lang.Runtime._noLivelyRuntimeFileMarker,
+          fullName = dir + (dir.endsWith("/") ? "" : "/") + fn
+
       lively.lang.fun.composeAsync(
           lively.shell.ls.curry(dir),
           function(files, next) {
               next(null, files && files.detect(function(ea) {
-                  return ea.path.endsWith(livelyRuntimeFileName); }));
+                  return ea.path.endsWith(fn); }));
           },
           function(file, next) {
-              if (!file) return next(noLivelyRuntimeFileMarker);
+              if (!file) return next(marker);
               lively.shell.readFile(file.path, function(cmd) {
-                  next(cmd.getCode() ? noLivelyRuntimeFileMarker : null, cmd.resultString()); });
+                  next(cmd.getCode() ? marker : null, cmd.resultString()); });
           },
           function(livelyRuntimeSource, next) {
               lively.require("lively.lang.VM").toRun(function() {
                   lively.lang.VM.runEval(livelyRuntimeSource, {sourceURL: fullName}, next); })
           }
       )(function(err, evalResult) {
-          if (err === noLivelyRuntimeFileMarker) err = null;
+          if (err === marker) err = null;
           else if (err) show("error loading lively-runtime.js:\n" + (err.stack || err))
           else alertOK("lively runtime of\n" + dir + "\nloaded!");
           thenDo && thenDo(err);
       });
   },
 
-  resourceChanged: function(resourceId, source, thenDo) {
-    var runtime = lively.lang.Runtime,
-        registry = runtime.Registry.default(),
-        project = runtime.Registry.getProjectWithResource(registry, resourceId);
-    project && runtime.Project.processChange(project, resourceId, source, thenDo);
-  }
+  resourceChanged: function(registry, resourceId, source, dir, thenDo) {
+      var runtime = lively.lang.Runtime;
+      if (typeof registry === "string") {
+        thenDo = dir;
+        dir = source;
+        source = resourceId;
+        resourceId = registry;
+        registry = runtime.Registry.default();
+      }
 
+      var runtimeConfFileName = lively.lang.Runtime._livelyRuntimeFileName;
+      if (String(resourceId).split("/").last() === runtimeConfFileName) {
+        runtime.loadRuntimeConfFile(registry, resourceId, source, thenDo);
+      } else {
+        lively.lang.fun.composeAsync(
+          function(n) { runtime.findProjectForResource(registry, resourceId, n); },
+          function(proj, n) { runtime.Project.processChange(proj, resourceId, source, n); }
+        )(thenDo);
+      }
+  },
+
+  loadRuntimeConfFile: function(registry, resourceId, source, thenDo) {
+    var runtime = lively.lang.Runtime;
+    if (typeof registry === "string") {
+      thenDo = source;
+      source = resourceId = registry;
+      resourceId = registry;
+      registry = runtime.Registry.default();
+    }
+    var sepMatch = resourceId.match(/\\|\//), sep = sepMatch && sepMatch[0],
+        rootDir = sep ? resourceId.split(sep).slice(0, -1).join(sep) : null,
+        resetRegistry, t = Date.now();
+    lively.lang.fun.composeAsync(
+      function(n) { runtime.Registry.withCurrent(registry, function(reset) { resetRegistry = reset; n(); }); },
+      function(n) { lively.lang.VM.runEval(source, {sourceURL: String(resourceId)}, function(err) { n(err); }); },
+      function(n) { setTimeout(function() { n(); }, 100);},
+      function(n) {
+        if (rootDir) {
+          var project = runtime.Registry.findFirstProjectUpdatedAfter(registry, t);
+          project && (project.rootDir = rootDir);
+        }
+        n();
+      }
+    )(function(err) {
+        if (err) $world.alert("Error loading " + resourceId + ":\n" + err);
+        else $world.alertOK("Runtime conf file " + resourceId + " loaded");
+        resetRegistry && resetRegistry();
+        thenDo && thenDo(err);
+    });
+  },
+
+  findProjectForResource: function(registry, resourceId, thenDo) {
+      var runtime = lively.lang.Runtime;
+      if (typeof registry === "string") {
+        thenDo = resourceId;
+        resourceId = registry;
+        registry = runtime.Registry.default();
+      }
+
+      var project = runtime.Registry.getProjectWithResource(registry, resourceId);
+      thenDo(project ? null : new Error("No project for " + resourceId + " found"), project);
+  }
 });
 
 lively.lang.Runtime.Registry = {
@@ -44,6 +103,29 @@ lively.lang.Runtime.Registry = {
   default: function () {
     return this._defaultRegistry 
         || (this._defaultRegistry = {projects: {}});
+  },
+
+  current: function() {
+    // will be set when pre-specifying a registry and then running runtime
+    // related code like lively-runtime.js
+    return this._current || this.default();
+  },
+
+  withCurrent: function(registry, doFunc) {
+    var self = this,
+        former = self._current;
+    self._current = registry;
+    var callbackCalled = false;
+    lively.lang.fun.waitFor(2000, function() { return !!callbackCalled; },
+      function(err) {
+         if (!err) return;
+         var msg = "Re-setting the lively.lang.Runtime current registry timed out...";
+         console.warn(msg);
+         $world.setStatusMessage(msg, Color.orange);
+      });
+    try { return doFunc(reset); } catch (e) { reset(); throw e; }
+
+    function reset() { callbackCalled = true; self._current = former; }
   },
 
   hasProject: function(registry, name) { return !!this.get(registry, name); },
@@ -60,9 +142,17 @@ lively.lang.Runtime.Registry = {
     // each project can have a varRecorder, context
     // whole project can have a loader
     if (!projectSpec.name) throw new Error("project needs a name");
-    return registry.projects[projectSpec.name] = projectSpec;
-  }
+    var proj = registry.projects[projectSpec.name] ||
+      (registry.projects[projectSpec.name] = {});
+    proj._lastUpdated = Date.now();
+    return lively.lang.obj.extend(proj, projectSpec);
+  },
 
+  findFirstProjectUpdatedAfter: function(registry, t) {
+    return lively.lang.obj.values(registry.projects).detect(function(p) {
+      return p._lastUpdated && p._lastUpdated >= t;
+    });
+  }
 }
 
 lively.lang.Runtime.Project = {
@@ -102,9 +192,23 @@ lively.lang.Runtime.Project = {
   },
 
   getResource: function(project, resourceId) {
-    return project.resources[resourceId]
-        || lively.lang.obj.values(project.resources).detect(function(r) {
-          return doesResourceMatch(resourceId, r, r.matches); });
+    var relativeName;
+
+    if (isAbsoluteName(resourceId) && project.rootDir) {
+      if (!resourceId.startsWith(project.rootDir)) return false;
+      relativeName = resourceId.slice(project.rootDir.length).replace(/^\/|\\/, "");
+    } else {
+      relativeName = resourceId;
+    }
+
+    if (lively.lang.Runtime._livelyRuntimeFileName === relativeName) {
+      return {name: relativeName};
+    }
+
+    var resources = project.resources || {};
+    return resources[relativeName]
+        || lively.lang.obj.values(resources).detect(function(r) {
+          return doesResourceMatch(relativeName, r, r.matches); });
 
     function doesResourceMatch(id, resource, matcher) {
       try {
@@ -119,6 +223,8 @@ lively.lang.Runtime.Project = {
       }
       return false;
     }
+
+    function isAbsoluteName(fileName) { return !!fileName.match(/^\/|[a-z]:\\/i); }
   }
 
 }

@@ -1,7 +1,5 @@
 module('lively.ide.commands.default').requires().toRun(function() {
 
-lively.module("lively.ide.tools.SelectionNarrowing").load();
-
 Object.extend(lively.ide.commands, {
     byName: {},
     defaultBindings: {},
@@ -1903,5 +1901,7 @@ Object.extend(lively.ide.commands.defaultBindings, { // bind commands to default
     // normally browser fwd/bwd shortcut:
     'disabled': {mac: ["Command-[", "Command-]"], win: ["Control-[", "Control-]"]},
 });
+
+lively.module("lively.ide.tools.SelectionNarrowing").load();
 
 }) // end of module

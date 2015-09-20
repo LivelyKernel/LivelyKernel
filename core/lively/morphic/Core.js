@@ -665,6 +665,8 @@ Object.subclass('lively.morphic.Morph',
 
         if (spec.lock !== undefined) this[spec.lock ? 'lock' : 'unlock']();
 
+        if (spec.name !== undefined) this.setName(spec.name);
+
         if (spec.cssStylingMode !== undefined) { // enable disable styling through css
             this.setBorderStylingMode(spec.cssStyling);
             this.setAppearanceStylingMode(spec.cssStyling);

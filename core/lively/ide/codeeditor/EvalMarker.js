@@ -39,8 +39,8 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
         try {
             Global.marker = this;
             return ed.boundEval(this.getOriginalExpression() || '');
-        } catch(e) { return e;
-        } finally { delete Global.marker; }
+        } catch(e) { return e; }
+          finally { delete Global.marker; }
     },
 
     evalAndInsert: function() {
@@ -118,21 +118,69 @@ Object.extend(lively.morphic.CodeEditorEvalMarker, {
 });
 
 (function installEvalMarkerKeyHandler() {
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "evalMarkerKeyHandler");
-    lively.morphic.Events.GlobalEvents.register('keydown', function evalMarkerKeyHandler(evt) {
-        var keys = evt.getKeyString();
-        if (keys === 'Command-Shift-M' || keys === "Control-Shift-M") {
-            var focused = lively.morphic.Morph.prototype.focusedMorph();
-            if (!focused || !focused.isAceEditor) return false;
-            focused.addOrRemoveEvalMarker(evt);
-            evt.stop(); return true;
-        }
-        if (keys === 'Command-M' || keys === 'Control-M') {
-            lively.morphic.CodeEditorEvalMarker.updateLastMarker();
-            evt.stop(); return true;
-        }
-        return false;
+
+    if (!lively.Config.get("evalMarkersEnabled")) return;
+
+    lively.ide.commands.addCommand("lively.ide.codeeditor.eval-marker-toggle", {
+      description: "[eval marker] add or remove for selection",
+      isActive: lively.ide.commands.helper.codeEditorActive,
+      exec: function() {
+        var editor = lively.ide.commands.helper.focusedMorph();
+        if (lively.morphic.CodeEditorEvalMarker.currentMarker) {
+          editor.removeEvalMarker();
+          lively.morphic.CodeEditorEvalMarker.currentMarker = null;
+        } else { editor.addEvalMarker(); }
+        return true;
+      }
     });
+
+    lively.ide.commands.addCommand("lively.ide.codeeditor.eval-marker-add", {
+      description: "[eval marker] add for selection",
+      isActive: lively.ide.commands.helper.codeEditorActive,
+      exec: function() {
+        var editor = lively.ide.commands.helper.focusedMorph();
+        editor.addEvalMarker();
+        return true;
+      }
+    });
+
+    lively.ide.commands.addCommand("lively.ide.codeeditor.eval-marker-remove", {
+      description: "[eval marker] remove",
+      isActive: lively.ide.commands.helper.codeEditorActive,
+      exec: function() {
+        var editor = lively.ide.commands.helper.focusedMorph();
+        editor.removeEvalMarker();
+        return true;
+      }
+    });
+
+    lively.ide.commands.addCommand("lively.ide.codeeditor.eval-marker-update", {
+      description: "[eval marker] re-evaluate existing eval markers",
+      isActive: lively.ide.commands.helper.codeEditorActive,
+      exec: function() {
+        lively.morphic.CodeEditorEvalMarker.updateLastMarker();
+        return true;
+      }
+    });
+
+    lively.ide.commands.addKeyBinding("lively.ide.codeeditor.eval-marker-toggle", {mac: "cmd-shift-M", win: "ctrl-shift-M"});
+    lively.ide.commands.addKeyBinding("lively.ide.codeeditor.eval-marker-update", {mac: "cmd-M", win: "ctrl-M"});
+
+    // lively.morphic.Events.GlobalEvents.unregister('keydown', "evalMarkerKeyHandler");
+    // lively.morphic.Events.GlobalEvents.register('keydown', function evalMarkerKeyHandler(evt) {
+    //     var keys = evt.getKeyString();
+    //     if (keys === 'Command-Shift-M' || keys === "Control-Shift-M") {
+    //         var focused = lively.morphic.Morph.prototype.focusedMorph();
+    //         if (!focused || !focused.isAceEditor) return false;
+    //         focused.addOrRemoveEvalMarker(evt);
+    //         evt.stop(); return true;
+    //     }
+    //     if (keys === 'Command-M' || keys === 'Control-M') {
+    //         lively.morphic.CodeEditorEvalMarker.updateLastMarker();
+    //         evt.stop(); return true;
+    //     }
+    //     return false;
+    // });
 })();
 
 }) // end of module

@@ -1410,14 +1410,17 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return ann.attach();
     },
 
-    addOrRemoveEvalMarker: function(evt) {
+    addOrRemoveEvalMarker: function() {
         var range = this.getSelectionRangeAce();
         return range.isEmpty() ? this.removeEvalMarker() : this.addEvalMarker();
     },
 
     addEvalMarker: function() {
         var range = this.getSelectionRangeAce();
-        if (range.isEmpty()) return;
+        if (range.isEmpty()) {
+          this.selectCurrentLine();
+          range = this.getSelectionRangeAce();
+        };
         var marker = lively.morphic.CodeEditorEvalMarker.setCurrentMarker(this, range);
         marker.evalAndInsert();
     },

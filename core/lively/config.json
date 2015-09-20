@@ -337,6 +337,8 @@
     ["improvedJavaScriptEval", true, "Eval that changes semantics of how object literals and if statements are evaluated."],
     ["showImprovedJavaScriptEvalErrors", false, "Visibly show errors when improved JavaScript eval transformation fail"],
     ["aceDefaultUseIyGotoChar", true, "Quickly jump to next / prev characters using Cmd/Ctrl-, and Cmd/Ctrl-. "],
+    ["evalMarkersEnabled", true, "Eval markers are code selections that can be rerun by pressing a code. Useful for live development and quick testing."],
+    ["codeEditorMenuShowsSettings", true, "Include the settings menu item in the codeeditor context menu"],
     {
       "name": "useEmacsyKeys",
       "type": "Boolean",

@@ -2,16 +2,19 @@ module('lively.ide.codeeditor.EvalMarker').requires('lively.morphic.Events').toR
 
 Object.subclass('lively.morphic.CodeEditorEvalMarker',
 'initialization', {
+
     initialize: function(codeEditor, range) {
         this.annotation = codeEditor.addFloatingAnnotation(range);
         this.originalExpression = this.annotation.getTextString();
     },
+
     detach: function() {
         this.stopContinousEval();
         this.restoreText();
         this.annotation.detach();
         return this;
     },
+
     attach: function() { this.annotation.attach(); return this; },
     restoreText: function() {
         if (this.getTextString() !== this.getOriginalExpression())
@@ -65,13 +68,53 @@ Object.subclass('lively.morphic.CodeEditorEvalMarker',
 });
 
 Object.extend(lively.morphic.CodeEditorEvalMarker, {
+
     updateLastMarker: function() {
         this.currentMarker && this.currentMarker.evalAndInsert();
     },
+
     setCurrentMarker: function(editor, range) {
         if (this.currentMarker) this.currentMarker.detach();
         return this.currentMarker = new this(editor, range);
-    }
+    },
+
+    menuItemsFor: function(codeEditor) {
+      var world = codeEditor.world();
+      var items = [];
+
+      items.push(['Mark / unmark expression (Command-Shift-M)', function() {
+        codeEditor.addEvalMarker();
+        codeEditor.focus();
+      }]);
+
+      items.push(['Remove eval marker', function() {
+        codeEditor.removeEvalMarker();
+        delete lively.morphic.CodeEditorEvalMarker.currentMarker;
+        codeEditor.focus();
+      }]);
+
+      var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
+      if (marker) {
+          items.unshift(["Re-eval (Command-M)", function() { marker.evalAndInsert(); codeEditor.focus(); }]);
+          if (marker.doesContinousEval()) {
+              items.push(['Disable eval interval', function() {
+                  marker.stopContinousEval();
+                  codeEditor.focus();
+              }]);
+          } else {
+              items.push(['Set eval interval', function() {
+                  world.prompt('Please enter the interval time in milliseconds', function(input) {
+                      input = Number(input);
+                      marker.startContinousEval(input);
+                      codeEditor.evalMarkerDelay = input || null;
+                      codeEditor.focus();
+                  }, '200');
+              }]);
+          }
+      }
+
+      return items;
+    },
 });
 
 (function installEvalMarkerKeyHandler() {

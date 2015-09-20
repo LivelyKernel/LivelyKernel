@@ -157,6 +157,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     initializeAce: function(force) {
         var initializedEarlier = this._aceInitialized;
         if (initializedEarlier) return;
+
         // 1) create ace editor object
         this._aceInitialized = true;
         var node = this.getShape().shapeNode,
@@ -1678,71 +1679,45 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 },
 'morph menu', {
 
+    menuItemForCommand: function(name, cmd) {
+      // cmd as one of the commands returned by
+      // lively.ide.commands.getCommands({editor: this});
+      var editor = this,
+          binding = cmd.readableKeyBinding.replace(/\s*\|.*$/, ""),
+          label = name + " (" + binding + ")";
+      return [label, function() { cmd.exec(); editor.focus(); }];
+    },
+
     codeEditorMenuItems: function() {
-        var editor = this, items = [], self = this, world = this.world(),
-            range = this.getSelectionRangeAce(),
+        var editor = this, items = [],
+            mode = this.getTextMode(),
+            isJs = mode.match(/javascript/),
+            cmds = lively.ide.commands.getCommands({editor: this});
+
+        items.push(this.menuItemForCommand('save', cmds['doSave']));
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        // modes
+        this.withAceDo(function(ed) {
+            var mode = ed.session.getMode();
+            if (Object.isFunction(mode.morphMenuItems)) {
+                items = mode.morphMenuItems(items, this);
+            }
+        });
+
+        if (lively.Config.get("codeEditorMenuShowsSettings")) {
+          items.push({isMenuItem: true, isDivider: true});
+          items.push(['settings', this.codeEditorSettingsMenuItems()]);
+        }
+
+        return items;
+    },
+
+    codeEditorSettingsMenuItems: function() {
+
+        var editor = this, items = [], world = this.world(),
             mode = this.getTextMode(),
             isJs = mode.match(/javascript/);
-
-        if (isJs) {
-          // eval marker
-          var evalMarkerItems = ['eval marker', []];
-          items.push(evalMarkerItems);
-          if (!range.isEmpty()) {
-              var selectedText = this.getSelectionOrLineString();
-              var indexOfDot = selectedText.lastIndexOf('.')
-              if(indexOfDot + 1 !== selectedText.length) {
-                  var firstChar = selectedText.charAt(indexOfDot + 1);
-                  if(firstChar.toLowerCase() === firstChar && indexOfDot === -1) {
-                      var selectorItems = ['Selector...', []];
-                      items.push(selectorItems);
-                      selectorItems[1].push(['Implementors', function() {
-                          self.doBrowseImplementors(); }]);
-                      selectorItems[1].push(['Senders', function() {
-                          self.doBrowseSenders(); }]);
-                  } else {
-                      if(firstChar.toUpperCase() === firstChar) {
-                          try {
-                              var potentialClass = this.boundEval(selectedText);
-                              if(potentialClass && potentialClass.isClass() && potentialClass.name() === selectedText.subString(indexOfDot + 1)) {
-                                  var classItems = ['Class...', []];
-                                  items.push(classItems);
-                                  classItems[1].push(['Browse', function() {
-                                      self.browseClass(potentialClass); }]);
-                                  classItems[1].push(['Browse Hierarchy', function() {
-                                      self.browseHierarchy(potentialClass); }]);
-                                  classItems[1].push(['References', function() {
-                                      self.browseReferencesTo(potentialClass); }]);
-                              }
-                          } catch(e) {
-                          }
-  //                        Global.classes(true);
-                      }
-                  }
-              }
-              evalMarkerItems[1].push(['Mark expression', function() {
-                  self.addEvalMarker(); }]);
-          }
-          evalMarkerItems[1].push(['Remove eval marker', function() {
-              self.removeEvalMarker(); }]);
-
-          var marker = lively.morphic.CodeEditorEvalMarker.currentMarker;
-          if (marker) {
-              if (marker.doesContinousEval()) {
-                  evalMarkerItems[1].push(['Disable eval interval', function() {
-                      marker.stopContinousEval();
-                  }]);
-              } else {
-                  evalMarkerItems[1].push(['Set eval interval', function() {
-                      world.prompt('Please enter the interval time in milliseconds', function(input) {
-                          input = Number(input);
-                          marker.startContinousEval(input);
-                          self.evalMarkerDelay = input || null;
-                      }, '200');
-                  }]);
-              }
-          }
-        }
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // themes
@@ -1763,73 +1738,42 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                 return [modeString, function(evt) { editor.setTextMode(mode); }]; });
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        items.push(['Show effective keybindings', function() { editor.showEffectiveKeybindings(); }]);
+        items.push(['Customize keybindings', function() { editor.customizeKeybindingsInteractively(); }]);
+        items.push([lively.lang.string.format('[%s] use emacs-like keys', lively.Config.get('useEmacsyKeys') ? "X" : " "), function() { lively.Config.set('useEmacsyKeys', !lively.Config.get('useEmacsyKeys')); }]);
+        items.push(["modes", modeItems]);
+        items.push(["themes", themeItems]);
+        boolItem({name: "ShowGutter", menuString: "show line numbers"}, items);
+        boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, items);
+        boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, items);
+        boolItem({name: "ShowActiveLine", menuString: "show active line"}, items);
+        boolItem({name: "ShowIndents", menuString: "show indents"}, items);
+        boolItem({name: "SoftTabs", menuString: "use soft tabs"}, items);
+        items.push(['Change tab width', function() {
+          world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
+        }]);
+        boolItem({name: "LineWrapping", menuString: "line wrapping"}, items);
+        items.push(['Change line ending mode', function() {
+          world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
+        }]);
+        boolItem({name: "ShowWarnings", menuString: "show warnings"}, items);
+        boolItem({name: "ShowErrors", menuString: "show Errors"}, items);
+        boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, items);
+        if (isJs) {
+          boolItem({name: "ScrubbingEnabled", menuString: "scrubbing"}, items);
+          boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, items);
+          boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, items);
+        }
+
+        return items;
+
         function boolItem(itemSpec, items) {
             var enabled = editor["get"+itemSpec.name]();
             var item = [Strings.format("[%s] " + itemSpec.menuString, enabled ? 'X' : ' '), function() {
                 editor['set'+itemSpec.name](!enabled); }];
             items.push(item);
         }
-        var settingsItems = [];
-        settingsItems.push(['Show effective keybindings', function() { self.showEffectiveKeybindings(); }]);
-        settingsItems.push(['Customize keybindings', function() { self.customizeKeybindingsInteractively(); }]);
-        settingsItems.push([lively.lang.string.format('[%s] use emacs-like keys', lively.Config.get('useEmacsyKeys') ? "X" : " "), function() { lively.Config.set('useEmacsyKeys', !lively.Config.get('useEmacsyKeys')); }]);
-        settingsItems.push(["modes", modeItems]);
-        settingsItems.push(["themes", themeItems]);
-        boolItem({name: "ShowGutter", menuString: "show line numbers"}, settingsItems);
-        boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, settingsItems);
-        boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, settingsItems);
-        boolItem({name: "ShowActiveLine", menuString: "show active line"}, settingsItems);
-        boolItem({name: "ShowIndents", menuString: "show indents"}, settingsItems);
-        boolItem({name: "SoftTabs", menuString: "use soft tabs"}, settingsItems);
-        settingsItems.push(['Change tab width', function() {
-          $world.prompt('new tab size', function(input) { var size = Number(input); if (size) editor.setTabSize(size); }, editor.guessTabSize() || 4);
-        }]);
-        boolItem({name: "LineWrapping", menuString: "line wrapping"}, settingsItems);
-        settingsItems.push(['Change line ending mode', function() {
-          $world.listPrompt('Choose line ending mode', function(input) { editor.setNewLineMode(input); }, ['auto', 'windows', 'unix'], editor.getNewLineMode(), pt(200,120));
-        }]);
-        boolItem({name: "ShowWarnings", menuString: "show warnings"}, settingsItems);
-        boolItem({name: "ShowErrors", menuString: "show Errors"}, settingsItems);
-        boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, settingsItems);
-        if (isJs) {
-          boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, settingsItems);
-          boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, settingsItems);
-        }
-        items.push(['settings', settingsItems]);
-
-        var mac = UserAgent.isMacOS;
-        function cmdBinding(options) {
-            // options = {name, [cmdName,] [shortcut=STRING||{mac:STRING,win:STRING},] [focusAfter]}
-            var shortcut = '';
-            if (options.shortcut) {
-                shortcut += ' (' + (Object.isObject(options.shortcut) ?
-                    options.shortcut[mac ? 'mac' : 'win'] : options.shortcut) + ')';
-            }
-            var menuName = options.name + shortcut;
-            items.push([menuName, function() {
-                editor.aceEditor.execCommand(options.cmdName || options.name);
-                if (options.focusAfter) editor.focus();
-            }]);
-        }
-
-        cmdBinding({name: 'save', cmdName: 'doSave', shortcut: {win: 'CTRL-s', mac: 'CMD-s'}});
-        if (isJs) {
-          cmdBinding({name: 'property completion', cmdName: 'list protocol', shortcut: {win: 'CTRL-P', mac: 'CMD-P'}});
-          cmdBinding({name: 'inspect', cmdName: 'doInspect', shortcut: {win: 'CTRL-I', mac: 'CMD-I'}});
-          cmdBinding({name: 'printit', shortcut: {win: 'CTRL-p', mac: 'CMD-p'}});
-          cmdBinding({name: 'doit', shortcut: {win: 'CTRL-d', mac: 'CMD-d'}});
-        }
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-        // modes
-        this.withAceDo(function(ed) {
-            var mode = ed.session.getMode();
-            if (Object.isFunction(mode.morphMenuItems)) {
-                items = mode.morphMenuItems(items, this);
-            }
-        });
-
-        return items;
     },
 
     morphMenuItems: function($super) {

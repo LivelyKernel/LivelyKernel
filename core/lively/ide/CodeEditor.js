@@ -843,66 +843,85 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         }
     },
 
-    boundEval: function (__evalStatement, __evalOptions) {
-        // Evaluate the string argument in a context in which "this" is
-        // determined by the reuslt of #getDoitContext
-        var ctx = this.getDoitContext() || this,
-            str,
-            interactiveEval = function() {
-                try {
-                    return eval(str = '(' + __evalStatement + ')');
-                } catch (e) {
-                    return eval(str = __evalStatement);
-                }
-            },
-            interactiveDebugEval = function(ctx) {
-                module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
-                var interpreter = new lively.ast.AcornInterpreter.Interpreter(),
-                    ast;
-                try {
-                    ast = lively.ast.parse(str = '(' + __evalStatement + ')');
-                    acorn.walk.addAstIndex(ast);
-                    acorn.walk.addSource(ast, str);
-                    return interpreter.runWithContext(ast, ctx, Global);
-                } catch (e) {
-                    ast = lively.ast.parse(str = __evalStatement);
-                    acorn.walk.addAstIndex(ast);
-                    acorn.walk.addSource(ast, str);
-                    // In case str starts with a comment, set str to program node
-                    ast.source = str;
-                    return interpreter.runWithContext(ast, ctx, Global);
-                }
-            };
-
-        if (lively.Config.get('improvedJavaScriptEval') && __evalStatement.length < 150000) {
-            try {
-                var result;
-                lively.lang.VM.runEval(__evalStatement, {
-                    context: ctx,
-                    topLevelVarRecorder: Global,
-                    varRecorderName: 'Global',
-                    dontTransform: lively.ast.query.knownGlobals,
-                    sourceURL: __evalOptions ? __evalOptions.sourceURL : undefined
-                }, function(err, _result) { result = err || _result; });
-                return result;
-            } catch(e) {
-                if (Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
-                else console.error("Eval preprocess error: %s", e.stack || e);
-            }
-        }
-
+    boundEvalImproved: function (__evalStatement, __evalOptions) {
         try {
-            var result = !lively.Config.get('loadRewrittenCode') ? interactiveEval.call(ctx) : interactiveDebugEval(ctx),
-                itemName = "Changesets:" +  $world.getUserName() + ":" + location.pathname;
-            if (Config.changesetsExperiment && $world.getUserName() && lively.LocalStorage.get(itemName) !== "off")
-                lively.ChangeSet.logDoit(str, ctx.lvContextPath());
+            var result;
+            lively.lang.VM.runEval(
+              __evalStatement,
+              lively.lang.obj.merge({
+                context: this.getDoitContext() || this,
+                topLevelVarRecorder: Global,
+                varRecorderName: 'Global',
+                dontTransform: lively.ast.query.knownGlobals,
+                sourceURL: undefined
+              }, __evalOptions),
+              function(err, _result) { result = err || _result; });
             return result;
         } catch(e) {
-            if (lively.Config.get('loadRewrittenCode') && e.unwindException)
-                throw e.unwindException;
-            else
-                throw e;
+            if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
+            else console.error("Eval preprocess error: %s", e.stack || e);
+            return e;
         }
+    },
+
+    boundEvalSimple: function (__evalStatement, __evalOptions) {
+      return (function interactiveEval() {
+          try {
+              return eval('(' + __evalStatement + ')');
+          } catch (e) {
+              return eval(__evalStatement);
+          }
+      }).call(this.getDoitContext() || this);
+    },
+
+    boundEvalDebug: function (__evalStatement) {
+        function interactiveDebugEval(ctx) {
+            module('lively.ast.AcornInterpreter').load(true); // also loads lively.ast.Rewriting
+            var interpreter = new lively.ast.AcornInterpreter.Interpreter(), ast,
+                walk = lively.ast.acorn.walk;
+            try {
+                ast = lively.ast.parse('(' + __evalStatement + ')');
+                walk.addAstIndex(ast);
+                walk.addSource(ast, '(' + __evalStatement + ')');
+                return interpreter.runWithContext(ast, ctx, Global);
+            } catch (e) {
+                ast = lively.ast.parse(__evalStatement);
+                walk.addAstIndex(ast);
+                walk.addSource(ast, __evalStatement);
+                // In case str starts with a comment, set __evalStatement to program node
+                ast.source = __evalStatement;
+                return interpreter.runWithContext(ast, ctx, Global);
+            }
+        };
+
+        try {
+            return interactiveDebugEval(this.getDoitContext() || this);
+        } catch(e) {
+            if (e.unwindException) throw e.unwindException;
+            else throw e;
+        }
+
+    },
+
+    boundEval: function (__evalStatement, __evalOptions) {
+        // Evaluate the __evalStatement argument in a context in which "this" is
+        // determined by the reuslt of #getDoitContext
+
+        var result;
+        if (lively.Config.get('improvedJavaScriptEval') && __evalStatement.length < 150000) {
+          result = this.boundEvalImproved(__evalStatement, __evalOptions);
+        } else if (lively.Config.get('loadRewrittenCode')) {
+          result = this.boundEvalDebug(__evalStatement);
+        } else {
+          result = this.boundEvalSimple(__evalStatement);
+        }
+
+        var ctx = this.getDoitContext() || this,
+            itemName = "Changesets:" +  $world.getUserName() + ":" + lively.Config.location.pathname;
+        if (lively.Config.changesetsExperiment && $world.getUserName() && lively.LocalStorage.get(itemName) !== "off")
+            lively.ChangeSet.logDoit(__evalStatement, ctx.lvContextPath());
+
+        return result;
     },
 
     sourceNameForEval: function() {

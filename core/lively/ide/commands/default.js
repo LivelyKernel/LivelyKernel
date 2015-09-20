@@ -20,12 +20,22 @@ Object.extend(lively.ide.commands, {
         else lively.ide.commands.byName[name] = command;
     },
 
+    addKeyBinding: function(cmdName, binding) {
+      lively.ide.commands.getKeyboardBindings()[cmdName] = binding;
+      if (module("lively.morphic.Events").isLoaded())
+        lively.morphic.KeyboardDispatcher.reset();
+    },
+
     getKeyboardBindings: function() { return this.defaultBindings; },
 
     getCommands: function(context) {
       var platform = UserAgent.isMacOS ? "mac" : "win",
           commands = getDefaultCommands();
-      context && context.editor && commands.pushAll(getCodeEditorCommands(context.editor));
+      if (context && context.editor) {
+        commands = lively.lang.obj.merge(
+          commands,
+          getCodeEditorCommands(context.editor));
+      }
       return commands;
 
       // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -47,34 +57,52 @@ Object.extend(lively.ide.commands, {
 
       function getDefaultCommands() {
           var globalBindings = getGlobalCommandKeyBindings();
-          return Properties.forEachOwn(lively.ide.commands.byName, function(name, cmd) {
-              var label = cmd.description || name;
-              if (globalBindings[name]) {
-                label += " (" + readableKeys(globalBindings[name].join(" | ")) + ")";
-              }
-              return {isListItem: true, string: label, value: cmd}
-          });
+          var commandNames = Object.keys(lively.ide.commands.byName);
+          return commandNames.reduce(function(cmds, cmdName) {
+            var cmd = lively.ide.commands.byName[cmdName];
+            var keys = globalBindings[cmdName];
+            cmds[cmdName] = lively.lang.obj.merge(cmd, {
+              name: cmdName,
+              bindKey: keys,
+              readableKeyBinding: keys ? readableKeys(keys.join(" | ")) : null
+            });
+            return cmds;
+          }, {});
       }
 
-      function printBoundKeys(cmd) {
-        if (!cmd.bindKey) return ""
-        if (typeof cmd.bindKey === "string") return "(" + cmd.bindKey + ")";
-        return cmd.bindKey[platform] ? "(" + cmd.bindKey[platform] + ")" : "";
+      function printBoundKeys(bindKey) {
+        if (!bindKey) return "";
+        if (typeof bindKey === "string") return bindKey.replace(/([^\s])\|([^\s])/g, "$1 | $2");
+        if (Array.isArray(bindKey)) return bindKey.map(printBoundKeys).join(" | ");
+        if (bindKey[platform]) return printBoundKeys(bindKey[platform]);
+        return "";
       }
 
       function getCodeEditorCommands(codeEditor) {
           var shortcutMgr = lively.ide.CodeEditor.KeyboardShortcuts.defaultInstance(),
-              cmds = shortcutMgr.allCommandsOf(codeEditor),
-              candidates = Properties.forEachOwn(cmds, function(name, cmd) {
-                  return {
-                      isListItem: true,
-                      string: '[text] ' + name + " " + printBoundKeys(cmd),
-                      value: {exec: function(attribute) { cmd.exec(codeEditor.aceEditor); }}
-                  };
-              });
-          return candidates;
+              editorCommands = shortcutMgr.allCommandsOf(codeEditor),
+              cmdNames = Object.keys(editorCommands);
+          return cmdNames.reduce(function(cmds, cmdName) {
+              var cmd = editorCommands[cmdName];
+              cmds[cmdName] = lively.lang.obj.merge(cmd, {
+                exec: function(args) { cmd.exec(codeEditor.aceEditor, args); },
+                readableKeyBinding: printBoundKeys(cmd.bindKey)
+              })
+              return cmds;
+          }, {});
       }
 
+    },
+
+    getCommandsAsListItems: function(context) {
+      var commands = lively.ide.commands.getCommands(context);
+      return Object.keys(commands).map(function(cmdName) {
+        var cmd = commands[cmdName],
+            label = cmd.desscription || cmdName;
+        if (cmd.readableKeyBinding)
+          label += " (" + cmd.readableKeyBinding + ")"
+        return {isListItem: true,string: label,value: cmd};
+      });
     },
 
     helper: {
@@ -591,7 +619,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'execute command',
         exec: function() {
           var focused = lively.morphic.Morph.focusedMorph(),
-              commands = lively.ide.commands.getCommands(
+              commands = lively.ide.commands.getCommandsAsListItems(
                 {editor: focused.isCodeEditor && focused});
           lively.ide.tools.SelectionNarrowing.getNarrower({
               name: 'lively.ide.commands.execute.NarrowingList',

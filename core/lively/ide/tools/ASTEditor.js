@@ -1,4 +1,4 @@
-module('lively.ide.tools.ASTEditor').requires("lively.ide.tools.CommandLine", 'lively.ast.AstHelper')
+module('lively.ide.tools.ASTEditor').requires("lively.ide.tools.CommandLine", 'lively.ast.acorn')
 .requiresLib({url: 'http://lively-web.org/core/lib/grasp.js', loadTest: function() { return typeof grasp !== 'undefined' }})
 .toRun(function() {
 
@@ -275,7 +275,7 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
         ensureLibs: function ensureLibs(thenDo) {
         // this.ensureLibs(function() { alertOK('ok'); });
         Functions.composeAsync(
-            function(next) { lively.require('lively.ast.AstHelper').toRun(function() { next(); }); },
+            function(next) { lively.require('lively.ast.acorn').toRun(function() { next(); }); },
             function(next) { JSLoader.loadJs(lively.module("lib.jsdiff.jsdiff").uri().toString()); Functions.waitFor(2000, function() { return typeof JsDiff !== 'undefined'; }, next); },
             function(next) {
                 JSLoader.loadJs(URL.codeBase.withFilename('lib/grasp.js').toString()); Functions.waitFor(2000, function() { return typeof grasp !== 'undefined'; }, next); 

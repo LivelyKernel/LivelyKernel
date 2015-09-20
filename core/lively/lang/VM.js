@@ -1,4 +1,4 @@
-module('lively.lang.VM').requires("lively.ast.AstHelper").toRun(function() {
+module('lively.lang.VM').requires("lively.ast.acorn").toRun(function() {
 
 Object.extend(lively.lang.VM, {
 

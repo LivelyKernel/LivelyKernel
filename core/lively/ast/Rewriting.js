@@ -1,4 +1,4 @@
-module('lively.ast.Rewriting').requires('lively.ast.acorn', 'lively.ast.AstHelper').toRun(function() {
+module('lively.ast.Rewriting').requires('lively.ast.acorn').toRun(function() {
 
 Object.extend(lively.ast.Rewriting, {
 
@@ -158,7 +158,7 @@ Object.extend(lively.ast.Rewriting, {
                     'core/lively/Main.js', 'core/lively/persistence/Serializer.js'
                     // directly necessary for debugging BUT excluded for now:
                     // 'core/lively/ast/Debugging.js', 'core/lively/ast/AcornInterpreter.js',
-                    // 'core/lively/ast/Rewriting.js', 'core/lively/ast/AstHelper.js',
+                    // 'core/lively/ast/Rewriting.js',
                     // 'core/lively/ast/acorn.js', 'core/lively/ast/StackReification.js'
                 ]);
 
@@ -186,7 +186,6 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         // this information to create the necessary declarations
         this.scopes = [];
         // module('lively.ast.StackReification').load();
-        // module('lively.AST.AstHelper').load()
 
         // Right now astRegistry is where the original ASTs for each
         // scope/function are stored

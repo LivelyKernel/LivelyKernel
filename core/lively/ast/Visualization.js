@@ -1,4 +1,4 @@
-module('lively.ast.Visualization').requires('lively.ast.AstHelper', 'apps.Graphviz').toRun(function() {
+module('lively.ast.Visualization').requires('lively.ast.acorn', 'apps.Graphviz').toRun(function() {
 
 Object.extend(lively.ast, {
     visualize: function(astOrCode, optSource) {

@@ -866,7 +866,140 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
     }
 
 });
+lively.ast.tests.RewriterTests.AcornRewrite.subclass('lively.ast.tests.RewriterTests.RewriteForRecording',
+'running', {
 
+    // setUp: function($super) {
+    //     $super();
+    //     this.parser = lively.ast;
+    //     this.rewrite = function(node) {
+    //         return lively.ast.Rewriting.rewrite(node, astRegistry, 'AcornRewriteTests');
+    //     };
+    //     this.oldAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry();
+    //     var astRegistry = this.astRegistry = {};
+    //     lively.ast.Rewriting.setCurrentASTRegistry(astRegistry);
+    // },
+
+    // tearDown: function($super) {
+    //     $super();
+    //     lively.ast.Rewriting.setCurrentASTRegistry(this.oldAstRegistry);
+    // }
+
+},
+'helper', {
+
+    recordIt: function(exprToRecord, level, optRecorderName) {
+      var recorderName = optRecorderName || "__test_recordIt__";
+      return lively.lang.string.format(
+        "%s(%s, __%s, __/[0-9]+|lastNode/__, 'AcornRewriteTests', %s);",
+        recorderName, exprToRecord, level, level)
+    },
+
+    tryCatch: function(level, varMapping, inner, optOuterLevel, recordArgs) {
+        level = level || 0;
+        optOuterLevel = !isNaN(optOuterLevel) ? optOuterLevel : (level - 1);
+
+        var argRecordings = Object.keys(varMapping)
+            .map(function(argName) { return this.recordIt(argName, level); }, this)
+            .join("\n") + "\n";
+
+        return Strings.format(
+              "var _ = {}, lastNode = undefined, debugging = false, __%s = [], _%s = %s;\n"
+            + "__%s.push(_, _%s, %s);\n"
+            + (recordArgs ? argRecordings : "\n")
+            + "%s\n",
+            level, level, generateVarMappingString(), level, level,
+            optOuterLevel < 0 ? 'Global' : '__' + optOuterLevel,
+            inner); //, level, "__/[0-9]+/__");
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        function generateVarMappingString() {
+            if (!varMapping) return '{}';
+            var ast = {
+                type: "ObjectExpression",
+                properties: Object.keys(varMapping).map(function(k) {
+                    return {
+                        type: "Property",
+                        kind: "init",
+                        key: {type: "Literal",value: k},
+                        value: {name: varMapping[k],type: "Identifier"}
+                    }
+                })
+            };
+            return escodegen.generate(ast);
+        }
+    },
+
+// delete lively.ast.tests.RewriterTests.RewriteForRecording.prototype.closureWrapper
+
+    closureWrapper: function (level, name, args, innerVarDecl, inner, optInnerLevel) {
+        // something like:
+        // __createClosure('AcornRewriteTests', 333, __0, function () {
+        //     try {
+        //         var _ = {}, _1 = {}, __1 = [_,_1,__0];
+        //     ___ DO INNER HERE ___
+        //     } catch (e) {...}
+        // })
+        var argDecl = innerVarDecl || {};
+        optInnerLevel = !isNaN(optInnerLevel) ? optInnerLevel : (level + 1);
+        args.forEach(function(argName) { argDecl[argName] = argName; });
+        return Strings.format(
+            "__createClosure('AcornRewriteTests', __/[0-9]+/__, __%s, function %s(%s) {\n"
+          + this.tryCatch(optInnerLevel, argDecl, inner, level, true)
+          + "})", level, name, args.join(', '));
+    }
+},
+'testing', {
+
+
+    test01RecordFunctionParams: function() {
+        // var t = new lively.ast.tests.RewriterTests.AcornRewrite();
+        // t.postfixResult(t.setVar(3, "foo", 23), 10);
+        // t.prefixResult("1+2", 10)
+        // t.storeResult("1+3", 10);
+        // t.closureWrapper(1, "foo", ["n", "m"], {}, "1+2", 3)
+
+        // this.doitContext = new lively.ast.tests.RewriterTests.RewriteForCapturing()
+        // this.setUp()
+
+        var source = "function foo(n, m) { return n; }"
+        // lively.ast.printAst(source, {printIndex: true});
+
+
+        var recordingAstRegistry = {};
+        var recordingRewriter = new lively.ast.Rewriting.RecordingRewriter(recordingAstRegistry, "AcornRewriteTests", "__test_recordIt__");
+        // var recordingRewriter = new lively.ast.Rewriting.Rewriter(recordingAstRegistry, "AcornRewriteTests", "__test_recordIt__");
+        var ast = lively.ast.parse(source, { addSource: true });
+        var recordingRewrite = recordingRewriter.rewrite(ast);
+        var result = escodegen.generate(recordingRewrite);
+
+        var expected = this.tryCatch(0,
+          {foo: this.closureWrapper(
+            0, 'foo', ["n", "m"], {},
+            "return " + this.getVar(1, 'n') + ";")
+          }, this.pcAdvance(6) + ";");
+
+        this.assertASTMatchesCode(recordingRewrite, expected);
+    },
+
+    test02RecordReturnStatement: function() {
+        var source = "function foo() { return 1; }"
+
+        var recordingAstRegistry = {};
+        var recordingRewriter = new lively.ast.Rewriting.RecordingRewriter(recordingAstRegistry, "AcornRewriteTests", "__test_recordIt__");
+        // var recordingRewriter = new lively.ast.Rewriting.Rewriter(recordingAstRegistry, "AcornRewriteTests", "__test_recordIt__");
+        var ast = lively.ast.parse(source, { addSource: true });
+        var recordingRewrite = recordingRewriter.rewrite(ast);
+        var result = escodegen.generate(recordingRewrite);
+
+        var expected = this.tryCatch(0,
+          {foo: this.closureWrapper(
+            0, 'foo', [], {},
+            "return " + this.recordIt(this.prefixResult("1", 1), 1))
+          }, this.pcAdvance(4) + ";");
+
+        this.assertASTMatchesCode(recordingRewrite, expected);
+    }
+});
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewriteExecution',
 // checks that rewritten code doesn't introduce semantic changes
 'running', {

@@ -1040,7 +1040,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                 string = obj instanceof Error ? printError(obj) : String(obj);
             } catch (e) { string = printError(e); }
             if (asComment) string = commentify(string, ed.session.getMode().lineCommentStart);
-            ed.onPaste(string);
+            ed.insert(string);
             if (!suppressSelection) self.extendSelectionRange(-string.length);
             ed.renderer.scrollCursorIntoView();
         }

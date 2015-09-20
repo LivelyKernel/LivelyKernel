@@ -21141,7 +21141,7 @@ function objectToRegExp(obj) {
     this.message = function(msg) {
         if (this.$editor.showCommandLine) {
             this.$editor.showCommandLine(msg);
-            this.$editor.focus();
+            // this.$editor.focus();
         } else {
             console.log(msg);
         }

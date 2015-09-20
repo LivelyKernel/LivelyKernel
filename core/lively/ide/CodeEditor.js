@@ -1661,6 +1661,21 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return this.hasOwnProperty("_ShowErrors") ? this._ShowErrors : true
     },
 
+    setScrubbingEnabled: function(bool) {
+      var self = this,
+          m = module("lively.ide.codeeditor.Scrubbing");
+      if (bool) {
+        if (!m.isLoaded()) m.load();
+        m.runWhenLoaded(function() { m.enableInCodeEditor(self); });
+      } else {
+        if (m.isLoaded()) m.disableInCodeEditor(self);
+      }
+      return self._ScrubbingEnabled = bool;
+    },
+    getScrubbingEnabled: function() {
+        return this.hasOwnProperty("_ScrubbingEnabled") ? this._ScrubbingEnabled : false;
+    },
+
     setPrintItAsComment: function(bool) { return this._PrintItAsComment = bool; },
     getPrintItAsComment: function() {
         return this.hasOwnProperty("_PrintItAsComment") ? this._PrintItAsComment : false;

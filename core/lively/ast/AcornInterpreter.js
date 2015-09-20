@@ -1256,7 +1256,24 @@ Object.extend(lively.ast.AcornInterpreter.Scope, {
             frameState = frameState == Global ? null : frameState[2];
         } while (frameState);
         return topScope;
-    }
+    },
+
+    varMappingOfFrameState: function(frameState) {
+      return this.varMapping(this.recreateFromFrameState(frameState));
+    },
+
+    varMapping: function(scope) {
+      // takes a scope instance and returns a simple JS obj (map) that
+      // represents the var names / values captured in scope
+
+      return lively.lang.obj.merge.apply(null,
+        scopes(scope).invoke("getMapping").reverse());
+
+      function scopes(scope) {
+        return [scope].concat(scope.parentScope ?
+          scopes(scope.parentScope) : []);
+      }
+    },
 
 });
 

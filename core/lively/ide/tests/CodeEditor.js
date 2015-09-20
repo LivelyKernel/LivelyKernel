@@ -27,6 +27,7 @@ AsyncTestCase.subclass('lively.ide.tests.CodeEditor.Base',
 
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface',
 'testing', {
+
     testCreation: function() {
         this.editor.textString = "some content";
         this.assertHasText(this.editor, 'some content');
@@ -175,8 +176,23 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
             e.insertAtCursor("\nfoo");
             insertStuff.curry(n-1, thenDo).delay(0.1);
         }
-    }
+    },
 
+    testMorphicPositionAndBounds: function() {
+      this.epsilon = 0.1;
+        var e = this.editor;
+        e.openInWorld();
+        this.delay(function() {
+          e.textString = "some\ncontent";
+          e.setCursorPosition({y: 1, x: 0});
+          e.aceEditor.moveCursorTo(0,0);
+          var pos = e.getCursorPositionAce();
+          var range = e.getSession().getWordRange(pos.row, pos.column);
+          var bounds = e.rangeToMorphicBounds(range);
+          this.assertEqualsEpsilon(lively.rect(45,0,36,16), bounds);
+          this.done();
+        }, 100);
+    },
 });
 
 lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Tokens',

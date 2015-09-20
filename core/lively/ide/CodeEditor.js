@@ -1698,7 +1698,74 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     onOwnerChanged: function($super, newOwner) {
       if (!newOwner && this._statusMorph) this._statusMorph.remove();
       return $super(newOwner);
+    },
+
+    astNodeRange: function(node) {
+      var start = this.indexToPosition(node.start),
+          end = this.indexToPosition(node.end);
+      return lively.ide.ace.require("ace/range").Range.fromPoints(start, end)
+    },
+
+    astNodeMorphicBounds: function(node, useMaxColumn) {
+      // var node = this.getSession().$ast.body[0];
+      // var node = this.getSession().$ast;
+      // this.nodeBounds(node);
+
+      var start = this.indexToPosition(node.start),
+          end = this.indexToPosition(node.end);
+
+      if (useMaxColumn) {
+        var maxColumn = this.getSession().getLines(start.row, end.row).pluck("length").max();
+        end.column = maxColumn;
+      }
+
+      var startMorphic = this.posToMorphicPos(start, "topLeft"),
+          endMorphic = this.posToMorphicPos(end, "bottomRight");
+
+      return !startMorphic || !endMorphic ?
+        null : lively.rect(startMorphic, endMorphic);
+    },
+
+    rangeToMorphicBounds: function(range) {
+      var topLeft = this.posToMorphicPos(range.start, "topLeft"),
+          bottomRight = this.posToMorphicPos(range.end, "bottomRight");
+      return lively.rect(topLeft, bottomRight);
+    },
+
+    posToMorphicPos: function(pos, corner) {
+      var ed = this.aceEditor,
+          r = ed.renderer,
+          config = ed.renderer.layerConfig,
+          bounds = ed.renderer.container.getBoundingClientRect(),
+          lineHeight = config.lineHeight,
+          // screenPos    = ed.session.documentToScreenPosition(pos.row, pos.column),
+          screenPos = pos,
+          localCoords = {
+            x: r.gutterWidth + config.padding + screenPos.column * config.characterWidth,
+            // y: config.firstRowScreen * config.lineHeight + screenPos.row * config.lineHeight - r.scrollTop
+            y: screenPos.row * config.lineHeight - r.scrollTop
+          };
+
+      switch (corner) {
+        case 'topLeft':
+          break;
+        case 'bottomLeft':
+          localCoords.y += lineHeight;break;
+        case 'topRight':
+          localCoords.x += config.characterWidth;break;
+        case 'bottomRight':
+          localCoords.y += lineHeight;
+          localCoords.x += config.characterWidth;
+          break;
+        case 'center':
+          localCoords.y += lineHeight / 2;
+          localCoords.x += config.characterWidth / 2;
+          break;
+      }
+
+      return lively.Point.ensure(localCoords);
     }
+
 },
 'morph menu', {
 

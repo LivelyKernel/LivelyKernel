@@ -2427,7 +2427,7 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
     // be called when morphs to not actively handle (= calling evt.stop()) the
     // event
 
-    function defaulGlobalKeyHandler(evt) { // 1. capturing phase, outer -> inner
+    function defaultGlobalKeyHandler(evt) { // 1. capturing phase, outer -> inner
         var keys = evt.getKeyString({ignoreModifiersIfNoCombo: false});
         if (doDefaultEscapeAction(evt, keys)) return true;
         if (ensureFocusedMorph(evt, keys)) return undefined;
@@ -2443,9 +2443,9 @@ Object.extend(lively.morphic.KeyboardDispatcher, {
         evt.stop(); return true;
     }
 
-    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaulGlobalKeyHandler", true);
+    lively.morphic.Events.GlobalEvents.unregister('keydown', "defaultGlobalKeyHandler", true);
     lively.morphic.Events.GlobalEvents.unregister('keydown', "doGlobalActionsOnBubble", false);
-    lively.morphic.Events.GlobalEvents.register('keydown', defaulGlobalKeyHandler, true);
+    lively.morphic.Events.GlobalEvents.register('keydown', defaultGlobalKeyHandler, true);
     lively.morphic.Events.GlobalEvents.register('keydown', doGlobalActionsOnBubble, false);
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

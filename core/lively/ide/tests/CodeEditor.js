@@ -179,7 +179,7 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
     },
 
     testMorphicPositionAndBounds: function() {
-      this.epsilon = 0.1;
+      this.epsilon = 1;
         var e = this.editor;
         e.openInWorld();
         this.delay(function() {

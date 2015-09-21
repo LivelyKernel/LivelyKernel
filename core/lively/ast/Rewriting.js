@@ -767,6 +767,7 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
     }
 });
 
+
 Object.subclass("lively.ast.Rewriting.BaseVisitor",
 // This code was generated with:
 // lively.ast.MozillaAST.createVisitorCode({openWindow: true, asLivelyClass: true, parameters: ["state"], useReturn: true, name: "Visitor"});
@@ -1716,11 +1717,14 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
 
     visitSwitchCase: function(n, rewriter) {
         // test is a node of type Expression
-        var test = this.accept(n.test, rewriter);
-        if (test != null && !rewriter.isStoredComputationResult(test) && test.type != 'Literal') {
-            // definitely capture state because it can be changed in cases' bodies (resume in case)
-            test = rewriter.storeComputationResult(test,
-                n.test.start, n.test.end, n.test.astIndex);
+        var test = null;
+        if (n.test) {
+            var test = this.accept(n.test, rewriter);
+            if (test != null && !rewriter.isStoredComputationResult(test) && test.type != 'Literal') {
+                // definitely capture state because it can be changed in cases' bodies (resume in case)
+                test = rewriter.storeComputationResult(test,
+                    n.test.start, n.test.end, n.test.astIndex);
+            }
         }
         return {
             start: n.start, end: n.end, type: 'SwitchCase',

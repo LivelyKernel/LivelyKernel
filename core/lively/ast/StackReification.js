@@ -156,7 +156,8 @@ Object.extend(Global, {
 
     __createClosure: Global.__createClosure || function(namespace, idx, parentFrameState, f) {
         // FIXME: Either save idx and use __getClosure later or attach the AST here and now (code dup.)?
-        f._cachedAst = lively.ast.Rewriting.getCurrentASTRegistry()[namespace][idx];
+        var registry = lively.ast.Rewriting.getCurrentASTRegistry();
+        f._cachedAst = registry && registry[namespace] && registry[namespace][idx];
         // parentFrameState = [computedValues, varMapping, parentParentFrameState]
         f._cachedScopeObject = parentFrameState;
         f.livelyDebuggingEnabled = true;

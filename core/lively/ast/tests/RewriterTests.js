@@ -1,4 +1,4 @@
-module('lively.ast.tests.RewriterTests').requires('lively.ast.Rewriting', 'lively.ast.StackReification', 'lively.ast.AstHelper', 'lively.TestFramework').toRun(function() {
+module('lively.ast.tests.RewriterTests').requires('lively.ast.Rewriting', 'lively.ast.StackReification', 'lively.TestFramework').toRun(function() {
 
 TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
 'running', {
@@ -975,7 +975,7 @@ lively.ast.tests.RewriterTests.AcornRewrite.subclass('lively.ast.tests.RewriterT
         var expected = this.tryCatch(0,
           {foo: this.closureWrapper(
             0, 'foo', ["n", "m"], {},
-            "return " + this.getVar(1, 'n') + ";")
+            "return " + this.recordIt('('+this.postfixResult(this.getVar(1, 'n'), 3)+')', 1))
           }, this.pcAdvance(6) + ";");
 
         this.assertASTMatchesCode(recordingRewrite, expected);
@@ -994,7 +994,7 @@ lively.ast.tests.RewriterTests.AcornRewrite.subclass('lively.ast.tests.RewriterT
         var expected = this.tryCatch(0,
           {foo: this.closureWrapper(
             0, 'foo', [], {},
-            "return " + this.recordIt(this.prefixResult("1", 1), 1))
+            "return " + this.recordIt('('+this.postfixResult("1", 1)+')', 1))
           }, this.pcAdvance(4) + ";");
 
         this.assertASTMatchesCode(recordingRewrite, expected);

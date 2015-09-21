@@ -1681,14 +1681,14 @@ Object.extend(lively.persistence.HTMLDocBuilder, {
 
 Object.extend(lively.persistence, {
     getPluginsForLively: function() {
-        return this.pluginsForLively.collect(function(klass) {
-            return new klass();
-        })
+        var plugins = lively.lang.arr.clone(this.pluginsForLively);
+        if (!lively.Config.get("garbageCollectAttributeConnections"))
+          plugins.remove(lively.persistence.AttributeConnectionGarbageCollectionPlugin);
+        return plugins.map(function(klass) { return new klass(); });
     },
 
-    pluginsForLively: 
-      (lively.Config.get("garbageCollectAttributeConnections") ?
-        [lively.persistence.AttributeConnectionGarbageCollectionPlugin] : []).concat([
+    pluginsForLively: [
+        lively.persistence.AttributeConnectionGarbageCollectionPlugin,
         ClosurePlugin,
         StoreAndRestorePlugin,
         lively.persistence.TraitPlugin,

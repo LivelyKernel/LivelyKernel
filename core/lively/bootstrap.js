@@ -246,7 +246,13 @@
                         for (var i = 0; i < consumers.length; i++) {
                             var consumerFunc = consumers[i][name];
                             if (consumerFunc) {
-                                consumerFunc.apply(consumers[i], arguments);
+                                try {
+                                    consumerFunc.apply(consumers[i], arguments);
+                                } catch (e) {
+                                    (console.$error || console.error)(
+                                        "Platform consumer %s errored on %s\nOriginal message:\n",consumers[i], name);
+                                    if (console["$"+name]) console["$"+name].apply(console, arguments);
+                                }
                             }
                         }
                     };

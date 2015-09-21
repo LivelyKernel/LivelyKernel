@@ -1703,7 +1703,7 @@ Object.extend(lively.persistence, {
         lively.persistence.DatePlugin,
         lively.persistence.TypedArrayPlugin,
         lively.persistence.ExprPlugin,
-    ])
+    ]
 });
 
 Object.extend(ObjectGraphLinearizer, {

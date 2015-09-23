@@ -19,7 +19,7 @@
     "lively.ast": "^0.2.6",
     "optparse": "~1.0",
     "shelljs": "~0.2",
-    "sqlite3": "~3.0.5",
+    "sqlite3": "~3.1.0",
     "watch": "~0.8.0",
     "websocket": "1.0.17",
     "lively.lang": ">=0.4.6",

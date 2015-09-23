@@ -432,7 +432,7 @@
 
   "lively.VM": [
     ["useJsx", true, "jsx is a JS language extension for the react framework. When enabled code editors will know how to parse jsx."],
-    ["useBabelJsForEval", true, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."],
+    ["useBabelJsForEval", false, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."],
     ["useBabelJsForScriptLoad", false, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."]
   ]
 }

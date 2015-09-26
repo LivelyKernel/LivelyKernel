@@ -3113,6 +3113,23 @@ Object.subclass('lively.morphic.TextEmphasis',
             apply: function(node) { if (this.hasOwnProperty("textShadow")) node.style.textShadow = this.textShadow }
         },
 
+        cssClasses: {
+            set: function(value) { this.cssClasses = value || []; },
+            get: function() { return this.cssClasses; },
+            equals: function(other) {
+              return lively.lang.arr.equals(
+                (this.cssClasses || []).sort(),
+                (other.cssClasses || []).sort());
+            },
+            apply: function(node) {
+              var $node = lively.$(node);
+              var currentClasses = ($node.attr("class") || "").split(" ");
+              var remove = currentClasses.withoutAll(this.cssClasses || []);
+              $node.removeClass(remove.join(" "));
+              $node.addClass((this.cssClasses || []).join(" "));
+            }
+        },
+
         isNullStyle: {
             set: function(value) { return this.isNullStyle = value },
             get: function() { return this.isNullStyle },
@@ -3162,7 +3179,9 @@ Object.subclass('lively.morphic.TextEmphasis',
     getFontSize:         function()      { return this.get('fontSize'); },
     setFontSize:         function(value) { return this.set('fontSize', value); },
     getTextShadow:       function()      { return this.get('textShadow'); },
-    setTextShadow:       function(value) { return this.set('textShadow', value); }
+    setTextShadow:       function(value) { return this.set('textShadow', value); },
+    getTextShadow:       function()      { return this.get('cssClasses'); },
+    setTextShadow:       function(value) { return this.set('cssClasses', value); }
 },
 'cloning', {
     clone: function() { return new this.constructor(this) }
@@ -3198,7 +3217,8 @@ Object.subclass('lively.morphic.TextEmphasis',
             && attrs.textDecoration  .equals.call(this, other)
             && attrs.textAlign       .equals.call(this, other)
             && attrs.fontSize        .equals.call(this, other)
-            && attrs.textShadow      .equals.call(this, other);
+            && attrs.textShadow      .equals.call(this, other)
+            && attrs.cssClasses      .equals.call(this, other);
     },
 
     include: function(specOrEmph) {
@@ -3278,6 +3298,7 @@ Object.subclass('lively.morphic.TextEmphasis',
         attrs.textAlign       .apply.call(this, node);
         attrs.fontSize        .apply.call(this, node);
         attrs.textShadow      .apply.call(this, node);
+        attrs.cssClasses      .apply.call(this, node);
         // attrs.isNullStyle.apply.call(this, node);
 
         this.installCallbackHandler(node);

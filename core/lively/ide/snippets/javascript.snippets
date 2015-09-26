@@ -317,3 +317,8 @@ snippet f
 	${1:(arg)} => ${0}
 snippet f1
 	${1:arg} => ${0}
+snippet fun*
+	function* ${1?:functionName}(${2}) {${0}}
+snippet fn*
+regex /((=)\s*|(:)\s*|(\()|\b)/fn\*/
+	function*($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}

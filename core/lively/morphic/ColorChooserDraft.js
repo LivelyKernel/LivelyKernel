@@ -478,13 +478,14 @@ lively.morphic.SimpleColorField.subclass('lively.morphic.AwesomeColorField',
         this.value = bool;
         // buttons should fire on mouse up
         if (!bool) {
-            var menu = this.world().loadPartItem('ColorPicker', 'PartsBin/Tools');
+            var picker = this.world().loadPartItem('ColorPicker', 'PartsBin/Tools');
             var bounds = this.globalBounds();
             var pos = pt(bounds.x, bounds.y);
             var menuPos = pos.addPt(pt(0, bounds.height));
-            menu.open(lively.morphic.World.current(), menuPos, false);
-            (function(color) { menu.setColor(color); }).curry(this.color).delay(.001);
-            connect(menu, 'color', this, 'setColor');
+            picker.open(lively.morphic.World.current(), menuPos, false);
+            (function(color) { picker.setColor(color); }).curry(this.color).delay(.001);
+            lively.bindings.connect(picker, 'color', this, 'setColor');
+            lively.bindings.connect(picker, 'color-drag-end', picker, 'remove');
         }
     }
 });

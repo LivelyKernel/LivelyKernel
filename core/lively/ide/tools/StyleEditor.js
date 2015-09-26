@@ -4877,6 +4877,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
                 lively.bindings.connect(this, "value", this.get("FontSizeText"), "setTextString", {converter: 
             function (val) {
+                    this.targetObj.savedTextString = Math.round(val*100)
                     return Math.round(val*100)
                 }});
             },

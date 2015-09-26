@@ -75,12 +75,12 @@ Object.subclass('lively.morphic.Morph',
     },
     getBounds: function() {
         if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
-      
+
         var tfm = this.getTransform(),
             bounds = this.innerBounds();
-      
+
         bounds = tfm.transformRectToRect(bounds);
-      
+
         if (!this.isClip()) {
             var subBounds = this.submorphBounds(tfm);
             if (subBounds) bounds = bounds.union(subBounds);
@@ -88,7 +88,7 @@ Object.subclass('lively.morphic.Morph',
           var scroll = this.getScroll();
           bounds = bounds.translatedBy(pt(scroll[0], scroll[1]));
         }
-      
+
         return this.cachedBounds = bounds;
     },
     globalBounds: function() {
@@ -731,7 +731,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         enableDragging: true
     },
     metaTags: [
-        {name: "apple-mobile-web-app-capable", content: "yes"}], 
+        {name: "apple-mobile-web-app-capable", content: "yes"}],
     linkTags: [
         {rel: 'shortcut icon', href: 'core/media/lively.ico'},
         {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'}],
@@ -814,7 +814,7 @@ lively.morphic.Morph.subclass('lively.morphic.World',
     getMetaTags: function() {
         // append our own metaTags to the class's metaTags
         var allTags = Object.mergePropertyInHierarchy(this, 'metaTags');
-        
+
         // ensure only one tag of a type is present
         return allTags.uniqBy(function(a,b) {
           if (("name" in a) && ("name" in b) && a == b) return true;
@@ -1043,6 +1043,18 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
         var items = $super();
         items.push(['to curve', this.convertToCurve.bind(this)]);
         items.push(['to line', this.convertToLine.bind(this)]);
+
+        var propItems = items.detect(function(subItem) {
+            return subItem[0].match(/morphic.*properties/i)
+        });
+
+        var haloItemsEnabled = this.areControlPointHalosEnabled()
+        propItems[1].push([
+            (haloItemsEnabled ? "Disable" : "Enable")
+                + " halo items for control points", function() {
+                    this.setControlPointHalosEnabled(!haloItemsEnabled);
+                }.bind(this)]);
+
         return items;
     },
     adjustOrigin: function($super, newOrigin) {

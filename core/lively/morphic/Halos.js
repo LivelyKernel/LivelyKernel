@@ -123,12 +123,26 @@ lively.morphic.World.addMethods(
 
 lively.morphic.Path.addMethods(
 'halos', {
-    getHalos: function($super) {
-        return $super()
-            .concat(this.getControlPointHalos())
-            .concat(this.getInsertPointHalos())
-            // .reject(function(halo) { return halo instanceof lively.morphic.OriginHalo });
+
+    controlPointHalosEnabled: true,
+
+    areControlPointHalosEnabled: function() {
+        return this.controlPointHalosEnabled;
     },
+    
+    setControlPointHalosEnabled: function(bool) {
+        return this.controlPointHalosEnabled = bool;
+    },
+
+    getHalos: function($super) {
+        var haloItems = $super();
+        return this.areControlPointHalosEnabled() ?
+          haloItems
+            .concat(this.getControlPointHalos())
+            .concat(this.getInsertPointHalos()) :
+        haloItems;
+    },
+
     getHaloClasses: function($super) {
         return $super()
             .without(lively.morphic.NewResizeHalo);

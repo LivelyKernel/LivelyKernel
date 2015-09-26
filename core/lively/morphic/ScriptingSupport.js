@@ -25,8 +25,11 @@ lively.morphic.Morph.addMethods(
     }
 },
 'naming', {
+
     setName: function(name) { this.name = name },
+
     getName: function() { return this.name },
+
     get: function (name) {
         // search below, search siblings, search upwards
         try {
@@ -42,6 +45,7 @@ lively.morphic.Morph.addMethods(
             throw e
         }
     },
+
     getMorphNamed: function (name) {
         if (name == "") return null;
         if (!this.submorphs) return null;
@@ -60,6 +64,7 @@ lively.morphic.Morph.addMethods(
         }
         return null;
     },
+
     getBreadthFirstUpwards: function (name) {
         // prioritize this over other siblings
         var isRe = Object.isRegExp(name);
@@ -85,20 +90,87 @@ lively.morphic.Morph.addMethods(
 
         return this.owner.getBreadthFirstUpwards(name);
     },
+
+    generateReferenceExpression: function(opts) {
+      var morph = this;
+      opts = lively.lang.obj.merge({
+        maxLength: 10,
+        fromMorph: morph.world()
+      }, opts);
+
+      var fromMorph = opts.fromMorph;
+      var rootExpr = morph.world() === fromMorph ? "$world" : "this";
+
+      // can we find it at all? if not return a generic "morph"
+      if (!morph.world() && (!morph.name || fromMorph.get(morph.name) !== morph))
+        return "morph";
+
+      var fmt = lively.lang.string.format,
+          vm = lively.vm || lively.lang.VM,
+          exprs = makeReferenceExpressionListFor(morph);
+
+      return exprs.length > opts.maxLength ?
+        fmt('$world.getMorphById("%s")', morph.id) :
+        exprs.join(".");
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      function makeReferenceExpressionListFor(morph) {
+        var name = morph.getName(),
+            owners = morph.ownerChain(),
+            exprList;
+
+        if (morph === fromMorph) exprList = [rootExpr];
+
+        if (!exprList && name) {
+          if ((morph.owner === morph.world()
+           || owners.every(function(o) { return !o.name; }))
+           && $morph(morph.name) === morph) {
+             exprList = [fmt('$morph("%s")', name)]
+           } else {
+             var exprsToCheck = makeReferenceExpressionListFor(morph.owner).concat([fmt('get("%s")', name)]);
+             if (vm.syncEval(exprsToCheck.join("."), {context: fromMorph}) === morph) { exprList = exprsToCheck; }
+           }
+        }
+
+        if (!exprList && morph.owner && morph.owner.name) {
+          var idx = morph.owner.submorphs.indexOf(morph);
+          exprList = makeReferenceExpressionListFor(morph.owner).concat([fmt("submorphs[%s]", idx)]);
+        }
+
+        if (!exprList) {
+          exprList = [fmt('%s.getMorphById("%s")', rootExpr, morph.id)];
+        }
+
+        return exprList;
+      }
+
+      function commonOwner(m1, m2) {
+        var owners1 = m1.ownerChain(),
+            owners2 = m2.ownerChain();
+        if (owners1.include(m2)) return m2;
+        if (owners2.include(m1)) return m1;
+        return owners1.intersect(owners2).first();
+      }
+
+    }
 },
 'tagging', {
+
     tagScript: function(scriptName, tags) {
         return this[scriptName].tag(tags);
     }
+
 },
 'conversion', {
+
     asSVGLogo: function() {
         var oldPos = this.getPosition();
         var logoMorph = this.copy();
-        logoMorph.setPosition(pt(0,0))
+        logoMorph.setPosition(pt(0,0));
         logoMorph.renderWithSVG();
         logoMorph.remove(); // FIXME worlds are automatically added to DOM
-        svgNode = logoMorph.renderContext().morphNode;
+        var svgNode = logoMorph.renderContext().morphNode;
         return '<?xml version="1.0" encoding="UTF-8"?>\n'+
         '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '+
@@ -106,9 +178,11 @@ lively.morphic.Morph.addMethods(
             Exporter.stringify(svgNode) +
         '</svg>';
     },
+
     logoHTMLString: function () {
         return Exporter.stringify(this.renderContext().morphNode);
     },
+
     asHTMLLogo: function (options) {
         options = options || {};
         var oldPos = this.getPosition(),

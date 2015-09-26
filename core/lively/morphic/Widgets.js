@@ -2941,6 +2941,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         if (this.type === 'right' || this.type === 'corner') { style.moveHorizontal = true; }
         if (this.type === 'bottom' || this.type === 'corner') { style.moveVertical = true; }
         this.applyStyle(style);
+        this.disableDropping();
     }
 },
 'event handling', {

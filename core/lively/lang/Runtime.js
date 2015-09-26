@@ -24,7 +24,9 @@ Object.extend(lively.lang.Runtime, {
           },
           function(livelyRuntimeSource, next) {
               lively.require("lively.lang.VM").toRun(function() {
-                  lively.lang.VM.runEval(livelyRuntimeSource, {sourceURL: fullName}, next); })
+                lively.lang.Runtime.loadRuntimeConfFile(
+                  lively.lang.Runtime.Registry.default(),
+                  fullName, livelyRuntimeSource, next); });
           }
       )(function(err, evalResult) {
           if (err === marker) err = null;
@@ -32,6 +34,7 @@ Object.extend(lively.lang.Runtime, {
           else alertOK("lively runtime of\n" + dir + "\nloaded!");
           thenDo && thenDo(err);
       });
+
   },
 
   resourceChanged: function(registry, resourceId, source, dir, thenDo) {
@@ -59,10 +62,11 @@ Object.extend(lively.lang.Runtime, {
     var runtime = lively.lang.Runtime;
     if (typeof registry === "string") {
       thenDo = source;
-      source = resourceId = registry;
+      source = resourceId;
       resourceId = registry;
       registry = runtime.Registry.default();
     }
+
     var sepMatch = resourceId.match(/\\|\//), sep = sepMatch && sepMatch[0],
         rootDir = sep ? resourceId.split(sep).slice(0, -1).join(sep) : null,
         resetRegistry, t = Date.now();
@@ -71,11 +75,13 @@ Object.extend(lively.lang.Runtime, {
       function(n) { lively.lang.VM.runEval(source, {sourceURL: String(resourceId)}, function(err) { n(err); }); },
       function(n) { setTimeout(function() { n(); }, 100);},
       function(n) {
-        if (rootDir) {
-          var project = runtime.Registry.findFirstProjectUpdatedAfter(registry, t);
-          project && (project.rootDir = rootDir);
-        }
-        n();
+        var project = runtime.Registry.findFirstProjectUpdatedAfter(registry, t);
+        if (rootDir && project) project.rootDir = rootDir;
+        n(null, project);
+      },
+      function(project, n) {
+        if (project && project.reloadAll) project.reloadAll(project, n);
+        else n(null, null);
       }
     )(function(err) {
         if (err) $world.alert("Error loading " + resourceId + ":\n" + err);
@@ -95,13 +101,48 @@ Object.extend(lively.lang.Runtime, {
 
       var project = runtime.Registry.getProjectWithResource(registry, resourceId);
       thenDo(project ? null : new Error("No project for " + resourceId + " found"), project);
+  },
+
+  readFiles: function(project, files, thenDo) {
+    lively.lang.arr.mapAsyncSeries(files,
+      function(fn,_,n) {
+        lively.shell.cat(fn, {cwd: project.rootDir},
+        function(err, c) { n(err, {name: fn, content: c}); });
+      }, thenDo);
+  },
+
+  loadFiles: function(project, files, thenDo) {
+    lively.lang.fun.composeAsync(
+      lively.lang.Runtime.readFiles.curry(project, files),
+      function(filesRead, next) {
+        // filesRead = [{name: STRING, content: STRING}*]
+        lively.lang.arr.mapAsyncSeries(filesRead,
+          function(ea,_,n) {
+            lively.lang.Runtime.Project.processChange(
+              project, lively.lang.string.joinPath(project.rootDir, ea.name),
+              ea.content, n);
+          },
+          next);
+      }
+    )(thenDo)
+  },
+
+  evalCode: function(project, code, state, resourceName, thenDo) {
+    lively.lang.VM.runEval(code,
+      {topLevelVarRecorder: state, context: state, sourceURL: resourceName},
+      function(err, result) {
+    		err && show("error when updating the runtime for " + resourceName + "\n" + (err.stack || err));
+    		!err && alertOK("runtime updated for " + resourceName);
+    		thenDo && thenDo(err, result);
+    	});
   }
+
 });
 
 lively.lang.Runtime.Registry = {
 
   default: function () {
-    return this._defaultRegistry 
+    return this._defaultRegistry
         || (this._defaultRegistry = {projects: {}});
   },
 
@@ -116,7 +157,7 @@ lively.lang.Runtime.Registry = {
         former = self._current;
     self._current = registry;
     var callbackCalled = false;
-    lively.lang.fun.waitFor(2000, function() { return !!callbackCalled; },
+    lively.lang.fun.waitFor(6000, function() { return !!callbackCalled; },
       function(err) {
          if (!err) return;
          var msg = "Re-setting the lively.lang.Runtime current registry timed out...";
@@ -141,6 +182,10 @@ lively.lang.Runtime.Registry = {
   addProject: function(registry, projectSpec) {
     // each project can have a varRecorder, context
     // whole project can have a loader
+    if (!projectSpec) {
+      projectSpec = registry;
+      registry = lively.lang.Runtime.Registry.default();
+    }
     if (!projectSpec.name) throw new Error("project needs a name");
     var proj = registry.projects[projectSpec.name] ||
       (registry.projects[projectSpec.name] = {});
@@ -169,7 +214,7 @@ lively.lang.Runtime.Project = {
     var change = {resourceId: resourceId, newSource: changedCode, oldSource: ""};
 
     var thenDoCalled = false;
-    
+
     try {
       resource.changeHandler(change, project, resource, callThenDo);
     } catch (e) { dealWithError(e); }

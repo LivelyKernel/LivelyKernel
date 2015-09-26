@@ -228,6 +228,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             if (err) { self.message(Strings.format("Could not read file.\nError: %s", err)); return; }
             lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded", 300, function() {
               lively.bindings.signal(self, 'contentLoaded', cmd.getStdout());
+              self.livelyRuntimeUpdateDoitContext();
             })();
         });
     },
@@ -236,7 +237,10 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(webR, 'content', this, 'contentLoaded', {
           updater: function($upd) {
             var sourceObj = this.sourceObj;
-            lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded-net", 100, function() { $upd(sourceObj.content); })();
+            lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded-net", 100, function() {
+              self.livelyRuntimeUpdateDoitContext();
+              $upd(sourceObj.content);
+            })();
           }
         });
         webR.beAsync().forceUncached().get();
@@ -330,7 +334,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
       if (!rt) return thenDo(null,null);
       var editor = this.get("editor");
       lively.lang.Runtime.findProjectForResource(this.getLocation(), function(err, proj) {
-        editor.doitContext = (proj && proj.doitContext) || null;
+        editor.doitContext = (proj && proj.doitContext || (proj.getDoitContext && proj.getDoitContext(proj))) || null;
         thenDo && thenDo();
       });
     },

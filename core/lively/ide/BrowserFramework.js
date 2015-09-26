@@ -141,6 +141,7 @@ lively.morphic.WindowedApp.subclass('lively.ide.BasicBrowser',
         this.setupResizers();
         panel.ownerWidget = this;
         this.start();
+        this.panel.withAllSubmorphsDo(function(ea){ ea.disableDropping(); });
         return panel;
     },
 

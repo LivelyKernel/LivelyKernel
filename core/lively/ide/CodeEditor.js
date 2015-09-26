@@ -1751,13 +1751,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       var ed = this.aceEditor,
           r = ed.renderer,
           config = ed.renderer.layerConfig,
-          bounds = ed.renderer.container.getBoundingClientRect(),
           lineHeight = config.lineHeight,
-          // screenPos    = ed.session.documentToScreenPosition(pos.row, pos.column),
-          screenPos = pos,
+          screenPos    = ed.session.documentToScreenPosition(pos.row, pos.column),
           localCoords = {
             x: r.gutterWidth + config.padding + screenPos.column * config.characterWidth,
-            // y: config.firstRowScreen * config.lineHeight + screenPos.row * config.lineHeight - r.scrollTop
             y: screenPos.row * config.lineHeight - r.scrollTop
           };
 
@@ -1779,7 +1776,14 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       }
 
       return lively.Point.ensure(localCoords);
-    }
+    },
+
+    morphicPosToDocPos: function(globalPos) {
+      return this.withAceDo(function(ed) {
+        return ed.renderer.pixelToScreenCoordinates(
+            globalPos.x, globalPos.y);
+      });
+    },
 
 },
 'morph menu', {

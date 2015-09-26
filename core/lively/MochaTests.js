@@ -41,7 +41,7 @@ Object.subclass('lively.MochaTests.Reporter', {
               || $world.addCodeEditor({
                 title: "mocha test result",
                 textMode: "text",
-                extent: pt(600,700)});
+                extent: pt(600,700)}).getWindow().comeForward();
     logger.name = "testLogger";
     var report = Strings.format("passes:\n%s\n\nfailures:\n%s\n",
         passes.join('\n'), failures.join('\n'));
@@ -73,7 +73,7 @@ Object.extend(lively.MochaTests, {
 
   run: function(suite, thenDo) {
     var reporter = new lively.MochaTests.Reporter();
-    var m = new (mocha.constructor)({reporter: reporter.reporterFunc(), ui: "bdd"})
+    var m = new (mocha.constructor)({reporter: reporter.reporterFunc(), ui: "bdd"});
     m.suite.addSuite(suite);
     if (mocha.options.grep) { m.grep(mocha.options.grep); mocha.options.grep = null; }
     m.run(function() { thenDo && thenDo(null, reporter); });

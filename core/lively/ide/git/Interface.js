@@ -230,7 +230,7 @@ this.addScript(function buildStashInfo(func) {
     // figures out how to apply this patch based on the currently selected lines
     // and the state of the repo at options.cwd or the actual cwd.
     // If the editor has a selection that the patch that will be produced will
-    // only for applying the selected lines. 
+    // only for applying the selected lines.
 
     /*
     git.stageOrUnstageFromEditor(that, {dryRun: true}, function(err, cmds) {
@@ -345,8 +345,124 @@ this.addScript(function buildStashInfo(func) {
 
     git.runCommandsThenDo(commands, options,
       function(err, cmds) { thenDo && thenDo(err, fileObjects, cmds); });
-  }
+  },
 
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  gitCommit: function(opts, thenDo) {
+    opts = lively.lang.obj.merge({
+      user: null, email: null, askForCommitInLively: false
+    }, opts);
+
+    lively.lang.fun.composeAsync(
+      checkForUserNameAndEmail.curry(opts),
+      doCommit.curry(opts)
+    )(thenDo);
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function commitCmd(message, author, email) {
+        var cmdString = "commit";
+        if (Global.Config.get('isPublicServer')) {
+            author = author || $world.getUserName(true) || 'unknown-author';
+            email = email || author + '@' + Global.URL.root.hostname;
+            cmdString += Strings.format(' --author=\'%s <%s>\'', author, email);
+        }
+        if (message) cmdString += ' -m "' + message.replace(/"/g, '\\"') + '"';
+        return cmdString;
+    }
+
+    function doCommit(opts, username, email, thenDo) {
+        if (opts.askForCommitInLively) {
+          $world.editPrompt('Please enter a commit message:',
+            function(message) {
+              if (!message) return thenDo('No commit message, commit aborted.');
+              var commands = [{
+                  name: "commit",
+                  gitCommand: commitCmd(message, username, email),
+                  transform: function(cmd) { cmd.code ? cmd.getStderr() : cmd.getStdout(); }
+              }];
+              lively.ide.git.Interface.runCommandsThenDo(commands, thenDo);
+            },
+            {
+              textMode: 'text',
+              historyId: 'lively.git.commit',
+              input: "empty commit message"
+            });
+        } else {
+          var commands = [{
+              name: "commit",
+              gitCommand: commitCmd(null, username, email),
+              transform: function(cmd) { return cmd.code ? cmd.getStderr() : cmd.getStdout(); }
+          }];
+          lively.ide.git.Interface.runCommandsThenDo(commands, function(err, mapping) {
+            inspect(mapping);
+            thenDo && thenDo(err, mapping);
+          });
+        }
+    }
+
+    function checkForUserNameAndEmail(opts, thenDo) {
+        if (opts.user && opts.email) {
+          return thenDo(null, opts.user, opts.email);
+        }
+
+        var state = {user: null, email: null, error: null};
+
+        [Global.Config.get('isPublicServer') ? function(next) { next(); } : testForUserAndEmail,
+         askForGitUserName,
+         askForGitEmail,
+         Global.Config.get('isPublicServer') ? function(next) { next() } : setUserAndEmail]
+         .doAndContinue(null, function() {
+             thenDo(state.error, state.user, state.email); });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function testForUserAndEmail(next) {
+            // is user name / email already set?
+            var commands = [
+                {name: "get username", gitCommand: "config --get user.name"},
+                {name: "get email", gitCommand: "config --get user.email"}];
+            lively.ide.git.Interface.runCommandsThenDo(commands, function(mapping) {
+                var email = mapping['get email'].trim(),
+                    name = mapping['get username'].trim();
+                if (name.length && email.length) thenDo(null);
+                else next();
+            });
+        }
+
+        function askForGitUserName(next) {
+            if (state.error) { next(); return; }
+            $world.prompt('Git does not yet know your name. Please enter it here:', function(name) {
+                if (!name || !name.length) state.error = "Missing username";
+                else {
+                    state.user = name;
+                    lively.LocalStorage.set('GitUserName', name);
+                }
+                next();
+            }, lively.LocalStorage.get('GitUserName') || $world.getUserName() || '');
+        }
+
+        function askForGitEmail(next) {
+            if (state.error) { next(); return; }
+            $world.prompt('Please also enter your email:', function(email) {
+                if (!email || !email.length) state.error = "Missing email";
+                else {
+                    state.email = email;
+                    lively.LocalStorage.set('GitUserEmail', email);
+                }
+                next();
+            }, lively.LocalStorage.get('GitUserEmail') || '');
+        }
+
+        function setUserAndEmail(next) {
+            if (state.error) { next(); return; }
+            var commands = [
+                {name: "set username", gitCommand: "config user.name \"" + state.user + "\""},
+                {name: "set email", gitCommand: "config user.email \"" + state.email + "\""}];
+            lively.ide.git.Interface.runCommandsThenDo(commands, function(mapping) { next(); });
+        }
+    }
+  }
 });
 
 function extractedFromGitControl() {
@@ -419,106 +535,6 @@ this.addScript(function addStashShowFor(morph) {
         diffView.resize();
     });
     return diffView;
-});
-
-// changed at Sun Nov 02 2014 01:00:05 GMT-0700 (PDT) by run_tests-137
-this.addScript(function checkForUserNameAndEmail(thenDo) {
-    var state = {user: null, email: null, error: null},
-        world = lively.morphic.World.current(),
-        builder = this;
-    [Global.Config.get('isPublicServer') ? function(next) { next(); } : testForUserAndEmail,
-     askForGitUserName,
-     askForGitEmail,
-     Global.Config.get('isPublicServer') ? function(next) { next() } : setUserAndEmail]
-     .doAndContinue(null, function() {
-         thenDo(state.error, state.user, state.email); });
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    function testForUserAndEmail(next) {
-        // is user name / email already set?
-        var commands = [
-            {name: "get username", gitCommand: "config --get user.name"},
-            {name: "get email", gitCommand: "config --get user.email"}];
-        builder.runCommandsThenDo(commands, function(mapping) {
-            var email = mapping['get email'].trim(),
-                name = mapping['get username'].trim();
-            if (name.length && email.length) thenDo(null);
-            else next();
-        });
-    }
-
-    function askForGitUserName(next) {
-        if (state.error) { next(); return; }
-        world.prompt('Git does not yet know your name. Please enter it here:', function(name) {
-            if (!name || !name.length) state.error = "Missing username";
-            else {
-                state.user = name;
-                lively.LocalStorage.set('GitUserName', name);
-            }
-            next();
-        }, lively.LocalStorage.get('GitUserName') || world.getUserName() || '');
-    }
-
-    function askForGitEmail(next) {
-        if (state.error) { next(); return; }
-        world.prompt('Please also enter your email:', function(email) {
-            if (!email || !email.length) state.error = "Missing email";
-            else {
-                state.email = email;
-                lively.LocalStorage.set('GitUserEmail', email);
-            }
-            next();
-        }, lively.LocalStorage.get('GitUserEmail') || '');
-    }
-
-    function setUserAndEmail(next) {
-        if (state.error) { next(); return; }
-        var commands = [
-            {name: "set username", gitCommand: "config user.name \"" + state.user + "\""},
-            {name: "set email", gitCommand: "config user.email \"" + state.email + "\""}];
-        builder.runCommandsThenDo(commands, function(mapping) { next(); });
-    }
-});
-
-// changed at Tue Apr 28 2015 04:30:24 GMT-0700 (PDT) by unknown_user
-this.addScript(function gitCommit() {
-    var builder = this;
-    this.checkForUserNameAndEmail(function(err, username, email) {
-        if (err) {
-             builder.notify('Git needs to know your name/email: ' + err);
-             return;
-        }
-        doCommit(username, email);
-    })
-    function commitCmd(message, author, email) {
-        var cmdString = "commit";
-        if (Global.Config.get('isPublicServer')) {
-            author = author || $world.getUserName(true) || 'unknown-author';
-            email = email || author + '@' + Global.URL.root.hostname;
-            cmdString += Strings.format(' --author=\'%s <%s>\'', author, email);
-        }
-        cmdString += ' -m "' + message.replace(/"/g, '\\"') + '"';
-        show(cmdString)
-        return cmdString;
-    }
-    function doCommit(username, email) {
-        var w = builder.world();
-        w.editPrompt('Please enter a commit message:', function(message) {
-            if (!message) {
-                builder.notify('No commit message, commit aborted.'); return;
-            }
-            var commands = [{
-                name: "commit",
-                gitCommand: commitCmd(message, username, email),
-                transform: function(cmd) { cmd.code ? cmd.getStderr() : cmd.getStdout(); }
-            }];
-            builder.runCommandsThenDo(commands, function(mapping) {
-                builder.initUpdate(['cleanup', 'fileInfo']); });
-        }, {
-            textMode: 'text',
-            historyId: 'lively.git.commit',
-            input: "empty commit message"
-        });
-    }
 });
 
 // changed at Wed Apr 24 2013 12:38:01 GMT-0700 (PDT) by undefined

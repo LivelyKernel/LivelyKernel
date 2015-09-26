@@ -1414,7 +1414,6 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openServerWorkspace': {description: 'tools: open ServerWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openServerWorkspace(); return true; }},
     'lively.ide.openShellWorkspace': {description: 'tools: open ShellWorkspace', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { var codeEditor = $world.addCodeEditor({textMode: 'sh', theme: 'clouds', title: 'Shell Workspace', content: "# You can evaluate shell commands in here\nls $PWD"}).getWindow().comeForward(); return true; }},
     'lively.ide.openVersionsViewer': {description: 'tools: open VersionsViewer', exec: function(path) { $world.openVersionViewer(path); return true; }},
-    'lively.ide.openGitControl': {description: 'tools: open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
     'lively.ide.openServerLog': {description: 'logging: open JavaScript server log', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.ServerLog').toRun(function() { lively.ide.tools.ServerLog.open(); }); return true; }},
     'lively.ide.openDiffer': {description: 'tools: open text differ', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { require('lively.ide.tools.Differ').toRun(function() { lively.BuildSpec('lively.ide.tools.Differ').createMorph().openInWorldCenter().comeForward(); }); return true; }},
 
@@ -1586,6 +1585,21 @@ Object.extend(lively.ide.commands.byName, {
 
             return true;
         }
+    },
+
+    'lively.ide.openGitControl': {description: 'tools: open GitControl', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openGitControl(); return true; }},
+
+    'lively.ide.git.commit': {
+      description: 'git commit',
+      exec: function() {
+        lively.ide.git.Interface.gitCommit({}, function(err, cmd) {
+          var focused = lively.ide.commands.helper.focusedMorph();
+          var msgMorph = focused && focused.isCodeEditor ? focused : $world;
+          msgMorph.setStatusMessage(err ?
+            String(err) : lively.lang.obj.values(cmd).join("\n"));
+        });
+        return true;
+      }
     },
 
     'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},

@@ -420,6 +420,17 @@
 
   "lively.morphic.tools.MenuBar": [
     ["showMenuBar", true, "Should a menu bar be opened on world load?"],
+    {
+      "name": "menuBarEntries",
+      "type": "Array",
+      "doc": "The actual menubar entries currently loaded",
+      "get": {
+          "type": "function",
+          "code": "function() { return lively.Config._menuBarEntries || (lively.Config._menuBarEntries = lively.Config.get('menuBarDefaultEntries')); }"
+      },
+      "set": {"type": "function", "code": "function(v) { lively.Config.menuBarEntries.pushIfNotIncluded(v); lively.morphic.tools.MenuBar.addEntries(v); }"}
+    },
+
     ["menuBarDefaultEntries", [
       "lively.net.tools.Lively2Lively",
       "lively.morphic.tools.LivelyMenuBarEntry",

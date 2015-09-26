@@ -292,6 +292,12 @@ Object.extend(lively.ide, {
 
         var args = Array.from(arguments);
         if (args.length === 0) { this.openSystemCodeBrowser(); return; }
+        if (args.length === 1 && typeof args[0] === 'string' && !args[0].startsWith("http")) {
+          try {
+            var mWrapper = new lively.ide.ModuleWrapper(args[0], "js");
+            return lively.ide.browse(mWrapper.fileURL());
+          } catch (e) { return e; }
+        }
         if (args.length <= 2) { // url or path or options object
             var url = args[0].toString().startsWith('http:') ?
                 new URL(args[0]) : URL.root.withFilename(args[0]);

@@ -98,7 +98,7 @@ Object.extend(lively.ide.commands, {
       var commands = lively.ide.commands.getCommands(context);
       return Object.keys(commands).map(function(cmdName) {
         var cmd = commands[cmdName],
-            label = cmd.desscription || cmdName;
+            label = cmd.description || cmdName;
         if (cmd.readableKeyBinding)
           label += " (" + cmd.readableKeyBinding + ")"
         return {isListItem: true,string: label,value: cmd};

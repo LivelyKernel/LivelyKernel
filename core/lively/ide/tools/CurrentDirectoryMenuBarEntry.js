@@ -105,7 +105,7 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
 
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  addDir: function addDir(d) {
+  addDir: function addDir(d, forceLoad) {
     var dirBefore = lively.shell.cwd();
     d = d && d.path ? d.path : (d || "");
     lively.shell.run('cd "'+d+'"; pwd', function(err, cmd) {
@@ -116,7 +116,7 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
       this.dirs.pushIfNotIncluded(newD);
       if (!$world.knownWorkingDirectories) $world.knownWorkingDirectories = [];
       $world.knownWorkingDirectories.pushIfNotIncluded(newD);
-      if (dirBefore !== d) this.changeBaseDir(newD);
+      if (forceLoad || dirBefore !== d) this.changeBaseDir(newD);
     }.bind(this));
   },
 
@@ -148,7 +148,7 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     $world.knownWorkingDirectories = ($world.knownWorkingDirectories||[]).concat(this.dirs);
     $world.knownWorkingDirectories = this.knownDirectories();
     this.dirs = this.knownDirectories();
-    if ($world.currentWorkingDirectory) this.addDir($world.currentWorkingDirectory);
+    if ($world.currentWorkingDirectory) this.addDir($world.currentWorkingDirectory, true/*force load*/);
   },
 
   onOwnerChanged: function onOwnerChanged(owner) {

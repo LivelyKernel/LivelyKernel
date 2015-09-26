@@ -152,6 +152,7 @@ var browserTests = [
     "lively.morphic.tests.Morphic2",
     "lively.morphic.tests.MorphAddons",
     "lively.morphic.tests.PathTests",
+    "lively.morphic.tests.Scrubbing",
     "lively.morphic.tests.Serialization",
     "lively.morphic.tests.ShapeTests",
     "lively.morphic.tests.StyleSheets",

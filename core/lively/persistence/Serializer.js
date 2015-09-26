@@ -2,7 +2,7 @@ module('lively.persistence.Serializer').requires().toRun(function() {
 
 Object.subclass('ObjectGraphLinearizer',
 'settings', {
-    defaultCopyDepth: 100,
+    defaultCopyDepth: 10000,
     keepIds: Config.keepSerializerIds || false,
     showLog: false,
     prettyPrint: false

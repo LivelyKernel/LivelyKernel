@@ -40,9 +40,13 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
     this.label = this.makeLabel();
   },
 
-  onLoad: function($super) {
-    if (this.owner && this.owner.isCodeEditor) {
-      this.ensureAnchors(this.owner, this.getRange(this.owner));
+
+  onrestore: function($super) {
+    var self = this, o = this.owner;
+    if (o && o.isCodeEditor) {
+      o.withAceDo(function() {
+        self.ensureAnchors(o, self.getRange(o));
+      });
     }
   },
 
@@ -65,7 +69,6 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
     } else {
       this.documentStartAnchor = new Anchor(codeEditor.getDocument(), range.start.row, range.start.column);
       this.documentStartAnchor.on("change", function(change) { self.onAnchorChange(codeEditor); });
-      
     }
     
     if (this.documentEndAnchor) {
@@ -94,12 +97,16 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
 
   getRange: function(codeEditor) {
     var bounds = this.globalBounds(),
-        topLeft = bounds.topLeft(),
-        bottomRight = bounds.bottomRight(),
+        // internally ace computes positions relative to viewport. We need to
+        // offset that:
+        bodyRect = document.body.getBoundingClientRect(),
+        topLeft = bounds.topLeft().addXY(bodyRect.left, bodyRect.top),
+        bottomRight = bounds.bottomRight().addXY(bodyRect.left, bodyRect.top),
         r = codeEditor.aceEditor.renderer,
-        start = r.pixelToScreenCoordinates(topLeft.x, topLeft.y),
-        end = r.pixelToScreenCoordinates(bottomRight.x, bottomRight.y-1);
-    return lively.ide.ace.require("ace/range").Range.fromPoints(start, end);
+        conf = r.layerConfig,
+        start = r.pixelToScreenCoordinates(topLeft.x-conf.characterWidth, topLeft.y),
+        end = r.pixelToScreenCoordinates(bottomRight.x, bottomRight.y-(conf.lineHeight-1));
+    return codeEditor.createRange(start, end);
   },
 
   getLine: function(codeEditor) {

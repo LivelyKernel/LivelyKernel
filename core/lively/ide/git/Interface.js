@@ -394,10 +394,7 @@ this.addScript(function buildStashInfo(func) {
               gitCommand: commitCmd(null, username, email),
               transform: function(cmd) { return cmd.code ? cmd.getStderr() : cmd.getStdout(); }
           }];
-          lively.ide.git.Interface.runCommandsThenDo(commands, function(err, mapping) {
-            inspect(mapping);
-            thenDo && thenDo(err, mapping);
-          });
+          lively.ide.git.Interface.runCommandsThenDo(commands, thenDo);
         }
     }
 

@@ -1281,12 +1281,19 @@ handleOnCapture);
 
 },
 'grabbing and dropping', {
+
     enableGrabbing: function() { this.grabbingEnabled = true; },
-    disableGrabbing: function() { this.grabbingEnabled = false },
+    disableGrabbing: function() { this.grabbingEnabled = false; },
+    isGrabbingEnabled: function() { return !!this.grabbingEnabled; },
+    setGrabbingEnabled: function(bool) { return this.grabbingEnabled = bool; },
     enableDropping: function() { this.droppingEnabled = true; },
     disableDropping: function() { this.droppingEnabled = false },
+    isDroppingEnabled: function() { return !!this.droppingEnabled; },
+    setDroppingEnabled: function(bool) { return this.droppingEnabled = bool; },
     enableDragging: function() { this.draggingEnabled = true },
     disableDragging: function() { this.draggingEnabled = false },
+    isDraggingEnabled: function() { return !!this.draggingEnabled; },
+    setDraggingEnabled: function(bool) { return this.draggingEnabled = bool; },
 
     howDroppingWorks: function() {
         // How does dropping morphs work? When morphs are carried by a HandMorph (i.e.

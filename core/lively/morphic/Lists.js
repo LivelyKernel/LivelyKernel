@@ -374,7 +374,8 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         fixedHeight: false,
         fixedWidth: false,
         allowInput: false,
-        selectable: false
+        selectable: false,
+        whiteSpaceHandling: "pre"
     },
     isList: true
 },

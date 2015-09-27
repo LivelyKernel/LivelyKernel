@@ -613,7 +613,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             fill: null,
             borderWidth: 0,
             fixedWidth: false, fixedHeight: false,
-            allowInput: false,
+            allowInput: false, selectable: false,
             clipMode: 'hidden',
             whiteSpaceHandling: "pre"
         };

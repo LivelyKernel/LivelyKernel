@@ -20788,11 +20788,20 @@ exports.iSearchStartCommands = [{
     name: "iSearch",
     bindKey: {win: "Ctrl-F", mac: "Command-F"},
     exec: function(editor, options) {
-        config.loadModule(["core", "ace/incremental_search"], function(e) {
-            var iSearch = e.iSearch = e.iSearch || new e.IncrementalSearch();
-            iSearch.activate(editor, options.backwards);
-            if (options.jumpToFirstMatch) iSearch.next(options);
-        });
+      config.loadModule(["core", "ace/incremental_search"], function(e) {
+          var iSearch = e.iSearch = e.iSearch || new e.IncrementalSearch();
+          if (options.useSelection) {
+            var selected = editor.session.getTextRange(),
+                sel = editor.selection,
+                selStart = sel.isBackwards() ? sel.getSelectionAnchor() : sel.getSelectionLead(),
+                selEnd = sel.isBackwards() ? sel.getSelectionLead(): sel.getSelectionAnchor();
+            sel.moveCursorToPosition(options.backwards ? selStart : selEnd);
+            sel.clearSelection();
+          }
+          iSearch.activate(editor, options.backwards);
+          if (options.jumpToFirstMatch) iSearch.next(options);
+          if (options.useSelection) iSearch.addString(selected);
+      });
     },
     readOnly: true
 }, {
@@ -20808,6 +20817,10 @@ exports.iSearchStartCommands = [{
     name: "iSearchBackwardsAndGo",
     bindKey: {win: "Ctrl-Shift-K", mac: "Command-Shift-G"},
     exec: function(editor) { editor.execCommand('iSearch', {jumpToFirstMatch: true, backwards: true, useCurrentOrPrevSearch: true}); },
+    readOnly: true
+}, {
+    name: "iSearchForSelection",
+    exec: function(editor) { editor.execCommand('iSearch', {useSelection: true}); },
     readOnly: true
 }];
 exports.iSearchCommands = [{

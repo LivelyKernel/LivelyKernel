@@ -178,6 +178,8 @@ function setupEmacsSpecificCommands(kbd) {
   kbd.bindKeys({"C-x C-u": "touppercase"});
   kbd.bindKeys({"C-x C-l": "tolowercase"});
 
+  kbd.bindKeys({"C-s-s": "iSearchForSelection"});
+
   // lines
   kbd.bindKeys({"C-M-P": "addCursorAbove"});
   kbd.bindKeys({"C-M-N": "addCursorBelow"});

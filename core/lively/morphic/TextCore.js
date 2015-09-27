@@ -51,6 +51,12 @@ Trait('TextChunkOwner',
                     return [rangeAndStyle[0][0],
                             rangeAndStyle[0][1],
                             rangeAndStyle[1]]})
+    },
+
+    getTextChunkAt: function(globalPos) {
+        return this.getTextChunks().detect(function(c) {
+          return c.bounds().containsPoint(globalPos);
+        });
     }
 
 },

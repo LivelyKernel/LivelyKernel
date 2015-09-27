@@ -25,12 +25,9 @@ Trait("lively.morphic.Scrubbing",
 
   },
 
-  updateScrubbingFromEvent: function(evt) {
-      return this.owner ? this.updateScrubbing(evt.getPosition()) : false;
-  },
-
-  updateScrubbing: function(handPosition) {
-      var scrubbing = this.scrubbingState,
+  updateScrubbing: function(evt) {
+      var handPosition = evt.getPosition(),
+          scrubbing = this.scrubbingState,
           startMarker = scrubbing.startMarker,
           handMarker = scrubbing.handMarker,
           posForHandmarker = startMarker.getGlobalTransform().inverse().transformPoint(handPosition);
@@ -68,10 +65,11 @@ Trait("lively.morphic.Scrubbing",
       }
       scrubbing.updateState.lastPos = handMarker.bounds().center();
 
-      this.updateMorphWithNewScrubValue(newValue);
+      this.onScrubbingUpdate(evt, scrubbing, newValue);
   },
 
-  startScrubbing: function(globalPos, startValue, mode) {
+  startScrubbing: function(evt, startValue, mode) {
+      var globalPos = evt.getPosition();
       var scrubbing = this.scrubbingState;
       scrubbing.startValue = startValue;
       scrubbing.mode = "number";
@@ -100,7 +98,9 @@ Trait("lively.morphic.Scrubbing",
       // if (startMarker.owner !== this) this.addMorph(startMarker);
       if (startMarker.owner !== $world) $world.addMorph(startMarker);
       startMarker.setPositionCentered(globalPos);
-      this.updateScrubbing(globalPos);
+
+      this.onScrubbingStart(evt, scrubbing);
+      this.updateScrubbing(evt);
 
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -121,39 +121,46 @@ Trait("lively.morphic.Scrubbing",
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   },
 
-  stopScrubbing: function() {
+  stopScrubbing: function(evt) {
     var scrubbing = this.scrubbingState;
 
     scrubbing.mode = null;
     scrubbing.startValue = null;
 
     if (scrubbing.startMarker) scrubbing.startMarker.remove();
+
+    this.onScrubbingEnd(evt, scrubbing);
   }
 
 },
 "events", {
 
   onDrag: function onDrag(evt) {
-    if (this.isScrubbing()) this.updateScrubbingFromEvent(evt);
+    if (this.isScrubbing()) this.updateScrubbing(evt);
     evt.stop();
   },
 
   onDragEnd: function onDragEnd(evt) {
-    if (this.isScrubbing()) this.stopScrubbing();
+    if (this.isScrubbing()) this.stopScrubbing(evt);
   },
 
   onDragStart: function onDragStart(evt) {
-    this.startScrubbing(
-      evt.getPosition(),
-      this.getScrubbingStartValue(evt.getPosition()),
-      this.getScrubbingMode(evt.getPosition()));
+    var val = this.getScrubbingStartValue(evt.getPosition());
+    var mode = this.getScrubbingMode(evt.getPosition());
+    if (!mode) return false;
+    if (mode === "number" && (!Object.isNumber(val) || isNaN(val))) return false;
+    this.startScrubbing(evt, val, mode);
+    return true;
   }
 
 },
 "morphic integration", {
 
-  updateMorphWithNewScrubValue: function(newValue) {
-    throw new Error("Implement updateMorphWithNewScrubValue for your morph!");
+  onScrubbingStart: function(evt, scrubbingState) {},
+  onScrubbingEnd: function(evt, scrubbingState) {},
+
+  onScrubbingUpdate: function(evt, scrubbingState, newValue) {
+    throw new Error("Implement onScrubbingUpdate for your morph!");
   },
 
   getScrubbingStartValue: function(position) {

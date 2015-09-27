@@ -202,6 +202,7 @@ Object.extend(Global, {
 
 lively.morphic.Morph.addMethods(
 'geometry', {
+
     moveBy: function(point) { this.setPosition(this.getPosition().addPt(point)); },
     translateBy: function(p) { this.setPosition(this.getPosition().addPt(p)); return this; },
     align: function (p1, p2) { return this.translateBy(p2.subPt(p1)); },
@@ -209,7 +210,12 @@ lively.morphic.Morph.addMethods(
     rotateBy: function(delta) { this.setRotation(this.getRotation() + delta); return this; },
     scaleBy: function(factor) { this.setScale(this.getScale()*factor); },
     centerAt: function(p) { return this.align(this.bounds().center(), p); },
-    resizeBy: function(point) { this.setExtent(this.getExtent().addPt(point)); }
+    resizeBy: function(point) { this.setExtent(this.getExtent().addPt(point)); },
+    width: function() { return this.getExtent().x; },
+    setWidth: function(w) { return this.setExtent(this.getExtent().withX(w)); },
+    height: function() { return this.getExtent().y; },
+    setHeight: function(h) { return this.setExtent(this.getExtent().withY(h)); }
+
 },
 'morphic relationship', {
     addMorphBack: function(other) {
@@ -243,6 +249,7 @@ lively.morphic.Morph.addMethods(
         items = items.concat(this.submorphs.invoke('indentedListItemsOfMorphNames', indent).flatten());
         return items;
     },
+
     treeItemsOfMorphNames: function (options) {
         var scripts = options["scripts"] || [],
             properties = options["properties"] || {},
@@ -455,6 +462,18 @@ lively.morphic.Morph.addMethods(
     }
 
 },
+"layouting helpers", {
+  
+  fitToSubmorphs: function() {
+    if (!this.submorphs.length) return;
+    var subBounds = this.submorphBounds(new lively.morphic.Similitude()),
+        l = this.getLayouter(),
+        offset = l ? l.getBorderSize() : 0;
+    this.setExtent(subBounds.bottomRight().addXY(offset, offset));
+  }
+
+},
+
 'update & change', {
     layoutChanged: function() {},
     changed: function() {}

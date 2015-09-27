@@ -707,6 +707,11 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
 
   createPreamble: function(args, decls, level) {
       var lastFnLevel = this.lastFunctionScopeId();
+      decls = decls || [];
+      decls.unshift({
+        key: this.newNode('Literal', {value: "this"}),
+        type: "Property", kind: 'init', value: this.newNode('Identifier', {name: 'this'})
+      });
       return [
           this.newNode('VariableDeclaration', {
               kind: 'var',

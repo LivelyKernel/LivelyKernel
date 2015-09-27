@@ -18,19 +18,37 @@ function captureMorphicState(root, exceptions) {
   return getMorphs(root, exceptions).map(morphicStateOf);
 }
 
+var defaultProps = [
+        // grabbingEnabled,
+        // draggingEnabled,
+        // droppingEnabled,
+        // halosEnabled,
+        // "ClipMode",
+  "Name",
+  "StyleSheet",
+  "StyleClassNames",
+  "Position",
+  "Extent",
+  "Fill",
+  "BorderColor",
+  "BorderWidth",
+  "BorderStyle",
+  "BorderRadius",
+  "Opacity",
+  "Rotation",
+  "Scale",
+]
+
 function morphicStateOf(m) {
   var state = {
     morph: m,
     owner: m.owner,
     submorphIndex: m.owner && m.owner.submorphs.indexOf(m),
-    props: Object.keys(m).filter(function(prop) {
-        return prop.startsWith("_") && m['get' + prop.slice(1)];
-      }).map(function (prop) {
-        return prop.slice(1);
-      }).reduce(function (props, prop) {
-        props[prop] = m['get' + prop]();
-        return props;
-      }, {})
+    props: Object.keys(m)
+      .filter(function(prop) { return prop.startsWith("_") && m['get' + prop.slice(1)]; })
+      .map(function (prop) { return prop.slice(1); })
+      .concat(defaultProps).uniq()
+      .reduce(function (props, prop) { props[prop] = m['get' + prop](); return props; }, {})
   }
 
   if (m.isPath) state.path = {vertices: m.vertices().clone()};

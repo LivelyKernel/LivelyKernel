@@ -1717,7 +1717,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     astNodeRange: function(node) {
       var start = this.indexToPosition(node.start),
-          end = this.indexToPosition(node.end);
+          end = this.indexToPosition(node.end-1);
       return lively.ide.ace.require("ace/range").Range.fromPoints(start, end)
     },
 

@@ -3,11 +3,7 @@ module('lively.ide.codeeditor.Scrubbing').requires('lively.morphic.Scrubbing').t
 Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").def,
 "scrubbing", {
 
-  isScrubbing: function() {
-    return this.scrubbingState && this.scrubbingState.mode;
-  },  
-
-  initScrubbingState: function initScrubbingState() {
+  initScrubbingState: function() {
     Trait("lively.morphic.Scrubbing").def.initScrubbingState.call(this, {
       range: null,
       currentToken: null,
@@ -18,36 +14,22 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
     this.setStyleSheet(".Morph.scrubbing .ace_scroller { cursor: ew-resize !important; }");
   },
 
-  updateMorphWithNewScrubValue: function(newValue) {
-      var target = this;
-      var newStart = target.scrubbingState.range.start;
-      var newEnd = lively.lang.obj.clone(newStart); newEnd.column += String(newValue).length;
-      var range = target.createRange(newStart, newEnd);
-      var eventHandlers = target.aceEditor._eventRegistry.change
-      target.aceEditor._eventRegistry.change = [];
-      // this.getSession().doc.replace(target.scrubbingState.range, String(newValue));
-      target.getSession().remove(target.scrubbingState.range)
-      target.aceEditor._eventRegistry.change = eventHandlers;
-      target.getSession().insert(target.scrubbingState.range.start, String(newValue));
-      target.getSelection().setRange(range);
-      target.scrubbingState.range = range;
-  },
-  
-
-  startScrubbingOnToken: function(globalPos, token, mode) {
+  onScrubbingStart: function(evt, scrubbing) {
       var viewPort = document.body.getBoundingClientRect();
+      var globalPos = evt.getPosition();
       var acePos = this.aceEditor.renderer.pixelToScreenCoordinates(
         globalPos.x+viewPort.left,
         globalPos.y+viewPort.top);
-      var scrubbing = this.scrubbingState;
-
-      scrubbing.currentToken = token;
 
       // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      var token = scrubbing.currentToken;
       var range = this.createRange({row: acePos.row, column: token.start}, {row: acePos.row, column: token.start + token.value.length});
       scrubbing.range = range;
       this.getSelection().setRange(range);
 
+      this.getSelection().off('changeSelection', scrubbing.disableSelectionHandler);
+      this.getSelection().off('changeCursor', scrubbing.disableSelectionHandler);
       scrubbing.disableSelectionHandler = function(e) {
         if (this.scrubbingState.range)
           this.getSelection().setRange(this.scrubbingState.range);
@@ -55,22 +37,38 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
 
       this.getSelection().on('changeSelection', scrubbing.disableSelectionHandler);
       this.getSelection().on('changeCursor', scrubbing.disableSelectionHandler);
-
-      this.startScrubbing(globalPos, Number(token.value), mode);
   },
 
-  
-  stopScrubbing: function() {
-    Trait("lively.morphic.Scrubbing").def.stopScrubbing.call(this);
-
-    var scrubbing = this.scrubbingState;
+  onScrubbingEnd: function(evt, scrubbing) {
     scrubbing.currentToken = null;
     (function() {
       this.getSelection().off('changeSelection', scrubbing.disableSelectionHandler);
       this.getSelection().off('changeCursor', scrubbing.disableSelectionHandler);
       // this.clearSelection();
-      this.scrubbingState.range = null;
+      scrubbing.range = null;
     }).bind(this).delay(0);
+  },
+
+  onScrubbingUpdate: function(evt, scrubbing, newValue) {
+      var target = this;
+      var newStart = scrubbing.range.start;
+      var newEnd = lively.lang.obj.clone(newStart); newEnd.column += String(newValue).length;
+      var range = target.createRange(newStart, newEnd);
+      var eventHandlers = target.aceEditor._eventRegistry.change
+      target.aceEditor._eventRegistry.change = [];
+      // this.getSession().doc.replace(scrubbing.range, String(newValue));
+      target.getSession().remove(scrubbing.range)
+      target.aceEditor._eventRegistry.change = eventHandlers;
+      target.getSession().insert(scrubbing.range.start, String(newValue));
+      target.getSelection().setRange(range);
+      scrubbing.range = range;
+  },
+  
+
+  startScrubbingOnToken: function(evt, token, mode) {
+      var scrubbing = this.scrubbingState;
+      scrubbing.currentToken = token;
+      this.startScrubbing(evt, Number(token.value), mode);
   },
   
   getNumericTokenAt: function(globalPos) {
@@ -90,6 +88,10 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
 },
 "events", {
 
+  onDragStart: function onDragStart(evt) {
+    // FIXME...
+  },
+
   onMouseMove: function onMouseMove(evt) {
     var token = this.getNumericTokenAt(evt.getPosition());
     if (token) this.addStyleClassName("scrubbing");
@@ -104,7 +106,7 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
   onMouseDown: function onMouseDown(evt) {
     if (!this.scrubbingState) this.initScrubbingState();
     var token = this.getNumericTokenAt(evt.getPosition());
-    if (token) this.startScrubbingOnToken(evt.getPosition(), token, "number");
+    if (token) this.startScrubbingOnToken(evt, token, "number");
     return this.constructor.prototype.onMouseDown.call(this, evt);
   }
   

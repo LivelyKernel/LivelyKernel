@@ -241,6 +241,8 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
 lively.morphic.CodeEditor.addMethods({
 
   morphicOverlayCreate: function(spec) {
+    if (!this._morphicOverlaysOnAfterRender)
+      this.morphicOverlaysSubscribeToEditorEvents();
     var overlay = new lively.ide.CodeEditor.MorphicOverlay(spec);
     if (!this.morphicOverlays) this.morphicOverlays = [];
     this.morphicOverlays.push(overlay);
@@ -248,6 +250,7 @@ lively.morphic.CodeEditor.addMethods({
   },
 
   morphicOverlaysRemoveAll: function() {
+    if (!this.morphicOverlays) return;
     this.morphicOverlays.invoke("remove");
     this.morphicOverlays.length = 0;
   },

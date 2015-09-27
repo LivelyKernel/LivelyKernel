@@ -233,12 +233,12 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         });
     },
     loadFileNetwork: function loadFileNetwork() {
-        var webR = this.getWebResource(), self = this;
+        var webR = this.getWebResource();
         lively.bindings.connect(webR, 'content', this, 'contentLoaded', {
           updater: function($upd) {
-            var sourceObj = this.sourceObj;
-            lively.lang.fun.debounceNamed(self.id + "-debounce-contentLoaded-net", 100, function() {
-              self.livelyRuntimeUpdateDoitContext();
+            var sourceObj = this.sourceObj, targetObj = this.targetObj;
+            lively.lang.fun.debounceNamed(targetObj.id + "-debounce-contentLoaded-net", 100, function() {
+              targetObj.livelyRuntimeUpdateDoitContext();
               $upd(sourceObj.content);
             })();
           }
@@ -333,9 +333,11 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
       var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
       if (!rt) return thenDo(null,null);
       var editor = this.get("editor");
-      lively.lang.Runtime.findProjectForResource(this.getLocation(), function(err, proj) {
-        editor.doitContext = (proj && proj.doitContext || (proj.getDoitContext && proj.getDoitContext(proj))) || null;
-        thenDo && thenDo();
+      lively.lang.Runtime.findProjectForResource(String(this.getLocation()), function(err, proj) {
+        editor.doitContext = proj ?
+          (proj.doitContext || (proj.getDoitContext && proj.getDoitContext(proj))) :
+          null;
+        typeof thenDo === "function" && thenDo();
       });
     },
 

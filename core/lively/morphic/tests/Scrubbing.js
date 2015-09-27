@@ -8,7 +8,7 @@ TestCase.subclass('lively.morphic.tests.Scrubbing.Test',
     m.log = [];
 
     Trait("lively.morphic.Scrubbing").applyTo(m)
-    m.addScript(function updateMorphWithNewScrubValue(val) { this.log.push(val); });
+    m.addScript(function onScrubbingUpdate(evt, scrubbingState, val) { this.log.push(val); });
 
     m.initScrubbingState({initialFactor: .1, factorOffset: 15});
 

@@ -672,6 +672,10 @@ Object.subclass('lively.morphic.Morph',
             this.setAppearanceStylingMode(spec.cssStyling);
         }
 
+        if (spec.styleSheet !== undefined) { // enable disable styling through css
+            this.setStyleSheet(spec.styleSheet);
+        }
+
         if (spec.resizeWidth !== undefined || spec.resizeHeight !== undefined || spec.moveVertical !== undefined || spec.moveHorizontal !== undefined || spec.adjustForNewBounds !== undefined || spec.scaleHorizontal !== undefined || spec.scaleVertical !== undefined || spec.centeredVertical !== undefined || spec.centeredHorizontal !== undefined || spec.scaleProportional !== undefined) {
             this.layout = this.layout || {};
             if (spec.resizeWidth !== undefined) this.layout.resizeWidth = spec.resizeWidth;

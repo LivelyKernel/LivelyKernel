@@ -271,7 +271,7 @@ Object.subclass('lively.morphic.EventHandler',
 
         var world = lively.morphic.World.current();
         evt.world = world;
-        
+
         var evtHand = world.hands.find(function(hand) { return hand.pointerId === evt.pointerId});
         evt.hand = world ?
                 evtHand || world.hands.find(function(hand) { return !hand.pointerId }) || world.firstHand() :
@@ -420,7 +420,7 @@ Object.extend(Event, {
             //     function(evt) { return false } :
                 function(evt) { return evt.which === 3 || evt.buttons === 2 }
     })(),
-    
+
     INPUT_TYPE_DOWN: lively.Config.usePointerevents ? 'pointerdown' : 'mousedown',
     INPUT_TYPE_UP: lively.Config.usePointerevents ? 'pointerup' : 'mouseup',
     INPUT_TYPE_MOVE: lively.Config.usePointerevents ? 'pointermove' : 'mousemove',
@@ -735,6 +735,7 @@ Trait('lively.morphic.DragMoveTrait',
 
 lively.morphic.Morph.addMethods(
 'event managment', {
+
     addEventHandler: function() {
         if (this.eventHandler) throw new Error('Morph ' + this + ' already has an event handler!');
         var handler = new lively.morphic.EventHandler(this);
@@ -848,7 +849,7 @@ handleOnCapture);
         if (this.onHTML5Drag) this.registerForEvent('drag', this, 'onHTML5Drag', handleOnCapture);
         if (this.onHTML5Drop) this.registerForEvent('drop', this, 'onHTML5Drop', handleOnCapture);
     },
-    
+
     registerForMouseEventPatching: function(handleOnCapture) {
         // Some users define their own mouseevent handlers, support those, too.
         if (this.onMouseUpEntry) this.registerForEvent('mouseup', this.eventHandler, 'patchEventIfRequired', handleOnCapture);
@@ -892,7 +893,7 @@ handleOnCapture);
         if (this.onTouchEnd)
             this.registerForEvent('touchend', this, 'onTouchEnd', handleOnCapture);
     },
-    
+
     registerForFocusAndBlurEvents: function() {
         this.registerForEvent('blur', this, 'onBlur', true);
         this.registerForEvent('focus', this, 'onFocus', true);
@@ -923,7 +924,7 @@ handleOnCapture);
         for (var i = 0; i < morphsContainingEvtPoint.length; i++) {
             if (below) {
                 if (!morphsContainingEvtPoint[i].eventsAreIgnored)
-                  return morphsContainingEvtPoint[i].reallyContainsPoint(globalPos, morphsContainingEvtPoint); 
+                  return morphsContainingEvtPoint[i].reallyContainsPoint(globalPos, morphsContainingEvtPoint);
             } else if (morphsContainingEvtPoint[i] === this) below = true;
         }
         return false;
@@ -1384,6 +1385,7 @@ handleOnCapture);
             fill: this.getFill() === null ? Color.gray : Color.gray.darker(),
             opacity: 0.5});
         shadow.connections = [
+            lively.bindings.connect(this, 'position', shadow, 'setPosition'),
             lively.bindings.connect(this, 'rotation', shadow, 'setRotation'),
             lively.bindings.connect(this, 'scale', shadow, 'setScale')];
         shadow.addScript(function remove() {
@@ -1468,12 +1470,13 @@ handleOnCapture);
         }
         return true;
     },
-    isScrollable: function() {
-        return this.isScrollableHTML();
-    },
+
+    isScrollable: function() { return this.isScrollableHTML(); },
+
     isInSameWindowAs: function(anotherMorph) {
         return this.getWindow() === anotherMorph.getWindow();
     },
+
     isInFrontOf: function(anotherMorph, aPoint) {
         var world = this.world();
         if (!world) { return true; }
@@ -1488,7 +1491,6 @@ handleOnCapture);
         return false;
 
     }
-
 });
 
 Object.extend(lively.morphic.Morph, {
@@ -1731,7 +1733,7 @@ lively.morphic.World.addMethods(
         // more than that distance and still is down (move started in the morph) than
         // morph.onDragStart is called. moving further triggers morph.onDrag. Releasing
         // mouse button triggers morph.onDragEnd.
-        
+
         evt.hand.move(evt);
 
         var focused = this.focusedMorph();
@@ -1749,7 +1751,7 @@ lively.morphic.World.addMethods(
         var minDragDistReached = evt.hand.eventStartPos &&
             (evt.hand.eventStartPos.dist(evt.getPosition()) > targetMorph.dragTriggerDistance);
         if (!minDragDistReached) return false;
-        
+
         if (evt.isCommandKey() && !targetMorph.isEpiMorph && evt.isLeftMouseButtonDown()) {
             if (evt.hand.submorphs.length > 0) return false;
             if (!targetMorph.isGrabbable(evt)) return false;  // Don't drag world, etc
@@ -1913,7 +1915,7 @@ lively.morphic.World.addMethods(
     isCommandButtonPressed: function() {
         return this.commandButtonPressed;
     },
-    
+
     setIsCommandButtonPressed: function(bool) {
         this.commandButtonPressed = bool !== false;
     },
@@ -2025,8 +2027,10 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         var shadow = morph.getGrabShadow();
         if (shadow) this.addMorph(shadow);
         this.addMorph(morph);
-        if (shadow)
-            shadow.align(shadow.getPosition(), morph.getPosition().addXY(10,10))
+        if (shadow) {
+          shadow.setOrigin(shadow.getOrigin().addXY(-10,-10));
+          shadow.align(shadow.getPosition(), morph.getPosition());
+        }
     },
 
     dropContentsOn: function(morph, evt) {

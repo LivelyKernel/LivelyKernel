@@ -23,7 +23,7 @@
     "watch": "~0.8.0",
     "websocket": "1.0.17",
     "lively.lang": ">=0.4.6",
-    "lively-loader": "^0.2.5"
+    "lively-loader": ">=0.2.5"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

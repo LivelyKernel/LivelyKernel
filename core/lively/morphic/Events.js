@@ -1086,8 +1086,19 @@ handleOnCapture);
         if (dirtyHand) {
             delete dirtyHand.pointerId;
         }
-    }
+    },
 
+    onGrabStart:function(evt) {
+      // triggered when morph is grabbed
+    },
+
+    onGrabMove:function(evt, morphBelow) {
+      // invoked when this is grabbed by the hand and the hand is moved
+    },
+
+    onGrabEnd:function(evt, dropTarget) {
+      // triggered when morph is dropped
+    },
 },
 'keyboard events', {
     onKeyDown: function(evt) {
@@ -2004,6 +2015,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         morphs.forEach(function(morph) {
             if (morph.grabByHand) morph.grabByHand(this)
             else this.addMorphWithShadow(morph)
+            morph.onGrabStart(evt);
         }, this)
         evt && evt.stop();
         return true;
@@ -2025,7 +2037,10 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
             var submorph = submorphs[i],
                 submorphPos = submorph.getPosition();
             if (submorph.isGrabShadow) submorph.remove();
-            else submorph.dropOn(morph);
+            else {
+              submorph.dropOn(morph);
+              submorph.onGrabEnd(evt, morph);
+            }
         };
         evt && evt.stop();
         return true;
@@ -2061,8 +2076,15 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         pos = pos.scaleBy(1/this.world().getScale());
         this.setPosition(pos);
         if (!this.carriesGrabbedMorphs) return;
-        var carriedMorph = this.submorphs.detect(function(ea) {return !ea.isGrabShadow;}),
+
+        var carriedMorphs = this.submorphs.filter(function(ea) {return !ea.isGrabShadow;}),
+            carriedMorph = carriedMorphs[0],
             topmostMorph = this.world().getTopmostMorph(evt.getPosition());
+
+        // onGrabMove event
+        carriedMorphs.invoke("onGrabMove", evt, topmostMorph);
+
+        // placeholders
         if (!carriedMorph
           || !topmostMorph
           || !topmostMorph.isLayoutable

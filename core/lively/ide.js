@@ -53,4 +53,19 @@ Object.extend(lively.ide, {
 
 });
 
+// Lazy loading of debugging related things... should go somewhere else, I guess
+function lazyLoadDebugging(method) {
+  return function() {
+    var args = Array.from(arguments);
+    lively.require("lively.ide.codeeditor.JavaScriptDebugging").toRun(function() {
+      lively[method].apply(lively, args);
+    })
+  }
+}
+
+Object.extend(lively, {
+  debugCall: lively.debugCall || lazyLoadDebugging("debugCall"),
+  debugNextMethodCall: lively.debugNextMethodCall || lazyLoadDebugging("debugNextMethodCall")
+});
+
 }); // end of module

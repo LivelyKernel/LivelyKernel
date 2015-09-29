@@ -1870,9 +1870,18 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         boolItem({name: "ShowErrors", menuString: "show Errors"}, items);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, items);
         if (isJs) {
-          boolItem({name: "ScrubbingEnabled", menuString: "scrubbing"}, items);
           boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, items);
           boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, items);
+          boolItem({name: "ScrubbingEnabled", menuString: "scrubbing"}, items);
+          items.push(["Toggle recording debugger behavior", function() {
+            lively.require("lively.ide.codeeditor.JavaScriptDebugging").toRun(function() {
+              if (!!editor.recordingWorkspaceState) {
+                lively.ide.codeeditor.JavaScriptDebugging.removeRecordingWorkspaceBehavior(editor)
+              } else {
+                lively.ide.codeeditor.JavaScriptDebugging.makeRecordingWorkspace(editor);
+              }
+            })
+          }]);
         }
 
         return items;

@@ -436,7 +436,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             connectionRebuilder: function connectionRebuilder() {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "runScript", {});
         }
-        },{
+        },
+        
+        {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,
@@ -444,88 +446,52 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Position: lively.pt(610.0,9.0),
             className: "lively.morphic.Button",
             isPressed: false,
-            label: "save",
+            label: "debug next call",
             layout: {
                 centeredHorizontal: false,
                 moveHorizontal: true
             },
-            name: "saveButton",
+            name: "debugButton",
             sourceModule: "lively.morphic.Widgets",
             style: {
+                toolTip: "Click here to debug the next function call",
                 borderColor: Color.rgb(189,190,192),
                 borderRadius: 0,
                 borderWidth: 1,
                 enableDropping: false,
                 enableGrabbing: false,
-                label: {
-                    align: "center",
-                    borderWidth: 0,
-                    clipMode: "hidden",
-                    emphasize: {
-                        textShadow: {
-                            color: Color.rgb(255,255,255),
-                            offset: lively.pt(0.0,1.0)
-                        }
-                    },
-                    fill: null,
-                    fixedHeight: true,
-                    fixedWidth: true,
-                    fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
-                },
                 padding: lively.rect(0,3,0,0)
             },
-            toggle: false,
-            value: false,
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this.get("ObjectEditorScriptPane"), "doSave", {});
-        }
-        },{
-            _BorderColor: Color.rgb(189,190,192),
-            _BorderRadius: 3,
-            _BorderWidth: 1,
-            _Extent: lively.pt(100.0,21.0),
-            _Position: lively.pt(506.0,9.0),
-            _StyleClassNames: ["Morph","Button"],
-            className: "lively.morphic.Button",
-            isPressed: false,
-            label: "Tests",
-            layout: {
-                moveHorizontal: true
+              lively.bindings.connect(this, "fire", this, "doAction");
             },
-            name: "openTestsButton",
-            sourceModule: "lively.morphic.Widgets",
-            style: {
-                borderColor: Color.rgb(189,190,192),
-                borderRadius: 0,
-                borderWidth: 1,
-                enableDropping: false,
-                enableGrabbing: false,
-                label: {
-                    align: "center",
-                    borderWidth: 0,
-                    clipMode: "hidden",
-                    emphasize: {
-                        textShadow: {
-                            color: Color.rgb(255,255,255),
-                            offset: lively.pt(0.0,1.0)
-                        }
-                    },
-                    fill: null,
-                    fixedHeight: true,
-                    fixedWidth: true,
-                    fontSize: 10,
-                    padding: lively.rect(0,3,0,0),
-                    textColor: Color.rgb(0,0,0)
-                },
-                padding: lively.rect(0,3,0,0)
-            },
-            value: false,
-            connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "openPartTestRunner", {});
-        }
-        },{
+
+            doAction: function doAction() {
+              // "debug next call"
+              var editor = this.get("ObjectEditorScriptPane");
+              var methods = this.get("ObjectEditorScriptList");
+              var button = this;
+
+              if (!editor.recordingWorkspaceState) {
+                if (!methods.selection || methods.selection === "-- ALL --") {
+                  $world.inform("No method selected");
+                  return;
+                }
+                lively.require('lively.ide.codeeditor.JavaScriptDebugging').toRun(function() {
+                  lively.debugNextMethodCall(
+                    editor.getDoitContext(), methods.selection, editor,
+                    function() { button.setLabel("disable debugger"); });
+  
+                  editor.setStatusMessage("Debugger will open on next activation to " + methods.selection);
+                });
+              } else {
+                lively.ide.codeeditor.JavaScriptDebugging.removeRecordingWorkspaceBehavior(editor);
+                button.setLabel("debug next call"); 
+              }
+            }
+        },
+
+        {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,

@@ -4,9 +4,9 @@ var acornLibsLoaded = false,
 
 (function initLoad() {
     if (isNodeJs) {
-        module.require("util")._extend(Global.lively.ast, module.require(process.cwd() + "/node_modules/lively.ast"));
-        Global.babel = module.require(process.cwd() + "/node_modules/babel-core");
-        Global.escodegen = module.require(process.cwd() + "/node_modules/escodegen");
+        nodejs.require("util")._extend(Global.lively.ast, nodejs.require(process.cwd() + "/node_modules/lively.ast"));
+        Global.babel = nodejs.require(process.cwd() + "/node_modules/babel-core");
+        Global.escodegen = nodejs.require(process.cwd() + "/node_modules/escodegen");
         acornLibsLoaded = true;
     } else {
         acornLibs = [

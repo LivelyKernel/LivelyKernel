@@ -1926,7 +1926,8 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
                     value: (value.type == 'ExpressionStatement') ?
                         value.expression : // unwrap
                         value,
-                    kind: prop.kind
+                    kind: prop.kind,
+                    astIndex: prop.astIndex
                 };
             }, this)
         };

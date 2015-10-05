@@ -813,6 +813,11 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
 },
 'accessing', {
+
+    getSelectedIndex: function() { return this.selectedLineNo; },
+
+    setSelectedIndex: function(index) { this.selectedLineNo = index; this.rerender(); return index; },
+
     get selectedLineNo() {
         if(this.noSingleSelectionIfMultipleSelected && this.selectedIndexes.length > 1)
             return undefined;
@@ -883,6 +888,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         if (selectionChanged) {
             lively.bindings.signal(this, 'selection', this.selection);
             lively.bindings.signal(this, 'selectedLineNo', this.selectedLineNo);
+            this.onSelectionChange(this.selection, oldSelectionValues[0]);
         }
     },
 
@@ -1139,6 +1145,8 @@ lively.morphic.Box.subclass('lively.morphic.List',
 
 },
 'event handling', {
+
+    onSelectionChange: function(oldSelection, newSelection) { },
 
     onScroll: function(evt) {
         Functions.throttleNamed(

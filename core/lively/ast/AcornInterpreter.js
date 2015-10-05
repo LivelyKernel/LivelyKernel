@@ -1183,12 +1183,12 @@ Object.subclass('lively.ast.AcornInterpreter.Scope',
         this.parentScope = parentScope || null;
     },
 
-	copy: function() {
+    copy: function() {
         return new this.constructor(
             Object.extend({}, this.mapping),
             this.parentScope ? this.parentScope.copy() : null
         );
-	}
+    }
 
 },
 'accessing', {

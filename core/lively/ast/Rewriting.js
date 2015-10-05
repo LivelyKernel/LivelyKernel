@@ -201,8 +201,9 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     },
 
     createVisitor: function(registryIndex) {
-      return new lively.ast.Rewriting.RewriteVisitor(registryIndex);
+        return new lively.ast.Rewriting.RewriteVisitor(registryIndex);
     }
+
 },
 'ast helpers', {
 

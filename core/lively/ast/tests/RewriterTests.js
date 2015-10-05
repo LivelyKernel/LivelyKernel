@@ -1226,12 +1226,12 @@ TestCase.subclass('lively.ast.tests.RewriterTests.ContinuationTest',
         }
 
         var expected = { isContinuation: true },
-            runResult = lively.ast.StackReification.run(code, this.astRegistry),
-            frame = runResult.frames().first();
+            runResult = lively.ast.StackReification.run(code, this.astRegistry);
         this.assert(runResult.isContinuation, 'no continuation');
 
         // can we access the original ast, needed for resuming?
-        var capturedAst = frame.getOriginalAst(),
+        var frame = runResult.frames().first(),
+            capturedAst = frame.getOriginalAst(),
             generatedAst = lively.ast.parseFunction(String(code));
         generatedAst.type = capturedAst.type;
         this.assertASTNodesEqual(generatedAst, capturedAst);

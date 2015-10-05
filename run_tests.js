@@ -96,6 +96,8 @@ var browserTests = [
 
     // persistence
     "lively.persistence.tests.MassMorphCreation",
+    'lively.persistence.tests.MorphicState',
+    'lively.persistence.tests.MorphicProperties',
 
     // presentation
     "lively.presentation.tests.Builds",

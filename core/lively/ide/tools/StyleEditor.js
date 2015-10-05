@@ -2845,7 +2845,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 var that = this,
                    items = this.currentMorphicScene(),
                    height = this.get('View - Pane').getExtent().y + 15,
-                   bounds = new Global.Rectangle(10, this.getExtent().y, this.owner.getExtent().x - 20, height),
+                   bounds = new Rectangle(10, this.getExtent().y, this.owner.getExtent().x - 20, height),
                    treeMorph = new lively.morphic.Tree(),
                    rect = lively.morphic.Morph.makeRectangle(bounds),
                    currentTarget = null;
@@ -2863,12 +2863,12 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             
                rect.isLayoutable = false;
                rect.setBounds(bounds)
-               rect.setFill(Global.Color.rgba(204,204,204,.85));
+               rect.setFill(Color.rgba(204,204,204,.85));
                rect.setBorderWidth(0)
                rect.beClip(true);
                rect.disableGrabbing();
                rect.disableDragging();
-               rect.setBorderColor(Global.Color.rgb(150,150,150));
+               rect.setBorderColor(Color.rgb(150,150,150));
                rect.addMorph(treeMorph);
                rect.treeMorph = treeMorph;
                rect.currentTarget = currentTarget;
@@ -2943,7 +2943,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 return highlightNode;
             },
                 highlightTarget: function highlightTarget(node) {
-                node.submorphs[0].setFill(Global.Color.white.withA(0.6))
+                node.submorphs[0].setFill(Color.white.withA(0.6))
             },
                 onBlur: function onBlur(evt) {
                 $super(evt);
@@ -2996,7 +2996,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 layouting.morphicDelay(1);
             },
                 removeHighlight: function removeHighlight(node) {
-                node.submorphs[0].setFill(Global.Color.rgb(255,255,255))
+                node.submorphs[0].setFill(Color.rgb(255,255,255))
             },
                 removeTargetChooser: function removeTargetChooser() {
                 if (this.listMorph) {
@@ -3102,9 +3102,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 // delete this.highlightRectangle
                 if (this.highlightRectangle) return this.highlightRectangle;
                 var rect = this.highlightRectangle = lively.BuildSpec('HighlightRectangle', {
-                    _BorderColor: Global.Color.rgb(204,0,0),
+                    _BorderColor: Color.rgb(204,0,0),
                     _Extent: lively.pt(474.7,129.0),
-                    _Fill: Global.Color.rgb(58,0,255),
+                    _Fill: Color.rgb(58,0,255),
                     _Opacity: 0.3,
                     className: "lively.morphic.Box",
                     name: "HighlightRectangle",
@@ -3131,14 +3131,14 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         var morphUnderCursor = (optMorphUnderCursor && optMorphUnderCursor.isMorph) ? optMorphUnderCursor : this.morphUnderCursor();
                         if (morphUnderCursor === this.magnifierButton ||
                                 this.magnifierButton.submorphs.include(morphUnderCursor)) {
-                            Global.morphToHighlight = this.magnifierButton.currentTarget();
+                            morphToHighlight = this.magnifierButton.currentTarget();
                         } else {
-                            Global.morphToHighlight = morphUnderCursor;
+                            morphToHighlight = morphUnderCursor;
                         }
             
-                        if (Global.morphToHighlight && Global.morphToHighlight.world()) {
-                            this.setPosition(Global.morphToHighlight.getPositionInWorld());
-                            this.setExtent(Global.morphToHighlight.getExtent());
+                        if (morphToHighlight && morphToHighlight.world()) {
+                            this.setPosition(morphToHighlight.getPositionInWorld());
+                            this.setExtent(morphToHighlight.getExtent());
                         }
                     },
                     updateOnMove: function updateOnMove() {
@@ -3147,9 +3147,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                     }
                 }).createMorph();
                 rect.magnifierButton = this;
-                Global.connect(rect, "onMouseMove", this.getHighlightRectangle(), "updateOnMove")
-                Global.connect(rect, "onMouseUp", this, "removeHighlighting")
-                Global.connect(rect, "onMouseUp", this.get('StyleEditorPane'), "copySettingsToTarget",{
+                connect(rect, "onMouseMove", this.getHighlightRectangle(), "updateOnMove")
+                connect(rect, "onMouseUp", this, "removeHighlighting")
+                connect(rect, "onMouseUp", this.get('StyleEditorPane'), "copySettingsToTarget",{
                     converter: function () { return this.sourceObj.morphUnderCursor(); }})
                 return rect;
             },
@@ -3167,7 +3167,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                     this.removeHighlighting();
                 } else {
                     this.world().addMorph(highlight);
-                    hand.highlightConnection = Global.connect(hand, "_Position", highlight, "update");
+                    hand.highlightConnection = connect(hand, "_Position", highlight, "update");
                     highlight.bringToFront();
                     if (!this.currentTarget() || !this.currentTarget().world()) {
                         highlight.setExtent(pt(0,0));
@@ -3185,7 +3185,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 hand.highlightConnection = null;
             },
                 reset: function reset() {
-                Global.disconnectAll(this.getHighlightRectangle());
+                disconnectAll(this.getHighlightRectangle());
             }
             },{
                 _BorderColor: Color.rgb(189,190,192),
@@ -3260,9 +3260,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 // delete this.highlightRectangle
                 if (this.highlightRectangle) return this.highlightRectangle;
                 var rect = this.highlightRectangle = lively.BuildSpec('HighlightRectangle', {
-                    _BorderColor: Global.Color.rgb(204,0,0),
+                    _BorderColor: Color.rgb(204,0,0),
                     _Extent: lively.pt(474.7,129.0),
-                    _Fill: Global.Color.rgb(58,0,255),
+                    _Fill: Color.rgb(58,0,255),
                     _Opacity: 0.3,
                     className: "lively.morphic.Box",
                     name: "HighlightRectangle",
@@ -3289,14 +3289,14 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         var morphUnderCursor = (optMorphUnderCursor && optMorphUnderCursor.isMorph) ? optMorphUnderCursor : this.morphUnderCursor();
                         if (morphUnderCursor === this.magnifierButton ||
                                 this.magnifierButton.submorphs.include(morphUnderCursor)) {
-                            Global.morphToHighlight = this.magnifierButton.currentTarget();
+                            morphToHighlight = this.magnifierButton.currentTarget();
                         } else {
-                            Global.morphToHighlight = morphUnderCursor;
+                            morphToHighlight = morphUnderCursor;
                         }
             
-                        if (Global.morphToHighlight && Global.morphToHighlight.world()) {
-                            this.setPosition(Global.morphToHighlight.getPositionInWorld());
-                            this.setExtent(Global.morphToHighlight.getExtent());
+                        if (morphToHighlight && morphToHighlight.world()) {
+                            this.setPosition(morphToHighlight.getPositionInWorld());
+                            this.setExtent(morphToHighlight.getExtent());
                         }
                     },
                     updateOnMove: function updateOnMove() {
@@ -3305,9 +3305,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                     }
                 }).createMorph();
                 rect.magnifierButton = this;
-                Global.connect(rect, "onMouseMove", this.getHighlightRectangle(), "updateOnMove")
-                Global.connect(rect, "onMouseUp", this, "removeHighlighting")
-                Global.connect(rect, "onMouseUp", this.get('StyleEditorPane'), "setTarget",{
+                connect(rect, "onMouseMove", this.getHighlightRectangle(), "updateOnMove")
+                connect(rect, "onMouseUp", this, "removeHighlighting")
+                connect(rect, "onMouseUp", this.get('StyleEditorPane'), "setTarget",{
                     converter: function () { return this.sourceObj.morphUnderCursor(); }})
                 return rect;
             },
@@ -3326,7 +3326,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                     this.removeHighlighting();
                 } else {
                     this.world().addMorph(highlight);
-                    hand.highlightConnection = Global.connect(hand, "_Position", highlight, "update");
+                    hand.highlightConnection = connect(hand, "_Position", highlight, "update");
                     highlight.bringToFront();
                     if (!this.currentTarget() || !this.currentTarget().world()) {
                         highlight.setExtent(pt(0,0));
@@ -3361,7 +3361,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 hand.highlightConnection = null;
             },
                 reset: function reset() {
-                Global.disconnectAll(this.getHighlightRectangle());
+                disconnectAll(this.getHighlightRectangle());
             }
             }]
         }],
@@ -3384,7 +3384,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         textTab.layout.resizeWidth = true;
         textTab.submorphs[0].setAlign('center');
         textTab.addScript(function getInactiveFill() {
-            return Global.Color.gray.lighter();
+            return Color.gray.lighter();
         })
         textTab.setAppearanceStylingMode(true);
         textTab.setBorderStylingMode(true);
@@ -3467,7 +3467,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
               this.target.getLayouter().setBorderSize(spec.borderSize);
               this.target.getLayouter().setSpacing(spec.spacing);
           }
-          if (spec.customStyleProperties && Global.Properties.own(spec.customStyleProperties).length) {
+          if (spec.customStyleProperties && Properties.own(spec.customStyleProperties).length) {
               this.createCustomStylePane(spec.customStyleProperties);
               this.get('Custom - Pane').get('CustomDialog').submorphs.each(function(panel) {
                   panel.submorphs.each(function(ea) { ea.savedTextString =  ea.getTextString()})
@@ -3525,8 +3525,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         var headline = pane.addMorph(this.createHeadline());
         var dialog = pane.addMorph(this.createDialog());
         var button = dialog.submorphs[0];
-        if (customs && Global.Properties.own(customs).length > 0) {
-            Global.Properties.own(customs).each(function(customName) {
+        if (customs && Properties.own(customs).length > 0) {
+            Properties.own(customs).each(function(customName) {
                 var panel = button.createNewPanel();
                 panel.get('customLabel').setTextString(customName);
                 panel.get('customInput').setTextString(String(customs[customName]));
@@ -3539,7 +3539,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
 
         createDialog: function createDialog() {
         return lively.BuildSpec({
-            _BorderColor: Global.Color.rgb(95,94,95),
+            _BorderColor: Color.rgb(95,94,95),
             _Extent: lively.pt(259.4,71.0),
             _Position: lively.pt(14.3,41.3),
             _Visible: true,
@@ -3556,7 +3556,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             name: "CustomDialog",
             sourceModule: "lively.morphic.Core",
             submorphs: [lively.BuildSpec({
-        _BorderColor: Global.Color.rgb(189,190,192),
+        _BorderColor: Color.rgb(189,190,192),
         _BorderRadius: 5,
         _Extent: lively.pt(20.0,20.0),
         _Position: lively.pt(12.0,38.0),
@@ -3585,7 +3585,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         },
         createNewPanel: function() {
             var panel = this.owner.addMorph(this.get('StyleEditorPane').createPanel());
-            Global.connect(panel.getMorphNamed('customInput'), 'savedTextString', this.get('StyleEditorPane'), 'setTargetStyle', {converter: function() {
+            connect(panel.getMorphNamed('customInput'), 'savedTextString', this.get('StyleEditorPane'), 'setTargetStyle', {converter: function() {
                 var spec = {},
                     value, 
                     attr = this.sourceObj.owner.getMorphNamed('customLabel').getTextString();
@@ -3597,8 +3597,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 spec[attr] = value
                 return spec
             }})
-            Global.connect(panel.getMorphNamed('customLabel'), 'savedTextString', this.get('StyleEditorPane'), 'updateCustomStylesOnTarget')
-            Global.connect(panel, 'remove', this.get('StyleEditorPane'), 'updateCustomStylesOnTarget')
+            connect(panel.getMorphNamed('customLabel'), 'savedTextString', this.get('StyleEditorPane'), 'updateCustomStylesOnTarget')
+            connect(panel, 'remove', this.get('StyleEditorPane'), 'updateCustomStylesOnTarget')
             this.owner.addMorph(this);
             return panel
         },
@@ -3613,7 +3613,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         createHeadline: function createHeadline() {
         return lively.BuildSpec({
         _Extent: lively.pt(257.4,29.0),
-        _Fill: Global.Color.rgba(0,0,204,0),
+        _Fill: Color.rgba(0,0,204,0),
         _Position: lively.pt(14.3,274.3),
         _StyleClassNames: ["Morph","Box","Headline"],
         _StyleSheet: "/*\n\
@@ -3646,7 +3646,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             _MinTextWidth: 120.695652,
             _Padding: lively.rect(0,5,0,0),
             _StyleClassNames: ["Morph","Text","Headline"],
-            _TextColor: Global.Color.rgb(64,64,64),
+            _TextColor: Color.rgb(64,64,64),
             _TextStylingMode: true,
             allowInput: true,
             className: "lively.morphic.Text",
@@ -3693,7 +3693,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         // view
         return lively.BuildSpec({
             _Extent: lively.pt(226.0,22.0),
-            _Fill: Global.Color.rgb(255,255,255),
+            _Fill: Color.rgb(255,255,255),
             _Position: lively.pt(319.5,1007.7),
             className: "lively.morphic.Box",
             draggingEnabled: false,
@@ -3717,7 +3717,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 _InputAllowed: true,
                 _IsSelectable: true,
                 halosEnabled: false,
-                _TextColor: Global.Color.rgb(64,64,64),
+                _TextColor: Color.rgb(64,64,64),
                 _TextStylingMode: true,
                 _WordBreak: "break-all",
                 allowInput: true,
@@ -3742,7 +3742,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 textString: "Custom property:"
             },{
                 _Extent: lively.pt(124.0,20.0),
-                _Fill: Global.Color.rgb(255,255,255),
+                _Fill: Color.rgb(255,255,255),
                 _FontFamily: "Arial, sans-serif",
                 _FontSize: 11,
                 _HandStyle: null,
@@ -3750,7 +3750,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 _IsSelectable: true,
                 halosEnabled: false,
                 _Position: lively.pt(111.0,0.0),
-                _TextColor: Global.Color.rgb(64,64,64),
+                _TextColor: Color.rgb(64,64,64),
                 _TextStylingMode: true,
                 allowInput: true,
                 className: "lively.morphic.Text",
@@ -3776,8 +3776,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
     },
         defaultStyleConfiguration: function defaultStyleConfiguration() {
         return {
-            fill: Global.Color.white,
-            borderColor: Global.Color.black,
+            fill: Color.white,
+            borderColor: Color.black,
             borderWidth: 1,
             borderRadius: 0,
             opacity: 1,
@@ -3805,7 +3805,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             fontSize: 12,
             fontWeight: "normal",
             textDecoration: "none",
-            textColor: Global.Color.black,
+            textColor: Color.black,
             fixedWidth: true,
             fixedHeight: false,
             padding: lively.rect(4,2,0,0),
@@ -4164,7 +4164,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 this.layoutProps.forEach(function(attr) {
                 	var checkBox = this.getMorphNamed(attr + 'CheckBox');
                 	checkBox.layoutProperty = attr;
-                	Global.connect(checkBox, 'checked', this,
+                	connect(checkBox, 'checked', this,
                 	"setTargetStyle", { converter:
                 	function(bool) {
                 		var style = {},
@@ -5019,10 +5019,12 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "fire", this.get("TextAttributePanel"), "openFontBook", {});
             },
+
                 onFromBuildSpecCreated: function onFromBuildSpecCreated() {
-                            this.setAppearanceStylingMode(true)
-                            this.setBorderStylingMode(true)
-                        },
+                  this.setAppearanceStylingMode(true)
+                  this.setBorderStylingMode(true)
+                },
+
                 onMouseOut: function onMouseOut() {
                 this.get('fontFamilyLabel').removeStyleClassName('CheckBoxHover')
             },
@@ -6355,8 +6357,8 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
 },
     defaultTextStyle: function defaultTextStyle() {
     return {
-        color: Global.Color.black,
-        backgroundColor: Global.Color.white.withA(0),
+        color: Color.black,
+        backgroundColor: Color.white.withA(0),
         fontWeight: 'normal',
         textDecoration: 'none',
         fontSize: 12,
@@ -6411,7 +6413,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     getTextMorphsSelectionRange: function getTextMorphsSelectionRange(morph) {
     var selRange = morph.getSelectionRange();
     if (selRange) {
-        selRange = Global.Numbers.sort(selRange);
+        selRange = Numbers.sort(selRange);
     }
     if (!selRange || selRange[0] === selRange[1]) {
         selRange = [0, morph.textString.length];
@@ -6440,8 +6442,8 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     })
 },
     reset: function reset() {
-    Global.disconnectAll(this)
-    Global.connect(this, 'focusedText', this, 'selectTextMorph');
+    disconnectAll(this)
+    connect(this, 'focusedText', this, 'selectTextMorph');
     this.selectTextMorph(null);
     this.get('TextCheckBox').setChecked(true);
     this.applyTextStyle({});
@@ -6500,46 +6502,52 @@ this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') 
 },
     setupConnections: function setupConnections() {
 // disconnectAll(this.get('FontChooserComboBox'))
-    Global.connect(this.get('FontChooserButton'), 'fire', this, 'openFontBook');
-    Global.connect(this.get('FontSizeText'), 'selection', this, 'updateFontSize');
-    Global.connect(this.get('FontWeightText'), 'selection', this, 'updateFontWeight');
-    Global.connect(this.get('FontDecorationText'), 'selection', this, 'updateFontDecoration');
-    Global.connect(this.get('FontColorField'), 'color', this, 'updateFontColor');
-    Global.connect(this.get('BackgroundColorField'), 'color', this, 'updateBackgroundColor')
+    connect(this.get('FontChooserButton'), 'fire', this, 'openFontBook');
+    connect(this.get('FontSizeText'), 'selection', this, 'updateFontSize');
+    connect(this.get('FontWeightText'), 'selection', this, 'updateFontWeight');
+    connect(this.get('FontDecorationText'), 'selection', this, 'updateFontDecoration');
+    connect(this.get('FontColorField'), 'color', this, 'updateFontColor');
+    connect(this.get('BackgroundColorField'), 'color', this, 'updateBackgroundColor')
 
     // connect(this.get('unselectButton'), 'fire', this, 'updateFontColor');
 
-    Global.connect(this.get('fixedWidthCheckBox'), 'checked', this, 'updateStyle', {
+    connect(this.get('fixedWidthCheckBox'), 'checked', this, 'updateStyle', {
             converter: function(bool) { return {fixedWidth: bool}}});
 
-    Global.connect(this.get('fixedHeightCheckBox'), 'checked', this, 'updateStyle', {
+    connect(this.get('fixedHeightCheckBox'), 'checked', this, 'updateStyle', {
             converter: function(bool) { return {fixedHeight: bool}}});
 },
     updateEmphasis: function updateEmphasis(spec) {
-    if (this.targetMorph) {
-        var range = this.getTextMorphsSelectionRange(this.targetMorph);
-        if (!spec.backgroundColor && range[0] === 0 && range[1] === this.targetMorph.textString.length) {
-            if (spec.color) {
-                spec.textColor = spec.color;
-                delete spec.color;
+        if (this.targetMorph) {
+            var range = this.getTextMorphsSelectionRange(this.targetMorph);
+            if (!spec.backgroundColor && range[0] === 0 && range[1] === this.targetMorph.textString.length) {
+                if (spec.color) {
+                    spec.textColor = spec.color;
+                    delete spec.color;
+                }
+                this.updateStyle(spec);
+            } else {
+                if (spec.fontStyle) {
+                    spec.italics = spec.fontStyle;
+                    delete spec.fontStyle;
+                }
+                this.targetMorph.changeEmphasis(range[0], range[1],
+                    function(prevEmph, doEmph) {
+                        doEmph(spec)
+                    });            
             }
-            this.updateStyle(spec);
-        } else {
-            if (spec.fontStyle) {
-                spec.italics = spec.fontStyle;
-                delete spec.fontStyle;
-            }
-            this.targetMorph.changeEmphasis(range[0], range[1],
-                function(prevEmph, doEmph) {
-                    doEmph(spec)
-                });            
         }
-    }
-},
+    },
+
     updateStyle: function updateStyle(style) {
-    var m = this.targetMorph;
-    m && m.applyStyle(style);
-}
-})
+      var m = this.targetMorph;
+      m && m.applyStyle(style);
+    },
+
+    onFromBuildSpecCreated: function onFromBuildSpecCreated() {
+      $super();
+      this.withAllSubmorphsDo(function(ea) { return ea.disableGrabbing(); });
+    }
+});
 
 }) // end of module

@@ -1729,7 +1729,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     astNodeRange: function(node) {
       var start = this.indexToPosition(node.start),
-          end = this.indexToPosition(node.end-1);
+          end = this.indexToPosition(node.end);
       return lively.ide.ace.require("ace/range").Range.fromPoints(start, end)
     },
 
@@ -1753,21 +1753,38 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         null : lively.rect(startMorphic, endMorphic);
     },
 
-    rangeToMorphicBounds: function(range) {
-      var topLeft = this.posToMorphicPos(range.start, "topLeft"),
-          bottomRight = this.posToMorphicPos(range.end, "bottomRight");
-      return lively.rect(topLeft, bottomRight);
+    lineToMorphicBounds: function(row) {
+      return this.rangeToMorphicBounds(this.getLineRange(row, true));
     },
 
-    posToMorphicPos: function(pos, corner) {
+    rangeToMorphicBounds: function(range, useMaxColumn, useScreenPos) {
+      var start = range.start,
+          end = range.end;
+
+      if (useMaxColumn) {
+        var maxColumn = useMaxColumn ?
+          this.getSession().getLines(start.row, end.row).pluck("length").max() : 0;
+        end.column = maxColumn;
+      }
+
+      var topLeft = this.posToMorphicPos(start, "topLeft", useScreenPos),
+          bottomRight = this.posToMorphicPos(end, "bottomRight", useScreenPos);
+
+      return lively.rect(
+        topLeft.minPt(bottomRight),
+        topLeft.maxPt(bottomRight));
+    },
+
+    posToMorphicPos: function(pos, corner, useScreenPos) {
+      // useScreenPos: clip to actual lines in document
       var ed = this.aceEditor,
           r = ed.renderer,
-          config = ed.renderer.layerConfig,
+          config = r.layerConfig,
           lineHeight = config.lineHeight,
-          screenPos    = ed.session.documentToScreenPosition(pos.row, pos.column),
+          pos = useScreenPos ? ed.session.documentToScreenPosition(pos.row, pos.column) : pos,
           localCoords = {
-            x: r.gutterWidth + config.padding + screenPos.column * config.characterWidth,
-            y: screenPos.row * config.lineHeight - r.scrollTop
+            x: r.gutterWidth + config.padding + pos.column * config.characterWidth,
+            y: pos.row * config.lineHeight - r.scrollTop
           };
 
       switch (corner) {

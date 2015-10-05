@@ -143,6 +143,7 @@ var browserTests = [
     "lively.morphic.tests.Connectors",
     "lively.morphic.tests.CoreToolsTests",
     "lively.morphic.tests.DataGridTests",
+    "lively.morphic.tests.DraggableJavaScript",
     "lively.morphic.tests.DiffMerge",
     "lively.morphic.tests.EventTests",
     "lively.morphic.tests.Graphics",

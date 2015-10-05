@@ -468,6 +468,15 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 },
 'rendering', {
 
+    fitToSubmorphs: function() {
+      if (!this.submorphs.length) return;
+      var subBounds = this.submorphBounds(new lively.morphic.Similitude()),
+          l = this.getLayouter(),
+          offset = l ? l.getBorderSize() : 0,
+          padding = this.getPadding();
+      this.setExtent(subBounds.bottomRight().addXY(offset, offset).addXY(padding.bottom(), padding.right()));
+    },
+  
     growOrShrinkToFit: function() {
         if (!this.getExtent().eqPt(this.getTextExtent())) {
             this.setExtent(this.getTextExtent());

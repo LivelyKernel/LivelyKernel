@@ -5,7 +5,8 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
 
   style: {
     fill: Global.Color.rgba(33,33,33,.2),
-    borderWidth: 0
+    borderWidth: 0,
+    enableDropping: false
   },
 
   labelStyle: {
@@ -161,9 +162,9 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
     this.cachedBounds = null;
   },
 
-  setAtRange: function(codeEditor, range) {
+  setAtRange: function(codeEditor, range, useMaxColumn) {
     if (this.owner !== codeEditor) codeEditor.addMorph(this);
-    this.setBounds(codeEditor.rangeToMorphicBounds(range));
+    this.setBounds(codeEditor.rangeToMorphicBounds(range, useMaxColumn));
     this.ensureAnchors(codeEditor, range);
   },
 
@@ -199,6 +200,7 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
   setLabelStringAtNode: function(codeEditor, node, value, stringifiedValue) {
     // this.setVisible(false);
     var range = codeEditor.astNodeRange(node);
+    if (range) range.end.column--
 
     this.state.node = node;
     this.setAtRange(codeEditor, range);

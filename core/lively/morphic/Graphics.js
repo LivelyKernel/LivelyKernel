@@ -1,6 +1,6 @@
 module('lively.morphic.Graphics').requires('apps.ColorParser').toRun(function() {
 
-Object.subclass("Point",
+Object.subclass("lively.Point",
 'documentation', {
     documentation: "2D Point"
 },
@@ -182,15 +182,15 @@ Object.subclass("Point",
 },
 'converting', {
     asRectangle: function() {
-        return new Rectangle(this.x, this.y, 0, 0);
+        return new lively.Rectangle(this.x, this.y, 0, 0);
     },
 
     extent: function(ext) {
-        return new Rectangle(this.x, this.y, ext.x, ext.y);
+        return new lively.Rectangle(this.x, this.y, ext.x, ext.y);
     },
 
     extentAsRectangle: function() {
-        return new Rectangle(0, 0, this.x, this.y)
+        return new lively.Rectangle(0, 0, this.x, this.y)
     },
 
     lineTo: function(end) {
@@ -238,21 +238,36 @@ Object.subclass("Point",
     }
 });
 
+Object.extend(lively.Point, {
+    ensure: function(duck) {
+        if (duck instanceof lively.Point) {
+            return duck;
+        } else {
+            return new lively.Point(duck.x, duck.y);
+        }
+    },
 
-// FIXME: Point in global namespace
-lively.Point = Point;
+    polar: function(r, theta) {
+        // theta=0 is East on the screen,
+        // increases in counter-clockwise direction
+        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
+    },
 
-lively.pt = function(x, y) {
-    return new lively.Point(x, y);
-}
+    random: function(scalePt) {
+        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
+    },
 
-// FIXME: deprecated GLOBAL function
-Global.pt = function(x, y) {
-    // DEPRECATED: use lively.pt(x, y) instead
-    return lively.pt(x, y);
-}
+    fromLiteral: function(literal) {
+        return lively.pt(literal.x, literal.y);
+    },
 
-Object.subclass('Rectangle',
+    fromTuple: function(tuple) {
+        return lively.pt(tuple[0], tuple[1]);
+    }
+});
+
+
+Object.subclass('lively.Rectangle',
 'documentation', {
     documentation: "primitive rectangle, structually equivalent to SVGRect"
 },
@@ -270,35 +285,35 @@ Object.subclass('Rectangle',
 },
 'instance creation', {
     copy: function() {
-        return new Rectangle(this.x, this.y, this.width, this.height);
+        return new lively.Rectangle(this.x, this.y, this.width, this.height);
     },
 
     toFixed: function(val) {
-        return new Rectangle(this.x.toFixed(val), this.y.toFixed(val), this.width.toFixed(val), this.height.toFixed(val));
+        return new lively.Rectangle(this.x.toFixed(val), this.y.toFixed(val), this.width.toFixed(val), this.height.toFixed(val));
     },
 
     withWidth: function(w) {
-        return new Rectangle(this.x, this.y, w, this.height)
+        return new lively.Rectangle(this.x, this.y, w, this.height)
     },
 
     withHeight: function(h) {
-        return new Rectangle(this.x, this.y, this.width, h)
+        return new lively.Rectangle(this.x, this.y, this.width, h)
     },
 
     withX: function(x) {
-        return new Rectangle(x, this.y, this.width, this.height)
+        return new lively.Rectangle(x, this.y, this.width, this.height)
     },
 
     withY: function(y) {
-        return new Rectangle(this.x, y, this.width, this.height)
+        return new lively.Rectangle(this.x, y, this.width, this.height)
     },
 
     withExtent: function(ext) {
-        return new Rectangle(this.x, this.y, ext.x, ext.y);
+        return new lively.Rectangle(this.x, this.y, ext.x, ext.y);
     },
 
     withTopLeft: function(p) {
-        return Rectangle.fromAny(p, this.bottomRight())
+        return lively.Rectangle.fromAny(p, this.bottomRight())
     },
 
     withTopRight: function(p) {
@@ -306,45 +321,45 @@ Object.subclass('Rectangle',
     },
 
     withBottomRight: function(p) {
-        return Rectangle.fromAny(p, this.topLeft())
+        return lively.Rectangle.fromAny(p, this.topLeft())
     },
 
     withBottomLeft: function(p) {
-        return Rectangle.fromAny(p, this.topRight())
+        return lively.Rectangle.fromAny(p, this.topRight())
     },
 
     withLeftCenter: function(p) {
-        return new Rectangle(p.x, this.y, this.width + (this.x - p.x), this.height)
+        return new lively.Rectangle(p.x, this.y, this.width + (this.x - p.x), this.height)
     },
 
     withRightCenter: function(p) {
-        return new Rectangle(this.x, this.y, p.x - this.x, this.height)
+        return new lively.Rectangle(this.x, this.y, p.x - this.x, this.height)
     },
 
     withTopCenter: function(p) {
-        return new Rectangle(this.x, p.y, this.width, this.height + (this.y - p.y))
+        return new lively.Rectangle(this.x, p.y, this.width, this.height + (this.y - p.y))
     },
 
     withBottomCenter: function(p) {
-        return new Rectangle(this.x, this.y, this.width, p.y - this.y)
+        return new lively.Rectangle(this.x, this.y, this.width, p.y - this.y)
     },
 
     withCenter: function(p) {
-        return new Rectangle(p.x-this.width/2,p.y-this.height/2,this.width,this.height);
+        return new lively.Rectangle(p.x-this.width/2,p.y-this.height/2,this.width,this.height);
     },
 
     insetBy: function(d) {
-        return new Rectangle(this.x + d, this.y + d, this.width - (d * 2), this.height - (d * 2));
+        return new lively.Rectangle(this.x + d, this.y + d, this.width - (d * 2), this.height - (d * 2));
     },
 
     insetByPt: function(p) {
-        return new Rectangle(this.x + p.x, this.y + p.y, this.width - (p.x * 2), this.height - (p.y * 2));
+        return new lively.Rectangle(this.x + p.x, this.y + p.y, this.width - (p.x * 2), this.height - (p.y * 2));
     },
 
     grid: function(rows, cols) {
         var w = this.width / cols, h = this.height / rows;
         return Grid.mapCreate(rows, cols, function(i, j) {
-            return new Rectangle(w*j, h*i, w, h); });
+            return new lively.Rectangle(w*j, h*i, w, h); });
     },
 
     divide: function(relativeRects) {
@@ -479,18 +494,18 @@ Object.subclass('Rectangle',
 },
 'transforming', {
     translatedBy: function(d) {
-        return new Rectangle(this.x + d.x, this.y + d.y, this.width, this.height);
+        return new lively.Rectangle(this.x + d.x, this.y + d.y, this.width, this.height);
     },
 
     scaleByRect: function(r) {
         // r is a relative rect, as a pane spec in a window
-        return new Rectangle(
+        return new lively.Rectangle(
         this.x + (r.x * this.width), this.y + (r.y * this.height), r.width * this.width, r.height * this.height);
     },
 
     scaleRectIn: function(fullRect) {
         // return a relative rect for this as a part of fullRect
-        return new Rectangle((this.x - fullRect.x) / fullRect.width, (this.y - fullRect.y) / fullRect.height, this.width / fullRect.width, this.height / fullRect.height);
+        return new lively.Rectangle((this.x - fullRect.x) / fullRect.width, (this.y - fullRect.y) / fullRect.height, this.width / fullRect.width, this.height / fullRect.height);
     },
 
     expandBy: function(delta) {
@@ -517,12 +532,12 @@ Object.subclass('Rectangle',
     },
 
     insetByRect: function(r) {
-        return new Rectangle(this.x + r.left(), this.y + r.top(), this.width -
+        return new lively.Rectangle(this.x + r.left(), this.y + r.top(), this.width -
                  (r.left() + r.right()), this.height - (r.top() + r.bottom()));
     },
 
     outsetByRect: function(r) {
-        return new Rectangle(this.x - r.left(), this.y - r.top(), this.width +
+        return new lively.Rectangle(this.x - r.left(), this.y - r.top(), this.width +
                  (r.left() + r.right()), this.height + (r.top() + r.bottom()));
     }
 },
@@ -532,7 +547,7 @@ Object.subclass('Rectangle',
         var ny = Math.max(this.y, rect.y);
         var nw = Math.min(this.x + this.width, rect.x + rect.width) - nx;
         var nh = Math.min(this.y + this.height, rect.y + rect.height) - ny;
-        return new Rectangle(nx, ny, nw, nh);
+        return new lively.Rectangle(nx, ny, nw, nh);
     },
 
     union: function(r) {
@@ -651,46 +666,17 @@ Object.subclass('Rectangle',
     }
 });
 
-Object.extend(lively.Point, {
-    ensure: function(duck) {
-        if (duck instanceof lively.Point) {
-            return duck;
-        } else {
-            return new lively.Point(duck.x, duck.y);
-        }
-    },
-
-    polar: function(r, theta) {
-        // theta=0 is East on the screen,
-        // increases in counter-clockwise direction
-        return new lively.Point(r * Math.cos(theta), r * Math.sin(theta));
-    },
-
-    random: function(scalePt) {
-        return new lively.Point(scalePt.x.randomSmallerInteger(), scalePt.y.randomSmallerInteger());
-    },
-
-    fromLiteral: function(literal) {
-        return lively.pt(literal.x, literal.y);
-    },
-
-    fromTuple: function(tuple) {
-        return lively.pt(tuple[0], tuple[1]);
-    }
-});
-
-
-Object.extend(Rectangle, {
+Object.extend(lively.Rectangle, {
     fromAny: function(ptA, ptB) {
         return lively.rect(ptA.minPt(ptB), ptA.maxPt(ptB));
     },
 
     fromLiteral: function(literal) {
-        return new Rectangle(literal.x, literal.y, literal.width, literal.height);
+        return new lively.Rectangle(literal.x, literal.y, literal.width, literal.height);
     },
 
     fromTuple: function(tuple) {
-        return new Rectangle(tuple[0], tuple[1], tuple[2], tuple[3]);
+        return new lively.Rectangle(tuple[0], tuple[1], tuple[2], tuple[3]);
     },
 
     unionPts: function(points) {
@@ -707,10 +693,10 @@ Object.extend(Rectangle, {
     },
 
     ensure: function(duck) {
-        if (duck instanceof Rectangle) {
+        if (duck instanceof lively.Rectangle) {
             return duck;
         } else {
-            return new Rectangle(duck.x, duck.y, duck.width, duck.height);
+            return new lively.Rectangle(duck.x, duck.y, duck.width, duck.height);
         }
     },
 
@@ -724,10 +710,10 @@ Object.extend(Rectangle, {
                 y = lively.data.Length.parse(element.style.top || 0),
                 width = lively.data.Length.parse(element.style.width || 0),
                 height = lively.data.Length.parse(element.style.hieght || 0);
-            return new Rectangle(x, y, width, height);
+            return new lively.Rectangle(x, y, width, height);
         }
         if (element.namespaceURI == Namespace.SVG) {
-            return new Rectangle(element.x.baseVal.value, element.y.baseVal.value,
+            return new lively.Rectangle(element.x.baseVal.value, element.y.baseVal.value,
                 element.width.baseVal.value, element.height.baseVal.value);
         }
         throw new Error('Cannot create Rectangle from ' + element);
@@ -737,32 +723,10 @@ Object.extend(Rectangle, {
         if (top === undefined) top = left;
         if (right === undefined) right = left;
         if (bottom === undefined) bottom = top;
-        return new Rectangle(left, top, right - left, bottom - top);
+        return new lively.Rectangle(left, top, right - left, bottom - top);
     }
 
 });
-
-// FIXME: Point in global namespace
-lively.Rectangle = Rectangle;
-
-lively.rect = function(arg1, arg2, arg3, arg4) {
-    // arg1 and arg2 can be location and corner or
-    // arg1/arg2 = location x/y and arg3/arg4 = extent x/y
-    var x, y, w, h;
-    if (typeof arg1 === 'number') {
-        x = arg1, y = arg2, w = arg3, h = arg4
-    } else {
-        x = arg1.x; y = arg1.y;
-        w = arg2.x - x; h = arg2.y - y;
-    }
-    return new Rectangle(x, y, w, h);
-}
-
-// FIXME: deprecated GLOBAL function
-Global.rect = function(arg1, arg2, arg3, arg4) {
-    // DEPRECATED: use lively.rect(arg1, arg2, arg3, arg4) instead
-    return lively.rect(arg1, arg2, arg3, arg4);
-};
 
 Object.subclass('lively.morphic.Similitude',
 'documentation', {
@@ -1090,10 +1054,10 @@ Object.subclass("lively.Line",
         if (x === Infinity || y === Infinity) return null;
 
         if (!unconstrained) {
-            if (!Numbers.between(x, x1, x2, eps)
-             || !Numbers.between(y, y1, y2, eps)
-             || !Numbers.between(x, x3, x4, eps)
-             || !Numbers.between(y, y3, y4, eps)) return null;
+            if (!lively.lang.num.between(x, x1, x2, eps)
+             || !lively.lang.num.between(y, y1, y2, eps)
+             || !lively.lang.num.between(x, x3, x4, eps)
+             || !lively.lang.num.between(y, y3, y4, eps)) return null;
         }
 
         return lively.pt(x,y);
@@ -1107,7 +1071,7 @@ Object.subclass("lively.Line",
     }
 });
 
-Object.subclass("Color",
+Object.subclass("lively.Color",
 'documentation', {
     documentation: "Fully portable support for RGBA colors."
 },
@@ -1135,14 +1099,14 @@ Object.subclass("Color",
 },
 'transforming', {
     darker: function(recursion) {
-        var result = this.mixedWith(Color.black, 0.5);
+        var result = this.mixedWith(lively.Color.black, 0.5);
         return recursion > 1  ? result.darker(recursion - 1) : result;
     },
 
     lighter: function(recursion) {
         if (recursion == 0)
             return this;
-        var result = this.mixedWith(Color.white, 0.5);
+        var result = this.mixedWith(lively.Color.white, 0.5);
         return recursion > 1 ? result.lighter(recursion - 1) : result;
     }
 },
@@ -1199,34 +1163,37 @@ Object.subclass("Color",
 },
 'instance creation', {
     withA: function(a) {
-        return new Color(this.r, this.g, this.b, a);
+        return new lively.Color(this.r, this.g, this.b, a);
     },
 
     mixedWith: function(other, proportion) {
         // Mix with another color -- 1.0 is all this, 0.0 is all other
         var p = proportion,
             q = 1.0 - p;
-        return new Color(this.r*p + other.r*q, this.g*p + other.g*q, this.b*p + other.b*q, this.a*p + other.a*q);
+        return new lively.Color(this.r*p + other.r*q, this.g*p + other.g*q, this.b*p + other.b*q, this.a*p + other.a*q);
     },
 
     // FIXME: invert sounds like mutation, versus createInverse or similar
     invert: function() {
-        return Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b));
+        return lively.Color.rgb(255 * (1 - this.r), 255 * (1 - this.g), 255 * (1 - this.b));
     }
 });
 
-Object.extend(Color, {
+Object.extend(lively.Color, {
     random: function(min, max) {
         if (min === undefined) min = 0;
         if (max === undefined) max = 255;
-        return Color.rgb(Numbers.random(min, max), Numbers.random(min, max), Numbers.random(min, max));
+        return lively.Color.rgb(
+          lively.lang.num.random(min, max),
+          lively.lang.num.random(min, max),
+          lively.lang.num.random(min, max));
     },
 
     hsb: function(hue,sat,brt) {
         var s = sat,
             b = brt;
         // zero saturation yields gray with the given brightness
-        if (sat == 0) return new Color(b,b,b);
+        if (sat == 0) return new lively.Color(b,b,b);
         var h = hue % 360,
             h60 = h / 60,
             i = Math.floor(h60), // integer part of hue
@@ -1236,18 +1203,18 @@ Object.extend(Color, {
             t = (1.0 - (s * (1.0 - f))) * b;
 
         switch (i) {
-            case 0:  return new Color(b,t,p);
-            case 1:  return new Color(q,b,p);
-            case 2:  return new Color(p,b,t);
-            case 3:  return new Color(p,q,b);
-            case 4:  return new Color(t,p,b);
-            case 5:  return new Color(b,p,q);
-            default: return new Color(0,0,0);
+            case 0:  return new lively.Color(b,t,p);
+            case 1:  return new lively.Color(q,b,p);
+            case 2:  return new lively.Color(p,b,t);
+            case 3:  return new lively.Color(p,q,b);
+            case 4:  return new lively.Color(t,p,b);
+            case 5:  return new lively.Color(b,p,q);
+            default: return new lively.Color(0,0,0);
         }
     },
 
     wheel: function(n) {
-        return Color.wheelHsb(n,0.0,0.9,0.7);
+        return lively.Color.wheelHsb(n,0.0,0.9,0.7);
     },
 
     wheelHsb: function(n,hue,sat,brt) {
@@ -1255,19 +1222,19 @@ Object.extend(Color, {
         var a = new Array(n),
             step = 360.0 / (Math.max(n,1));
         for (var i = 0; i < n; i++) {
-            a[i] = Color.hsb(hue + i*step, sat, brt);
+            a[i] = lively.Color.hsb(hue + i*step, sat, brt);
         }
         return a;
     },
 
     rgb: function(r, g, b) {
-        return new Color(r/255, g/255, b/255);
+        return new lively.Color(r/255, g/255, b/255);
     },
 
     rgbHex: function(colorHexString) {
         var colorData = this.parseHex(colorHexString);
         if (colorData && colorData[0] >= 0 && colorData[1] >= 0 && colorData[2] >= 0) {
-            return new Color(colorData[0], colorData[1], colorData[2]);
+            return new lively.Color(colorData[0], colorData[1], colorData[2]);
         } else {
             return null;
         }
@@ -1275,19 +1242,19 @@ Object.extend(Color, {
     },
 
     rgba: function(r, g, b, a) {
-        return new Color(r/255, g/255, b/255, a);
+        return new lively.Color(r/255, g/255, b/255, a);
     },
 
     fromLiteral: function(spec) {
-        return new Color(spec.r, spec.g, spec.b, spec.a);
+        return new lively.Color(spec.r, spec.g, spec.b, spec.a);
     },
 
     fromTuple: function(tuple) {
-        return new Color(tuple[0], tuple[1], tuple[2], tuple[3]);
+        return new lively.Color(tuple[0], tuple[1], tuple[2], tuple[3]);
     },
 
     fromTuple8Bit: function(tuple) {
-        return new Color(tuple[0]/255, tuple[1]/255, tuple[2]/255, tuple[3]/255);
+        return new lively.Color(tuple[0]/255, tuple[1]/255, tuple[2]/255, tuple[3]/255);
     },
 
     fromString: function(str) {
@@ -1355,61 +1322,83 @@ Object.extend(Color, {
     }
 });
 
-Object.extend(Color, {
+Object.extend(lively.Color, {
     // extended again to make use of Color.rgb
-    black:         new Color(0,0,0),
-    almostBlack:   Color.rgb(64, 64, 64),
-    white:         new Color(1,1,1),
-    gray:          new Color(0.8,0.8,0.8),
-    red:           new Color(0.8,0,0),
-    green:         new Color(0,0.8,0),
-    yellow:        new Color(0.8,0.8,0),
-    blue:          new Color(0,0,0.8),
-    purple:        new Color(1,0,1),
-    magenta:       new Color(1,0,1),
-    pink:          Color.rgb(255,30,153),
-    turquoise:     Color.rgb(0,240,255),
-    tangerine:     Color.rgb(242,133,0),
-    orange:        Color.rgb(255,153,0),
-    cyan:          Color.rgb(0,255,255),
-    brown:         Color.rgb(182,67,0),
-    limeGreen:     Color.rgb(51,255,0),
-    darkGray:      Color.rgb(102,102,102),
-    lightGray:     Color.rgb(230,230,230),
-    veryLightGray: Color.rgb(243,243,243),
+    black:         new lively.Color(0,0,0),
+    almostBlack:   lively.Color.rgb(64, 64, 64),
+    white:         new lively.Color(1,1,1),
+    gray:          new lively.Color(0.8,0.8,0.8),
+    red:           new lively.Color(0.8,0,0),
+    green:         new lively.Color(0,0.8,0),
+    yellow:        new lively.Color(0.8,0.8,0),
+    blue:          new lively.Color(0,0,0.8),
+    purple:        new lively.Color(1,0,1),
+    magenta:       new lively.Color(1,0,1),
+    pink:          lively.Color.rgb(255,30,153),
+    turquoise:     lively.Color.rgb(0,240,255),
+    tangerine:     lively.Color.rgb(242,133,0),
+    orange:        lively.Color.rgb(255,153,0),
+    cyan:          lively.Color.rgb(0,255,255),
+    brown:         lively.Color.rgb(182,67,0),
+    limeGreen:     lively.Color.rgb(51,255,0),
+    darkGray:      lively.Color.rgb(102,102,102),
+    lightGray:     lively.Color.rgb(230,230,230),
+    veryLightGray: lively.Color.rgb(243,243,243),
 
     // FIXME: are the following palettes used!?
     primary: {
         // Sun palette
-        blue:   Color.rgb(0x53, 0x82, 0xA1),
-        orange: Color.rgb(0xef, 0x6f, 0x00),
-        green:  Color.rgb(0xb2, 0xbc, 00),
-        yellow: Color.rgb(0xff, 0xc7, 0x26)
+        blue:   lively.Color.rgb(0x53, 0x82, 0xA1),
+        orange: lively.Color.rgb(0xef, 0x6f, 0x00),
+        green:  lively.Color.rgb(0xb2, 0xbc, 00),
+        yellow: lively.Color.rgb(0xff, 0xc7, 0x26)
     },
     secondary: {
-        blue:   Color.rgb(0x35, 0x55, 0x6b),
-        orange: Color.rgb(0xc0, 0x66, 0x00),
-        green:  Color.rgb(0x7f, 0x79, 0x00),
-        yellow: Color.rgb(0xc6, 0x92, 0x00)
+        blue:   lively.Color.rgb(0x35, 0x55, 0x6b),
+        orange: lively.Color.rgb(0xc0, 0x66, 0x00),
+        green:  lively.Color.rgb(0x7f, 0x79, 0x00),
+        yellow: lively.Color.rgb(0xc6, 0x92, 0x00)
     },
     neutral: {
-        lightGray: Color.rgb(0xbd, 0xbe, 0xc0),
-        gray:      Color.rgb(0x80, 0x72, 0x77)
+        lightGray: lively.Color.rgb(0xbd, 0xbe, 0xc0),
+        gray:      lively.Color.rgb(0x80, 0x72, 0x77)
     },
     lively: {
-        orange: Color.rgb(245, 124, 0),
-        lightGray: Color.rgb(128, 128, 128),
-        darkGray: Color.rgb(77, 77, 77)
+        orange: lively.Color.rgb(245, 124, 0),
+        lightGray: lively.Color.rgb(128, 128, 128),
+        darkGray: lively.Color.rgb(77, 77, 77)
     }
 });
 
 (function addColorsToConfig() {
-
-Config.addOptions(
-"default colors", [
-    ["textColor", Color.rgb(64,64,64), "Default text color. Better than black..."]
-]);
-
+  lively.Config.addOptions(
+  "default colors", [
+      ["textColor", lively.Color.rgb(64,64,64), "Default text color. Better than black..."]
+  ]);
 })();
+
+Object.extend(lively, {
+  pt: function(x, y) { return new lively.Point(x, y); },
+  rect: function(arg1, arg2, arg3, arg4) {
+      // arg1 and arg2 can be location and corner or
+      // arg1/arg2 = location x/y and arg3/arg4 = extent x/y
+      var x, y, w, h;
+      if (typeof arg1 === 'number') {
+          x = arg1, y = arg2, w = arg3, h = arg4
+      } else {
+          x = arg1.x; y = arg1.y;
+          w = arg2.x - x; h = arg2.y - y;
+      }
+      return new lively.Rectangle(x, y, w, h);
+  }
+});
+
+Object.extend(Global, { // FIXME, no global pollution...?
+  Point: lively.Point,
+  Rectangle: lively.Rectangle,
+  Color: lively.Color,
+  pt: lively.pt,
+  rect: lively.rect
+});
 
 });

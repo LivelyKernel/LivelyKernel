@@ -73,11 +73,14 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
 
     var orig = target[methodName];
     target[methodName] = target[methodName].wrap(function(/*proceed + args{*/) {
+      // FIXME don't install when not own prop
       target[methodName] = orig;
       var args = Array.from(arguments); args.shift();
       var source = String(orig).replace(/^\s*function\s*/, "function " + "foo");
       lively.ide.codeeditor.JavaScriptDebugging.debugCall(
         orig, target, args, methodName, optEditor, thenDo);
+      // FIXME don't run twice....
+      return orig.apply(target, args);
     });
     target[methodName].isRecordingDebugWrapper = true;
     target[methodName].noDebugFunc = orig;
@@ -91,7 +94,7 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
           else require("lively.ide.tools.JavaScriptWorkspace").toRun(function() {
             var workspace = lively.ide.tools.JavaScriptWorkspace.open();
             editor = workspace.targetMorph;
-            setTimeout(n, 100);
+            editor.withAceDo(function() { setTimeout(n, 10); });
           });
         },
         function(n) { lively.ide.codeeditor.JavaScriptDebugging.makeRecordingWorkspace(editor); n(); }
@@ -387,7 +390,8 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
     Global.__recordComputation = function(value, scope, astIndex, namespace, origFunctionIndex) {
       // will be injected
       recorder.recordingWorkspaceState.lastRecording.push({
-        value: value, stringified: String(value),
+        value: value,
+        stringified: lively.lang.obj.inspect(value, {maxDepth: 1}).slice(0,100).replace(/\n/g, ""),
         morphicState: lively.persistence.MorphicState.captureMorphicState(
           $world, recorder.morphExceptions()),
         scope: lively.ast.AcornInterpreter.Scope.varMappingOfFrameState(scope),
@@ -413,7 +417,6 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
         options.functionCallArgs.length ? "," : "",
         Object.keys(varMap).map(function(ea) { return 'Global["' + exportName + '"].' + ea; }).join(","));
       if (options.functionCallThis) {
-        show(options.functionCallThis)
         varMap.__functionCallThis = options.functionCallThis;
       }
       evalOpts.topLevelVarRecorder = varMap;

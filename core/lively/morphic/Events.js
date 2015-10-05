@@ -1446,6 +1446,7 @@ handleOnCapture);
         //return (morphStack[0] === this);
         return this.getTopmostMorph(aPoint) === this;
     },
+
     getTopmostMorph: function(aPoint) {
         if (aPoint == undefined) throw new Error("getTopmostMorph must be called with a parameter");
         var world = this.world();
@@ -1455,7 +1456,10 @@ handleOnCapture);
             function(ea) {
                 return  !ea.isPlaceholder &&
                         !ea.isHalo &&
-                        (!ea.owner || !ea.owner.isHalo); });
+                        (!ea.owner || !ea.owner.isHalo) &&
+                        !ea.areEventsIgnoredOrDisabled() && 
+                        ea.isVisible() && 
+                        ea.ownerChain().every(function(o) { return o.isVisible(); }); });
     },
 
     isScrollableHTML: function() {

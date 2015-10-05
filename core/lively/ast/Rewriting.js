@@ -702,8 +702,11 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
 
   storeComputationResult: function($super, node, start, end, astIndex, postfix) {
     // show("%s %s %s", escodegen.generate(node), postfix, (new Error()).stack);
-    return node._isRecordedExpression ?
-      node : this.recordExpression($super(node, start, end, astIndex, postfix));
+    if (node._isRecordedExpression) return node; // already recorded
+    if (node.type === "Literal"
+     || node.type === "ObjectExpression"
+     || node.type === "ArrayExpression") return node;
+    return this.recordExpression($super(node, start, end, astIndex, postfix), null, astIndex);
   },
 
   createPreamble: function(args, decls, level) {
@@ -2364,21 +2367,55 @@ lively.ast.Rewriting.RewriteVisitor.subclass("lively.ast.Rewriting.RecordingVisi
         return rewriter.storeComputationResult(callNode, start, end, astIndex, true);
     },
 
-    visitReturnStatement: function(n, rewriter) {
-        // argument is a node of type Expression
-        var arg = n.argument ?
-            this.accept(n.argument, rewriter) : null;
-        if (arg && arg.type == 'ExpressionStatement')
-            arg = arg.expression;
+    visitBinaryExpression: function($super, n, rewriter) {
+        return rewriter.storeComputationResult(
+          $super(n, rewriter), n.start, n.end, n.astIndex, true);
+    },
 
-        arg = rewriter.storeComputationResult(
-          arg,arg.start,arg.end,arg.astIndex, true);
+    visitMemberExpression: function($super, n, rewriter) {
+        var rewritten = $super(n, rewriter);
+        return rewritten.computed ? 
+          rewriter.storeComputationResult(
+            rewritten, rewritten.start, rewritten.end, rewritten.astIndex, true) :
+          rewritten;
+    },
 
+    visitExpressionStatement: function($super, n, rewriter) {
+        // expression is a node of type Expression
+        var expr = $super(n, rewriter);
+        expr = expr.expression; // unwrap
+        expr = rewriter.storeComputationResult(
+          expr, expr.start, expr.end, expr.astIndex, true);
         return {
-            start: n.start, end: n.end, type: 'ReturnStatement',
-            argument: arg, astIndex: n.astIndex
+            start: n.start, end: n.end, type: 'ExpressionStatement',
+            expression: expr, astIndex: n.astIndex
         };
-    }
+    },
+
+
+    // visitReturnStatement: function($super, n, rewriter) {
+    //     var rewritten = $super(n, rewriter);
+    //     var arg = rewritten.argument;
+    //     if (arg) {
+    //       if (arg && arg.type == 'ExpressionStatement')
+    //           arg = arg.expression;
+    //       arg = rewriter.storeComputationResult(
+    //         arg,arg.start,arg.end,arg.astIndex, true);
+    //     }
+    //     // argument is a node of type Expression
+    //     var arg = n.argument ?
+    //         this.accept(n.argument, rewriter) : null;
+    //     if (arg && arg.type == 'ExpressionStatement')
+    //         arg = arg.expression;
+
+    //     arg = rewriter.storeComputationResult(
+    //       arg,arg.start,arg.end,arg.astIndex, true);
+
+    //     return {
+    //         start: n.start, end: n.end, type: 'ReturnStatement',
+    //         argument: arg, astIndex: n.astIndex
+    //     };
+    // }
 });
 (function setupUnwindException() {
 

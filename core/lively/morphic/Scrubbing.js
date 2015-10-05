@@ -69,6 +69,7 @@ Trait("lively.morphic.Scrubbing",
   },
 
   startScrubbing: function(evt, startValue, mode) {
+      if (!this.scrubbingState) this.initScrubbingState();
       var globalPos = evt.getPosition();
       var scrubbing = this.scrubbingState;
       scrubbing.startValue = startValue;
@@ -135,23 +136,31 @@ Trait("lively.morphic.Scrubbing",
 },
 "events", {
 
-  onDrag: function onDrag(evt) {
+  onDrag: function(evt) {
     if (this.isScrubbing()) this.updateScrubbing(evt);
     evt.stop();
   },
 
-  onDragEnd: function onDragEnd(evt) {
-    if (this.isScrubbing()) this.stopScrubbing(evt);
+  onDragEnd: function(evt) {
+    if (!this.isScrubbing()) return false;
+    this.stopScrubbing();
+    evt.stop(); return true;
   },
 
-  onDragStart: function onDragStart(evt) {
-    var val = this.getScrubbingStartValue(evt.getPosition());
-    var mode = this.getScrubbingMode(evt.getPosition());
-    if (!mode) return false;
-    if (mode === "number" && (!Object.isNumber(val) || isNaN(val))) return false;
-    this.startScrubbing(evt, val, mode);
-    return true;
-  }
+  onDragStart: function(evt) {
+    if (!this.isScrubbing()) {
+      var val = this.getScrubbingStartValue(evt.getPosition());
+      var mode = this.getScrubbingMode(evt.getPosition());
+      if (!mode) return false;
+      if (mode === "number" && (!Object.isNumber(val) || isNaN(val))) return false;
+      this.startScrubbing(evt, val, mode);
+      evt.stop(); return true;
+    }
+    return false;
+  },
+
+  onMouseUp: function(evt) { return this.onDragEnd(evt); },
+  onMouseDown: function(evt) { return this.onDragStart(evt); }
 
 },
 "morphic integration", {
@@ -206,6 +215,7 @@ Trait("lively.morphic.ScrubbableText", Trait("lively.morphic.Scrubbing").def,
   onScrubbingUpdate: function(evt, scrubbing, value) {
       var c = scrubbing.currentChunk;
       c && (c.textString = String(value));
+      this.cachedTextString = null;
       this.fit();
       // this.get("text").textString = String(value);
   }
@@ -221,7 +231,7 @@ Object.extend(lively.morphic.Scrubbing, {
     var trait = morph instanceof lively.morphic.Text ?
       Trait("lively.morphic.ScrubbableText") :
       Trait("lively.morphic.Scrubbing");
-    trait.applyTo(morph, {override: ["onDrag", "onDragEnd", "onDragStart"]});
+    trait.applyTo(morph, {override: ["onDrag", "onDragEnd", "onDragStart", "onMouseDown", "onMouseUp"]});
 
     morph.initScrubbingState(options);
   }

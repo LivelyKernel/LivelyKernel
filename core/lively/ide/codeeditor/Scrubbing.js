@@ -10,7 +10,9 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
       disableSelectionHandler: null
     });
 
-    this.aceEditor.setOption("dragEnabled", false);
+    this.withAceDo(function(ed) {
+      ed.setOption("dragEnabled", false);
+    });
     this.setStyleSheet(".Morph.scrubbing .ace_scroller { cursor: ew-resize !important; }");
   },
 
@@ -23,7 +25,7 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
 
       // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-      var token = scrubbing.currentToken;
+      var token = this.getNumericTokenAt(evt.getPosition());
       var range = this.createRange({row: acePos.row, column: token.start}, {row: acePos.row, column: token.start + token.value.length});
       scrubbing.range = range;
       this.getSelection().setRange(range);
@@ -63,14 +65,7 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
       target.getSelection().setRange(range);
       scrubbing.range = range;
   },
-  
 
-  startScrubbingOnToken: function(evt, token, mode) {
-      var scrubbing = this.scrubbingState;
-      scrubbing.currentToken = token;
-      this.startScrubbing(evt, Number(token.value), mode);
-  },
-  
   getNumericTokenAt: function(globalPos) {
     var viewPort = document.body.getBoundingClientRect();
     var acePos1 = this.aceEditor.renderer.pixelToScreenCoordinates(
@@ -88,28 +83,18 @@ Trait("lively.morphic.CodeEditor.Scrubbing", Trait("lively.morphic.Scrubbing").d
 },
 "events", {
 
-  onDragStart: function onDragStart(evt) {
-    // FIXME...
-  },
-
-  onMouseMove: function onMouseMove(evt) {
+  onMouseMove: function(evt) {
     var token = this.getNumericTokenAt(evt.getPosition());
     if (token) this.addStyleClassName("scrubbing");
     else this.removeStyleClassName("scrubbing");
   },
-  
-  onMouseUp: function onMouseUp(evt) {
-    if (this.isScrubbing()) this.stopScrubbing();
-    evt.stop();
-  },
-  
-  onMouseDown: function onMouseDown(evt) {
-    if (!this.scrubbingState) this.initScrubbingState();
-    var token = this.getNumericTokenAt(evt.getPosition());
-    if (token) this.startScrubbingOnToken(evt, token, "number");
-    return this.constructor.prototype.onMouseDown.call(this, evt);
+
+  getScrubbingStartValue: function(pos) {
+    var token = this.getNumericTokenAt(pos),
+        n = token && Number(token.value);
+    return n && !isNaN(n) ? n : null;
   }
-  
+
 });
 
 Object.extend(lively.ide.codeeditor.Scrubbing, {

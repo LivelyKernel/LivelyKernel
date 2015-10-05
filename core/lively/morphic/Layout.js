@@ -561,10 +561,10 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
             if (morph.layout && morph.layout.centeredHorizontal) {
                 leftMargin += (childWidth - morph.getExtent().x) / 2;
             }
-            morph.setPositionTopLeft(pt(leftMargin, y));
+            morph.align(morph.bounds().topLeft(), pt(leftMargin, y));
             var newExtent = lively.pt(newWidth, newHeight);
             if (!morph.getExtent().equals(newExtent)) morph.setExtent(newExtent);
-            return y + morph.getExtent().y + spacing;
+            return morph.bounds().bottom() + spacing;
         }, this.getBorderSize("top"));
     },
 

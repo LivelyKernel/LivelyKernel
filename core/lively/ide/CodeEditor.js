@@ -526,6 +526,18 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         this.withAceDo(function(ed) {
             ed.session.removeMarker(marker);
         });
+    },
+
+    getLine: function(row) {
+      return this.withAceDo(function(ed) {
+        return ed.session.getLine(row);
+      });
+    },
+
+    getLineRange: function(row, excludeLastChar) {
+      return this.withAceDo(function(ed) {
+        return ed.selection.getLineRange(row, excludeLastChar);
+      });
     }
 
 },

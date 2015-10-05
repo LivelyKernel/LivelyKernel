@@ -10,6 +10,7 @@
       "node_modules/lively.lang/lib/events.js",
       "node_modules/lively.lang/lib/object.js",
       "node_modules/lively.lang/lib/collection.js",
+      "node_modules/lively.lang/lib/sequence.js",
       "node_modules/lively.lang/lib/tree.js",
       "node_modules/lively.lang/lib/graph.js",
       "node_modules/lively.lang/lib/function.js",

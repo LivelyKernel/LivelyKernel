@@ -745,10 +745,21 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
                 ed.findAll(ed.$morph.getTextRange()); },
             readOnly: true
+        }, {
+            name: "multiSelectCounter",
+            handlesCount: true,
+            exec: function(ed, args) {
+              var start = (args && args.count) || 1;
+              ed.selection.getAllRanges().forEach(function(ea, i) {
+                ed.session.replace(ea, String(start+i));
+              });
+            },
+            multiSelectAction: "single",
+            readOnly: false
         }]);
 
         kbd.bindKey("Ctrl-Shift-L", 'selectSymbolReferenceOrDeclarationPrev');
-        kbd.bindKey("Ctrl-Shift-º", 'selectSymbolReferenceOrDeclarationNext'); // Ctrl-Shift-:
+        kbd.bindKey("Ctrl-Shift-:", 'selectSymbolReferenceOrDeclarationNext'); // Ctrl-Shift-:
         kbd.bindKey("Ctrl-Shift-'", 'selectSymbolReferenceOrDeclaration');
     },
 

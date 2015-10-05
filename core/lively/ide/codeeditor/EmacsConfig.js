@@ -241,6 +241,8 @@ function setupEmacsSpecificCommands(kbd) {
 
   kbd.bindKeys(bind(cmdLPrefix + "t d", 'toggleTodoMarker'));
   kbd.bindKeys(bind(cmdLPrefix + "t n", 'addOrRemoveTodoMarker'));
+  kbd.bindKeys(bind("C-x C-k C-i", 'multiSelectCounter'));
+  kbd.bindKeys(bind(cmdLPrefix + "c o u n t e r", 'multiSelectCounter'));
 
   function codeEditor() {
       var focused = lively.morphic.Morph.focusedMorph();

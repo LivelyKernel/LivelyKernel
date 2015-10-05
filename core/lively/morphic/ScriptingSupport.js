@@ -99,6 +99,9 @@ lively.morphic.Morph.addMethods(
       }, opts);
 
       var fromMorph = opts.fromMorph;
+
+      if (fromMorph === morph) return "this";
+
       var rootExpr = morph.world() === fromMorph ? "$world" : "this";
 
       // can we find it at all? if not return a generic "morph"

@@ -136,7 +136,7 @@ lively.morphic.Morph.addMethods(
         return this.getGlobalTransform().transformPoint(pt(0,0).subPt(this.getOrigin()));
     },
 
-    obtainPlaceholder: function() {
+    obtainPlaceholder: function(forMorph) {
         return this.placeholder || (this.placeholder = this.createPlaceholder());
     },
 
@@ -384,15 +384,16 @@ Object.subclass('lively.morphic.Layout.Layout',
     showPlaceholderFor: function(morph, evt) {
         if (!this.container || !this.container.droppingEnabled) return;
 
-        var localPos = this.container
-              .getGlobalTransform().inverse()
-              .transformPoint(evt.getPosition()),
-            placeholder = morph.obtainPlaceholder();
+        var placeholder = morph.obtainPlaceholder(this.container);
+        if (!placeholder) return null;
 
         if (placeholder.owner !== this.container) {
           this.container.insertPlaceholder(placeholder);
         }
 
+        var localPos = this.container
+              .getGlobalTransform().inverse()
+              .transformPoint(evt.getPosition());
         placeholder.setPosition(localPos);
         this.container.applyLayout();
     },

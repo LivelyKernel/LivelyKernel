@@ -300,13 +300,13 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
 
   overlaysForStepAfter: function(stepNumber) {
     return this.morphicOverlays && this.morphicOverlays.filter(function(overlay) {
-      return overlay.state.shownComputationSteps.last() > stepNumber;
+      return overlay.state.shownComputationSteps && overlay.state.shownComputationSteps.last() > stepNumber;
     });
   },
 
   overlaysForStepBefore: function(stepNumber) {
     return this.morphicOverlays && this.morphicOverlays.filter(function(overlay) {
-      return overlay.state.shownComputationSteps.last() < stepNumber;
+      return overlay.state.shownComputationSteps && overlay.state.shownComputationSteps.last() < stepNumber;
     });
   },
 
@@ -314,7 +314,7 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
     // var stepNumber = 0;
     // var line = 0
     this.morphicOverlays && this.morphicOverlays.forEach(function(overlay) {
-      if (overlay.state.shownComputationSteps
+      if ((overlay.state.shownComputationSteps || [])
         .every(function(itsStepNumber) {
           return itsStepNumber > stepNumber; })) {
         // overlay && show("removing overlay at %s", line);

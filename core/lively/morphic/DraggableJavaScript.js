@@ -1346,9 +1346,10 @@ Object.extend(lively.morphic.DraggableJavaScript, {
         name: "behavior",
         createTiles: function(target, builder) {
           builder = builder || lively.morphic.DraggableJavaScript.TileBuilder;
-          return lively.lang.arr.flatmap(
-            lively.morphic.DraggableJavaScript.createMethodTilesHierarchyFor(target),
-              function(hiera) { return [builder.divider(hiera.name)].concat(hiera.methods) });
+          return [builder.addScriptButton(target)].concat(
+            lively.lang.arr.flatmap(
+              lively.morphic.DraggableJavaScript.createMethodTilesHierarchyFor(target),
+                function(hiera) { return [builder.divider(hiera.name)].concat(hiera.methods) }));
         },
       }]
     },
@@ -1357,11 +1358,11 @@ Object.extend(lively.morphic.DraggableJavaScript, {
   
       categories: [
       {
-        name: "graphics",
+        name: "Point",
         createTiles: function(target, builder) {
           builder = builder || lively.morphic.DraggableJavaScript.TileBuilder;
           var t = lively.morphic.DraggableJavaScript.createMethodTile;
-          return [builder.divider("Point")]
+          return [builder.divider("lively.Point class")]
             .concat([
               lively.morphic.DraggableJavaScript.createActionTile("pt(10, 20)", "pt(10, 20)"),
               t(lively.Point, "polar", [10, .1], "Point"),
@@ -1369,8 +1370,44 @@ Object.extend(lively.morphic.DraggableJavaScript, {
             ]).concat(lively.lang.arr.flatmap(
               lively.morphic.DraggableJavaScript.createMethodTilesHierarchyFor(pt(0,0)),
                 function(hiera) { return [builder.divider(hiera.name)].concat(hiera.methods) }))
-        },
+        }
+      },
+      
+      {
+        name: "Rectangle",
+        createTiles: function(target, builder) {
+          builder = builder || lively.morphic.DraggableJavaScript.TileBuilder;
+          var t = lively.morphic.DraggableJavaScript.createMethodTile;
+          return [builder.divider("lively.Rectangle class")]
+            .concat([
+              lively.morphic.DraggableJavaScript.createActionTile("rect(0,0, 10, 20)", "rect(0,0, 10, 20)")
+            ]).concat(lively.lang.arr.flatmap(
+              lively.morphic.DraggableJavaScript.createMethodTilesHierarchyFor(rect(0,0,10,20)),
+                function(hiera) { return [builder.divider(hiera.name)].concat(hiera.methods); }))
+        }
       }
+
+      ]
+    },
+
+    "JS": {
+  
+      categories: [
+      {
+        name: "control flow",
+        createTiles: function(target, builder) {
+          builder = builder || lively.morphic.DraggableJavaScript.TileBuilder;
+          return [
+            lively.morphic.DraggableJavaScript.createActionTile("if", "if (test) {\n  \n}"),
+            lively.morphic.DraggableJavaScript.createActionTile("if-else", "if (test) {\n  \n} else {\n  \n}"),
+            lively.morphic.DraggableJavaScript.createActionTile("for-loop", "for (var i = 0; i < 10; i++) {\n  \n}"),
+            lively.morphic.DraggableJavaScript.createActionTile("while-loop", "while (test) {\n  \n}"),
+            lively.morphic.DraggableJavaScript.createActionTile("variable", "var x = 23"),
+            lively.morphic.DraggableJavaScript.createActionTile("function", "function func(arg) {\n  return arg;\n}"),
+          ];
+        }
+      },
+
       ]
     }
   }

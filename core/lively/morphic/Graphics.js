@@ -19,6 +19,10 @@ Object.subclass("lively.Point",
         this.y = lively.data.Coordinate.parse(array[1]);
     },
 },
+'accessing', {
+  getX: function() { return this.x; },
+  getY: function() { return this.y; }
+},
 'arithmetic', {
     toFixed: function(val) {
         return new lively.Point(this.x.toFixed(val), this.y.toFixed(val))
@@ -282,6 +286,12 @@ Object.subclass('lively.Rectangle',
         this.width = w || 0;
         this.height = h || 0;
     }
+},
+'accessing', {
+  getX: function() { return this.x; },
+  getY: function() { return this.y; },
+  getWidth: function() { return this.width; },
+  getHeight: function() { return this.height; }
 },
 'instance creation', {
     copy: function() {

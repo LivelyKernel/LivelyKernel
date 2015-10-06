@@ -340,6 +340,7 @@
     ["aceDefaultUseIyGotoChar", true, "Quickly jump to next / prev characters using Cmd/Ctrl-, and Cmd/Ctrl-. "],
     ["evalMarkersEnabled", true, "Eval markers are code selections that can be rerun by pressing a code. Useful for live development and quick testing."],
     ["codeEditorMenuShowsSettings", true, "Include the settings menu item in the codeeditor context menu"],
+    ["draggableCodeInCodeEditor", false, "Based on AST, make code draggable"],
     {
       "name": "useEmacsyKeys",
       "type": "Boolean",

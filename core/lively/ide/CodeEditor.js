@@ -203,6 +203,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         this.setBehaviorsEnabled(this.getBehaviorsEnabled());
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
+        this.setDraggableCodeEnabled(this.getDraggableCodeEnabled());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -1689,6 +1690,23 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return this.hasOwnProperty("_ScrubbingEnabled") ? this._ScrubbingEnabled : false;
     },
 
+    setDraggableCodeEnabled: function(bool) {
+      var self = this,
+          m = module('lively.ide.codeeditor.DraggableCode');
+      if (bool) {
+        if (!m.isLoaded()) m.load();
+        m.runWhenLoaded(function() { m.installIn(self); });
+      } else {
+        if (m.isLoaded()) m.uninstallFrom(self);
+      }
+      return self._DraggableCodeEnabled = bool;
+    },
+    getDraggableCodeEnabled: function() {
+      return this.hasOwnProperty("_DraggableCodeEnabled") ?
+        this._DraggableCodeEnabled :
+        lively.Config.get("draggableCodeInCodeEditor");
+    },
+
     setPrintItAsComment: function(bool) { return this._PrintItAsComment = bool; },
     getPrintItAsComment: function() {
         return this.hasOwnProperty("_PrintItAsComment") ? this._PrintItAsComment : false;
@@ -1903,6 +1921,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
           boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, items);
           boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, items);
           boolItem({name: "ScrubbingEnabled", menuString: "scrubbing"}, items);
+          boolItem({name: "DraggableCodeEnabled", menuString: "draggable code"}, items);
           items.push(["Toggle recording debugger behavior", function() {
             lively.require("lively.ide.codeeditor.JavaScriptDebugging").toRun(function() {
               if (!!editor.recordingWorkspaceState) {

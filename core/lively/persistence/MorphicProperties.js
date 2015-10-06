@@ -1,45 +1,127 @@
 module('lively.persistence.MorphicProperties').requires().toRun(function() {
 
-var knownProperties = {
+Object.extend(lively.persistence.MorphicProperties, {
 
-  "lively.morphic.Morph": {
-    "name":            {name: "name",            getter: "getName",           setter: "setName",            type: "String"},
-    "position":        {name: "position",        getter: "getPosition",       setter: "setPosition",        type: "lively.Point", scrubbingFactor: 10},
-    "rotation":        {name: "rotation",        getter: "getRotation",       setter: "setRotation",        type: "Number",       scrubbingFactor: 0.1},
-    "scale":           {name: "scale",           getter: "getScale",          setter: "setScale",           type: "Number",       scrubbingFactor: 0.1},
-    "extent":          {name: "extent",          getter: "getExtent",         setter: "setExtent",          type: "lively.Point", scrubbingFactor: 10},
-    "origin":          {name: "origin",          getter: "getOrigin",         setter: "setOrigin",          type: "lively.Point", scrubbingFactor: 1, highlightWhenUpdated: true, },
-    "fill":            {name: "fill",            getter: "getFill",           setter: "setFill",            type: "Color"},
-    "visible":         {name: "visible",         getter: "isVisible",         setter: "setVisible",         type: "Boolean"},
-    "grabbingEnabled": {name: "grabbingEnabled", getter: "isGrabbingEnabled", setter: "setGrabbingEnabled", type: "Boolean"},
-    "draggingEnabled": {name: "draggingEnabled", getter: "isDraggingEnabled", setter: "setDraggingEnabled", type: "Boolean"},
-    "droppingEnabled": {name: "droppingEnabled", getter: "isDroppingEnabled", setter: "setDroppingEnabled", type: "Boolean"}
+  knownProperties: {
+  
+    "lively.morphic.Morph": {
+      "name":            {name: "name",            getter: "getName",           setter: "setName",            type: "String"},
+      "position":        {name: "position",        getter: "getPosition",       setter: "setPosition",        type: "lively.Point", scrubbingFactor: 10},
+      "rotation":        {name: "rotation",        getter: "getRotation",       setter: "setRotation",        type: "Number",       scrubbingFactor: 0.1},
+      "scale":           {name: "scale",           getter: "getScale",          setter: "setScale",           type: "Number",       scrubbingFactor: 0.1},
+      "extent":          {name: "extent",          getter: "getExtent",         setter: "setExtent",          type: "lively.Point", scrubbingFactor: 10},
+      "origin":          {name: "origin",          getter: "getOrigin",         setter: "setOrigin",          type: "lively.Point", scrubbingFactor: 1, highlightWhenUpdated: true, },
+      "fill":            {name: "fill",            getter: "getFill",           setter: "setFill",            type: "Color"},
+      "visible":         {name: "visible",         getter: "isVisible",         setter: "setVisible",         type: "Boolean"},
+      "grabbingEnabled": {name: "grabbingEnabled", getter: "isGrabbingEnabled", setter: "setGrabbingEnabled", type: "Boolean"},
+      "draggingEnabled": {name: "draggingEnabled", getter: "isDraggingEnabled", setter: "setDraggingEnabled", type: "Boolean"},
+      "droppingEnabled": {name: "droppingEnabled", getter: "isDroppingEnabled", setter: "setDroppingEnabled", type: "Boolean"}
+    },
+  
+    "lively.morphic.Image": {
+      "imageURL": {name: "imageURL", getter: "getImageURL", setter: "setImageURL", type: "String"}
+    },
+  
+    "lively.morphic.Text": {
+      "textString": {name: "textString", getter: "getTextString", setter: "setTextString", type: "String"}
+    },
+  
+    "lively.morphic.Slider": {
+      "value":         {name: "value",        getter: "getValue",        setter: "setValue",         scrubbingFactor: 0.1, type: "Number"},
+      "sliderExtent":  {name: "sliderExtent", getter: "getSliderExtent", setter: "setSliderExtent",  scrubbingFactor: 0.1, type: "Number"},
+      "valueScale":    {name: "valueScale",   getter: "getValueScale",   setter: "setValueScale",    scrubbingFactor: 0.1, type: "Number"}
+    },
+  
+    "lively.morphic.Button": {
+      "label":         {name: "label", getter: "getLabel", setter: "setLabel", type: "String"}
+    },
+  
+    "lively.morphic.List": {
+      "list":          {name: "list",          getter: "getList",          setter: "setList",          type: "Array"},
+      "selection":     {name: "selection",     getter: "getSelection",     setter: "setSelection",     type: "Object"},
+      "selectedIndex": {name: "selectedIndex", getter: "getSelectedIndex", setter: "setSelectedIndex", scrubbingFactor: 1, type: "Number"}
+    }
   },
 
-  "lively.morphic.Image": {
-    "imageURL": {name: "imageURL", getter: "getImageURL", setter: "setImageURL", type: "String"}
-  },
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  "lively.morphic.Text": {
-    "textString": {name: "textString", getter: "getTextString", setter: "setTextString", type: "String"}
-  },
-
-  "lively.morphic.Slider": {
-    "value":         {name: "value",        getter: "getValue",        setter: "setValue",         scrubbingFactor: 0.1, type: "Number"},
-    "sliderExtent":  {name: "sliderExtent", getter: "getSliderExtent", setter: "setSliderExtent",  scrubbingFactor: 0.1, type: "Number"},
-    "valueScale":    {name: "valueScale",   getter: "getValueScale",   setter: "setValueScale",    scrubbingFactor: 0.1, type: "Number"}
-  },
-
-  "lively.morphic.Button": {
-    "label":         {name: "label", getter: "getLabel", setter: "setLabel", type: "String"}
-  },
-
-  "lively.morphic.List": {
-    "list":          {name: "list",          getter: "getList",          setter: "setList",          type: "Array"},
-    "selection":     {name: "selection",     getter: "getSelection",     setter: "setSelection",     type: "Object"},
-    "selectedIndex": {name: "selectedIndex", getter: "getSelectedIndex", setter: "setSelectedIndex", scrubbingFactor: 1, type: "Number"}
+  knownMethods: {
+  
+    "lively.morphic.Morph": {
+      "show":        {name: "show",        args:  []},
+      "moveBy":      {name: "moveBy",      args:  [pt(10, 3)]},
+      "rotateBy":    {name: "rotateBy",    args:  [.2]},
+      "openInWorld": {name: "openInWorld", args:  []},
+      "remove":      {name: "remove",      args:  []},
+    },
+  
+    "lively.morphic.Button": {
+      "doAction": {name: "doAction", args:  []}
+    },
+  
+    "lively.morphic.Slider": {
+      "onValueChange": {name: "onValueChange", args:  [{name: "newValue", type: "Number"}, {name: "oldValue", type: "Number"}]}
+    },
+  
+    "lively.morphic.List": {
+      "onSelectionChange": {name: "onSelectionChange", args:  [{name: "newSel", type: "Object"}, {name: "oldSel", type: "Object"}]}
+    },
+  
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+    "lively.Point": {
+      "getX":       {name: "getX",       args: []},
+      "getY":       {name: "getY",       args: []},
+      "addPt":      {name: "addPt",      args: [pt(2,3)]},
+      "subPt":      {name: "subPt",      args: [pt(2,3)]},
+      "scaleBy":    {name: "scaleBy",    args: [2]},
+      "inverted":   {name: "inverted",   args: []},
+      "withX":      {name: "withX",      args: [10]},
+      "withY":      {name: "withY",      args: [10]},
+      "minPt":      {name: "minPt",      args: [pt(10,10)]},
+      "maxPt":      {name: "maxPt",      args: [pt(10,10)]},
+      "normalized": {name: "normalized", args: []},
+      "dotProduct": {name: "dotProduct", args: [pt(2,3)]},
+      "dist":       {name: "dist",       args: [pt(10,10)]},
+      "extent":     {name: "extent",     args: [pt(20,30)]},
+      "r":          {name: "r",          args: []},
+      "theta":      {name: "theta",      args: []},
+      "equals":     {name: "equals",     args: [pt(2,3)]}
+    },
+  
+    "lively.Rectangle": {
+      "getX":          {name: "getX",          args: []},
+      "getY":          {name: "getY",          args: []},
+      "getWidth":      {name: "getWidth",      args: []},
+      "getHeight":     {name: "getHeight",     args: []},
+      "withX":         {name: "withX",         args: [10]},
+      "withY":         {name: "withY",         args: [10]},
+      "withWidth":     {name: "withWidth",     args: [20]},
+      "withHeight":    {name: "withHeight",    args: [20]},
+      "topLeft":       {name: "topLeft",       args: []},
+      "topRight":      {name: "topRight",      args: []},
+      "bottomRight":   {name: "bottomRight",   args: []},
+      "bottomLeft":    {name: "bottomLeft",    args: []},
+      "leftCenter":    {name: "leftCenter",    args: []},
+      "rightCenter":   {name: "rightCenter",   args: []},
+      "topCenter":     {name: "topCenter",     args: []},
+      "bottomCenter":  {name: "bottomCenter",  args: []},
+      "center":        {name: "center",        args: []},
+      "extent":        {name: "extent",        args: []},
+      "containsPoint": {name: "containsPoint", args: [pt(15,10)]},
+      "containsRect":  {name: "containsRect",  args: [lively.rect(3,4,10,20)]},
+      "intersects":    {name: "intersects",    args: [lively.rect(3,4,10,20)]},
+      "translatedBy":  {name: "translatedBy",  args: [pt(10,20)]},
+      "expandBy":      {name: "expandBy",      args: [pt(20,30)]},
+      "intersection":  {name: "intersection",  args: [lively.rect(3,4,10,20)]},
+      "union":         {name: "union",         args: [lively.rect(3,4,10,20)]},
+      "equals":        {name: "equals",        args: [lively.rect(3,4,10,20)]}
+    }
+  
   }
-}
+});
+
 
 Object.subclass("lively.morphic.Property",
 "initializing", {

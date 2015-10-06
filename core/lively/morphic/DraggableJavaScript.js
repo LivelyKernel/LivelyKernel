@@ -762,7 +762,7 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.Tile",
   
     t.applyStyle(lively.lang.obj.merge(baseStyle, {
       name: name,
-      selectable: false, inputAllowed: false,
+      selectable: true, allowInput: true,
       fill: null, borderWidth: 0,
       padding: Global.Rectangle.inset(0, 3, 3, 0),
       whiteSpaceHandling: "pre",
@@ -790,7 +790,8 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.Tile",
   
     t.applyStyle({
       styleSheet: ".scrubbable { cursor: ew-resize; }",
-      handStyle: "ew-resize"
+      allowInput: true
+      // handStyle: "ew-resize"
     });
   
     t.addScript(function onLoad() {
@@ -848,7 +849,8 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.Tile",
     if (!highlight.owner) { highlight.prop = prop; highlight.openInWorld(); }
 
     highlight.addScript(function alignToProp() {
-      var val = this.prop.value,
+      var prop = this.prop,
+          val = prop.value,
           m = prop.target.getObject(),
           pos = pt(0,0).matrixTransform(m.getGlobalTransform()),
           pos = pos.subPt(this.getExtent().scaleBy(0.5));
@@ -1042,24 +1044,29 @@ lively.morphic.DraggableJavaScript.Tile.subclass("lively.morphic.DraggableJavaSc
     method.args.forEach(function(arg, i) {
       var name = "arg-" + i,
           isArgSpec = Object.isObject(arg) && arg.name && arg.type,
-          t = Object.isNumber(arg) || arg instanceof lively.Point ?
-            this.createScrubbableText("", name, lively.morphic.DraggableJavaScript.Tile.prototype.style) :
-            this.createText("", name);
+          // t = Object.isNumber(arg) || arg instanceof lively.Point ?
+          //   this.createScrubbableText("", name, lively.morphic.DraggableJavaScript.Tile.prototype.style) :
+          //   this.createText("", name),
+          t = this.createScrubbableText("", name, lively.morphic.DraggableJavaScript.Tile.prototype.style);
 
       t.argIndex = i;
         
-      if (!isArgSpec) {
-        lively.bindings.connect(t, 'value', method, 'setArgs', {
-          updater: function($upd, val) {
-            var method = this.targetObj,
-                t = this.sourceObj;
-            method.args[t.argIndex] = val;
-            $upd(method.args);
-          }
-        });
-        lively.bindings.connect(t, 'value', tile, 'updateSteppingOfMethodWithNewArgs');
-        t.setValue(arg);
-      } else t.setString(arg.name);
+      lively.bindings.connect(t, 'value', method, 'setArgs', {
+        updater: function($upd, val) {
+          var method = this.targetObj,
+              t = this.sourceObj;
+          method.args[t.argIndex] = val;
+          $upd(method.args);
+        }
+      });
+      lively.bindings.connect(t, 'value', tile, 'updateSteppingOfMethodWithNewArgs');
+      lively.bindings.connect(t, 'textString', t, 'tryToConvertExpressionToValue');
+      t.addScript(function tryToConvertExpressionToValue(expr) {
+        try { this.setValue(eval(expr)); } catch (e) {}
+      });
+
+      if (!isArgSpec) { t.setValue(arg); }
+      else t.setString(arg.name);
       f.addMorph(t);
 
       if (method.args.length - 1 !== i) f.addMorph(this.createText(",", "arg-comma-" + i));

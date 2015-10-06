@@ -115,6 +115,7 @@ Object.subclass('lively.morphic.Morph',
     adjustOrigin: function(newOrigin, moveSubmorphs) {
         // changes the origin / pivot of the morph by offsetting the shape
         // without changing the morph's or submorphs' position on the screen
+        if (this.getOrigin().eqPt(newOrigin)) return;
         var oldOrigin            = this.getOrigin(),
             delta                = newOrigin.subPt(oldOrigin),
             transform            = this.getTransform(),
@@ -128,7 +129,12 @@ Object.subclass('lively.morphic.Morph',
 
         this.shape.setPosition(newOrigin.negated());
         if (moveSubmorphs) return;
-        this.submorphs.forEach(function (ea) {ea.moveBy(transformedDelta.negated())});
+        this.submorphs.forEach(function (ea) {
+          var oldO = ea.getTransform().transformPoint(oldOrigin),
+              newO = ea.getTransform().transformPoint(newOrigin),
+              delta = newO.subPt(oldO);
+          ea.moveBy(delta.negated());
+        });
     },
     getOrigin: function() { return this.shape.getPosition().negated() },
     setPivotPoint: function(value) {

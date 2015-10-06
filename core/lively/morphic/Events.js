@@ -1368,8 +1368,11 @@ handleOnCapture);
         return false;
     },
 
-    grabMe: function(evt) {
-        return this.grabbingEnabled && evt.hand.grabMorph(this, evt);
+    grabMe: function(evt, pos) {
+      if (!this.grabbingEnabled) return false;
+      evt.hand.grabMorph(this, evt);
+      this.setPosition(pos || pt(0,0));
+      return true;
     },
 
     getGrabShadow: function (local) {

@@ -1,5 +1,21 @@
 module('lively.morphic.tests.DraggableJavaScript').requires('lively.morphic.DraggableJavaScript', 'lively.TestFramework').toRun(function() {
 
+function applyChange(string, change) {
+  if (change.action === "insert") {
+    return string.slice(0, change.start)
+         + change.lines.join("\n")
+         + string.slice(change.start);
+  } else if (change.action === "remove") {
+      return string.slice(0, change.start)
+           + string.slice(change.end);
+  }
+  return string;
+}
+
+function applyChanges(string, changes) {
+  return changes.reduce(applyChange, string);
+}
+  
 TestCase.subclass('lively.morphic.tests.DraggableJavaScript.DropJS',
 "testing", {
 
@@ -83,29 +99,29 @@ TestCase.subclass('lively.morphic.tests.DraggableJavaScript.DropJS',
     var djs = lively.morphic.DraggableJavaScript.DropJS;
 
     var dropjs1 = djs.forCode("for (var i = 0; i < 10; i++) i;");
-    var gen1 = dropjs1.applyDropOp(djs.forCode("3 + 4"), {type: "replace", as: "Argument", replaceNodeIndex: 1});
+    var gen1 = applyChanges(dropjs1.getCode(), dropjs1.applyDropOp(djs.forCode("3 + 4"), {type: "replace", as: "Argument", replaceNodeIndex: 1}));
     this.assertEquals("for (var i = 3 + 4; i < 10; i++) i;", gen1, "1");
 
     var dropjs2 = djs.forCode("foo.bar();");
-    var gen2 = dropjs2.applyDropOp(djs.forCode("3 + 4"), {type: "splice", as: "Argument", at: 8, parentNodeIndex: 3});
+    var gen2 = applyChanges(dropjs2.getCode(), dropjs2.applyDropOp(djs.forCode("3 + 4"), {type: "splice", as: "Argument", at: 8, parentNodeIndex: 3}));
     this.assertEquals("foo.bar(3 + 4);", gen2, "2");
 
     var dropjs3 = djs.forCode("foo.bar(3, 4);");
-    var gen3 = dropjs3.applyDropOp(djs.forCode("3 + 4"), {type: "replace", as: "Argument", replaceNodeIndex: 4});
+    var gen3 = applyChanges(dropjs3.getCode(), dropjs3.applyDropOp(djs.forCode("3 + 4"), {type: "replace", as: "Argument", replaceNodeIndex: 4}));
     this.assertEquals("foo.bar(3, 3 + 4);", gen3, "3");
 
     var dropjs4 = djs.forCode("foo.bar(3, 4);");
 // lively.debugNextMethodCall(dropjs4, "applyDropOp")
-    var gen4 = dropjs4.applyDropOp(djs.forCode("3 + 4"), {type: "splice", as: "Argument", at: 12, parentNodeIndex: 3});
+    var gen4 = applyChanges(dropjs4.getCode(), dropjs4.applyDropOp(djs.forCode("3 + 4"), {type: "splice", as: "Argument", at: 12, parentNodeIndex: 3}));
     this.assertEquals("foo.bar(3, 4, 3 + 4);", gen4, "4");
 
     var dropjs5 = djs.forCode("3 + 99");
-    var gen5 = dropjs5.applyDropOp(djs.forCode("3"), {type: "replace", as: "Argument", replaceNodeIndex: 1});
+    var gen5 = applyChanges(dropjs5.getCode(), dropjs5.applyDropOp(djs.forCode("3"), {type: "replace", as: "Argument", replaceNodeIndex: 1}));
     this.assertEquals("3 + 3", gen5, "5");
 
-    // lively.ast.printAst("3 + 99", {printIndex: true, printPositions: true})
-    var dropjs5 = djs.forCode("3 + 99");
-    var gen6 = dropjs5.applyDropOp(djs.forCode("for (var i = 0; i < 10; i++) i;"), {type: "splice", as: "Statement", at: 6, parentNodeIndex: 4});
+    lively.ast.printAst("3 + 99", {printIndex: true, printPositions: true})
+    var dropjs6 = djs.forCode("3 + 99");
+    var gen6 = applyChanges(dropjs6.getCode(), dropjs6.applyDropOp(djs.forCode("for (var i = 0; i < 10; i++) i;\n"), {type: "splice", as: "Statement", at: 6, parentNodeIndex: 4}));
     this.assertEquals("3 + 99\nfor (var i = 0; i < 10; i++) i;\n", gen6, "6");
   },
 
@@ -185,37 +201,59 @@ AsyncTestCase.subclass('lively.morphic.tests.DraggableJavaScript.DocDropProcess'
     var code = "this.foo(23);\n";
     this.withEditorDo(code, function(e) {
       // e=that
+
       var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
-
-      // as argument
       var bounds = globalBoundsOfRange(e, e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
+      var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
+      this.assertEqualState(
+        [{as: "Statement", at: 13, indexInDocument: 13, parentNodeIndex: 6, type: "splice"},
+         {as: "Argument", indexInDocument: 2, replaceNodeIndex: 3, type: "replace"},
+         {as: "Statement", at: 0, indexInDocument: 0, parentNodeIndex: 6, type: "splice"}],
+        dropOps, "1: insertion of expression");
 
-      doc.showInsertionPreview(djs.forCode("3 + 4"), bounds.center());
+      e.textString = "this.foo(bar(23));\n";
+      var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
+      var bounds = globalBoundsOfRange(e, e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
+      var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
+   
+      this.assertEqualState(
+        [{as: "Argument", indexInDocument: 12, replaceNodeIndex: 5, type: "replace"},
+         {as: "Statement", at: 18, indexInDocument: 18, parentNodeIndex: 8, type: "splice"},
+         {as: "Statement", at: 0, indexInDocument: 0, parentNodeIndex: 8, type: "splice"}],
+        dropOps, "1: insertion of expression")
 
-      e.submorphs[0]
-      this.assertEquals("this.foo(3 + 4);\n", e.textString, "1: insertion of expression");
-      doc.showInsertionPreview(djs.forCode("22"), bounds.topLeft());
-      this.assertEquals("this.foo(22);\n", e.textString, "1: re-insertion");
-      doc.revert();
-      this.assertEquals("this.foo(23);\n", e.textString, "1: revert");
+      // e.textString = "function foo(a, b) {\n  return 23;\n}\n"
+      // var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
+      // var bounds = globalBoundsOfRange(e, e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
+      // var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
+      // this.assertEqualState(
+      //   [{as: "Argument", at: 13, indexInDocument: 13, parentNodeIndex: 6, type: "splice"},
+      //   {as: "Statement", at: 21, indexInDocument: 23, parentNodeIndex: 6, type: "splice"}],
+      //   dropOps, "2: insertion of expression inside of function")
 
-      // as callee
-      bounds = globalBoundsOfRange(e, e.getLineRange(0));
-      doc.showInsertionPreview(djs.forCode("22"), bounds.topLeft());
-      this.assertEquals("22.foo(23);\n", e.textString, "2: ast callee");
+//       this.assertEquals("this.foo(3 + 4);\n", e.textString, "1: insertion of expression");
+//       doc.showInsertionPreview(djs.forCode("22"), bounds.topLeft());
+//       this.assertEquals("this.foo(22);\n", e.textString, "1: re-insertion");
+//       doc.revert();
+//       this.assertEquals("this.foo(23);\n", e.textString, "1: revert");
 
-      // statement, restricted
-      doc.showInsertionPreview(djs.forCode("for (var i = 0; i < 10; i++) i"), bounds.topLeft(), true);
-      this.assertEquals("this.foo(23);\nfor (var i = 0; i < 10; i++) i", e.textString, "3: before");
-      // doc.showInsertionPreview(djs.forCode("for (var i = 0; i < 10; i++) i"), bounds.topRight());
-      // this.assertEquals("this.foo(23);\nfor (var i = 0; i < 10; i++) i", e.textString, "3: after");
+//       // as callee
+//       bounds = globalBoundsOfRange(e, e.getLineRange(0));
+//       doc.showInsertionPreview(djs.forCode("22"), bounds.topLeft());
+//       this.assertEquals("22.foo(23);\n", e.textString, "2: ast callee");
 
-      // as arg, restricted
-      bounds = globalBoundsOfRange(e, e.getLineRange(0));
-      // djs.forCode("bar").getNode().type
-// lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DroppableDocument.prototype, "insertionPointsForArgument")
-      doc.showInsertionPreview(djs.forCode("bar"), bounds.topLeft(), true);
-      this.assertEquals("this.foo(bar);\n", e.textString, "4: arg insert");
+//       // statement, restricted
+//       doc.showInsertionPreview(djs.forCode("for (var i = 0; i < 10; i++) i"), bounds.topLeft(), true);
+//       this.assertEquals("this.foo(23);\nfor (var i = 0; i < 10; i++) i", e.textString, "3: before");
+//       // doc.showInsertionPreview(djs.forCode("for (var i = 0; i < 10; i++) i"), bounds.topRight());
+//       // this.assertEquals("this.foo(23);\nfor (var i = 0; i < 10; i++) i", e.textString, "3: after");
+
+//       // as arg, restricted
+//       bounds = globalBoundsOfRange(e, e.getLineRange(0));
+//       // djs.forCode("bar").getNode().type
+// // lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DroppableDocument.prototype, "insertionPointsForArgument")
+//       doc.showInsertionPreview(djs.forCode("bar"), bounds.topLeft(), true);
+//       this.assertEquals("this.foo(bar);\n", e.textString, "4: arg insert");
 
 
       this.done();

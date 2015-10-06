@@ -1082,6 +1082,12 @@ lively.morphic.DraggableJavaScript.Tile.subclass("lively.morphic.DraggableJavaSc
       lively.bindings.connect(steppingButton, 'fire', tile, 'interactivelyStartStepping');
       steppingButton.applyStyle({name: "steppingButton", cssStylingMode: false, fill: Color.white});
     }
+    
+    if (method.editable) {
+      var editButton = this.editButton = f.addMorph(new lively.morphic.Button(lively.rect(0, 0, 16,18), "✍"));
+      lively.bindings.connect(editButton, 'fire', tile, 'openEditor', {});
+      editButton.applyStyle({name: "editButton", cssStylingMode: false, fill: Color.white});
+    }
   },
 
 },
@@ -1155,7 +1161,7 @@ lively.morphic.DraggableJavaScript.Tile.subclass("lively.morphic.DraggableJavaSc
         this.fitToSubmorphs();
         var newBounds = this.bounds();
         if (oldBounds.width !== newBounds.width || oldBounds.height !== newBounds.height)
-          this.owner.applyLayout();
+          this.owner && this.owner.applyLayout();
       }.bind(this));
 
     if (this.steppingButton) {
@@ -1164,6 +1170,17 @@ lively.morphic.DraggableJavaScript.Tile.subclass("lively.morphic.DraggableJavaSc
     }
 
     return this;
+  },
+
+  openEditor: function() {
+    var method = this.dropjs.subject;
+    var morph = method.target.getObject();
+    var self = this;
+
+    lively.morphic.edit(morph, method.name)
+    // $world.addCodeEditor({
+    //   title: this.
+    // })
   }
 
 });
@@ -1276,6 +1293,7 @@ if (!lively.lang.arr.takeWhile) {
 Object.extend(lively.morphic.DraggableJavaScript, {
 
   TileBuilder: {
+
     divider: function(label) {
       var t = lively.morphic.Text.makeLabel(" " + label + " ", {
         centeredHorizontal: true,
@@ -1283,6 +1301,29 @@ Object.extend(lively.morphic.DraggableJavaScript, {
         textColor: Global.Color.rgbHex("#AAA")
       });
       return t;
+    },
+
+    addScriptButton: function(target) {
+      var btn = new lively.morphic.Button(rect(0,0,20,20), "+");
+      btn.applyStyle({
+        cssStylingMode: false,
+        name: "add-tile-method-button",
+        fill: Color.white,
+        centeredHorizontal: true,
+      });
+      btn.addScript(function doAction() {
+        var tilePanel = this.owner.owner;
+        if (!tilePanel.target) {
+          tilePanel.setStatusMessage("No target for new method");
+        }
+        if (!tilePanel.target.newTile) {
+          tilePanel.target.addScript(function newTile() {
+    // enter code here
+});
+        }
+      });
+      lively.bindings.connect(btn, 'fire', btn, 'doAction');
+      return btn;
     }
   },
 

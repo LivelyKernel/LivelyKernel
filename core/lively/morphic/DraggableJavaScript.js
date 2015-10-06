@@ -56,7 +56,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
 "ast helpers", {
 
   getAst: function(options) {
-    return lively.ast.parse(this.getCode(options), {addIndex: true});
+    return lively.ast.fuzzyParse(this.getCode(options), {addIndex: true});
   },
 
   getNode: function(options) { return this.getAst(options).body[0]; },
@@ -136,7 +136,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
   generateSnippetCode: function(codeString, options) {
     options = options ? lively.lang.obj.merge(this.options, options) : this.options;
     if (options.replacements) {
-      var ast = lively.ast.parse(codeString);
+      var ast = lively.ast.fuzzyParse(codeString);
       codeString = this.replaceNodes(codeString, options.replacements.map(function(repl) {
           var path = lively.PropertyPath(repl.path.replace(/\[([^\]]+)\]/g, ".$1")),
               node = path.get(ast);
@@ -165,7 +165,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
     options = options ? lively.lang.obj.merge(this.options, options) : this.options;
     var replacementCode = dropjs.getCode(options),
         code = this.getCode(options),
-        parsed = lively.ast.parse(code, {addIndex: true}),
+        parsed = lively.ast.fuzzyParse(code, {addIndex: true}),
         nodesAtPos = lively.ast.nodesAt(options.at, parsed);
 
     var nodeToReplace = nodesAtPos.last();
@@ -231,13 +231,17 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
     var ast = options.ast || this.getAst(options);
     ast = ast.body.body ? ast.body : ast;
     var returnFound = false;
-    return lively.lang.arr.flatmap(ast.body, function(n) {
-      if (returnFound) return [];
-      var before = {at: n.start, type: "splice", as: "Statement", parentNodeIndex: ast.astIndex},
-          after = {at: n.end, type: "splice", as: "Statement", parentNodeIndex: ast.astIndex};
-      if (n.type === "ReturnStatement") returnFound = true;
-      return returnFound ? [before] : [before, after];
-    })
+
+// show("%s %s", ast.body.length, ast.end)
+    return ast.body.length ?
+      lively.lang.arr.flatmap(ast.body, function(n) {
+        if (returnFound) return [];
+        var before = {at: n.start, type: "splice", as: "Statement", parentNodeIndex: ast.astIndex},
+            after = {at: n.end, type: "splice", as: "Statement", parentNodeIndex: ast.astIndex};
+        if (n.type === "ReturnStatement") returnFound = true;
+        return returnFound ? [before] : [before, after];
+      }) :
+      [{at: ast.end-1, type: "splice", as: "Statement"}]
   },
 
 // lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DropJS.prototype, "findDropOperationsForArgument")
@@ -246,7 +250,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
     var ast = options.ast || this.getAst(options);
     var code = this.getCode(options);
     var ops = [];
-    lively.ast.withMozillaAstDo(ast, null, function(next, node) {
+    lively.ast.withMozillaAstDo(ast, null, function(next, node, _, depth, path) {
       if (node.type === "ReturnStatement") {
         ops.push(node.argument ?
           {type: "replace", as: "Argument", replaceNodeIndex: node.argument.astIndex} :
@@ -257,7 +261,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
           {type: "replace", as: "Argument", replaceNodeIndex: node.left.astIndex},
           {type: "replace", as: "Argument", replaceNodeIndex: node.right.astIndex});
       }
-      if (node.type === "CallExpression") {
+      if (node.type === "CallExpression" && path.slice(-5).include("body")) {
         if (node.arguments.length) {
           ops.pushAll(node.arguments.map(function(n) {
             return {type: "replace", as: "Argument", replaceNodeIndex: n.astIndex}
@@ -274,7 +278,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
   findDropOperations: function(dropjs, options) {
     options = options ? lively.lang.obj.merge(this.options, options) : this.options;
     var ast = options.ast || (options.ast = this.getAst(options));
-    if (!ast.astIndex) lively.ast.acorn.walk.addAstIndex(ast);
+    if (!ast.hasOwnProperty("astIndex")) lively.ast.acorn.walk.addAstIndex(ast);
     var ops = [];
     if (!options.dropType || options.dropType === "Statement")
       ops.pushAll(this.findDropOperationsForStatement(dropjs, options));
@@ -289,21 +293,11 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
   applyDropOp: function(dropjs, dropOp, options) {
     var ast = this.getAst(options);
     var code = this.getCode(options);
-    var newCode = dropjs.getCode(options);
-
-    if (!dropOp.type) return null;
-
-    // var change = {
-    //   action: "insert",
-    //   lines: ["e"],
-    //   start: { column: 0, row: 0 },
-    //   end: { column: 1, row: 0 }
-    // }
-
-    var change = {action: "insert", lines: [], start: 0, end: 0};
+    var changes = [];
 
     if (dropOp.type === "splice") {
-      var codeBefore = code.slice(0, dropOp.at),
+      var newCode = dropjs.getCode(options),
+          codeBefore = code.slice(0, dropOp.at),
           codeAfter = code.slice(dropOp.at);
 
       if (dropOp.as === "Argument" && !codeBefore.match(/\(\s*$/)) {
@@ -315,16 +309,16 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
         else if (!codeAfter.match(/^\s*\n/)) newCode = newCode + "\n";
       }
 
-      change.start = dropOp.at;
-      change.lines = newCode.split("\n");
+      changes.push({action: "insert", lines: newCode.split("\n"), start: dropOp.at, end: dropOp.at + newCode.length});
     } else if (dropOp.type === "replace") {
+      var newCode = dropjs.getCode(options);
       var node = lively.ast.acorn.walk.findNodeByAstIndex(ast, dropOp.replaceNodeIndex, true);
-      change.start = node.start;
-      change.lines = newCode.split("\n");
-      // code = code.slice(0, node.start) + newCode + code.slice(node.end);
+      changes.push(
+        {action: "remove", start: node.start, end: node.end,                   lines: code.slice(node.start, node.end).split("\n")},
+        {action: "insert", start: node.start, end: dropOp.at + newCode.length, lines: newCode.split("\n")})
     }
 
-    return change;
+    return changes;
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // if (dropOp.type === "splice") {
@@ -425,6 +419,8 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
     marker.align(marker.bounds().center(), pos);
     marker.applyStyle({borderRadius: 5, borderWidth: 0, fill: Color.green.withA(.35)});
     marker.disableEvents();
+    marker.isEpiMorph = true;
+    marker.disableDropping();
     return marker;
   },
 
@@ -454,48 +450,6 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
     cross.align(cross.bounds().center(), pos);
     return cross;
   },
-
-},
-"ast helpers", {
-
-// lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DroppableDocument.prototype, "insertionPointsForStatement")
-  insertionPointsForStatement: function(ast) {
-    // a node like a program node with a body list of other nodes has a start and
-    // end (index). This function computes all the indexes between start and end
-    // that are not covered by nodes in body. Basically all positions of whitespace
-    // between statements
-    if (!ast || !ast.body) return [ast ? ast.start : 0];
-    if (ast.body.type === "BlockStatement") ast = ast.body;
-    return lively.lang.arr.flatmap(
-      lively.lang.interval.sort(
-          lively.lang.interval.intervalsInbetween(
-            ast.start + 1, ast.end - 1,
-            ast.body.map(function(n) { return [n.start, n.end]; }))
-              // .concat([[ast.start, ast.start], [ast.end, ast.end]])
-              ),
-      function(interval) { return Array.range.apply(null, interval); });
-  },
-
-// lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DroppableDocument.prototype, "insertionPointsForArgument")
-  insertionPointsForArgument: function(ast) {
-    var found = [];
-    lively.ast.withMozillaAstDo(ast, found, function(next, node, depth) {
-      if (!node) debugger;
-      if (node && node.type === "CallExpression") found.push(node); next(); });
-    return found.pluck("end").map(function(n) { return n-1; });
-  },
-
-  insertionPoints: function(myAst, dropjs) {
-    var isStatement = dropjs.isStatement(),
-        isArgument = !isStatement && dropjs.isArgument(),
-        insertionPoints = [];
-    // if (isArgument)
-    //   insertionPoints.pushAll(this.insertionPointsForArgument(myAst))
-    // else
-    insertionPoints.pushAll(this.insertionPointsForStatement(myAst));
-    // show("%o", insertionPoints)
-    return insertionPoints;
-  }
 
 },
 "editor helper", {
@@ -541,46 +495,42 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
 
 // lively.debugNextMethodCall(lively.morphic.DraggableJavaScript.DroppableDocument.prototype, "findDropOperations")
   findDropOperations: function(dropjs, globalPos, restrictInsertionPositionByType) {
-    var myDropjs = lively.morphic.DraggableJavaScript.DropJS.forCode(this.originalContent);
-    var dropOps = myDropjs.findDropOperations(dropjs);
-    var dropOpsWithIndexes = dropOps.map(function(ea) {
-      if (ea.hasOwnProperty("at")) {
-        ea.indexInDocument = ea.at;
-        return ea;
-      }
-      var nodeIndex = ea.replaceNodeIndex || ea.parentNodeIndex;
-      if (typeof nodeIndex === "number") {
-        var node = lively.ast.acorn.walk.findNodeByAstIndex(this.originalAst || myDropjs.getAst(), nodeIndex, true);
-        ea.indexInDocument = node.end - node.start;
-      }
-      return ea;
-    }).filter(function(op) { return typeof op.indexInDocument === "number"; });
+    if (!this.originalAst.hasOwnProperty("astIndex"))
+      lively.ast.acorn.walk.addAstIndex(this.originalAst);
+    var startIndex = this.editor.positionToIndex(this.editor.morphicPosToDocPos(globalPos)),
+        scope = lively.ast.query.scopesAtIndex(this.originalAst, startIndex).last(),
+        scopeNode = (scope && scope.node) || this.originalAst;
+    if (!scopeNode) return [];
+    
+// show(this.originalContent.slice(scopeNode.start,scopeNode.end))
+
+    var code = this.originalContent.slice(scopeNode.start, scopeNode.end),
+        myDropjs = lively.morphic.DraggableJavaScript.DropJS.forCode(code),
+        dropOps = myDropjs.findDropOperations(dropjs, {ast: scopeNode}),
+        dropOpsWithIndexes = dropOps
+          .map(function(ea) {
+            if (ea.hasOwnProperty("at")) {
+              ea.indexInDocument = ea.at;
+              return ea;
+            }
+            var nodeIndex = ea.replaceNodeIndex || ea.parentNodeIndex;
+            if (typeof nodeIndex === "number") {
+              var node = lively.ast.acorn.walk.findNodeByAstIndex(this.originalAst || myDropjs.getAst(), nodeIndex, true);
+              if (node) ea.indexInDocument = node.start + Math.floor((node.end - node.start)/2);
+            }
+            return ea;
+          })
+          .filter(function(op) { return typeof op.indexInDocument === "number"; });
 
     return this.indexSortedByProximity(globalPos, dropOpsWithIndexes, this.editor);
   },
 
-  indexesForInsertion: function(dropjs, globalPos, restrictInsertionPositionByType) {
-    restrictInsertionPositionByType = true;
-    var indexes = [];
-    if (restrictInsertionPositionByType) {
-      var startIndex = this.editor.positionToIndex(this.editor.morphicPosToDocPos(globalPos)),
-          indexOfPos = this.editor.morphicPosToDocPos(globalPos),
-          scope = lively.ast.query.scopesAtIndex(this.originalAst, startIndex).last(),
-          scopeNode = scope && scope.node;
-      if (scopeNode)
-        indexes = this.indexSortedByProximity(
-          globalPos, this.insertionPoints(scopeNode, dropjs), this.editor);
-    } else {
-      indexes = [this.editor.positionToIndex(this.editor.morphicPosToDocPos(globalPos))];
-    }
-    return indexes;
-  },
-
   showInsertionPreview: function(dropjs, globalPos, restrictInsertionPositionByType) {
-    // var indexes = this.indexesForInsertion(dropjs, globalPos, restrictInsertionPositionByType);
+  // lively.debugNextMethodCall(this,"findDropOperations");
     var dropOps = this.findDropOperations(dropjs, globalPos, restrictInsertionPositionByType);
     var indexes = dropOps.pluck("indexInDocument");
-// show("%s", dropOps.map(function(ea) { return ea.type + " " + ea.as + " " + ea.at; }).join("\n"));
+// show("%s", dropOps.map(function(ea) { return ea.type + " " + ea.as + " " + ea.indexInDocument; }).join("\n"));
+
     this.showIndexes(globalPos, indexes, this.editor);
   },
 
@@ -594,28 +544,16 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
 
     var dropOp = dropOps[0];
     var myDropjs = lively.morphic.DraggableJavaScript.DropJS.forCode(this.originalContent);
-    var delta = myDropjs.applyDropOp(dropjs, dropOp, {addReceiver: true, addArguments: true});
-    if (!delta) return null;
-    var start = this.editor.indexToPosition(delta.start),
-        end = {row: start.row + delta.lines.length-1, column: delta.lines.last().length};
-    if (start.row === end.row) end.column += start.column;
-    delta = lively.lang.obj.merge(delta, {start: start, end: end});
-    this.editor.getSession().doc.applyDelta(delta);
-    return delta;
-
-    // var previewContent = myDropjs.applyDropOp(dropjs, dropOp);
-    // return this.editor.textString = previewContent;
-
-    // var indexes = this.indexesForInsertion(dropjs, globalPos, restrictInsertionPositionByType);
-    // if (!indexes.length) {
-    //   this.editor.setStatusMessage("No insertion index for drag morph");
-    // } else {
-    //   var index = indexes[0];
-    //   var myDropjs = lively.morphic.DraggableJavaScript.DropJS.forCode(this.originalContent);
-    //   var previewContent = myDropjs.insertAndGenerateCode(
-    //     dropjs, {at: index, addReceiver: true, addArguments: true});
-    //   return this.editor.textString = previewContent;
-    // }
+    var deltas = myDropjs.applyDropOp(dropjs, dropOp, {addReceiver: true, addArguments: true})
+      .map(function(delta) {
+        var start = this.editor.indexToPosition(delta.start),
+            end = {row: start.row + delta.lines.length-1, column: delta.lines.last().length};
+        if (start.row === end.row) end.column += start.column;
+        return lively.lang.obj.merge(delta, {start: start, end: end});
+      }, this);
+    
+    this.editor.getSession().doc.applyDeltas(deltas);
+    return deltas;
   },
 
   revert: function() {
@@ -707,8 +645,11 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.DragItem",
     
 // lively.debugNextMethodCall(doc, "doFinalInsertion")
 
+      if (doc && doc.editor !== target) inspect(target)
     if (doc && doc.editor === target) {
-      var delta = doc.doFinalInsertion(this.dropjs, globalPos);
+      var deltas = doc.doFinalInsertion(this.dropjs, globalPos),
+          delta = deltas.detect(function(ea) { return ea.action === "insert"; });
+
       if (delta) {
         var selStart = lively.lang.obj.merge(delta.start, {});
         var selEnd = lively.lang.obj.merge(delta.end, {});
@@ -728,6 +669,10 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.DragItem",
         }
 
         var changedRange = target.createRange(selStart, selEnd);
+        target.focus();
+        if (target.getWindow() && !target.getWindow().isActive())
+          target.getWindow().comeForward();
+
         (function() {
           target.setSelectionRangeAce(changedRange);
         }).delay(0);

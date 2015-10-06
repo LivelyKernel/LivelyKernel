@@ -1118,7 +1118,7 @@ Object.subclass('lively.morphic.ControlPoint',
     isLast: function() { return this.morph.controlPoints.length === this.index+1 },
     isCurve: function() {
         var e = this.getElement();
-        return e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S';
+        return e ? e.charCode == 'Q' || e.charCode == 'C' || e.charCode == 'S' : false;
     }
 },
 'accessing', {

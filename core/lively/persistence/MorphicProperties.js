@@ -186,10 +186,24 @@ Object.subclass("lively.morphic.Property",
 
 });
 
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 Object.extend(lively.morphic.Property, {
 
+  ensurePropExtensions: function(obj) {
+    var name = "lively.morphic.Property.objectExtension";
+    if (!obj[name]) return obj[name] = {};
+    if (!obj.hasOwnProperty(name)) return obj[name] = obj[name];
+    return obj[name];
+  },
+
+  add: function(object, name, options) {
+    var propExt = lively.morphic.Property.ensurePropExtensions(object);
+    propExt
+  },
+
   propertyFor: function(morph, propName, refExpr) {
-    var prop = lively.lang.obj.merge(lively.lang.obj.values(knownProperties))[propName]
+    var prop = lively.lang.obj.merge(lively.lang.obj.values(lively.persistence.MorphicProperties.knownProperties))[propName]
     var target = new lively.morphic.PropertyTarget(morph);
     if (refExpr) target.addOptions({referenceExpression: refExpr});
     return prop ? new lively.morphic.Property(target, prop) : null;
@@ -200,7 +214,7 @@ Object.extend(lively.morphic.Property, {
     return {
       name: name,
       type: "class",
-      properties: Object.keys(knownProperties[name] || {})
+      properties: Object.keys(lively.persistence.MorphicProperties.knownProperties[name] || {})
         .map(function(propName) {
           return lively.morphic.Property.propertyFor(object, propName, refExpr);
         })
@@ -208,26 +222,29 @@ Object.extend(lively.morphic.Property, {
   },
 
   allKnownPropertiesForObject: function(obj, refExpr) {
-    // if (refExpr) target.options.referenceExpression = refExpr;
+    var props = [];
+    if (obj._morphicProperties && obj._morphicProperties.properties) {
+      var target = new lively.morphic.PropertyTarget(obj);
+      if (refExpr) target.addOptions({referenceExpression: refExpr});
+      props.pushAll(
+        obj._morphicProperties.properties.map(function(propSpec) {
+          return new lively.morphic.Property(target, propSpec);
+        }));
+    }
     return {
       name: obj.name || String(obj),
       type: "object",
-      properties: []
-        // lively.lang.properties.forEachOwn(obj, function(name, prop) {
-        //   return typeof prop === 'function' || name.startsWith("_") ?
-        //     null :
-        //     new lively.morphic.Property(obj, {name: name, type: "Object"})
-        // }).compact()
+      properties: props
     };
-  },
+  }
+,
 
   allKnownPropertiesByTypeFor: function(object, refExpr) {
-    if (!(object instanceof lively.morphic.Morph)) return [];
     var self = lively.morphic.Property;
-    return ([object.constructor].concat(object.constructor.superclasses())).uniq()
-      .map(function(klass) { return self.allKnownPropertiesForKlass(object, klass, refExpr); })
-      .concat([self.allKnownPropertiesForObject(object)])
-      .filter(function(ea) { return ea.properties && ea.properties.length; });
+    return ([self.allKnownPropertiesForObject(object)]
+            .concat(([object.constructor].concat(object.constructor.superclasses())).uniq()
+              .map(function(klass) { return self.allKnownPropertiesForKlass(object, klass, refExpr); })))
+          .filter(function(ea) { return ea.properties && ea.properties.length; });
   },
 
   allKnownPropertiesFor: function(object, refExpr) {
@@ -238,48 +255,6 @@ Object.extend(lively.morphic.Property, {
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-var knownMethods = {
-
-  "lively.morphic.Morph": {
-    "show":        {name: "show",        args:  []},
-    "moveBy":      {name: "moveBy",      args:  [pt(10, 3)]},
-    "rotateBy":    {name: "rotateBy",    args:  [.2]},
-    "openInWorld": {name: "openInWorld", args:  []},
-    "remove":      {name: "remove",      args:  []},
-  },
-
-  "lively.morphic.Button": {
-    "doAction": {name: "doAction", args:  []}
-  },
-
-  "lively.morphic.Slider": {
-    "onValueChange": {name: "onValueChange", args:  [{name: "newValue", type: "Number"}, {name: "oldValue", type: "Number"}]}
-  },
-
-  "lively.morphic.List": {
-    "onSelectionChange": {name: "onSelectionChange", args:  [{name: "newSel", type: "Object"}, {name: "oldSel", type: "Object"}]}
-  },
-
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-  "lively.Point": {
-    "addPt":      {name: "addPt",      args: [pt(2,3)]},
-    "subPt":      {name: "subPt",      args: [pt(2,3)]},
-    "scaleBy":    {name: "scaleBy",    args: [2]},
-    "inverted":   {name: "inverted",   args: []},
-    "equals":     {name: "equals",     args: [pt(2,3)]},
-    "minPt":      {name: "minPt",      args: [pt(10,10)]},
-    "maxPt":      {name: "maxPt",      args: [pt(10,10)]},
-    "normalized": {name: "normalized", args: []},
-    "dotProduct": {name: "dotProduct", args: [pt(2,3)]},
-    "dist":       {name: "dist",       args: [pt(10,10)]},
-    "extent":     {name: "extent",     args: [pt(20,30)]},
-    "r":          {name: "r",          args: []},
-    "theta":      {name: "theta",      args: []}
-  },
-};
 
 lively.morphic.Property.subclass("lively.morphic.Method",
 "initializing", {
@@ -341,7 +316,7 @@ Object.extend(lively.morphic.Method, {
     return {
       name: name,
       type: "class",
-      methods: lively.lang.obj.values(knownMethods[name] || {})
+      methods: lively.lang.obj.values(lively.persistence.MorphicProperties.knownMethods[name] || {})
         .map(function(methodSpec) {
           var target = new lively.morphic.PropertyTarget(object);
           if (refExpr) target.addOptions({referenceExpression: refExpr});
@@ -352,19 +327,26 @@ Object.extend(lively.morphic.Method, {
 
   allKnownMethodsForObject: function(obj, refExpr) {
     // if (refExpr) target.options.referenceExpression = refExpr;
-    return {
-      name: obj.name || String(obj),
-      type: "object",
-      methods: []
-    };
+    
+    var target = new lively.morphic.PropertyTarget(obj);
+    var funcs = obj.getAllScripts ? obj.getAllScripts() : lively.lang.fun.own(obj)
+    var methods = funcs.map(function(func) {
+      var args = lively.lang.fun.argumentNames(func)
+        .map(function(name) { return {name: name, type: "Object"}; });
+      if (refExpr) target.addOptions({referenceExpression: refExpr});
+      return new lively.morphic.Method(target, {editable: true, name: func.name, args: args});
+    });
+
+    return {name: obj.name || String(obj), type: "object", methods: methods};
   },
 
   allKnownMethodsByTypeFor: function(object, refExpr) {
     var self = lively.morphic.Method;
-    return ([object.constructor].concat(object.constructor.superclasses())).uniq()
-      .map(function(klass) { return self.allKnownMethodsForKlass(object, klass, refExpr); })
-      .concat([self.allKnownMethodsForObject(object, refExpr)])
-      .filter(function(ea) { return ea.methods && ea.methods.length; });
+    return [self.allKnownMethodsForObject(object, refExpr)]
+      .concat(
+        ([object.constructor].concat(object.constructor.superclasses())).uniq()
+          .map(function(klass) { return self.allKnownMethodsForKlass(object, klass, refExpr); })
+          .filter(function(ea) { return ea.methods && ea.methods.length; }));
   }
 
 });

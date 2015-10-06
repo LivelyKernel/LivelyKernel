@@ -12,7 +12,19 @@ TestCase.subclass("lively.persistence.tests.MorphicProperties.PropertyTest",
     this.assertEquals("getPosition()", prop.getterExpr());
     this.assertEquals("setPosition(pt(50.0,100.0))", prop.setterExpr());
     this.assertEquals("setPosition(foo)", prop.setterExpr("foo"));
-    this.assertIdentity(m, prop.target);
+    this.assertIdentity(m, prop.target.getObject());
+  },
+
+  test02AddProperty: function() {
+    var m = lively.morphic.Morph.makeRectangle(10,30,100,20);
+    var prop = lively.morphic.Property.add("foo", m, {initialValue: 23});
+    this.assertEquals("Number", prop.type);
+    this.assertEquals("getFoo", prop.getter);
+    this.assertEquals("setFoo", prop.setter);
+    this.assertEquals(1, prop.scrubbingFactor);
+    this.assertEquals(m, prop.target);
+    this.assertEquals(23, prop.value);
+    this.assertEquals("foo = 23", prop.string);
   }
 
 });

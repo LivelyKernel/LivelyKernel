@@ -1078,7 +1078,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
         if (printResult) {
           if (this.getPrintItAsComment()) {
-            try { result = " => " + Objects.inspect(result, {maxDepth: 4});
+            try { result = " => " + lively.printInspect(result, {maxDepth: 4});
             } catch (e) { result = " => Error printing inspect view of " + result + ": " + e; }
           }
           this.printObject(editor, result, false, this.getPrintItAsComment());
@@ -1089,7 +1089,9 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         if (lively.Config.get("showDoitInMessageMorph")) {
           if (result !== undefined) {
             if (isError) this.showError(result)
-            else this.setStatusMessage(Objects.inspect(result, {maxDepth: options.depth}));
+            else this.setStatusMessage(
+              lively.printInspect(
+                result, {printFunctionSource: true, maxDepth: options.depth}));
           }
         } else if (isError && lively.Config.get('showDoitErrorMessages') && this.world()) {
             this.world().logError(result, "doit error");

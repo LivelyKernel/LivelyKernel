@@ -16,14 +16,14 @@
     "escodegen": "^1.6.1",
     "file-fuser": ">=0.0.8",
     "life_star": ">=0.8.4",
+    "lively-loader": ">=0.2.5"
     "lively.ast": "^0.2.6",
+    "lively.lang": ">=0.4.9",
     "optparse": "~1.0",
     "shelljs": "~0.2",
     "sqlite3": "~3.1.0",
     "watch": "~0.8.0",
-    "websocket": "1.0.17",
-    "lively.lang": ">=0.4.8",
-    "lively-loader": ">=0.2.5"
+    "websocket": "1.0.17"
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",

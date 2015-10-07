@@ -1,4 +1,4 @@
-module('lively.morphic.DraggableJavaScript').requires('lively.morphic.Complete', 'lively.morphic.Scrubbing', 'lively.persistence.MorphicProperties', "lively.morphic.ColorChooserDraft", 'lively.ast').toRun(function() {
+module('lively.morphic.DraggableJavaScript').requires('lively.morphic.Core', 'lively.morphic.Scrubbing', 'lively.persistence.MorphicProperties', "lively.morphic.ColorChooserDraft", 'lively.ast').toRun(function() {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // An interface to draggable JavaScript

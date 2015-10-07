@@ -1762,7 +1762,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       // this.nodeBounds(node);
 
       var start = this.indexToPosition(node.start),
-          end = this.indexToPosition(node.end);
+          end = this.indexToPosition(node.end-1);
 
       if (useMaxColumn) {
         var maxColumn = this.getSession().getLines(start.row, end.row).pluck("length").max();
@@ -1782,7 +1782,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     rangeToMorphicBounds: function(range, useMaxColumn, useScreenPos) {
       var start = range.start,
-          end = range.end;
+          end = lively.lang.obj.merge(range.end, {column: range.end.column-1});
 
       if (useMaxColumn) {
         var maxColumn = useMaxColumn ?
@@ -1835,7 +1835,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return ed.renderer.pixelToScreenCoordinates(
             globalPos.x, globalPos.y);
       });
-    },
+    }
 
 },
 'morph menu', {

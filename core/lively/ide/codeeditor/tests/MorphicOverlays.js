@@ -32,15 +32,15 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.MorphicOverlay',
             x = bounds.bottomRight().x,
             y = bounds.bottomRight().y,
             bottomRightPos = codeEditor.aceEditor.renderer.pixelToScreenCoordinates(x, y);
+
         this.assertIdentity(overlay.owner, codeEditor, "not added to editor");
         this.assertMatches({column: 0, row: 1}, topLeftPos);
-        this.assertMatches({column: 8, row: 3}, bottomRightPos);
+        this.assertMatches({column: 7, row: 3}, bottomRightPos);
 
         this.done();
     },
 
     testOverlayRange: function() {
-
         this.editor.setTextString('\nhello\n   world\n');
 
         var codeEditor = this.editor,
@@ -51,8 +51,8 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.MorphicOverlay',
 
         overlay.setAtRange(codeEditor, range);
         overlay.setLabelAtRange(codeEditor, labelRange);
-        var range = overlay.getRange(codeEditor);
-        this.assertEquals("hello\n   world", codeEditor.getTextRange(range));
+        var computedRange = overlay.getRange(codeEditor);
+        this.assertEquals("hell", codeEditor.getTextRange(computedRange));
         this.done();
     },
 
@@ -67,22 +67,26 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.MorphicOverlay',
         overlay.setAtRange(codeEditor, range);
         overlay.alignLabelAtMarkerEnd();
 
-        var range1;
+        var range1, fullRange1;
         overlay.setLabelString(codeEditor, "hello world", function() {
           range1 = overlay.getRange(codeEditor);
+          fullRange1 = codeEditor.rangeFromGlobalMorphicBounds(overlay.globalBounds());
         });
 
-        var range2;
+        var range2, fullRange2;
         this.waitFor(function() { return !!range1; }, 10, function() {
           overlay.spec.alignLabel = 'line-end';
           overlay.setLabelString(codeEditor, "hello world", function() {
             range2 = overlay.getRange(codeEditor);
+            fullRange2 = codeEditor.rangeFromGlobalMorphicBounds(overlay.globalBounds());
           });
         });
 
         this.delay(function() {
-          this.assertEquals("Range: [1/0] -> [1/12]", String(range1));
-          this.assertEquals("Range: [1/0] -> [1/15]", String(range2));
+          this.assertEquals("Range: [1/0] -> [1/2]", String(range1));
+          this.assertEquals("Range: [1/0] -> [1/11]", String(fullRange1));
+          this.assertEquals("Range: [1/0] -> [1/2]", String(range2));
+          this.assertEquals("Range: [1/0] -> [1/15]", String(fullRange2));
           this.done();
         }, 100);
 
@@ -98,14 +102,15 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.MorphicOverlay',
 
         overlay.setAtRange(codeEditor, range);
         codeEditor.aceEditor.insert("\n");
+
         var range1 = overlay.getRange(codeEditor);
 
         codeEditor.aceEditor.moveCursorTo(2, 3);
         codeEditor.aceEditor.insert("foo");
         var range2 = overlay.getRange(codeEditor);
 
-        this.assertEquals("Range: [2/0] -> [2/5]", String(range1), "range 1");
-        this.assertEquals("Range: [2/0] -> [2/8]", String(range2), "range 2");
+        this.assertEquals("Range: [2/0] -> [2/4]", String(range1), "range 1");
+        this.assertEquals("Range: [2/0] -> [2/7]", String(range2), "range 2");
         this.done();
 
 // false &&

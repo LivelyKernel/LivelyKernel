@@ -69,7 +69,7 @@ Object.extend(lively.ide.codeeditor.DraggableCode, {
     if (node) {
       o.state.node = node;
       var nodeRange = editor.astNodeRange(node);
-      nodeRange && nodeRange.end.column--;
+      nodeRange && nodeRange.end.column;
       o.setAtRange(editor, nodeRange, nodeRange.start.row !== nodeRange.end.row);
     }
     return o;

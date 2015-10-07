@@ -1798,6 +1798,17 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         topLeft.maxPt(bottomRight));
     },
 
+    rangeToGlobalMorphicBounds: function(range, useMaxColumn, useScreenPos) {
+      return this.getGlobalTransform().transformRectToRect(
+        this.rangeToMorphicBounds(range, useMaxColumn, useScreenPos));
+    },
+
+    rangeFromGlobalMorphicBounds: function(bounds) {
+      var start = this.morphicPosToDocPos(bounds.topLeft()),
+          end = this.morphicPosToDocPos(bounds.bottomRight().addXY(-1,-1));
+      return this.createRange(start, end);
+    },
+
     posToMorphicPos: function(pos, corner, useScreenPos) {
       // useScreenPos: clip to actual lines in document
       var ed = this.aceEditor,

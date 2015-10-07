@@ -204,6 +204,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         this.setShowWarnings(this.getShowWarnings());
         this.setInputAllowed(this.inputAllowed());
         this.setDraggableCodeEnabled(this.getDraggableCodeEnabled());
+        this.setScrubbingEnabled(this.getScrubbingEnabled());
 
         // 4) run after setup callbacks
         var cbs = this.aceEditorAfterSetupCallbacks;
@@ -1687,7 +1688,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       return self._ScrubbingEnabled = bool;
     },
     getScrubbingEnabled: function() {
-        return this.hasOwnProperty("_ScrubbingEnabled") ? this._ScrubbingEnabled : false;
+        return this.hasOwnProperty("_ScrubbingEnabled") ? this._ScrubbingEnabled : lively.Config.get("aceDefaultScrubbingEnabled");
     },
 
     setDraggableCodeEnabled: function(bool) {

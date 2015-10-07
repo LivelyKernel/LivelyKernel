@@ -957,22 +957,33 @@ Object.extend(lively.ide.CommandLineSearch, {
     findFiles: function(pattern, options, callback) {
         // lively.ide.CommandLineSearch.findFiles('*html',
         //   {sync:true, excludes: STRING, re: BOOL, depth: NUMBER, cwd: STRING, matchPath: BOOL});
-        options = options || {};
+        options = lively.lang.obj.merge({findFilesGroup: "default-find-files-process"}, options)
+        callback = callback || function() {}
+
+        if (!lively.ide.CommandLineSearch._findFilesProcessGroups)
+          lively.ide.CommandLineSearch._findFilesProcessGroups = {};
+        var processGroups = lively.ide.CommandLineSearch._findFilesProcessGroups || (lively.ide.CommandLineSearch._findFilesProcessGroups = {});
+        var processStateForThisGroup = processGroups[options.findFilesGroup] || (processGroups[options.findFilesGroup] = []);
+        processStateForThisGroup.forEach(function(oldCmd) { oldCmd.kill(); });
+
         var commandString = this.findFilesCommandString(pattern, options),
             rootDirectory = options.rootDirectory,
             parseDirectoryList = lively.ide.FileSystem.parseDirectoryListFromLs,
-            lastFind = lively.ide.CommandLineSearch.lastFind;
-        if (lastFind) lastFind.kill();
-        var result = [];
-        lively.ide.CommandLineSearch.lastFind = lively.shell.run(commandString, options, function(err, cmd) {
-          if (cmd === lively.ide.CommandLineSearch.lastFind)
-            lively.ide.CommandLineSearch.lastFind = null;
+            result = [];
+
+        var cmd = lively.shell.run(commandString, options, function(err, cmd) {
+          cmd.isOutdated = processStateForThisGroup.some(function(otherCmd) {
+            return otherCmd.getStartTime() > cmd.getStartTime();
+          });
+          
           var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
           if (err) console.warn(err);
           result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);
           callback && callback(err, result || [], cmd);
         });
-        return options.sync ? result : lively.ide.CommandLineSearch.lastFind;
+        processStateForThisGroup.push(cmd);
+
+        return options.sync ? result : cmd;
     },
 
     interactivelyChooseFileSystemItem: function(prompt, rootDir, fileFilter, narrowerName, actions, initialCandidates, offerCreation) {

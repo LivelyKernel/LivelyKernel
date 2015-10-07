@@ -125,11 +125,29 @@ Object.extend(lively.morphic, {
       if (world) world.openObjectEditorFor.apply(world, arguments);
     },
 
-    showCallStack: function() {
+    printCallStack: function() {
         var stack = 'no stack';
         try { throw new Error() } catch(e) { if (e.stack) stack = e.stack }
-        lively.morphic.alert(stack);
+        return stack;
     },
+
+    showCallStack: function() {
+        lively.morphic.alert(lively.morphic.printCallStack());
+    },
+
+    printInspect: (function() {
+      function inspectPrinter(val, ignore) {
+        return val && val.isMorph ? String(val) : ignore;
+      }
+      
+      return function(obj, maxDepth) {
+        return lively.lang.obj.inspect(obj, {
+          customPrinter: inspectPrinter,
+          maxDepth: maxDepth,
+          printFunctionSource: true
+        });
+      }
+    })(),
 
     newMorph: function(options) {
         // for interactive usage
@@ -153,7 +171,8 @@ Object.extend(lively, {
     showMarkerFor:     lively.morphic.showMarkerFor,
     show:     lively.morphic.show,
     log:      lively.morphic.log,
-    newMorph: lively.morphic.newMorph
+    newMorph: lively.morphic.newMorph,
+    printInspect: lively.morphic.printInspect
 });
 
 Object.extend(Global, {

@@ -15,7 +15,8 @@ Object.extend(lively.persistence.MorphicProperties, {
       "visible":         {name: "visible",         getter: "isVisible",         setter: "setVisible",         type: "Boolean"},
       "grabbingEnabled": {name: "grabbingEnabled", getter: "isGrabbingEnabled", setter: "setGrabbingEnabled", type: "Boolean"},
       "draggingEnabled": {name: "draggingEnabled", getter: "isDraggingEnabled", setter: "setDraggingEnabled", type: "Boolean"},
-      "droppingEnabled": {name: "droppingEnabled", getter: "isDroppingEnabled", setter: "setDroppingEnabled", type: "Boolean"}
+      "droppingEnabled": {name: "droppingEnabled", getter: "isDroppingEnabled", setter: "setDroppingEnabled", type: "Boolean"},
+      "owner":           {name: "owner", type: "lively.morphic.morph"},
     },
   
     "lively.morphic.Image": {
@@ -51,6 +52,8 @@ Object.extend(lively.persistence.MorphicProperties, {
       "show":        {name: "show",        args:  []},
       "moveBy":      {name: "moveBy",      args:  [pt(10, 3)]},
       "rotateBy":    {name: "rotateBy",    args:  [.2]},
+      "copy":        {name: "copy",        args:  []},
+      "addMorph":    {name: "addMorph",    args:  [{name: "morph", type: "lively.morphic.Morph"}]},
       "openInWorld": {name: "openInWorld", args:  []},
       "remove":      {name: "remove",      args:  []},
     },
@@ -142,7 +145,7 @@ Object.subclass("lively.morphic.Property",
 "helper", {
 
   printObj: function(obj) {
-    return lively.lang.obj.inspect(obj, {maxDepth: 1}).replace(/^lively\./, "");
+    return lively.morphic.printInspect(obj, 1).replace(/^lively\./, "");
   }
 
 },

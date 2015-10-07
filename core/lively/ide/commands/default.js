@@ -1353,9 +1353,26 @@ Object.extend(lively.ide.commands.byName, {
     // tools
     'lively.ide.openWorkspace': {
         description: 'open Workspace',
-        exec: function() {
-            lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() {
-                lively.ide.tools.JavaScriptWorkspace.open(); });
+        exec: function(options) {
+            options = options || {};
+            lively.lang.fun.composeAsync(
+              function(n) {
+                if (!module("lively.ide.tools.JavaScriptWorkspace").isLoaded())
+                  lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() { n(); });
+                else n();
+              },
+              function(n) {
+                var workspace = lively.ide.tools.JavaScriptWorkspace.open();
+                var ed = workspace.targetMorph;
+                if (options.title) workspace.setTitle(options.title);
+                if (options.extent) workspace.setExtent(options.extent);
+                if (options.position) workspace.setPosition(options.position);
+                if (options.content) ed.textString = options.content;
+                if (options.textMode) ed.setTextMode(options.textMode);
+                if (options.fontSize) ed.setFontSize(options.fontSize);
+                n(null, workspace);
+              }
+            )(options.thenDo || function() {});
             return true;
         }
     },

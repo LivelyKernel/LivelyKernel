@@ -123,6 +123,8 @@ var browserTests = [
     // connection needed for the shell tests and the shell environment itself
     // 'lively.ide.tests.CommandLineInterface',
     "lively.ide.codeeditor.tests.JumpChar",
+    "lively.ide.codeeditor.tests.DraggableCode",
+    "lively.ide.codeeditor.tests.MorphicOverlays",
     "lively.ide.codeeditor.tests.TextOverlays",
     'lively.ide.codeeditor.tests.DiffMode',
     'lively.ide.codeeditor.tests.TreeMode',

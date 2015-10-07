@@ -417,10 +417,21 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
     }
     marker.owner !== editor && editor.addMorph(marker);
     marker.align(marker.bounds().center(), pos);
-    marker.applyStyle({borderRadius: 5, borderWidth: 0, fill: Color.green.withA(.35)});
+    marker.applyStyle({borderRadius: 9, borderWidth: 0, fill: Color.green.withA(.35)});
     marker.disableEvents();
     marker.isEpiMorph = true;
     marker.disableDropping();
+    return marker;
+  },
+
+  getBoundsMarker: function(name, editor, pos) {
+    var name = name;
+    var marker = this.getExistingHelper(name);
+    if (!marker) {
+      var marker = new lively.morphic.BoundsMarker({borderColor: Color.green});;
+      this.helperMorphs.push(marker);
+    }
+    if (!marker.owner) marker.openInWorld();
     return marker;
   },
 
@@ -453,26 +464,6 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
 
 },
 "editor helper", {
-
-  showIndexes: function(globalPos, indexes, editor) {
-    var self = this;
-    var indexes = this.indexSortedByProximity(globalPos, indexes, editor).forEach(function(index, i) {
-      // var node = lively.ast.nodesAt(index, editor.getSession().$ast).last();
-      // if (node) {
-      //   var range = editor.astNodeRange(node);
-      //   var bounds = editor.astNodeMorphicBounds(node)
-      //   var localPos = bounds.center();
-      //   label(editor, localPos, String(i + 1));
-      // }
-
-      var editorPos = editor.indexToPosition(index),
-          localPos = editor.posToMorphicPos(editorPos, "center"),
-          marker = self.getHelperMarker("marker-" + i, editor, localPos);
-      (function() { marker.remove(); }) .delay(2);
-      if (i === 0) marker.applyStyle({fill: Color.green});
-    });
-
-  },
 
   indexSortedByProximity: function(globalPos, dropOps, editor) {
     // sort indexes by their distance to globalPos
@@ -527,11 +518,47 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
 
   showInsertionPreview: function(dropjs, globalPos, restrictInsertionPositionByType) {
   // lively.debugNextMethodCall(this,"findDropOperations");
+    var editor = this.editor, self = this;
     var dropOps = this.findDropOperations(dropjs, globalPos, restrictInsertionPositionByType);
-    var indexes = dropOps.pluck("indexInDocument");
+    
+    
+    dropOps.forEach(function(dropOp, i) {
+      var index = dropOp.indexInDocument,
+          editorPos = editor.indexToPosition(index),
+          localPos = editor.posToMorphicPos(editorPos, "center"),
+          marker = self.getHelperMarker("marker-" + i, editor, localPos);
+
+      (function() { marker.remove(); }) .delay(2);
+      if (i === 0) {
+        marker.applyStyle({
+          fill: Color.green,
+          borderWidth: 2, borderColor: Color.red,
+          extent: pt(17,17)
+        });
+        marker.moveBy(pt(-3,-3));
+
+        var nodeIndex = dropOp.replaceNodeIndex || dropOp.parentNodeIndex;
+        var boundsMarker = self.getBoundsMarker("node-bounds-marker");
+        var node = typeof nodeIndex === "number" && self.originalAst && lively.ast.acorn.walk.findNodeByAstIndex(self.originalAst, nodeIndex, true);
+        if (node && node.start !== node.end) {
+          var eolMarker = self.originalContent.slice(node.start, node.end).include("\n");
+          var bounds = editor.getGlobalTransform().transformRectToRect(editor.astNodeMorphicBounds(node, eolMarker));
+          boundsMarker.alignWithRect(bounds);
+        } else { boundsMarker.remove(); }
+      } else {
+        marker.applyStyle({ borderWidth: 0, extent: pt(10,10) });
+      }
+
+
+      
+    });
+    
+    // var indexes = dropOps.pluck("indexInDocument");
 // show("%s", dropOps.map(function(ea) { return ea.type + " " + ea.as + " " + ea.indexInDocument; }).join("\n"));
 
-    this.showIndexes(globalPos, indexes, this.editor);
+    // this.showIndexes(globalPos, indexes, this.editor);
+
+  
   },
 
   doFinalInsertion: function(dropjs, globalPos, restrictInsertionPositionByType) {
@@ -645,7 +672,6 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.DragItem",
     
 // lively.debugNextMethodCall(doc, "doFinalInsertion")
 
-      if (doc && doc.editor !== target) inspect(target)
     if (doc && doc.editor === target) {
       var deltas = doc.doFinalInsertion(this.dropjs, globalPos),
           delta = deltas.detect(function(ea) { return ea.action === "insert"; });
@@ -680,9 +706,10 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.DragItem",
     } else {
       doc && doc.removeHelpers();
       var self = this;
-      var ed = $world.addCodeEditor({
-        textMode: "javascript",
-        content: self.dropjs.getCode({addReceiver: true})});
+      lively.ide.commands.exec("lively.ide.openWorkspace", {
+        content: self.dropjs.getCode({addReceiver: true}),
+        fontSize: 18
+      });
       // ed.withAceDo(function() {
       //   lively.lang.fun.waitFor(
       //     function() { ed.getSession() && ed.getSession().$ast; },
@@ -691,7 +718,7 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.DragItem",
       //       doc.showInsertionPreview(self.dropjs, globalPos);
       //     })
       // });
-      ed.getWindow().comeForward();
+      // ed.getWindow().comeForward();
     }
 
     if (this.maker && this.maker.getPositionInWorld) {

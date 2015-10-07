@@ -740,7 +740,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     getScroll: function(x,y) {
         return this.withAceDo(function(ed) {
             return [ed.session.getScrollLeft(), ed.session.getScrollTop()];
-        });
+        }) || [0,0];
     },
 
     scrollToRow: function(row) {
@@ -832,7 +832,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
           }
         }
       });
-    }
+    },
+
+    isClip: function() { return true; }
+
 },
 'text morph eval interface', {
 
@@ -1751,29 +1754,14 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     astNodeRange: function(node) {
-      var start = this.indexToPosition(node.start),
-          end = this.indexToPosition(node.end);
-      return lively.ide.ace.require("ace/range").Range.fromPoints(start, end)
+      return this.createRange(
+        this.indexToPosition(node.start),
+        this.indexToPosition(node.end));
     },
 
-    astNodeMorphicBounds: function(node, useMaxColumn) {
-      // var node = this.getSession().$ast.body[0];
-      // var node = this.getSession().$ast;
-      // this.nodeBounds(node);
-
-      var start = this.indexToPosition(node.start),
-          end = this.indexToPosition(node.end-1);
-
-      if (useMaxColumn) {
-        var maxColumn = this.getSession().getLines(start.row, end.row).pluck("length").max();
-        end.column = maxColumn;
-      }
-
-      var startMorphic = this.posToMorphicPos(start, "topLeft"),
-          endMorphic = this.posToMorphicPos(end, "bottomRight");
-
-      return !startMorphic || !endMorphic ?
-        null : lively.rect(startMorphic, endMorphic);
+    astNodeMorphicBounds: function(node, useMaxColumn, useScreenPos) {
+      return this.rangeToMorphicBounds(
+        this.astNodeRange(node), useMaxColumn, useScreenPos);
     },
 
     lineToMorphicBounds: function(row) {
@@ -1811,6 +1799,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     posToMorphicPos: function(pos, corner, useScreenPos) {
       // useScreenPos: clip to actual lines in document
+      // FIXME: transformation?!
       var ed = this.aceEditor,
           r = ed.renderer,
           config = r.layerConfig,
@@ -1838,7 +1827,9 @@ Trait('lively.morphic.SetStatusMessageTrait'),
           break;
       }
 
-      return lively.Point.ensure(localCoords);
+      var scrollLeft = this.getScroll()[0];
+
+      return lively.Point.ensure(localCoords).addXY(-scrollLeft, 0);
     },
 
     morphicPosToDocPos: function(globalPos) {

@@ -180,18 +180,27 @@ lively.ide.tests.CodeEditor.Base.subclass('lively.ide.tests.CodeEditor.Interface
 
     testMorphicPositionAndBounds: function() {
       this.epsilon = 2.5;
-        var e = this.editor;
-        e.openInWorld();
-        this.delay(function() {
-          e.textString = "some\ncontent";
-          e.setCursorPosition({y: 1, x: 0});
-          e.aceEditor.moveCursorTo(0,0);
-          var pos = e.getCursorPositionAce();
-          var range = e.getSession().getWordRange(pos.row, pos.column);
-          var bounds = e.rangeToMorphicBounds(range);
-          this.assertEqualsEpsilon(lively.rect(45,0,36,16), bounds);
-          this.done();
-        }, 100);
+      var e = this.editor, ed;
+      e.openInWorld();
+      e.withAceDo(function(_ed) { ed = _ed; });
+
+      this.waitFor(function() { return !!ed; }, 10, function() {
+        var expectedWidth = ed.renderer.layerConfig.characterWidth*4,
+            expectedHeight = ed.renderer.layerConfig.lineHeight;
+
+        e.textString = "some\ncontent            f!";
+        ed.moveCursorTo(0,0);
+        e.setScroll(0, 0);
+        var range = e.getSession().getWordRange(0, 0),
+            bounds = e.rangeToMorphicBounds(range);
+        this.assertEqualsEpsilon(lively.rect(45,0,29,16), bounds, "1");
+
+        e.setScroll(20, 0);
+        var bounds = e.rangeToMorphicBounds(range);
+        this.assertEqualsEpsilon(lively.rect(25,0,29,16), bounds, "2: scroll?!");
+
+        this.done();
+      });
     },
 });
 

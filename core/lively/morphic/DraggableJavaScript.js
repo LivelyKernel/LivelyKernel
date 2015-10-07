@@ -571,7 +571,8 @@ Object.subclass("lively.morphic.DraggableJavaScript.DroppableDocument",
 
     var dropOp = dropOps[0];
     var myDropjs = lively.morphic.DraggableJavaScript.DropJS.forCode(this.originalContent);
-    var deltas = myDropjs.applyDropOp(dropjs, dropOp, {addReceiver: true, addArguments: true})
+    var generateCodeOpts = {context: this.editor.getDoitContext(), addReceiver: true, addArguments: true};
+    var deltas = myDropjs.applyDropOp(dropjs, dropOp, generateCodeOpts)
       .map(function(delta) {
         var start = this.editor.indexToPosition(delta.start),
             end = {row: start.row + delta.lines.length-1, column: delta.lines.last().length};

@@ -83,7 +83,8 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     isCodeEditor: true,
     isText: true,
     showsMorphMenu: true,
-    connections: {textChange: {}, textString: {signalOnAssignment: false}, savedTextString: {}}
+    connections: {textChange: {}, textString: {signalOnAssignment: false}, savedTextString: {}},
+    printInspectMaxDepth: 2
 },
 'initializing', {
     initialize: function($super, bounds, stringOrOptions) {
@@ -1065,10 +1066,13 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         }
     },
 
-    doit: function(printResult, editor) {
+    doit: function(printResult, editor, options) {
+        options = lively.lang.obj.merge({depth: this.printInspectMaxDepth}, options);
+
         var text = this.getSelectionMaybeInComment(),
             range = this.getSelectionRange(),
             result = this.tryBoundEval(text, {range: {start: {index: range[0]}, end: {index: range[1]}}});
+
         if (printResult) {
           if (this.getPrintItAsComment()) {
             try { result = " => " + Objects.inspect(result, {maxDepth: 4});
@@ -1077,16 +1081,17 @@ Trait('lively.morphic.SetStatusMessageTrait'),
           this.printObject(editor, result, false, this.getPrintItAsComment());
           return;
         }
+
         var isError = result instanceof Error;
-        if (isError && lively.Config.get('showDoitErrorMessages') && this.world()) {
-            this.world().logError(result, "doit error");
-        }
         if (lively.Config.get("showDoitInMessageMorph")) {
           if (result !== undefined) {
             if (isError) this.showError(result)
-            else this.setStatusMessage(String(result));
+            else this.setStatusMessage(Objects.inspect(result, {maxDepth: options.depth}));
           }
+        } else if (isError && lively.Config.get('showDoitErrorMessages') && this.world()) {
+            this.world().logError(result, "doit error");
         }
+
         var sel = this.getSelection();
         if (sel && sel.isEmpty()) sel.selectLine();
         return result;
@@ -1120,8 +1125,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     doInspect: function() {
         lively.morphic.inspect(this.evalSelection());
     },
-
-    printInspectMaxDepth: 1,
 
     printInspect: function(options) {
         options = options || {};

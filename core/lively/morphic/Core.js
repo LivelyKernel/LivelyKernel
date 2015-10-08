@@ -41,9 +41,9 @@ Object.subclass('lively.morphic.Morph',
         // FIXME implement
         return {}
     },
-    shapeContainsPoint: function(pt) {
+    shapeContainsPoint: function(localPt) {
         // Need to check for non-rectangular shapes
-        return this.shape.reallyContainsPoint(pt)
+        return this.shape.reallyContainsPoint(localPt);
     }
 
 },

@@ -913,7 +913,7 @@ handleOnCapture);
     },
 
     reallyContainsPoint: function(globalPos, morphsContainingEvtPoint) {
-        if (this.shape.reallyContainsPoint(this.localize(globalPos))) return true;
+        if (this.shapeContainsPoint(this.localize(globalPos))) return true;
 
         // Click point was not really on this morph;  try next thing below
         if (!morphsContainingEvtPoint)

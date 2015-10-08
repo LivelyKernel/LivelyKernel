@@ -420,8 +420,8 @@ this.addScript(function buildStashInfo(func) {
                 {name: "get username", gitCommand: "config --get user.name"},
                 {name: "get email", gitCommand: "config --get user.email"}];
             lively.ide.git.Interface.runCommandsThenDo(commands, function(mapping) {
-                var email = mapping['get email'].trim(),
-                    name = mapping['get username'].trim();
+                var email = mapping ? mapping['get email'].trim() : "",
+                    name = mapping ? mapping['get username'].trim() : "";
                 if (name.length && email.length) thenDo(null);
                 else next();
             });

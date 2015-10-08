@@ -917,7 +917,7 @@ handleOnCapture);
 
         // Click point was not really on this morph;  try next thing below
         if (!morphsContainingEvtPoint)
-          morphsContainingEvtPoint = this.world().morphsContainingPoint(globalPos);
+          morphsContainingEvtPoint = this.morphsContainingPoint(globalPos);
 
         // Call recursively on next morph below this one
         var below = false;

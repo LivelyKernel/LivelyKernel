@@ -16,13 +16,13 @@ TestCase.subclass('lively.morphic.tests.Scrubbing.Test',
 
     this.assert(!m.isScrubbing(),  "isScrubbing");
 
-    m.startScrubbing(pt(0,0), 0, "number");
-    m.updateScrubbing(pt(0, 0));
-    m.updateScrubbing(pt(5, 0));
-    m.updateScrubbing(pt(15, 0));
-    m.updateScrubbing(pt(25, 0));
-    m.updateScrubbing(pt(25, 15));
-    m.updateScrubbing(pt(35, 15));
+    m.startScrubbing({getPosition: function() { return pt(0,0)}}, 0, "number");
+    m.updateScrubbing({getPosition: function() { return pt(0, 0); }});
+    m.updateScrubbing({getPosition: function() { return pt(5, 0); }});
+    m.updateScrubbing({getPosition: function() { return pt(15, 0); }});
+    m.updateScrubbing({getPosition: function() { return pt(25, 0); }});
+    m.updateScrubbing({getPosition: function() { return pt(25, 15); }});
+    m.updateScrubbing({getPosition: function() { return pt(35, 15); }});
     this.assert(m.isScrubbing(),  "isScrubbing 2");
     m.stopScrubbing();
     this.assert(!m.isScrubbing(),  "isScrubbing 3");

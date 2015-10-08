@@ -203,24 +203,29 @@ AsyncTestCase.subclass('lively.morphic.tests.DraggableJavaScript.DocDropProcess'
       // e=that
 
       var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
-      var bounds = globalBoundsOfRange(e, e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
+      var bounds = e.rangeToGlobalMorphicBounds(e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
       var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
+
       this.assertEqualState(
-        [{as: "Statement", at: 13, indexInDocument: 13, parentNodeIndex: 6, type: "splice"},
-         {as: "Argument", indexInDocument: 2, replaceNodeIndex: 3, type: "replace"},
+        [{as: "Argument", indexInDocument: 10, replaceNodeIndex: 3, type: "replace"},
+         {as: "Statement", at: 13, indexInDocument: 13, parentNodeIndex: 6, type: "splice"},
          {as: "Statement", at: 0, indexInDocument: 0, parentNodeIndex: 6, type: "splice"}],
         dropOps, "1: insertion of expression");
 
       e.textString = "this.foo(bar(23));\n";
-      var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
-      var bounds = globalBoundsOfRange(e, e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
-      var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
-   
-      this.assertEqualState(
-        [{as: "Argument", indexInDocument: 12, replaceNodeIndex: 5, type: "replace"},
-         {as: "Statement", at: 18, indexInDocument: 18, parentNodeIndex: 8, type: "splice"},
-         {as: "Statement", at: 0, indexInDocument: 0, parentNodeIndex: 8, type: "splice"}],
-        dropOps, "1: insertion of expression")
+      this.delay(function() {
+        var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
+        var bounds = e.rangeToGlobalMorphicBounds(e.find({needle: "23", start: {row: 0, column: 0}, preventScroll: true}));
+        var dropOps = doc.findDropOperations(djs.forCode("3 + 4"), bounds.center(), true);
+    
+        this.assertEqualState(
+          [{as: "Statement", at: 13, indexInDocument: 13, parentNodeIndex: 6, type: "splice"},
+           {as: "Argument", indexInDocument: 10, replaceNodeIndex: 3, type: "replace"},
+           {as: "Statement", at: 0, indexInDocument: 0, parentNodeIndex: 6, type: "splice"}],
+          dropOps, "2: insertion of expression");
+          
+        this.done();
+      }, 100);
 
       // e.textString = "function foo(a, b) {\n  return 23;\n}\n"
       // var doc = lively.morphic.DraggableJavaScript.DroppableDocument.from(e);
@@ -256,12 +261,9 @@ AsyncTestCase.subclass('lively.morphic.tests.DraggableJavaScript.DocDropProcess'
 //       this.assertEquals("this.foo(bar);\n", e.textString, "4: arg insert");
 
 
-      this.done();
+
     });
     
-    function globalBoundsOfRange(e, range) {
-      return e.getGlobalTransform().transformRectToRect(e.rangeToMorphicBounds(range));
-    }
   },
 
 });

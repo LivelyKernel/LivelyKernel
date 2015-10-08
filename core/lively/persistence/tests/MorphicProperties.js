@@ -17,12 +17,13 @@ TestCase.subclass("lively.persistence.tests.MorphicProperties.PropertyTest",
 
   test02AddProperty: function() {
     var m = lively.morphic.Morph.makeRectangle(10,30,100,20);
-    var prop = lively.morphic.Property.add("foo", m, {initialValue: 23});
+    m.foo = 23;
+    var prop = lively.morphic.Property.add(m, "foo", {});
     this.assertEquals("Number", prop.type);
-    this.assertEquals("getFoo", prop.getter);
-    this.assertEquals("setFoo", prop.setter);
+    // this.assertEquals("getFoo", prop.getter);
+    // this.assertEquals("setFoo", prop.setter);
     this.assertEquals(1, prop.scrubbingFactor);
-    this.assertEquals(m, prop.target);
+    this.assertEquals(m, prop.target.getObject());
     this.assertEquals(23, prop.value);
     this.assertEquals("foo = 23", prop.string);
   }

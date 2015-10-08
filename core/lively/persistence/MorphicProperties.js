@@ -194,15 +194,34 @@ Object.subclass("lively.morphic.Property",
 Object.extend(lively.morphic.Property, {
 
   ensurePropExtensions: function(obj) {
-    var name = "lively.morphic.Property.objectExtension";
-    if (!obj[name]) return obj[name] = {};
-    if (!obj.hasOwnProperty(name)) return obj[name] = obj[name];
-    return obj[name];
+    if (!obj._morphicProperties) obj._morphicProperties = {};
+    if (!obj._morphicProperties.properties) obj._morphicProperties.properties = [];
+    return obj._morphicProperties;
   },
 
   add: function(object, name, options) {
-    var propExt = lively.morphic.Property.ensurePropExtensions(object);
-    propExt
+    var propExt = lively.morphic.Property.ensurePropExtensions(object),
+        propSpec = propExt.properties.detect(function(ea) { return ea.name === name; }) || {};
+
+    propExt.properties.pushIfNotIncluded(
+      lively.lang.obj.extend(propSpec, {name: name}));
+
+    var prop = lively.morphic.Property.allKnownPropertiesForObject(object)
+      .properties.detect(function(prop) { return prop.name === name; });
+      
+    if (!propSpec.type) {
+      var val = prop.value;
+      var klass = val ? lively.lang.classHelper.getConstructor(val) : null;
+      if (klass) {
+        prop.type = propSpec.type = klass.type || klass.name;
+      }
+    }
+
+    if (lively.lang.obj.isNumber(prop.value)) {
+      prop.scrubbingFactor = propSpec.scrubbingFactor = 1;
+    }
+
+    return prop;
   },
 
   propertyFor: function(morph, propName, refExpr) {

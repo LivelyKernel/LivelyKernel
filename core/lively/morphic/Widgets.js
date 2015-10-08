@@ -462,6 +462,15 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         return $super(evt)
     }
 },
+'hit testing', {
+    alphaHitTest: false, // if true do pixel-based hit testing
+
+    shapeContainsPoint: function(localPt){
+        if (this.alphaHitTest)
+            return this.shape.reallyContainsPoint(localPt);
+        return true;
+    },
+},
 'type conversion', {
 
     convertTo: function(type, quality) {

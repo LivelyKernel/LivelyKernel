@@ -23,8 +23,11 @@ Object.extend(lively.morphic, {
     show: function(obj) {
 
         function showText(text) {
-          $world.setStatusMessage(text, Color.gray);
-          return text;
+            if (typeof $world != 'undefined')
+                $world.setStatusMessage(text, Color.gray);
+            else
+                console.log('show: ' + text);
+            return text;
         }
 
         function newShowPt(/*pos or x,y, duration, extent*/) {

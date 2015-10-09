@@ -154,37 +154,41 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         }
 
     },
+
       sourceNameForEval: function sourceNameForEval() {
-      return (this.getWindow() ? this.getWindow().getTitle() : "JS-workspace") + "-" + Date.now();
-    },
+          return (this.getWindow() ? this.getWindow().getTitle() : "JS-workspace") + "-" + Date.now();
+        },
+
         boundEval: function boundEval(__evalStatement, __evalOptions) {
-        // Evaluate the string argument in a context in which "this" is
-        // determined by the reuslt of #getDoitContext
-        var ctx = this.getDoitContext() || this, result;
-        __evalOptions = __evalOptions || {};
-    
-        if (!this.state.workspaceVars) this.state.workspaceVars = {};
-        if (!this.state.defRanges) this.state.defRanges = {};
-        var defRanges = {};
-    
-        lively.lang.VM.runEval(__evalStatement, {
-            context: ctx,
-            topLevelVarRecorder: this.state.workspaceVars,
-            topLevelDefRangeRecorder: __evalOptions.range ? defRanges : null,
-            sourceURL: __evalOptions.sourceURL
-        }, function(err, _result) { result = err || _result; });
-    
-        __evalOptions.range && Object.keys(defRanges).forEach(function(key) {
-            var defRangesForVar = defRanges[key];
-            defRangesForVar.forEach(function(range) {
-                range.start += __evalOptions.range.start.index;
-                range.end += __evalOptions.range.start.index;
-            });
-        });
-    
-        this.state.defRanges = Object.merge([this.state.defRanges, defRanges]);
-    
-        return result;
+          // Evaluate the string argument in a context in which "this" is
+          // determined by the reuslt of #getDoitContext
+          var ctx = this.getDoitContext() || this, result;
+          __evalOptions = __evalOptions || {};
+
+          if (!this.state.workspaceVars) this.state.workspaceVars = {};
+          if (!this.state.defRanges) this.state.defRanges = {};
+          var defRanges = {};
+
+          lively.lang.VM.runEval(__evalStatement,
+            lively.lang.obj.merge({
+                context: ctx,
+                topLevelVarRecorder: this.state.workspaceVars,
+                topLevelDefRangeRecorder: __evalOptions.range ? defRanges : null,
+                sourceURL: __evalOptions.sourceURL
+            }, __evalOptions),
+            function(err, _result) { result = err || _result; });
+
+          __evalOptions.range && Object.keys(defRanges).forEach(function(key) {
+              var defRangesForVar = defRanges[key];
+              defRangesForVar.forEach(function(range) {
+                  range.start += __evalOptions.range.start.index;
+                  range.end += __evalOptions.range.start.index;
+              });
+          });
+
+          this.state.defRanges = Object.merge([this.state.defRanges, defRanges]);
+
+          return result;
     },
         getVarValue: function getVarValue(varName) {
         return !this.state.workspaceVars ?
@@ -255,12 +259,12 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
             newEditorBounds = rect(
                 pt(3,22),
                 varList.bounds().bottomRight().addXY(-3 - varAreaWidth - border, 0));
-    
+
         varList.setExtent(varList.getExtent().withX(varAreaWidth));
         varList.align(varList.bounds().topRight(), this.getWindow().innerBounds().topRight().addXY(-3,22));
-    
+
         this.updateToggleVarsButton(newEditorBounds);
-    
+
         this.animatedSetBounds(this, newEditorBounds);
         this.startStepping(1000, "showVars");
     },

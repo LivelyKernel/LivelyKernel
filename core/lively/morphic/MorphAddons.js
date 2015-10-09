@@ -144,11 +144,11 @@ Object.extend(lively.morphic, {
       }
       
       return function(obj, maxDepth) {
-        return lively.lang.obj.inspect(obj, {
+        return Object.isObject(obj) ? lively.lang.obj.inspect(obj, {
           customPrinter: inspectPrinter,
           maxDepth: maxDepth,
           printFunctionSource: true
-        });
+        }) : String(obj);
       }
     })(),
 
@@ -1719,7 +1719,7 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
     this.fitThenDo(function() {
       this.setVisible(true);
       this.bringToFront();
-      this.setPosition(forMorph.worldPoint(forMorph.innerBounds().bottomLeft()));
+      this.setPosition(forMorph.owner.worldPoint(forMorph.bounds().bottomLeft()));
       var visibleBounds = world.visibleBounds(),
           bounds = this.bounds(),
           height = Math.min(bounds.height+3, maxY),

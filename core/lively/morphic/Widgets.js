@@ -440,6 +440,8 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
         items.push(['Set to original extent', this.setNativeExtent.bind(this)]);
         items.push(['Resample image to fit bounds', this.resampleImageToFitBounds.bind(this)]);
         items.push(['Inline image data', this.convertToBase64.bind(this)]);
+        items.push([this.alphaHitTest ? 'Make transparent regions clickable' : 'Ignore clicks in transparent regions', 
+            function() { this.alphaHitTest = !this.alphaHitTest; }.bind(this)]);
         items.push(['Download', function() { this.downloadImage(); }.bind(this)]);
         return items;
     },

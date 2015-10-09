@@ -25,28 +25,32 @@ Object.subclass('lively.MochaTests.Reporter', {
         reporter.passes.push([test.fullTitle()]);
         reporter.report(false, reporter.passes, reporter.failures);
       });
-    
+
       runner.on('fail', function(test, err) {
         reporter.failures.push(Strings.format("%s\n  %s",
           test.fullTitle(),  Strings.indent(err.stack || err.message), "  ", 1));
         reporter.report(false, reporter.passes, reporter.failures);
       });
-    
+
       runner.on('end', function() { reporter.report(true, reporter.passes, reporter.failures); });
     }
   },
 
   report: function(final, passes, failures) {
-    var logger = $morph("testLogger") 
+    if (!final) { console.log("tentative mocha report, passes: %s, failures: %s", passes.length, failures.length); return; }
+    var name = "testLogger",
+        logger = $morph(name)
               || $world.addCodeEditor({
+                name: name,
                 title: "mocha test result",
                 textMode: "text",
-                extent: pt(600,700)}).getWindow().comeForward();
-    logger.name = "testLogger";
-    var report = Strings.format("passes:\n%s\n\nfailures:\n%s\n",
-        passes.join('\n'), failures.join('\n'));
+                extent: pt(600,700)});
+    logger.getWindow().comeForward();
+    var report = Strings.format("failures:\n%s\n\npasses:\n%s\n",
+        failures.join('\n'), passes.join('\n'));
     if (final) failures.length && typeof show !== "undefined" ?
       show("%s failures", failures.length) : alertOK("All passed");
+
     if (logger) logger.textString = report;
     else console.log(report);
   }

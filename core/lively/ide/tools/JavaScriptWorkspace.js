@@ -113,7 +113,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         _Position: lively.pt(3.0,22.0),
         _ShowActiveLine: false,
         _ShowErrors: true,
-        _ShowGutter: false,
+        _ShowGutter: lively.Config.get('aceShowGutterInWorkspace', true) || false,
         _ShowIndents: true,
         _ShowInvisibles: false,
         _ShowPrintMargin: false,

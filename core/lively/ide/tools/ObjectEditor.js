@@ -54,7 +54,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Position: lively.pt(184.0,40.0),
             _ShowActiveLine: false,
             _ShowErrors: true,
-            _ShowGutter: false,
+            _ShowGutter: lively.Config.get('aceShowGutterInObjectEditor', true) || false,
             _ShowIndents: true,
             _ShowInvisibles: false,
             _ShowPrintMargin: false,

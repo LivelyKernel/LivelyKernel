@@ -1366,7 +1366,9 @@ ObjectLinearizerPlugin.subclass('lively.persistence.AttributeConnectionGarbageCo
         if (registeredTarget && registeredTarget.isCopyMorphRef) return [];
 
         // can we reach roots from target without using the connection?
-        graph[data.target] = graph[data.target].withoutAll(data.weakRefs);
+        var target = graph[data.target];
+        if (target)
+          graph[data.target] = target.withoutAll(data.weakRefs);
         var hull = Object.keys(lively.lang.graph.subgraphReachableBy(graph, data.target));
         if (roots.some(function(root) { return hull.indexOf(root) > -1; })) return [];
 

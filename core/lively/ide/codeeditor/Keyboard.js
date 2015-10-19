@@ -522,6 +522,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                 multiSelectAction: 'forEach',
                 readOnly: false
             }]);
+        kbd.bindKey("Command-Alt-/", 'toggleBlockComment');
     },
 
     setupSelectionAndNavigationBindings: function(kbd) {

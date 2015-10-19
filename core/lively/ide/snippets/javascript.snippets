@@ -279,17 +279,19 @@ snippet def
 	});
 snippet req
 guard ^\s*
-	var ${1/.*\///} = require("${1}");
+	var ${3:${1/.*\///}} = require("${1}")${2};
 	$0
 snippet requ
 guard ^\s*
 	var ${1/.*\/(.)/\u$1/} = require("${1}").${1/.*\/(.)/\u$1/};
 	$0
+snippet lreq
+	lively.require("${1:lively.morphic.Core}").toRun(function() { $0 });
 # Functions.composeAsync
 snippet async
 	lively.lang.fun.composeAsync(
-		function(${1}n) { ${0:n(null);} }
-	)(${1}function(err) { if (err) show(err); });
+		function(${1:n}) { ${0:$1(null);} }
+	)(${2:thenDo});
 snippet mapasync
 	lively.lang.arr.mapAsyncSeries(
 		function(ea, _, n) { ${0:n(null);} },
@@ -314,7 +316,7 @@ snippet confirm
 	});
 # es6
 snippet f
-	${1:(arg)} => ${0}
+	${1:(${2:arg})} => ${0}
 snippet f1
 	${1:arg} => ${0}
 snippet fun*

@@ -30,7 +30,7 @@ TestCase.subclass('lively.morphic.tests.DraggableJavaScript.DropJS',
     var gen2 = dropjs.generateCode({addReceiver: true, get: true, context: m});
     this.assertEquals("this.getExtent()", gen2, "2");
 
-    var gen3 = dropjs.generateCode({addReceiver: false, set: true, args: [pt(10,10), "foo"]});
+    var gen3 = dropjs.generateCode({addReceiver: false, set: true, args: [pt(10,10), '\"foo\"']});
     this.assertEquals('setExtent(pt(10.0,10.0), "foo")', gen3, "3");
 
     var gen4 = dropjs.generateCode({addReceiver: false, set: true, args: []});

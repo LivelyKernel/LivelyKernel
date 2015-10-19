@@ -834,7 +834,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       });
     },
 
-    isClip: function() { return true; }
+    isClip: function() { return false; }
 
 },
 'text morph eval interface', {

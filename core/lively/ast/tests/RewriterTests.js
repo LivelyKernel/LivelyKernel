@@ -863,6 +863,16 @@ TestCase.subclass('lively.ast.tests.RewriterTests.AcornRewrite',
             );
         this.assertASTMatchesCode(result, expected);
         this.assertASTNodesEqual(ast, astCopy, 'Origial AST was modified during rewrite');
+    },
+
+    test37ArrowFunctionWithSingleBodyNode: function() {
+        var src = 'var x = foo => ({x: 23})',
+            ast = this.parser.parse(src),
+            astCopy = Object.deepCopy(ast),
+            result = this.rewrite(ast),
+            sourceResult = escodegen.generate(result);
+        this.assert(sourceResult.include("function (foo)"), "arrow expr not converted to function?");
+        this.assert(sourceResult.include("return { x: 23 };"), "arrow result not returning?");
     }
 
 });

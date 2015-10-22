@@ -1136,6 +1136,10 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         return node;
     },
 
+    visitArrowFunctionExpression: function(node, state) {
+      return this.visitArrowExpression(node,state);
+    },
+
     visitSequenceExpression: function(node, state) {
         node.expressions = node.expressions.map(function(ea) {
             // ea is of type Expression
@@ -1850,9 +1854,12 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         }
 
         rewriter.enterScope();
-        var args = rewriter.registerVars(n.params), // arguments
-            decls = rewriter.registerDeclarations(n.body, this), // locals
-            rewritten = this.accept(n.body, rewriter);
+        // Arrow functions can have a single node as body:
+        var body = n.body.type === "BlockStatement" ? n.body :
+              {type: "BlockStatement", body: [{type: "ReturnStatement", argument: n.body}]},
+            args = rewriter.registerVars(n.params), // arguments
+            decls = rewriter.registerDeclarations(body, this), // locals
+            rewritten = this.accept(body, rewriter);
         rewriter.exitScope();
         var wrapped = rewriter.wrapClosure({
             start: n.start, end: n.end, type: 'FunctionExpression',

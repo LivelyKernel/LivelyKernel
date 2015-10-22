@@ -1108,7 +1108,11 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
     },
 
     visitArrowExpression: function(node, state) {
-        node.params = node.params.map(function(ea) {
+        this.visitArrowFunctionExpression(node, state);
+    },
+
+    visitArrowFunctionExpression: function(node, state) {
+       node.params = node.params.map(function(ea) {
             // ea is of type Pattern
             return this.accept(ea, state);
         }, this);
@@ -1134,10 +1138,6 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
         // node.expression has a specific type that is boolean
         if (node.expression) {/*do stuff*/}
         return node;
-    },
-
-    visitArrowFunctionExpression: function(node, state) {
-      return this.visitArrowExpression(node,state);
     },
 
     visitSequenceExpression: function(node, state) {
@@ -1873,6 +1873,10 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
             id: n.id
         });
         return wrapped;
+    },
+
+    visitArrowFunctionExpression: function(n, rewriter) {
+        return this.visitFunctionExpression(n, rewriter);
     },
 
     visitVariableDeclaration: function(n, rewriter) {

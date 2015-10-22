@@ -331,7 +331,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
 
     livelyRuntimeUpdateDoitContext: function livelyRuntimeUpdateDoitContext(thenDo) {
       var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
-      if (!rt) return thenDo(null,null);
+      if (!rt) return typeof thenDo === "function" && thenDo(null, null);
       var editor = this.get("editor");
       lively.lang.Runtime.findProjectForResource(String(this.getLocation()), function(err, proj) {
         editor.doitContext = proj ?

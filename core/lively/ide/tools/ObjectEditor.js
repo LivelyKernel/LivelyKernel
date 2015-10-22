@@ -1246,6 +1246,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         case 'Command-Shift-+': case 'Control-Shift-+':
             this.newScript();
             evt.stop(); return true;
+        case 'Command-Shift--': case 'Control-Shift--':
+        case 'Command-Shift-_': case 'Control-Shift-_':
+            this.deleteSelectedScript();
+            evt.stop(); return true;
         case 'Alt-Shift-T':
             var self = this;
             lively.ide.tools.SelectionNarrowing.chooseOne(

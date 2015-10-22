@@ -1303,22 +1303,41 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.world().alertOK("Running " + scriptName);
             this.target[scriptName]();
         },
+
         saveSourceFromEditor: function saveSourceFromEditor(editor) {
-    var source = editor.getTextString(),
-        saved = editor.tryBoundEval(source);
+            var source = editor.getTextString(),
+                saved = editor.tryBoundEval(source);
 
-    if (!saved || saved instanceof Error) {
-        var msg = saved.message || "not saved";
-        editor.setStatusMessage(msg, Color.red);
-        return;
-    }
+            if (!saved || saved instanceof Error) {
+                var msg = saved.message || "not saved";
+                editor.setStatusMessage(msg, Color.red);
+                return;
+            }
 
-    editor.lastSaveSource = source;
-    this.changeIndicator.indicateUnsavedChanges();
-    this.updateListsAndSelectNewFunction();
-    editor.setStatusMessage("saved source", Color.green);
+            editor.lastSaveSource = source;
+            this.changeIndicator.indicateUnsavedChanges();
 
-},
+            var scriptName = this.get("ObjectEditorScriptList").selection;
+            if (scriptName) {
+              var ast = this.get("ObjectEditorScriptPane").getSession().$ast;
+              if (ast && ast.body.length === 1) { // displaying just a single method
+                var receiver = lively.PropertyPath("expression.callee.object.type").get(ast.body[0]);
+                var selector = lively.PropertyPath("expression.callee.property.name").get(ast.body[0])
+                var isAddScript = receiver === "ThisExpression" && selector === "addScript";
+                if (isAddScript) {
+                  var name = lively.PropertyPath("expression.arguments.0.id.name").get(ast.body[0]);
+                  if (name && name !== scriptName) {
+                    delete this.target[scriptName];
+                    this.get("ObjectEditorScriptList").selection = name;
+                  }
+                }
+              }
+            }
+
+            this.updateListsAndSelectNewFunction();
+            editor.setStatusMessage("saved source", Color.green);
+        },
+
         selectChangedContent: function selectChangedContent(source) {
 
             var addScriptRegex = /this\.addScript\s*\(\s*function\s*([^\(]*)/g;
@@ -1431,7 +1450,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             var oldScriptListItems = this.scriptList.getList();
             this.updateLists();
             var newScriptListItems = this.sortedScriptNamesOfObj(this.target);
-        
+
             var diff = newScriptListItems.withoutAll(oldScriptListItems);
             if (diff.length === 1) this.scriptList.setSelection(diff[0]);
         },

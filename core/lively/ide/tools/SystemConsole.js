@@ -122,6 +122,7 @@ lively.ide.tools.SystemConsole.ConsoleWrapperFunctions = {
       for (var i = 1; i < arguments.length; i++) {
           var idx = string.indexOf('%s');
           if (idx > -1) string = string.slice(0,idx) + String(arguments[i]) + string.slice(idx+2);
+          else string += " " + String(arguments[i]);
       }
       // this === target !
       this.onLogMessage(type, string);

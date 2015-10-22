@@ -152,7 +152,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             switch(ext) {
                 case "r": $upd("r"); return;
                 case "css": $upd("css"); return;
-                case "h": case "c": case "cpp": case "hpp": $upd("c_cpp"); return;
+                case "h": case "c": case "cc": case "cpp": case "hpp": $upd("c_cpp"); return;
                 case "diff": $upd("diff"); return;
                 case "xhtml": case "html": $upd("html"); return;
                 case "js": $upd("javascript"); return;

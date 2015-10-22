@@ -52,7 +52,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         },
 
         connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "inputChanged", this.get("FilterableList"), "inputChanged", {});
+            lively.bindings.connect(this, "inputChanged", this.owner, "inputChanged", {});
         }
     }), {
         _BorderColor: Color.rgb(202,202,202),

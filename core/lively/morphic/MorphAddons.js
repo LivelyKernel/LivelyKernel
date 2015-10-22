@@ -613,6 +613,11 @@ lively.morphic.Morph.addMethods(
 'interaction', {
     show: function() { lively.morphic.show(this) },
     edit: function() { lively.morphic.edit(this) }
+},
+"ui messaging", {
+  addStatusMessageTrait: function() {
+    Trait('lively.morphic.SetStatusMessageTrait').applyToObject(this);
+  }
 });
 
 lively.morphic.Morph.addMethods(

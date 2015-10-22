@@ -1119,10 +1119,14 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     doListProtocol: function() {
-        lively.require("lively.ide.codeeditor.Completions").toRun(function() {
-            new lively.ide.codeeditor.Completions.ProtocolLister(this)
-              .evalSelectionAndOpenNarrower();
-        }.bind(this));
+        var m = module("lively.ide.codeeditor.Completions");
+        if (!m.isLoaded()) {
+          m.load();
+          setTimeout(function() { this.doListProtocol(); }.bind(this), 200);
+        } else {
+          new lively.ide.codeeditor.Completions.ProtocolLister(this)
+            .evalSelectionAndOpenNarrower();
+        }
     },
 
     doInspect: function() {

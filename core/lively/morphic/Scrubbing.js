@@ -49,9 +49,12 @@ Trait("lively.morphic.Scrubbing",
           relativeDelta = handMarker.bounds().center().subPt(lastPos).x,
           y = distFromStart, factor;
 
-      if (y <= -scrubbing.factorOffset) { factor = initialFactor*10; }
-      else if (y >= scrubbing.factorOffset) { factor = initialFactor*.1; }
+      if      (y <= -scrubbing.factorOffset*3) { factor = initialFactor*100; }
+      else if (y <= -scrubbing.factorOffset)   { factor = initialFactor*10; }
+      else if (y >= scrubbing.factorOffset*3)  { factor = initialFactor*0.01; }
+      else if (y >= scrubbing.factorOffset)    { factor = initialFactor*0.1; }
       else { factor = initialFactor; }
+
       // there can be some annoying floating issues creak in...
       factor = lively.lang.num.roundTo(factor, 0.00000001);
 
@@ -88,12 +91,28 @@ Trait("lively.morphic.Scrubbing",
         handMarker.setStyleSheet(".Morph { cursor: ew-resize !important; }");
         handMarker.setFill(null);
 
-        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Color.gray);
-        startMarker.factorLine1 = startMarker.addMorph(l);
-        l.label = l.addMorph(lively.morphic.Text.makeLabel(String(lively.lang.num.roundTo(scrubbing.initialFactor * 10, 0.00000001)), {fill: Color.gray.darker(), textColor: Color.white, extent: pt(40, 20), align: "center"}));
-        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Color.gray);
-        startMarker.factorLine2 = startMarker.addMorph(l);
-        l.label = l.addMorph(lively.morphic.Text.makeLabel(String(lively.lang.num.roundTo(scrubbing.initialFactor * 0.1, 0.0000001)), {fill: Color.gray.darker(), textColor: Color.white, extent: pt(40, 20), align: "center"}));
+        var label = String(lively.lang.num.roundTo(scrubbing.initialFactor * 10, 0.00000001));
+        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Global.Color.gray);
+        l.applyStyle({borderStyle: "dashed"});
+        startMarker.factorLine10 = startMarker.addMorph(l);
+        l.label = l.addMorph(lively.morphic.Text.makeLabel(label, {fill: Global.Color.gray.darker(), textColor: Global.Color.white, extent: pt(40, 20), align: "center"}));
+        var label = String(lively.lang.num.roundTo(scrubbing.initialFactor * 100, 0.00000001));
+        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Global.Color.gray);
+        l.applyStyle({borderStyle: "dashed"});
+        startMarker.factorLine100 = startMarker.addMorph(l);
+        l.label = l.addMorph(lively.morphic.Text.makeLabel(label, {fill: Global.Color.gray.darker(), textColor: Global.Color.white, extent: pt(40, 20), align: "center"}));
+        var label = String(lively.lang.num.roundTo(scrubbing.initialFactor * 0.1, 0.0000001))
+        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Global.Color.gray);
+        l.applyStyle({borderStyle: "dashed"});
+        startMarker.factorLine1_10 = startMarker.addMorph(l);
+        l.label = l.addMorph(lively.morphic.Text.makeLabel(label, {fill: Global.Color.gray.darker(), textColor: Global.Color.white, extent: pt(40, 20), align: "center"}));
+        var label = String(lively.lang.num.roundTo(scrubbing.initialFactor * 0.01, 0.0000001))
+        var l = lively.morphic.Morph.makeLine([pt(0,0), pt(0,0)], 2, Global.Color.gray);
+        l.applyStyle({borderStyle: "dashed"});
+        startMarker.factorLine1_100 = startMarker.addMorph(l);
+        l.label = l.addMorph(lively.morphic.Text.makeLabel(label, {fill: Global.Color.gray.darker(), textColor: Global.Color.white, extent: pt(40, 20), align: "center"}));
+
+        startMarker.withAllSubmorphsDo(function(ea) { return ea.disableEvents(); });
       }
 
       // if (startMarker.owner !== this) this.addMorph(startMarker);
@@ -103,23 +122,33 @@ Trait("lively.morphic.Scrubbing",
       this.onScrubbingStart(evt, scrubbing);
       this.updateScrubbing(evt);
 
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
       var screenWidth = $world.visibleBounds().width;
       var origin = startMarker.worldPoint(pt(0,0));
 
-      var factorLine1Left = pt(-origin.x, -scrubbing.factorOffset);
-      var factorLine1Right = pt(screenWidth-origin.x, -scrubbing.factorOffset);
-      var factorLine2Left = pt(-origin.x, scrubbing.factorOffset);
-      var factorLine2Right = pt(screenWidth-origin.x, scrubbing.factorOffset);
-      startMarker.factorLine1.getControlPoint(0).setPos(factorLine1Left);
-      startMarker.factorLine1.getControlPoint(1).setPos(factorLine1Right);
-      startMarker.factorLine2.getControlPoint(0).setPos(factorLine2Left);
-      startMarker.factorLine2.getControlPoint(1).setPos(factorLine2Right);
+      var factorLine10Left     = pt(-origin.x, -scrubbing.factorOffset);
+      var factorLine10Right    = pt(screenWidth-origin.x, -scrubbing.factorOffset);
+      var factorLine100Left    = pt(-origin.x, -scrubbing.factorOffset*3);
+      var factorLine100Right   = pt(screenWidth-origin.x, -scrubbing.factorOffset*3);
+      var factorLine1_10Left   = pt(-origin.x, scrubbing.factorOffset);
+      var factorLine1_10Right  = pt(screenWidth-origin.x, scrubbing.factorOffset);
+      var factorLine1_100Left  = pt(-origin.x, scrubbing.factorOffset*3);
+      var factorLine1_100Right = pt(screenWidth-origin.x, scrubbing.factorOffset*3);
+      startMarker.factorLine10   .getControlPoint(0).setPos(factorLine10Left);
+      startMarker.factorLine10   .getControlPoint(1).setPos(factorLine10Right);
+      startMarker.factorLine100  .getControlPoint(0).setPos(factorLine100Left);
+      startMarker.factorLine100  .getControlPoint(1).setPos(factorLine100Right);
+      startMarker.factorLine1_10 .getControlPoint(0).setPos(factorLine1_10Left);
+      startMarker.factorLine1_10 .getControlPoint(1).setPos(factorLine1_10Right);
+      startMarker.factorLine1_100.getControlPoint(0).setPos(factorLine1_100Left);
+      startMarker.factorLine1_100.getControlPoint(1).setPos(factorLine1_100Right);
 
-      startMarker.factorLine1.label.align(startMarker.factorLine1.label.bounds().bottomLeft(), factorLine1Left);
-      startMarker.factorLine2.label.align(startMarker.factorLine2.label.bounds().bottomLeft(), factorLine2Left);
-  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      startMarker.factorLine10   .label.align(startMarker.factorLine10   .label.bounds().bottomLeft(), factorLine10Left);
+      startMarker.factorLine100  .label.align(startMarker.factorLine100  .label.bounds().bottomLeft(), factorLine100Left);
+      startMarker.factorLine1_10 .label.align(startMarker.factorLine1_10 .label.bounds().bottomLeft(), factorLine1_10Left);
+      startMarker.factorLine1_100.label.align(startMarker.factorLine1_100.label.bounds().bottomLeft(), factorLine1_100Left);
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   },
 
   stopScrubbing: function(evt) {

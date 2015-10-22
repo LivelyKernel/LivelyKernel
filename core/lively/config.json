@@ -457,7 +457,7 @@
           "type": "function",
           "code": "function() { return lively.Config._menuBarEntries || (lively.Config._menuBarEntries = lively.Config.get('menuBarDefaultEntries')); }"
       },
-      "set": {"type": "function", "code": "function(v) { lively.Config.menuBarEntries.pushIfNotIncluded(v); lively.morphic.tools.MenuBar.addEntries(v); }"}
+      "set": {"type": "function", "code": "function(v) { lively.Config._menuBarEntries = v; module('lively.morphic.tools.MenuBar').runWhenLoaded(function() { lively.morphic.tools.MenuBar.openOnWorldLoad(); }); return v; }"}
     },
 
     ["menuBarDefaultEntries", [

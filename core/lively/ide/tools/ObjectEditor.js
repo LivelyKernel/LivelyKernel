@@ -150,7 +150,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,
-            _Extent: lively.pt(251.0,21.0),
+            _Extent: lively.pt(400,21.0),
             _Position: lively.pt(185.0,9.0),
             className: "lively.morphic.Button",
             label: "ObjectEditor",
@@ -393,12 +393,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             morphRefId: 27,
             name: "ObjectEditorScriptsText2",
             textString: "Tag:"
-        },{
+        },
+
+        {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,
-            _Extent: lively.pt(100.0,21.0),
-            _Position: lively.pt(714.0,9.0),
+            _Extent: lively.pt(40,21.0),
+            _Position: lively.pt(728,9.0),
             className: "lively.morphic.Button",
             isPressed: false,
             label: "run",
@@ -418,12 +420,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     align: "center",
                     borderWidth: 0,
                     clipMode: "hidden",
-                    emphasize: {
-                        textShadow: {
-                            color: Color.rgb(255,255,255),
-                            offset: lively.pt(0.0,1.0)
-                        }
-                    },
                     fill: null,
                     fixedHeight: true,
                     fixedWidth: true,
@@ -437,13 +433,52 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             lively.bindings.connect(this, "fire", this.get("ObjectEditorPane"), "runScript", {});
         }
         },
-        
+
+        {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 3,
+            _BorderWidth: 1,
+            _Extent: lively.pt(40,21.0),
+            _Position: lively.pt(772.0,9.0),
+            className: "lively.morphic.Button",
+            isPressed: false,
+            label: "save",
+            layout: {
+                centeredHorizontal: false,
+                moveHorizontal: true
+            },
+            name: "Button",
+            sourceModule: "lively.morphic.Widgets",
+            style: {
+                borderColor: Color.rgb(189,190,192),
+                borderRadius: 0,
+                borderWidth: 1,
+                enableDropping: false,
+                enableGrabbing: false,
+                padding: lively.rect(0,3,0,0),
+                label: {
+                    align: "center",
+                    borderWidth: 0,
+                    clipMode: "hidden",
+                    fill: null,
+                    fixedHeight: true,
+                    fixedWidth: true,
+                    fontSize: 10,
+                    padding: lively.rect(0,3,0,0),
+                    textColor: Color.rgb(0,0,0)
+                }
+            },
+            connectionRebuilder: function connectionRebuilder() {
+            lively.bindings.connect(this, "fire", this.get("ObjectEditorScriptPane"), "doSave", {});
+        }
+        },
+
         {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,
             _Extent: lively.pt(100.0,21.0),
-            _Position: lively.pt(610.0,9.0),
+            _Position: lively.pt(624,9.0),
             className: "lively.morphic.Button",
             isPressed: false,
             label: "debug next call",
@@ -481,12 +516,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                   lively.debugNextMethodCall(
                     editor.getDoitContext(), methods.selection, editor,
                     function() { button.setLabel("disable debugger"); });
-  
+
                   editor.setStatusMessage("Debugger will open on next activation to " + methods.selection);
                 });
               } else {
                 lively.ide.codeeditor.JavaScriptDebugging.removeRecordingWorkspaceBehavior(editor);
-                button.setLabel("debug next call"); 
+                button.setLabel("debug next call");
               }
             }
         },

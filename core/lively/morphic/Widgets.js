@@ -11,12 +11,11 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         borderColor: Color.neutral.lightGray,
         borderWidth: 1,
         borderRadius: 5,
-        padding: Rectangle.inset(0,3),
 
         label: {
             borderWidth: 0,
             fill: null,
-            padding: Rectangle.inset(0,3),
+            padding: Rectangle.inset(3,3),
             fontSize: 10,
             align: 'center',
             fixedWidth: true,
@@ -62,8 +61,17 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
         this.label.setTextStylingMode(true);
         this.label.disableEvents();
         return this.label;
-    }
+    },
 
+    fitToLabel: function(thenDo) {
+      var self = this, l = this.label
+      l.applyStyle({fixedWidth: false, fixedHeight: false});
+      l.fitThenDo(function() {
+        self.fitToSubmorphs();
+        l.applyStyle({fixedWidth: true, fixedHeight: true});
+        thenDo && thenDo();
+      });
+    },
 },
 'accessing', {
 

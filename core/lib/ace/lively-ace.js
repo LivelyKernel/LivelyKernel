@@ -14754,7 +14754,23 @@ var FontMetrics = exports.FontMetrics = function(parentEl, interval) {
         }
     };
 
+    this.$invertTransforms = function(el) {
+        // Applying an inverse transform is currently only supprted for Webkit
+        if (!useragent.isWebKit) return;
+        var node = el.parentNode,
+            tfm = new WebKitCSSMatrix();
+
+        while (node) {
+            if (node.style && node.style.webkitTransform) {
+                tfm = tfm.multiply(new WebKitCSSMatrix(node.style.webkitTransform));
+            }
+            node = node.parentNode;
+        }
+        el.style.webkitTransform = tfm.inverse();
+    };
+
     this.$measureSizes = function() {
+        this.$invertTransforms(this.$measureNode);
         if (CHAR_COUNT === 50) {
             var rect = null;
             try { 
@@ -14772,9 +14788,7 @@ var FontMetrics = exports.FontMetrics = function(parentEl, interval) {
                 width: this.$measureNode.clientWidth / CHAR_COUNT
             };
         }
-        if (size.width === 0 || size.height === 0)
-            return null;
-        return size;
+        return size.width === 0 || size.height === 0 ?  null : size;
     };
 
     this.$measureCharWidth = function(ch) {

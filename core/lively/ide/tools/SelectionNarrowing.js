@@ -96,15 +96,15 @@ Object.extend(lively.ide.tools.SelectionNarrowing, {
                 remove && lively.bindings.connect(narrower, 'deactivate', narrower, 'remove');
                 thenDo && lively.bindings.connect(narrower, 'escapePressed', thenDo, 'call', {removeAfterUpdate: true});
             },
-            spec: {
-                prompt: options.prompt || 'select item: ',
+            spec: lively.lang.obj.merge({
+                prompt: 'select item: ',
                 candidates: list.asListItemArray(),
-                actions: options.actions || [
+                actions: [
                     {name: 'with item do', exec: function(candidate) {
                         thenDoCalled = true;
                         thenDo(null, candidate); }},
                 ]
-            }
+            }, options)
         });
     },
 

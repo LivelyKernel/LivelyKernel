@@ -298,103 +298,46 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
             _Position: lively.pt(165.9,6.6),
             className: "lively.morphic.Box",
             droppingEnabled: false,
+            _ClipMode: "hidden",
             isCopyMorphRef: true,
-            layout: {
-                adjustForNewBounds: true,
-                borderSize: 0,
-                extentWithoutPlaceholder: lively.pt(1365.0,460.0),
-                resizeHeight: true,
-                resizeWidth: true,
-                spacing: 3,
-                type: "lively.morphic.Layout.VerticalLayout"
-            },
+            layout: {adjustForNewBounds: true, resizeHeight: true},
             morphRefId: 2,
             name: "CategorieContainer",
             sourceModule: "lively.morphic.Core",
             submorphs: [{
-                _Extent: lively.pt(657.7,473.0),
+                _Extent: lively.pt(658,473),
                 _Fill: Color.rgba(255,255,255,0),
                 className: "lively.morphic.Box",
                 droppingEnabled: false,
                 layout: {
                     borderSize: 0,
-                    extentWithoutPlaceholder: lively.pt(1400.3,159.0),
+                    extentWithoutPlaceholder: lively.pt(1400,160),
                     resizeHeight: true,
                     resizeWidth: true,
-                    spacing: 7.670000000000001,
+                    spacing: 7,
                     type: "lively.morphic.Layout.VerticalLayout"
                 },
                 name: "CategoryContentContainer",
                 sourceModule: "lively.morphic.Core",
-                submorphs: [{
-                    _BorderColor: Color.rgb(190,190,190),
-                    _Extent: lively.pt(657.7,27.0),
-                    _Fill: Color.rgb(255,255,255),
-                    _FontFamily: "Helvetica",
-                    _HandStyle: null,
-                    _InputAllowed: true,
-                    _IsSelectable: true,
-                    _Padding: lively.rect(25,7,0,0),
-                    _TextColor: Color.rgb(64,64,64),
-                    _VerticalAlign: "bottom",
-                    allowInput: true,
-                    className: "lively.morphic.Text",
-                    draggingEnabled: true,
-                    droppingEnabled: false,
-                    emphasis: [[0,0,{}]],
-                    fixedHeight: true,
-                    fixedWidth: true,
-                    grabbingEnabled: false,
-                    isInputLine: true,
-                    layout: {
-                        adjustForNewBounds: true,
-                        resizeHeight: false,
-                        resizeWidth: true
-                    },
+                submorphs: [
+                  lively.BuildSpec('lively.ide.tools.CommandLine').customize({
                     name: "searchText",
-                    sourceModule: "lively.morphic.TextCore",
-                    style: {
-                        allowInput: true,
-                        borderColor: Color.rgb(190,190,190),
-                        borderRadius: 0,
-                        borderWidth: 0,
-                        clipMode: "visible",
-                        enableDragging: true,
-                        enableDropping: false,
-                        enableGrabbing: false,
-                        fill: Color.rgb(255,255,255),
-                        fixedHeight: true,
-                        fixedWidth: true,
-                        fontFamily: "Helvetica",
-                        fontSize: 10,
-                        padding: lively.rect(25,7,0,0),
-                        textColor: Color.rgb(64,64,64)
-                    },
-                    onFocus: function onFocus(evt) {
-                        delete this.priorSelectionRange;
-                        $super(evt);
-                        // do not restore the previous selection range, just select everything
-                        this.selectAll()
-                    },
-                    submorphs: [{
-                        _BorderColor: Color.rgb(204,0,0),
-                        _Extent: lively.pt(13.0,15.0),
-                        _Position: lively.pt(6.4,6.0),
-                        className: "lively.morphic.Image",
-                        doNotSerialize: ["_whenLoadedCallbacks"],
-                        droppingEnabled: true,
-                        layout: {
-                            centeredVertical: true
-                        },
-                        sourceModule: "lively.morphic.Widgets",
-                        submorphs: [],
-                        url: "http://lively-web.org/core/media/halos/info.svg",
-                        withoutLayers: []
-                    }],
-                    withoutLayers: [],
+                    layout: {adjustForNewBounds: true, resizeHeight: false, resizeWidth: true},
+                    _Extent: lively.pt(658,18),
+                    labelString: "  ",
+                    clearOnInput: false,
                     connectionRebuilder: function connectionRebuilder() {
-                    lively.bindings.connect(this, "savedTextString", this.get("PartsBinBrowser"), "search", {});
-                }
+                      lively.bindings.connect(this, "savedTextString", this.get("PartsBinBrowser"), "search", {});
+                    }
+                  }),
+                  {
+                    _BorderColor: Color.rgb(204,0,0),
+                    _Extent: lively.pt(12.0,12.0),
+                    _Position: lively.pt(2,2),
+                    className: "lively.morphic.Image",
+                    droppingEnabled: true,
+                    isLayoutable: false,
+                    url: "http://lively-web.org/core/media/halos/info.svg",
                 },{
                     _BorderColor: Color.rgb(210,210,210),
                     _ClipMode: "auto",
@@ -517,11 +460,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 movedVerticallyBy: function movedVerticallyBy(delta) {
                                 $super(delta);
                                 // toggle auto
-                                if (this.bounds().bottomRight().y < this.get('CategorieContainer').getExtent().y) {
-                                    this.get('PartsBinBrowser').moreToggled = true
-                                } else {
-                                    this.get('PartsBinBrowser').moreToggled = false
-                                }
+                                  this.get('PartsBinBrowser').moreToggled =
+                                    this.bounds().bottom() < this.get('CategorieContainer').innerBounds().bottom();
                             }
             },{
                 _BorderColor: Color.rgb(204,204,204),
@@ -1140,7 +1080,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
 
         this.showMsg("searching...");
         var pb = this;
-        var searchString = this.get('searchText').textString;
+        var searchString = this.get('searchText').getInput();
         if (!searchString || searchString.length === 0) return;
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // find parts via cmdline
@@ -1171,7 +1111,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                 var partPath = line.split(partsBinPath).last();
                 return pb.partsBinURL().withFilename(partPath);
             });
-            next(partItemURLs)
+            next(partItemURLs);
+            pb.get('searchText').focus();
         }
 
         function listPartItems(partItemURLs) { pb.addPartsFromURLs(partItemURLs); }
@@ -1380,6 +1321,9 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
         onLoadLatest: function onLoadLatest(latestFiles) {
         var latestURLs = latestFiles.pluck('path').map(function(path) { return Global.URL.root.withFilename(path); });
         this.addPartsFromURLs(latestURLs);
+    },
+        onWindowGetsFocus: function onWindowGetsFocus() {
+          this.get("searchText").focus();
     },
         openPart: function openPart(partMorph) {
         partMorph.setName(this.makeUpPartNameFor(partMorph.getName()));
@@ -1619,7 +1563,8 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
     },
         updateCategoryList: function updateCategoryList(optCategoryName, doNotUpdate) {
         this.get('categoryList').updateList(
-        Global.Properties.own(this.categories).sortBy(function(name) { return name.toLowerCase()}));
+          lively.lang.properties.own(this.categories)
+            .sortBy(function(name) { return name.toLowerCase()}));
         if (!doNotUpdate)
             this.get('categoryList').setSelection(optCategoryName)
     },

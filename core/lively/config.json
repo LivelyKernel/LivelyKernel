@@ -303,7 +303,7 @@
       "doc": "Tab width",
       "get": {
           "type": "function",
-          "code": "function() { return lively.Config.hasOwnProperty('_defaultTabSize') ? lively.Config._defaultTabSize : 4; }"
+          "code": "function() { return lively.Config.hasOwnProperty('_defaultTabSize') ? lively.Config._defaultTabSize : 2; }"
       },
       "set": {"type": "function", "code": "function(v) { lively.Config._defaultTabSize = v; module('lively.ide.CodeEditor').runWhenLoaded(function() { lively.morphic.CodeEditor.prototype.style.tabSize = v; lively.whenLoaded(function() { lively.ide.allCodeEditors().invoke('setTabSize', v); }); }); return v; }"}
     },

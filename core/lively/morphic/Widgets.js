@@ -2668,18 +2668,17 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
 'window behavior', {
 
     initiateShutdown: function() {
-        var shutdownCallback = function() {
-            this.signalShutdown;
-            var owner = this.owner;
-            this.remove(); // this will be removed from the owner and it will loose its owner
+        var win = this;
+        function shutdownCallback() {
+            win.signalShutdown();
+            var owner = win.owner;
+            win.remove(); // win will be removed from the owner and it will loose its owner
             if (owner.activateTopMostWindow) owner.activateTopMostWindow();
-        }.bind(this);
-
-        if (this.targetMorph && this.targetMorph.ifOkToShutdownDo) {
-            this.targetMorph.ifOkToShutdownDo(shutdownCallback);
-        } else {
-            shutdownCallback();
         }
+
+        if (this.targetMorph && this.targetMorph.ifOkToShutdownDo)
+          this.targetMorph.ifOkToShutdownDo(shutdownCallback);
+        else shutdownCallback();
     },
     signalShutdown: function() {
         if (this.onShutdown) this.onShutdown();

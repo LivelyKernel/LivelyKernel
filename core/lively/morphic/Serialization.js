@@ -195,6 +195,8 @@ lively.morphic.World.addMethods(
             throw new Error('Cannot save world, not a valid URL: ' + url);
         }
 
+        this.enableMorphicUndo(); // Resets the undo queue to save space
+
         // save world to a different domain / server
         if (!url.eqDomain(URL.root) && !bootstrapModuleURL) {
             function transformRootURLToBootstrapURL(urlString) {

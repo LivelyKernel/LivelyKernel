@@ -373,6 +373,110 @@ lively.morphic.Morph.addMethods(
         return this.grabbingEnabled || this.grabbingEnabled === undefined;
     }
 },
+'undo', {
+    undoRedoTransformationChange: function(spec, undo) {
+        if (!undo || undo == 'undo') {
+            if (spec.startOrigin !== spec.endOrigin) {
+
+            }
+            // Change of owner due to grab/drop or remove
+            if (spec.startOwner !== spec.endOwner) {
+                if (spec.startOwner == null)
+                    this.remove();
+                else
+                    spec.startOwner.addMorph(this);
+            }
+            // Drag, rotate, scale
+            this.setTransform(spec.startTransform);
+            if (!spec.startExtent.eqPt(spec.endExtent)) {
+                this.setExtent(spec.startExtent.scaleBy(1/this.getScale()));
+            }
+        }
+        if (undo == 'redo') {
+            if (spec.startOrigin !== spec.endOrigin) {
+
+            }
+            // Change of owner due to grab/drop or remove
+            if (spec.startOwner !== spec.endOwner) {
+                spec.endOwner.addMorph(this);
+            }
+            // Drag, rotate, scale
+            this.setTransform(spec.endTransform);
+            if (!spec.startExtent.eqPt(spec.endExtent)) {
+                    this.setExtent(spec.endExtent.scaleBy(1/this.getScale()));
+            }
+        }
+    },
+    undoRedoStyleChange: function(spec, undo) {
+        var propName = spec.actionName;
+        if (!undo || undo == 'undo') {
+            this['set'+propName](spec['start'+propName]);
+        }
+        if (undo == 'redo') {
+            this['set'+propName](spec['end'+propName]);
+        }
+    },
+    logStyleForUndo: function(propName, phase) {
+        // See World.undoReadme
+        // Note: propName will be capitalized, as 'BorderWidth'
+        // Style changes for now are all continuous - we can't tell the first from others
+        // Therefore we look at the last undo item, and if it matches (morph and propName)
+        //    then we amend with new value for end<Prop>, else we log a new undo item
+        if ($world.undoQueue.length == 0
+            || $world.undoQueue.last().morph !== this
+            || $world.undoQueue.last().actionName != propName) {
+            // Log the starting state for style changes
+            var spec = {morph: this, actionName: propName, phase: 'before',
+                        undoFunctionName: 'undoRedoStyleChange'};
+            spec['start'+propName] = this['get'+propName]();
+            $world.logMorphicAction(spec);
+            return;
+        }
+
+        // Log the ending state for changing style parameters
+        var spec = {morph: this, actionName: propName, phase: 'after'};
+        spec['end'+propName] = this['get'+propName]();
+        $world.amendMorphicAction(spec);
+    },
+
+    logTransformationForUndo: function(actionName, phase, evt) {
+        // See World.undoReadme
+        // Note grab/drop involves change in both ownership and transformation
+        // Change of origin is handled separately
+        var transform = this.getTransform();
+        //in the case where morph gets moved by a mouse directly (without using the halo)
+        //we need to calculate the mouse offset to get the morph's true start origin
+        //and then adjust the difference in both the startOrigin, and startTransform.
+        if(evt && evt.hand && evt.hand.eventStartPos && 
+            ! (evt.getTargetMorph() instanceof lively.morphic.GrabHalo )) {
+            var mouseOffsetX = evt.getPosition().x - evt.hand.eventStartPos.x;
+            var mouseOffsetY = evt.getPosition().y - evt.hand.eventStartPos.y;
+            transform.e -= mouseOffsetX;
+            transform.f -= mouseOffsetY;
+        }
+        var org = transform.transformPoint(this.getOrigin());
+        if (phase == null || phase == 'start') {
+            // Log the starting state for, eg, grab, drag, etc.
+            $world.logMorphicAction({
+                morph: this, actionName: actionName, phase: phase,
+                undoFunctionName: 'undoRedoTransformationChange',
+                startTransform: transform, startExtent: this.getBounds().extent(),
+                startOwner: this.owner,
+                startIndexInSubmorphs: this.owner ? this.owner.submorphs.indexOf(this) : null,
+                startOrigin: org
+            });
+            return;
+        }
+        // Log the ending state for, eg, grab, drag, etc.
+        var amendments = {
+            morph: this, actionName: actionName, phase: phase,
+            endTransform: this.getTransform(), endExtent: this.getBounds().extent(),
+            endOwner: this.owner, endOrigin: org
+        };
+        if (this.owner) amendments.endIndexInSubmorphs = this.owner.submorphs.indexOf(this)
+            $world.amendMorphicAction(amendments);
+        }
+    },
 'copying', {
     duplicate: function() { return this.copy() }
 },
@@ -949,6 +1053,89 @@ lively.morphic.World.addMethods(
         return this.addStatusMessageMorph(this.addProgressBar(null, label));
     }
 
+},
+'undo', {
+    undoQueue: [],
+    undoRedoPointer: -1,
+    enableMorphicUndo: function() {
+        // See undoReadme
+        // non-null queue means logging is enabled
+        this.undoQueue = [];
+        this.undoRedoPointer = -1;
+    },
+    logMorphicAction: function(actionSpec) {
+        // See undoReadme
+        // enter a new action spec in the queue
+        if (!this.undoQueue) return;  // undo not enabled
+
+        var numUndone = (this.undoQueue.length - 1) - this.undoRedoPointer;
+        if (numUndone > 0) {
+            for (var i=0; i<numUndone; i++) {
+                this.undoQueue.pop();  // shorten queue to last undo/redo point
+            }
+        }
+
+        var maxQueueLength = 20;
+        if (this.undoQueue.length > maxQueueLength) {
+            this.undoQueue.splice(0, 2);
+        }
+        this.undoQueue.push(actionSpec)
+        this.undoRedoPointer = this.undoQueue.length - 1;  // reset pointer to latest action
+        return;
+    },
+    undoLastAction: function(actionSpec) {
+        // undo the most recent action
+        //  or before the last undo or after the last redo
+        if (!this.undoQueue) return;  // undo not enabled
+
+        if (this.undoRedoPointer < 0) return;  // queue is  empty
+        var action = this.undoQueue[this.undoRedoPointer]
+        if (action.phase && action.phase == 'start') {
+            console.log("Undo action still has phase = 'start'")
+        }
+        action.morph[action.undoFunctionName](action, 'undo');
+        this.undoRedoPointer--
+    },
+    redoNextAction: function() {
+        // redo the most recent undone action or that after the last redo
+        if (!this.undoQueue) return;  // undo not enabled
+
+        if (this.undoRedoPointer+1 > this.undoQueue.length-1) return;  // queue is  empty
+        var action = this.undoQueue[this.undoRedoPointer+1]
+        if (action.phase && action.phase == 'start') {
+            console.log("Last undo action still has phase = 'start'")
+        }
+        action.morph[action.undoFunctionName](action, 'redo');
+        this.undoRedoPointer++
+    },
+    getUndoQueue: function() {
+        return this.undoQueue;
+    },
+    amendMorphicAction: function(amendment) {
+        // See undoReadme
+        // amend the last spec in undoQueue with updated values
+        // note the amendment's morph and actionName must match that of the original spec
+        if (!this.undoQueue || this.undoQueue.length == 0) return;
+        var lastAction = this.undoQueue.last();
+        if (lastAction.morph !== amendment.morph || lastAction.actionName !== amendment.actionName) {
+            console.log('Unmatching log of state for ' + amendment.actionName + ' ' + amendment.phase);
+            // Maybe we should do more - like check if lastAction phase was start
+            // meaning it needs more, so we should take it off the queue since incomplete
+            return
+        }
+        for (p in amendment) { lastAction[p] = amendment[p] };
+    },
+    undoReadme: function() {
+        // NOTE:  Simple undo records should be logged with null phase = 'start/end'
+        // start/end actions (like button down/up) should be logged with, eg, 'start', 'end'
+        // continuous actions (like slider) should be logged with, eg, 'more', 'more', 'more', ...
+        // What really matters is that 'start/end', 'start', or the first 'more' with a given
+        //      caption will *log* a new undo record, andything else will *amend*
+    },
+    disableMorphicUndo: function() {
+        // Null queue means no logging
+        this.undoQueue = null;
+    }
 },
 'preferences', {
 

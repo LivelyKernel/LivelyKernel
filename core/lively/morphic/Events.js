@@ -2012,6 +2012,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 },
 'event handling', {
     grabMorph: function(morph, evt) {
+        morph.logTransformationForUndo('grab', 'start', evt);
         morph.previousOwner = morph.owner;
         morph.previousPosition = morph.getPosition();
         morph.previouslyFixed = morph.hasFixedPosition();
@@ -2053,6 +2054,10 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
               submorph.onGrabEnd(evt, morph);
             }
         };
+        if (submorphs.length == 2 && submorphs[0].isGrabShadow) {
+            console.log("logging end of grab");
+            submorphs[1].logTransformationForUndo('grab', 'end');
+        }
         evt && evt.stop();
         return true;
     }

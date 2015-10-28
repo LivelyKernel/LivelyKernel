@@ -2672,7 +2672,9 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         function shutdownCallback() {
             win.signalShutdown();
             var owner = win.owner;
+            win.logTransformationForUndo('close', 'start');
             win.remove(); // win will be removed from the owner and it will loose its owner
+            win.logTransformationForUndo('close', 'end');
             if (owner.activateTopMostWindow) owner.activateTopMostWindow();
         }
 
@@ -2970,6 +2972,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
 
     onDragStart: function($super, evt) {
         this.startDragPos = evt.getPosition();
+        this.owner.logTransformationForUndo('reframe', 'start');
         this.originalTargetExtent = this.owner.getExtent();
         evt.stop(); return true;
     },
@@ -2989,6 +2992,7 @@ lively.morphic.Box.subclass('lively.morphic.ReframeHandle',
         delete this.originalTargetExtent;
         delete this.startDragPos;
         this.owner.alignAllHandles();
+        this.owner.logTransformationForUndo('reframe', 'end');
         evt.stop(); return true;
     }
 },

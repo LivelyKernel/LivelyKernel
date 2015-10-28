@@ -937,7 +937,7 @@ Object.subclass("lively.ast.Rewriting.BaseVisitor",
             node.handler = this.accept(node.handler, state);
         }
 
-        node.guardedHandlers = node.guardedHandlers.map(function(ea) {
+        node.guardedHandlers = node.guardedHandlers && node.guardedHandlers.map(function(ea) {
             // ea is of type CatchClause
             return this.accept(ea, state);
         }, this);
@@ -2133,10 +2133,13 @@ lively.ast.Rewriting.BaseVisitor.subclass("lively.ast.Rewriting.RewriteVisitor",
         var block = this.accept(n.block, rewriter),
             handler = n.handler,
             finalizer = n.finalizer,
-            guardedHandlers = n.guardedHandlers.map(function(node) {
-                // node is of type CatchClause
-                return this.accept(node, rewriter);
-            }, this);
+            guardedHandlers;
+        if (n.guardedHandlers) {
+          guardedHandlers = n.guardedHandlers.map(function(node) {
+              // node is of type CatchClause
+              return this.accept(node, rewriter);
+          }, this);
+        }
         if (!handler)
             handler = rewriter.newNode('CatchClause', {
                 param: rewriter.newNode('Identifier', { name: 'e' }),

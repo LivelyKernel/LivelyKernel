@@ -583,11 +583,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 selection: null,
                 sourceModule: "lively.morphic.Lists",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("ObjectEditorPane"), "displaySourceForScript", {updater:
-            function ($upd, value) {
-                                this.sourceObj.isFocused() && this.sourceObj.focus.bind(this.sourceObj).delay(0.1);
-                                $upd(value === '-- ALL --'? null : value);
-                            }});
+                  lively.bindings.connect(
+                    this, "selection",
+                    this.get("ObjectEditorPane"), "displaySourceForScript", {
+                      updater: function ($upd, value) {
+                        var selectIt = this.sourceObj.selection !== value;
+                        this.sourceObj.isFocused() && this.sourceObj.focus.bind(this.sourceObj).delay(0.1);
+                          $upd(value === '-- ALL --'? null : value, selectIt);
+                      }});
             },
                 onKeyDown: function onKeyDown(evt) {
                             var keys = evt.getKeyString();
@@ -1136,18 +1139,20 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.displayJavaScriptSource(code);
             this.updateTitleBar();
         },
-        displaySourceForScript: function displaySourceForScript(scriptName) {
-    var codeSpec = scriptName ?
-        this.generateSourceForScript(scriptName) : {
-            code: this.sortedScriptNamesOfObj(this.target)
-                .map(this.generateSourceForScript, this)
-                .pluck('code')
-                .join('\n\n\n'),
-            mode: 'javascript'
-        }
-    this.displayJavaScriptSource(codeSpec.code, codeSpec.scriptName, codeSpec.mode);
-    this.updateTitleBar();
-},
+
+        displaySourceForScript: function displaySourceForScript(scriptName, selectName) {
+          var codeSpec = scriptName ?
+              this.generateSourceForScript(scriptName) : {
+                  code: this.sortedScriptNamesOfObj(this.target)
+                      .map(this.generateSourceForScript, this)
+                      .pluck('code')
+                      .join('\n\n\n'),
+                  mode: 'javascript'
+              }
+            this.displayJavaScriptSource(codeSpec.code, selectName ? codeSpec.scriptName : null, codeSpec.mode);
+            this.updateTitleBar();
+        },
+
         generateSourceForConnection: function generateSourceForConnection(connection) {
             var c = connection, targetObject = this.target;
             if (!c.getTargetObj() || !c.getTargetObj().name ||
@@ -1231,12 +1236,16 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 this.displayJavaScriptSource(code, "SOURCE");
             }
         },
+
         newScript: function newScript() {
-            if (this.target) {
-                var code = "this.addScript(function SCRIPTNAME() {\n    \n}).tag([]);";
-                this.displayJavaScriptSource(code, "SCRIPTNAME");
-            }
+          if (this.target) {
+              this.get("ObjectEditorScriptList").selectAt(0);
+              var code = "this.addScript(function SCRIPTNAME() {\n    \n}).tag([]);";
+              this.displayJavaScriptSource(code, "SCRIPTNAME");
+              this.get("ObjectEditorScriptPane").focus();
+          }
         },
+
         onKeyDown: function onKeyDown(evt) {
     var keys = evt.getKeyString();
     switch (keys) {
@@ -1258,7 +1267,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     if (err) return show('%s', err);
                     self.get('ObjectEditorScriptList').setSelection(candidate);
                 },
-                {});
+                {name: "lively.ide.ObjectEditorMethodSelector"});
             evt.stop(); return true;
     }
     return $super(evt);
@@ -1305,38 +1314,57 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
 
         saveSourceFromEditor: function saveSourceFromEditor(editor) {
-            var source = editor.getTextString(),
-                saved = editor.tryBoundEval(source);
+          var source = editor.getTextString(),
+              saved = editor.tryBoundEval(source),
+              self = this;
+      
+          if (!saved || saved instanceof Error) {
+              var msg = saved.message || "not saved";
+              editor.setStatusMessage(msg, Global.Color.red);
+              return;
+          }
+      
+          editor.lastSaveSource = source;
+          this.changeIndicator.indicateUnsavedChanges();
 
-            if (!saved || saved instanceof Error) {
-                var msg = saved.message || "not saved";
-                editor.setStatusMessage(msg, Color.red);
-                return;
+          this.update();
+
+          var prevScriptName = this.get("ObjectEditorScriptList").selection,
+              newScriptName;
+          if (prevScriptName === "-- ALL --") prevScriptName = null;
+          
+          var ast = this.get("ObjectEditorScriptPane").getSession().$ast;
+          if (ast && ast.body.length === 1) { // displaying just a single method
+            var p = lively.lang.Path,
+                call = ast.body[0].expression,
+                receiver = p("callee.object.type").get(call);
+            while (receiver === "CallExpression") {
+              call = p("callee.object").get(call);
+              receiver = p("callee.object.type").get(call);
             }
-
-            editor.lastSaveSource = source;
-            this.changeIndicator.indicateUnsavedChanges();
-
-            var scriptName = this.get("ObjectEditorScriptList").selection;
-            if (scriptName) {
-              var ast = this.get("ObjectEditorScriptPane").getSession().$ast;
-              if (ast && ast.body.length === 1) { // displaying just a single method
-                var receiver = lively.PropertyPath("expression.callee.object.type").get(ast.body[0]);
-                var selector = lively.PropertyPath("expression.callee.property.name").get(ast.body[0])
-                var isAddScript = receiver === "ThisExpression" && selector === "addScript";
-                if (isAddScript) {
-                  var name = lively.PropertyPath("expression.arguments.0.id.name").get(ast.body[0]);
-                  if (name && name !== scriptName) {
-                    delete this.target[scriptName];
-                    this.get("ObjectEditorScriptList").selection = name;
-                  }
-                }
-              }
+            var selector = p("callee.property.name").get(call),
+                isAddScript = receiver === "ThisExpression" && selector === "addScript";
+            if (isAddScript) {
+              newScriptName = p("arguments.0.id.name").get(call);
             }
+          }
 
-            this.updateListsAndSelectNewFunction();
-            editor.setStatusMessage("saved source", Color.green);
-        },
+          if (prevScriptName && newScriptName && newScriptName !== prevScriptName) {
+             $world.multipleChoicePrompt(
+               "Rename " + prevScriptName + " to " + " " + newScriptName + "\n or add as new script?",
+               ["Rename", "Add as new script", "Cancel"],
+               function(choice) {
+                 if (choice === "Cancel") return;
+                 if (choice === "Rename") { delete self.target[prevScriptName]; }
+                 self.get("ObjectEditorScriptList").selection = newScriptName;
+                 editor.setStatusMessage("saved source", Global.Color.green);
+               });
+           } else {
+             debugger;
+             self.get("ObjectEditorScriptList").selection = newScriptName || prevScriptName;
+             editor.setStatusMessage("saved source", Global.Color.green);
+           }
+      },
 
         selectChangedContent: function selectChangedContent(source) {
 
@@ -1444,15 +1472,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             if (!connectionListItems.equals(this.connectionList.getList())) {
                 this.connectionList.setList(connectionListItems);
             }
-        },
-
-        updateListsAndSelectNewFunction: function updateListsAndSelectNewFunction() {
-            var oldScriptListItems = this.scriptList.getList();
-            this.updateLists();
-            var newScriptListItems = this.sortedScriptNamesOfObj(this.target);
-
-            var diff = newScriptListItems.withoutAll(oldScriptListItems);
-            if (diff.length === 1) this.scriptList.setSelection(diff[0]);
         },
 
         updateTitleBar: function updateTitleBar() {

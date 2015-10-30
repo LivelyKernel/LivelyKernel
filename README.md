@@ -25,7 +25,7 @@ Lively should now be running at [localhost:9001](http://localhost:9001/welcome.h
 
 ### Mac OS and Linux
 
-1. Make sure you have [node.js](http://nodejs.org/download/) installed.
+1. Make sure you have [node.js](https://nodejs.org/en/download/) installed.
 2. Checkout this repository: `$ git clone https://github.com/LivelyKernel/LivelyKernel`.
 3. Start the server: `$ cd LivelyKernel; npm start`
 

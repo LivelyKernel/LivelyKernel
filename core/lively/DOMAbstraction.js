@@ -145,18 +145,34 @@ Global.XHTMLNS = {
         if (optChildNodes) optChildNodes.forEach(function(ea) { fragment.appendChild(ea) });
         return fragment;
     },
-    newCSSDef: function(string, id) {
-        var style = this.create('style'),
-            rules = document.createTextNode(string);
-        style.type = 'text/css'
-        if (style.styleSheet) style.styleSheet.cssText = rules.nodeValue
-        else style.appendChild(rules);
-        if (id) style.setAttribute('id', id);
-        return style;
+    
+    ensureCSSDef: function(string, id) {
+      var node = document.getElementById(id);
+      return node ?
+        XHTMLNS.setCSSDef(string, node) :
+        XHTMLNS.addCSSDef(string, id);
     },
+
+    setCSSDef: function(cssDefString, node) {
+      lively.lang.arr.from(node.childNodes).forEach(function(c) {
+        node.removeChild(c); });
+      var rules = document.createTextNode(cssDefString);
+      if (node.styleSheet) node.styleSheet.cssText = rules.nodeValue
+      else node.appendChild(rules);
+      return node;
+    },
+
+    newCSSDef: function(string, id) {
+        var style = this.create('style');
+        style.type = 'text/css';
+        if (id) style.setAttribute('id', id);
+        return XHTMLNS.setCSSDef(string, style);
+    },
+
     addCSSDef: function(string, id) {
-        var def = XHTMLNS.newCSSDef(string, id)
-        Global.document.getElementsByTagName('head')[0].appendChild(def);
+      var def = XHTMLNS.newCSSDef(string, id)
+      Global.document.getElementsByTagName('head')[0].appendChild(def);
+      return def;
     }
 
 };

@@ -16,6 +16,7 @@ lively.morphic.Morph.addMethods(
         this.halos.invoke('alignAtTarget');
         this.focus.bind(this).delay(0);
     },
+
     showSelectedHalos: function(haloItems) {
         if (!this.world()) return;
         this.showsHalos = true;
@@ -403,7 +404,7 @@ lively.morphic.Halo.subclass('lively.morphic.ResizeHalo',
 'initialization', {
     setTarget: function($super, morph) {
         $super(morph);
-        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown());
+        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown && Global.event.isShiftDown());
     },
     iconName: function (bool) {
         return bool ? 'resize_shift' : 'resize'
@@ -648,7 +649,7 @@ lively.morphic.Halo.subclass('lively.morphic.RotateHalo',
     },
     setTarget: function($super, morph) {
         $super(morph);
-        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown());
+        this.iconMorph && this.toggleIcon(Global.event && Global.event.isShiftDown && Global.event.isShiftDown());
     },
     toggleIcon: function(bool) {
         this.iconMorph.setImageURL(this.iconBaseURL + this.iconName(bool) + '.svg')
@@ -1157,7 +1158,7 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
         if (this.targetMorph.halos)
             this.targetMorph.halos.invoke('alignAtTarget');
 
-        if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
+        if (lively.Config.get('enableMagneticConnections') && this.magnetSet && evt.isCommandKey()) {
             var nearestMagnets = this.magnetSet.nearestMagnetsToControlPoint(this.controlPoint)
             if (nearestMagnets.length == 0) {
                 this.controlPoint.setConnectedMagnet(null);

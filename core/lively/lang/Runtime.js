@@ -31,7 +31,7 @@ Object.extend(lively.lang.Runtime, {
       )(function(err, evalResult) {
           if (err === marker) err = null;
           else if (err) show("error loading lively-runtime.js:\n" + (err.stack || err))
-          else alertOK("lively runtime of\n" + dir + "\nloaded!");
+          // else alertOK("lively runtime of\n" + dir + "\nloaded!");
           thenDo && thenDo(err);
       });
 
@@ -85,7 +85,7 @@ Object.extend(lively.lang.Runtime, {
       }
     )(function(err) {
         if (err) $world.alert("Error loading " + resourceId + ":\n" + err);
-        else $world.alertOK("Runtime conf file " + resourceId + " loaded");
+        // else $world.alertOK("Runtime conf file " + resourceId + " loaded");
         resetRegistry && resetRegistry();
         thenDo && thenDo(err);
     });
@@ -100,7 +100,7 @@ Object.extend(lively.lang.Runtime, {
       }
 
       var project = runtime.Registry.getProjectWithResource(registry, resourceId);
-      thenDo(project ? null : new Error("No project for " + resourceId + " found"), project);
+      return thenDo(project ? null : new Error("No project for " + resourceId + " found"), project);
   },
 
   readFiles: function(project, files, thenDo) {
@@ -132,7 +132,7 @@ Object.extend(lively.lang.Runtime, {
       {topLevelVarRecorder: state, context: state, sourceURL: resourceName},
       function(err, result) {
     		err && show("error when updating the runtime for " + resourceName + "\n" + (err.stack || err));
-    		!err && alertOK("runtime updated for " + resourceName);
+    		// !err && alertOK("runtime updated for " + resourceName);
     		thenDo && thenDo(err, result);
     	});
   }

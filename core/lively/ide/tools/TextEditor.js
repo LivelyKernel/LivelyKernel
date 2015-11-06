@@ -102,6 +102,14 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
             sourceNameForEval: function sourceNameForEval() {
                 return this.getWindow().getLocation(true/*asstring*/);
             },
+
+            boundEvalImproved: function boundEvalImproved(__evalStatement, __evalOptions) {
+              return this.owner.owner.livelyRuntimeWithProjectDo(function(err, proj) {
+                if (!proj) return $super(__evalStatement, __evalOptions);
+                return $super(__evalStatement, lively.lang.obj.merge(__evalOptions, {varRecorderName: "__lvVarRecorder", topLevelVarRecorder: proj.state, dontTransform: []}))
+              });
+            },
+
             focus: function focus() {
                 var win = this.getWindow();
                 win && win.targetMorph && (win.targetMorph.lastFocused = this);
@@ -344,7 +352,7 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
     livelyRuntimeWithProjectDo: function livelyRuntimeWithProjectDo(doFunc) {
       var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
       if (!rt) return doFunc(null,null);
-      lively.lang.Runtime.findProjectForResource(this.getLocation(), doFunc);
+      return lively.lang.Runtime.findProjectForResource(this.getLocation(), doFunc);
     },
 
     livelyRuntimeSignalChange: function livelyRuntimeSignalChange(thenDo) {

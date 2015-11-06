@@ -561,7 +561,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             toggle: false,
                             value: false,
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (fill) { return {fill: fill} }});
                         },
                             onMouseOut: function onMouseOut() {
@@ -666,9 +666,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             valueScale: 1,
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (v) { return {opacity: v} }});
-                            lively.bindings.connect(this, "value", this.get("OpacitySliderVisualizer"), "setTextString", {converter: 
+                            lively.bindings.connect(this, "value", this.get("OpacitySliderVisualizer"), "setTextString", {converter:
                         function (val) {
                                 return Math.round(val*100)/100
                             }});
@@ -716,7 +716,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             textString: "1",
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "savedTextString", this.get("opacitySlider"), "setValue", {converter: 
+                            lively.bindings.connect(this, "savedTextString", this.get("opacitySlider"), "setValue", {converter:
                         function (value) {
                                 return parseFloat(value)
                             }});
@@ -940,7 +940,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             toggle: false,
                             value: false,
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "color", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (fill) { return {borderColor: fill} }});
                         },
                             onMouseOut: function onMouseOut() {
@@ -1049,9 +1049,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             valueScale: 20,
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (v) { return {borderWidth: v} }});
-                            lively.bindings.connect(this, "value", this.get("WidthSliderVisualizer"), "setTextString", {converter: 
+                            lively.bindings.connect(this, "value", this.get("WidthSliderVisualizer"), "setTextString", {converter:
                         function (val) {
                                 return Math.round(val)
                             }});
@@ -1094,7 +1094,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             textString: "1",
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "savedTextString", this.get("borderWidthSlider"), "setValue", {converter: 
+                            lively.bindings.connect(this, "savedTextString", this.get("borderWidthSlider"), "setValue", {converter:
                         function (value) {
                                 return parseFloat(value)
                             }});
@@ -1199,9 +1199,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             valueScale: 50,
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "value", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (v) { return {borderRadius: v} }});
-                            lively.bindings.connect(this, "value", this.get("RadiusSliderVisualizer"), "setTextString", {converter: 
+                            lively.bindings.connect(this, "value", this.get("RadiusSliderVisualizer"), "setTextString", {converter:
                         function (val) {
                                 return Math.round(val)
                             }});
@@ -1245,7 +1245,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             textString: "0",
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "savedTextString", this.get("borderRadiusSlider"), "setValue", {converter: 
+                            lively.bindings.connect(this, "savedTextString", this.get("borderRadiusSlider"), "setValue", {converter:
                         function (value) {
                                 return parseFloat(value)
                             }});
@@ -1300,7 +1300,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             valueScale: 1,
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (v) { return {borderStyle: v} }});
                         },
                             onMouseOut: function onMouseOut() {
@@ -1505,7 +1505,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             valueScale: 1,
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (v) { return {clipMode: v} }});
                         },
                             onMouseOut: function onMouseOut() {
@@ -1583,7 +1583,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             submorphs: [],
                             valueScale: 1,
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "selection", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (text) {
                                 return { handStyle: text }
                             }});
@@ -1683,7 +1683,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.TextCore",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "savedTextString", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "savedTextString", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (aString) {
                                 return { toolTip: aString }
                             }});
@@ -1788,19 +1788,19 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                       // connect(this.get("CSSCodePane"), 'savedTextString', this, 'onFire');
                       var morph = this.get("StyleEditorPane").target,
                           css = this.get("CSSCodePane").textString;
-  
+
                       if (morph && morph.setStyleSheet) {
                           if (css.trim().length > 1) {
                               morph.setStyleSheet(css);
                               this.get("CSSCodePane").textString = morph.getStyleSheet() || '';
                           }
-  
+
                           morph.setStyleClassNames(this.get("ClassEdit").textString.split(' '));
                           this.get("ClassEdit").textString = morph.getStyleClassNames().join(' ');
                       }
-  
+
                       this.get("CSSCodePane").setStatusMessage('CSS applied', Color.green, 2);
-                
+
                     },
                     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
                       this.setBorderRadius(0)
@@ -1849,7 +1849,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                     submorphs: [],
                     textString: "Classname(s):"
                 },
-                
+
                   {
                     _BorderColor: null,
                     _Extent: lively.pt(275.0,335.0),
@@ -1980,7 +1980,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                         var style = {},
                                                     		prop = this.sourceObj.layoutProperty;
@@ -2133,7 +2133,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2164,7 +2164,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2196,7 +2196,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2228,7 +2228,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2320,7 +2320,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2351,7 +2351,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2382,7 +2382,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2414,7 +2414,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             sourceModule: "lively.morphic.Widgets",
                             submorphs: [],
                             connectionRebuilder: function connectionRebuilder() {
-                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter: 
+                            lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                 		var style = {},
                                                 			prop = this.sourceObj.layoutProperty;
@@ -2777,10 +2777,10 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             aPane.moveBy(pt(0, -1))
         },
             onResizePane: function onResizePane() {
-            
+
         },
             submorphResized: function submorphResized() {
-            
+
         }
         },{
             _Extent: lively.pt(286.8,25.0),
@@ -2849,7 +2849,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                    treeMorph = new lively.morphic.Tree(),
                    rect = lively.morphic.Morph.makeRectangle(bounds),
                    currentTarget = null;
-                   
+
                treeMorph.childrenPerPage = 10000;
                treeMorph.setName("MorphSelectorTree");
                treeMorph.getLayouter().defer();
@@ -2858,9 +2858,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                    n.expand();
                })
                 treeMorph.setPosition(pt(treeMorph.getPosition().x, 8))
-            
+
                currentTarget = this.highlightCurrentTarget(treeMorph);
-            
+
                rect.isLayoutable = false;
                rect.setBounds(bounds)
                rect.setFill(Color.rgba(204,204,204,.85));
@@ -2872,7 +2872,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                rect.addMorph(treeMorph);
                rect.treeMorph = treeMorph;
                rect.currentTarget = currentTarget;
-            
+
                return rect;
                             },
                 currentMorphicScene: function currentMorphicScene() {
@@ -2883,7 +2883,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         editorPane: this.owner,
                         selector: this
                     }
-            
+
                 return {children: [{
                     name: 'World',
                     value: this.world(),
@@ -2899,7 +2899,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 var target = this.get('StyleEditorPane').target,
                     nodes = tree.childNodes,
                     highlightNode;
-                    
+
                 if (!target) {
                     return
                 } else if (target.isMorph) {
@@ -2936,7 +2936,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         return n.item.value.name === target.name;
                     })
                 }
-            
+
                 if (highlightNode) {
                     this.highlightTarget(highlightNode);
                 }
@@ -2947,7 +2947,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             },
                 onBlur: function onBlur(evt) {
                 $super(evt);
-            
+
                 // remove the scene presentation when clicked elsewhere
                 var target = evt.hand.clickedOnMorph;
                 if (!this.listMorph || !this.listMorph.isAncestorOf(target)) {
@@ -2960,7 +2960,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 if (evt.isCommandKey() || evt.isRightMouseButtonDown()) {
                     return $super(evt);
                 }
-            
+
                 if (this.listMorph) {
                     // clicked on morph, not the list, not the list's scrollbar
                     if (evt.target === this.renderContext().shapeNode)
@@ -2973,12 +2973,12 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 var list = this.createScenePresentation(),
                     tree = list.treeMorph,
                     target = list.currentTarget
-                    
+
                 list.setVisible(false)
                 this.addMorph(list)
                 this.listMorph = list
                 list.focus()
-            
+
                 // need temp here, doesn't work otherwise, strange errors... Javascript WAT
                 var layouting = function() {
                     list.setVisible(true)
@@ -3135,7 +3135,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         } else {
                             morphToHighlight = morphUnderCursor;
                         }
-            
+
                         if (morphToHighlight && morphToHighlight.world()) {
                             this.setPosition(morphToHighlight.getPositionInWorld());
                             this.setExtent(morphToHighlight.getExtent());
@@ -3176,11 +3176,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             },
                 removeHighlighting: function removeHighlighting() {
                 var hand = this.world().firstHand();
-            
+
                 if (this.getHighlightRectangle()) {
                     this.getHighlightRectangle().remove();
                 }
-            
+
                 hand.highlightConnection && hand.highlightConnection.disconnect();
                 hand.highlightConnection = null;
             },
@@ -3293,7 +3293,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         } else {
                             morphToHighlight = morphUnderCursor;
                         }
-            
+
                         if (morphToHighlight && morphToHighlight.world()) {
                             this.setPosition(morphToHighlight.getPositionInWorld());
                             this.setExtent(morphToHighlight.getExtent());
@@ -3321,7 +3321,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 var hand = lively.morphic.World.current().firstHand(),
                     highlight = this.getHighlightRectangle(),
                     that = this;
-            
+
                 if (this.isTracking()) {
                     this.removeHighlighting();
                 } else {
@@ -3352,11 +3352,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             },
                 removeHighlighting: function removeHighlighting() {
                 var hand = this.world().firstHand();
-            
+
                 if (this.getHighlightRectangle()) {
                     this.getHighlightRectangle().remove();
                 }
-            
+
                 hand.highlightConnection && hand.highlightConnection.disconnect();
                 hand.highlightConnection = null;
             },
@@ -3375,50 +3375,49 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         },
 
         addTextStylerFor: function addTextStylerFor(morph, optLabel) {
+
         var tabs = this.get("TabContainer").getTabBar().getTabs(),
             textTab = this.get("TabContainer").addTabLabeled(optLabel ? optLabel : 'Text');
-        
+
         textTab.getPane().setExtent(pt(this.get('StyleEditorHeadline').getExtent().x, this.get('TabContainer').tabBar.tabs[0].pane.getExtent().y));
         textTab.submorphs.find(function(ea) { return ea.isButton }).remove();
         textTab.layout = textTab.layout || {};
         textTab.layout.resizeWidth = true;
         textTab.submorphs[0].setAlign('center');
-        textTab.addScript(function getInactiveFill() {
-            return Color.gray.lighter();
-        })
+        textTab.addScript(function getInactiveFill() { return Color.gray.lighter(); })
         textTab.setAppearanceStylingMode(true);
         textTab.setBorderStylingMode(true);
         textTab.getPane().setAppearanceStylingMode(true);
         textTab.getPane().setBorderStylingMode(true);
-    
+
         textTab.label.setTextStylingMode(true);
-    
+
         var textAttrEd = lively.BuildSpec('lively.ide.tools.TextAttributeEditor').createMorph();
         textAttrEd.setPosition(pt(0,0));
         textTab.getPane().addMorph(textAttrEd);
-    
+
         textAttrEd.selectTextMorph(morph);
         var scroll = $world.getScroll();
-     
+
         (function() {
         //     this.target.selectAll();
         //     this.target.focus();
             $world.scrollTo(scroll[0], scroll[1])
-            
+
             textTab.getPane().setExtent(tabs.last().getPane().getExtent().addPt(pt(0,1)))
         }).bind(this).delay(0);
-    
+
         this.getMorphNamed("TabContainer").activateTab(textTab);
         this.setTabExtends(true);
         // (function() { this.target.focus(); }).bind(this).delay(0);
-    
+
     },
         adjustForNewBounds: function adjustForNewBounds() {
         $super();
         this.alignTabTexts(this.withAllSubmorphsSelect(function(ea) { return ea.isTab }));
     },
         alignTabTexts: function alignTabTexts(tabs) {
-        
+
     },
 
         applyStyleConfiguration: function applyStyleConfiguration(spec) {
@@ -3455,9 +3454,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
           this.getMorphNamed("CSSCodePane").setTextString(spec.styleSheet);
           this.getMorphNamed("ClassEdit").setTextString(spec.styleClassNames.join(" "));
           // text
-          if (this.getMorphNamed('TextAttributePanel')) {
-              this.getMorphNamed('TextAttributePanel').applyTextStyle(spec);
-          }
+          // if (this.getMorphNamed('TextAttributePanel')) {
+          //     this.getMorphNamed('TextAttributePanel').applyTextStyle(spec);
+          // }
           // layouter
           if (spec.layouter) {
               this.target.setLayouter(spec.layouter);
@@ -3530,7 +3529,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 var panel = button.createNewPanel();
                 panel.get('customLabel').setTextString(customName);
                 panel.get('customInput').setTextString(String(customs[customName]));
-            })        
+            })
         } else {
             button.doAction();
         }
@@ -3587,7 +3586,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             var panel = this.owner.addMorph(this.get('StyleEditorPane').createPanel());
             connect(panel.getMorphNamed('customInput'), 'savedTextString', this.get('StyleEditorPane'), 'setTargetStyle', {converter: function() {
                 var spec = {},
-                    value, 
+                    value,
                     attr = this.sourceObj.owner.getMorphNamed('customLabel').getTextString();
                 try {
                     value = eval(this.sourceObj.owner.getMorphNamed('customInput').getTextString())
@@ -3671,7 +3670,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         }],
         retrieveStyle: function () {
                 var spec = {};
-                (this.customStyleProperties || []).each(function(attr) { 
+                (this.customStyleProperties || []).each(function(attr) {
                     try {
                         spec[attr] = this['get'+attr.slice(0,1).toUpperCase() + attr.slice(1)]();
                     } catch (err) {
@@ -3815,7 +3814,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         getRetrieveStyleFunction: function getRetrieveStyleFunction() {
         return function() {
             var spec = {};
-            (this.customStyleProperties || []).each(function(attr) { 
+            (this.customStyleProperties || []).each(function(attr) {
                 try {
                     spec[attr] = this['get'+attr.slice(0,1).toUpperCase() + attr.slice(1)]();
                 } catch (err) {
@@ -3922,7 +3921,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
     },
         removeLeftoverTabs: function removeLeftoverTabs() {
         this.get('TabContainer').tabBar.submorphs.select(function(ea) {
-            return ea.isTab && 
+            return ea.isTab &&
                 ea.name === 'Label' || ea.name === 'Text' || ea.name === 'Custom'
         }).invoke('closeTab')
         this.getMorphNamed('TabContainer').tabBar.addMorph(this.customStyleButton);
@@ -3951,7 +3950,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         var css =[
             "StyleEditorFillMsg"
         ];
-    
+
         if (override){
             this.setMorphsVisibility(direct, css);
             this.setMorphsOpacity(direct, []);
@@ -3960,13 +3959,13 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             this.setMorphsVisibility(css, []);
             this.setMorphsOpacity([], direct);
         }
-    
+
         if (this.target) {
             if (this.target.setAppearanceStylingMode) {
                 this.target.setAppearanceStylingMode(!override);
             }
         }
-    
+
     },
         setBorderMode: function setBorderMode(override) {
         var direct =[
@@ -3975,7 +3974,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             "BorderRadiusDialog",
             "BorderStyleDialog"];
         var css =["StyleEditorBorderMsg"];
-    
+
         this.setMorphsVisibility(override ? direct : css, override ? css: []);
         this.setMorphsOpacity(override ? direct : [], override ? []: direct);
         if (this.target) {
@@ -3983,19 +3982,19 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 this.target.setBorderStylingMode(!override);
             }
         }
-    
+
     },
         setLayouterOnTargetMorph: function setLayouterOnTargetMorph(layoutClassName) {
         if (layoutClassName && layoutClassName !== 'none')
             var newLayoutClass = lively.Class.forName(layoutClassName);
-    
+
         if (!this.target) return;
-    
+
         var currentLayoutClass = this.target.getLayouter() &&
             lively.Class.getConstructor(this.target.getLayouter());
-    
+
         if (currentLayoutClass === newLayoutClass) return;
-    
+
         this.target.setLayouter(newLayoutClass && new newLayoutClass(this.target));
         this.target.applyLayout();
     },
@@ -4055,7 +4054,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 }
             }
         }, this);
-    
+
     },
         setTabExtends: function setTabExtends(isText) {
         var bar = this.getMorphNamed("TabContainer").getTabBar()
@@ -4066,7 +4065,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         setTarget: function setTarget(morph, optCopy) {
           if (this.dontUpdate || !morph) return;
           delete this.target;
-          
+
           this.getMorphNamed('TargetName').setLabel(morph.getName() || morph.toString());
           this.removeLeftoverTabs()
           if (morph instanceof lively.morphic.Text) {
@@ -4076,9 +4075,9 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
           } else {
               this.setTabExtends();
           }
-          
+
           this.getMorphNamed('TabContainer').tabBar.adjustTabExtends();
-      
+
           var spec = {
               fill: morph.getFill(),
               borderColor: morph.getBorderColor(),
@@ -4087,8 +4086,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
               opacity: morph.getOpacity(),
               borderStyle: morph.getBorderStyle(),
               clipMode: morph.getClipMode(),
-              appearanceStylingMode: morph.getAppearanceStylingMode(),
-              borderStylingMode: !morph.getBorderStylingMode(),
+              appearanceStyling: !!morph.getAppearanceStylingMode(),
+              borderStyling: !!morph.getBorderStylingMode(),
               handStyle: morph.getHandStyle(),
               toolTip: morph.getToolTip()
           }
@@ -4138,29 +4137,29 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         // newShowMorph(this.get('borderRadiusSlider'))
         // this.get('borderRadiusSlider').attributeConnections
         // disconnectAll(this.get('borderRadiusSlider'))
-    
+
         	lively.bindings.connect(this.getMorphNamed('borderWidthSlider'), 'value',
         	this, "setTargetStyle", {
         		converter: function(v) { return {borderWidth: v} }});
-    
+
         	lively.bindings.connect(this.getMorphNamed('borderRadiusSlider'), 'value',
         		this, "setTargetStyle", {
         		converter: function(v) { return {borderRadius: v} }});
-    
+
         	lively.bindings.connect(this.getMorphNamed('opacitySlider'), 'value',
         		this, "setTargetStyle", {
         		converter: function(v) { return {opacity: v} }});
-    
+
         	lively.bindings.connect(this.getMorphNamed('borderStyleList'), 'selection',
         		this, "setTargetStyle", {
         		converter: function(v) { return {borderStyle: v} }});
-    
+
         	lively.bindings.connect(this.getMorphNamed('ClipModeList'), 'selection',
         		this, "setTargetStyle", {
         		converter: function(v) { return {clipMode: v} }});
-    
+
                 lively.bindings.connect(this.getMorphNamed('layouterList'), 'selection', this, 'setLayouter')
-    
+
                 this.layoutProps.forEach(function(attr) {
                 	var checkBox = this.getMorphNamed(attr + 'CheckBox');
                 	checkBox.layoutProperty = attr;
@@ -4173,7 +4172,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 		return style
                 	}})
                 }, this);
-    
+
         },
         styleSheetTemplate: function styleSheetTemplate(styleClassNames) {
         return '/*\n.' + ((styleClassNames || []).last() || 'Morph') + '{\n   border-color: red;\n   background-color: gray;\n   border-width: 2px;\n}\n*/'
@@ -4341,7 +4340,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
         function (bool) {
                         return {cssStylingMode: !bool}
                     }});
@@ -4474,7 +4473,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 toggle: false,
                 value: false,
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (color) {
                                 return { color: color }
                             }});
@@ -4581,7 +4580,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 toggle: false,
                 value: false,
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "color", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (color) {
                                 return { backgroundColor: color }
                             }});
@@ -4671,7 +4670,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (aString) {
                                 return { fontWeight: aString }
                             }});
@@ -4757,7 +4756,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (aString) {
                                 return { textDecoration: aString }
                             }});
@@ -4875,7 +4874,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 valueScale: 1,
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                lively.bindings.connect(this, "value", this.get("FontSizeText"), "setTextString", {converter: 
+                lively.bindings.connect(this, "value", this.get("FontSizeText"), "setTextString", {converter:
             function (val) {
                     this.targetObj.savedTextString = Math.round(val*100)
                     return Math.round(val*100)
@@ -4924,11 +4923,11 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "12",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "savedTextString", this.get("fontSizeSlider"), "setValue", {converter: 
+                lively.bindings.connect(this, "savedTextString", this.get("fontSizeSlider"), "setValue", {converter:
             function (value) {
                     return parseFloat(value)/100
                 }});
-                lively.bindings.connect(this, "savedTextString", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "savedTextString", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (aString) {
                     var val = parseInt(aString);
                     // mainly to sort out 1 during typing
@@ -5105,7 +5104,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateEmphasis", {converter:
             function (aString) {
                                 return { fontStyle: aString }
                             }});
@@ -5191,7 +5190,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
             sourceModule: "lively.morphic.Widgets",
             submorphs: [],
             connectionRebuilder: function connectionRebuilder() {
-            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+            lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
         function (bool) {
                         return {cssStylingMode: !bool}
                     }});
@@ -5286,7 +5285,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (bool) { return {fixedWidth: bool}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -5361,7 +5360,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (bool) { return {fixedHeight: bool}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -5456,7 +5455,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "lively.pt(4.0,2.0)",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "savedTextString", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "savedTextString", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (input) {
                                                         try {
                                                             var r = eval(input);
@@ -5467,7 +5466,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                                                             return;
                                                         }
                                                         return {padding: r}
-                                                    
+
                                                     }});
             },
                 onMouseOut: function onMouseOut() {
@@ -5546,7 +5545,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (bool) { return {allowInput: bool}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -5625,7 +5624,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (bool) { return {selectable: bool}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -5711,10 +5710,10 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (aString) {
                                 return {align: aString}
-                            
+
                             }});
             },
                 onMouseOut: function onMouseOut() {
@@ -5800,7 +5799,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (aString) { return {verticalAlign: aString}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -5919,7 +5918,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 valueScale: 1,
                 connectionRebuilder: function connectionRebuilder() {
                 lively.bindings.connect(this, "value", this, "adjustSliderParts", {});
-                lively.bindings.connect(this, "value", this.get("lineHeightInput"), "setTextString", {converter: 
+                lively.bindings.connect(this, "value", this.get("lineHeightInput"), "setTextString", {converter:
             function (val) {
                     return Math.round(val*10)
                 }});
@@ -5965,7 +5964,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "1",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "textString", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "textString", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (input) {
                                                         try {
                                                             var n = Number.parseFloat(input)
@@ -5974,9 +5973,9 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                                                             return;
                                                         }
                                                         return {lineHeight: n}
-                                                    
+
                                                     }});
-                lively.bindings.connect(this, "savedTextString", this.get("lineHeightSlider"), "setValue", {converter: 
+                lively.bindings.connect(this, "savedTextString", this.get("lineHeightSlider"), "setValue", {converter:
             function (value) {
                     return parseFloat(value)
                 }});
@@ -6064,7 +6063,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (aString) { return {display: aString}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -6147,7 +6146,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (aString) { return {whiteSpaceHandling: aString}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -6233,7 +6232,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 submorphs: [],
                 textString: "normal",
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "selection", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (aString) { return {wordBreak: aString}}});
             },
                 onMouseOut: function onMouseOut() {
@@ -6312,7 +6311,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 sourceModule: "lively.morphic.Widgets",
                 submorphs: [],
                 connectionRebuilder: function connectionRebuilder() {
-                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter: 
+                lively.bindings.connect(this, "checked", this.get("TextAttributePanel"), "updateStyle", {converter:
             function (bool) { return {syntaxHighlighting: bool} }});
             },
                 onMouseOut: function onMouseOut() {
@@ -6326,32 +6325,34 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     }],
     updateDisplay: "inline",
     updateTextStyle: "italic",
+
     applyTextStyle: function applyTextStyle(aSpec) {
-    var spec = Object.merge([this.defaultTextStyle(), aSpec]);
-    this.get('FontColorField').setColor(spec.color);
-    this.get('BackgroundColorField').setColor(spec.backgroundColor);
-    this.get('FontWeightText').setSelectionMatching(spec.fontWeight);
-    this.get('FontDecorationText').setSelectionMatching(spec.textDecoration);
-    this.get('FontSizeText').setTextString(spec.fontSize);
-    this.get('fontSizeSlider').setValue(spec.fontSize/100);
-    this.get('FontChooserButton').setLabel(spec.fontFamily);
-    this.get('FontStyleText').setSelectionMatching(spec.fontStyle);
-    this.get('fixedWidthCheckBox').setChecked(spec.fixedWidth);
-    this.get('fixedHeightCheckBox').setChecked(spec.fixedHeight);
-    this.get('paddingInput').setTextString(String(spec.padding));
-    this.get('allowInputCheckBox').setChecked(spec.allowInput);
-    this.get('selectableCheckBox').setChecked(spec.selectable);
-    this.get('lineHeightInput').setTextString(spec.lineHeight);
-    this.get('lineHeightSlider').setValue(spec.lineHeight/10);
-    this.get('AlignText').setSelectionMatching(spec.align);
-    this.get('VerticalAlignText').setSelectionMatching(spec.verticalAlign);
-    this.get('DisplayText').setSelectionMatching(spec.display);
-    this.get('WhiteSpaceText').setSelectionMatching(spec.whiteSpaceHandling);
-    this.get('WordBreakText').setSelectionMatching(spec.wordBreak);
-    this.get('syntaxHighlightingCheckBox').setChecked(spec.syntaxHighlighting);
-    this.get('TextCheckBox').setChecked(!spec.cssStylingMode);
-    this.get('TextCheckBox2').setChecked(!spec.cssStylingMode);
-},
+      var spec = Object.merge([this.defaultTextStyle(), aSpec]);
+      this.get('FontColorField').setColor(spec.color);
+      this.get('BackgroundColorField').setColor(spec.backgroundColor);
+      this.get('FontWeightText').setSelectionMatching(spec.fontWeight);
+      this.get('FontDecorationText').setSelectionMatching(spec.textDecoration);
+      this.get('FontSizeText').setTextString(spec.fontSize);
+      this.get('fontSizeSlider').setValue(spec.fontSize/100);
+      this.get('FontChooserButton').setLabel(spec.fontFamily);
+      this.get('FontStyleText').setSelectionMatching(spec.fontStyle);
+      this.get('fixedWidthCheckBox').setChecked(spec.fixedWidth);
+      this.get('fixedHeightCheckBox').setChecked(spec.fixedHeight);
+      this.get('paddingInput').setTextString(String(spec.padding));
+      this.get('allowInputCheckBox').setChecked(spec.allowInput);
+      this.get('selectableCheckBox').setChecked(spec.selectable);
+      this.get('lineHeightInput').setTextString(spec.lineHeight);
+      this.get('lineHeightSlider').setValue(spec.lineHeight/10);
+      this.get('AlignText').setSelectionMatching(spec.align);
+      this.get('VerticalAlignText').setSelectionMatching(spec.verticalAlign);
+      this.get('DisplayText').setSelectionMatching(spec.display);
+      this.get('WhiteSpaceText').setSelectionMatching(spec.whiteSpaceHandling);
+      this.get('WordBreakText').setSelectionMatching(spec.wordBreak);
+      this.get('syntaxHighlightingCheckBox').setChecked(spec.syntaxHighlighting);
+      this.get('TextCheckBox').setChecked(!spec.cssStylingMode);
+      this.get('TextCheckBox2').setChecked(!spec.cssStylingMode);
+    },
+
     connectionRebuilder: function connectionRebuilder() {
     lively.bindings.connect(this, "focusedText", this, "selectTextMorph", {});
 },
@@ -6438,7 +6439,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
         converter: function(itemMorph) { return { fontFamily: itemMorph.item.string} }
     });
     lively.bindings.connect(fontList, 'selection', this.get('FontChooserButton'), 'setLabel', {
-      converter: function(itemMorph) { return itemMorph.item.string }  
+      converter: function(itemMorph) { return itemMorph.item.string }
     })
 },
     reset: function reset() {
@@ -6447,7 +6448,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     this.selectTextMorph(null);
     this.get('TextCheckBox').setChecked(true);
     this.applyTextStyle({});
-    
+
     if (!this.hasOwnProperty('doNotSerialize'))
         this.doNotSerialize = [];
 /*
@@ -6462,44 +6463,43 @@ this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') 
 */
 },
     selectTextMorph: function selectTextMorph(morph) {
-    if (morph && morph.isText) {
-        lively.bindings.noUpdate(function() {
-            var spec = {
-                fixedWidth: !!morph.fixedWidth,
-                fixedHeight: !!morph.fixedHeight,
-                allowInput: !!morph.allowInput,
-                selectable: morph.isSelectable(),
-                syntaxHighlighting: morph.syntaxHighlightingWhileTyping,
-                cssStylingMode: !morph.getTextStylingMode()
-            };
-            morph.getPadding && (spec.padding = morph.getPadding())
-            morph.getDisplay() && (spec.display = morph.getDisplay());
-            morph.getLineHeight() && (spec.lineHeight = morph.getLineHeight());
-            morph.getAlign() && (spec.align = morph.getAlign());
-            morph.getVerticalAlign() && (spec.verticalAlign = morph.getVerticalAlign());
-            var styles = morph.getTextChunks().pluck('style')
-            spec.fontFamily = (styles.pluck('fontFamily').compact()[0] || morph.getFontFamily());
-            if (!spec.fontFamily) delete spec.fontFamily;
-            spec.fontSize = (styles.pluck('fontSize').compact()[0] || morph.getFontSize());
-            if (!spec.fontSize) delete spec.fontSize;
-            spec.fontStyle = (styles.pluck('fontStyle').compact()[0] || morph.getFontStyle());
-            if (!spec.fontStyle) delete spec.fontStyle;
-            spec.fontWeight = (styles.pluck('fontWeight').compact()[0] || morph.getFontWeight());
-            if (!spec.fontWeight) delete spec.fontWeight;
-            spec.textDecoration = (styles.pluck('textDecoration').compact()[0] || morph.getTextDecoration());
-            if (!spec.textDecoration) delete spec.textDecoration;
-            spec.color = (styles.pluck('color').compact()[0] || morph.getTextColor());
-            if (!spec.color) delete spec.color;
-            spec.backgroundColor = styles.pluck('backgroundColor').compact()[0];
-            if (!spec.backgroundColor) delete spec.backgroundColor;
-            this.applyTextStyle(spec)
-            this.hideOrShowCSSProperties(spec.cssStylingMode)
-            this.targetMorph = morph;
-        }.bind(this));        
-    } else {
-        delete this.targetMorph;
-    }
+    if (!morph || !morph.isText) { delete this.targetMorph; return; }
+debugger;
+    lively.bindings.noUpdate(function() {
+        var spec = {
+            fixedWidth: !!morph.fixedWidth,
+            fixedHeight: !!morph.fixedHeight,
+            allowInput: !!morph.allowInput,
+            selectable: morph.isSelectable(),
+            syntaxHighlighting: morph.syntaxHighlightingWhileTyping,
+            cssStylingMode: !!morph.getTextStylingMode()
+        };
+        morph.getPadding && (spec.padding = morph.getPadding())
+        morph.getDisplay() && (spec.display = morph.getDisplay());
+        morph.getLineHeight() && (spec.lineHeight = morph.getLineHeight());
+        morph.getAlign() && (spec.align = morph.getAlign());
+        morph.getVerticalAlign() && (spec.verticalAlign = morph.getVerticalAlign());
+        var styles = morph.getTextChunks().pluck('style')
+        spec.fontFamily = (styles.pluck('fontFamily').compact()[0] || morph.getFontFamily());
+        if (!spec.fontFamily) delete spec.fontFamily;
+        spec.fontSize = (styles.pluck('fontSize').compact()[0] || morph.getFontSize());
+        if (!spec.fontSize) delete spec.fontSize;
+        spec.fontStyle = (styles.pluck('fontStyle').compact()[0] || morph.getFontStyle());
+        if (!spec.fontStyle) delete spec.fontStyle;
+        spec.fontWeight = (styles.pluck('fontWeight').compact()[0] || morph.getFontWeight());
+        if (!spec.fontWeight) delete spec.fontWeight;
+        spec.textDecoration = (styles.pluck('textDecoration').compact()[0] || morph.getTextDecoration());
+        if (!spec.textDecoration) delete spec.textDecoration;
+        spec.color = (styles.pluck('color').compact()[0] || morph.getTextColor());
+        if (!spec.color) delete spec.color;
+        spec.backgroundColor = styles.pluck('backgroundColor').compact()[0];
+        if (!spec.backgroundColor) delete spec.backgroundColor;
+        this.applyTextStyle(spec)
+        this.hideOrShowCSSProperties(!spec.cssStylingMode)
+        this.targetMorph = morph;
+    }.bind(this));
 },
+
     setupConnections: function setupConnections() {
 // disconnectAll(this.get('FontChooserComboBox'))
     connect(this.get('FontChooserButton'), 'fire', this, 'openFontBook');
@@ -6534,7 +6534,7 @@ this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') 
                 this.targetMorph.changeEmphasis(range[0], range[1],
                     function(prevEmph, doEmph) {
                         doEmph(spec)
-                    });            
+                    });
             }
         }
     },

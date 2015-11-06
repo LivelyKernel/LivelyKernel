@@ -492,7 +492,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.HorizontalLayout',
     },
 
     layoutOrder: function(aMorph) {
-        return aMorph.getCenter().x;
+        return aMorph.bounds().left();
     },
 
     displaysPlaceholders: function() {
@@ -598,7 +598,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.VerticalLayout',
     },
 
     layoutOrder: function(aMorph) {
-        return aMorph.getPosition().y
+        return aMorph.bounds().top()
              + this.verticalBorderSpace()
              + aMorph.owner ? aMorph.owner.submorphs.indexOf(aMorph) : 0;
      },

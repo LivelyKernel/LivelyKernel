@@ -674,8 +674,8 @@ Object.subclass('lively.morphic.Morph',
         if (spec.name !== undefined) this.setName(spec.name);
 
         if (spec.cssStylingMode !== undefined) { // enable disable styling through css
-            this.setBorderStylingMode(spec.cssStyling);
-            this.setAppearanceStylingMode(spec.cssStyling);
+            this.setBorderStylingMode(spec.cssStylingMode);
+            this.setAppearanceStylingMode(spec.cssStylingMode);
         }
 
         if (spec.styleSheet !== undefined) { // enable disable styling through css

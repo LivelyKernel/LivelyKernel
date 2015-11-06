@@ -39,7 +39,6 @@ lively.morphic.Box.subclass('lively.morphic.MagnetHalo',
         halo.alignAtTarget();
         halo.prevDragPos = evt.getPosition()
         this.currentHalo = halo;
-show(halo)
         return;
     },
     onDragEnd: function(evt) {

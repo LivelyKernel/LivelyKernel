@@ -818,4 +818,69 @@ lively.morphic.HtmlWrapperMorph.subclass('lively.morphic.ReactMorph',
     }
 });
 
+lively.morphic.HtmlWrapperMorph.subclass("lively.morphic.HTML5Video",
+"initialization", {
+  initialize: function($super, extent, videoURL) {
+    $super(extent);
+    this.videoURL = videoURL || null;
+    if (videoURL) this.loadVideoThenDo(videoURL, true, function() {});
+  },
+
+  setVideoMarkup: function(videoURL) {
+    var videoName = videoURL.replace(/(\.mp4|\.webm|\.oggtheora.ogv)$/, ""),
+        extent = this.getExtent(),
+        html = lively.lang.string.format(
+         "<video style=\"display: inline-block;\" width=\"%spx\" height=\"%spx\" autobuffer=\"autobuffer\">"
+      +   "<source src=\"%s.mp4\" type=\"video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;\"/>"
+      +   "<source src=\"%s.webm\" type=\"video/webm; codecs=&quot;webm, vp8&quot;\"/>"
+      +   "<source src=\"%s.oggtheora.ogv\" type=\"video/ogg; codecs=&quot;theora, vorbis&quot;\"/>"
+      + "</video>", extent.x, extent.y, videoName, videoName, videoName);
+    this.setHTML(html);
+  },
+
+  loadVideoThenDo: function(videoURL, useNativeExtent, thenDo) {
+    this.videoURL = videoURL;
+    this.setVideoMarkup(videoURL);
+    var m = this;
+
+    lively.lang.fun.waitFor(1000,
+      function() { return m.videoElement() && m.videoElement().videoWidth != 0; },
+      onload)
+  
+    function onload(err) {
+      var n = m.videoElement();
+      if (!err && useNativeExtent && n.videoWidth > 0) {
+        m.setExtent(pt(n.videoWidth, n.videoHeight));
+        n.width = n.videoWidth; n.height = n.videoHeight;
+      }
+      thenDo && thenDo(err, m);
+    }
+  }
+
+},
+"video related", {
+
+  videoElement: function() { return this.renderContext().shapeNode.childNodes[0]; },
+
+  setControlsVisible: function(bool) { return this.videoElement().controls = bool; },
+
+  play: function() { return this.videoElement().play(); },
+
+  pause: function() { return this.videoElement().pause(); }
+
+});
+
+Object.extend(lively.morphic.HTML5Video, {
+  withVideoMorph: function(videoURL, extent, thenDo) {
+    var useNativeExtent = false;
+    if (typeof extent === "function") {
+      thenDo = extent; extent = null;
+      useNativeExtent = true;
+    }
+    var m = new lively.morphic.HTML5Video(extent || pt(300,200));
+    m.loadVideoThenDo(videoURL, useNativeExtent, thenDo);
+    return m;
+  }
+});
+
 }); // end of module

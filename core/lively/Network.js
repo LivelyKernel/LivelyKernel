@@ -420,8 +420,14 @@ Object.extend(URL, {
             new URL(urlString) :
             new URL(Config.rootPath).withRelativePath(urlString);
     },
-    fromLiteral: function(literal) {
-        return new URL(literal)
+
+    fromLiteral: function(literal) { return new URL(literal) },
+
+    resolvePath: function(path) {
+      // absolute?
+      if (/^[a-z]*:?\/\//i.test(path)) return path;
+      if (path[0] === "/") return URL.ensureAbsoluteRootPathURL(path).toString();
+      return URL.source.withFilename(path).withRelativePartsResolved().toString();
     },
 
     makeProxied: function makeProxied(url) {

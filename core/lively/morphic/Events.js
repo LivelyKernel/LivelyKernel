@@ -1884,11 +1884,29 @@ lively.morphic.World.addMethods(
 
     onHTML5DragEnter: function(evt) { evt.stop(); return true; },
 
-    onHTML5DragOver: function(evt) { evt.stop(); return true; },
+    onHTML5DragOver: function(evt) {
+      var targetM = this.morphsContainingPoint(evt.getPosition()).first();
+      if (targetM && targetM.onHTML5Drag) return targetM.onHTML5Drag(evt);
+      else { evt.stop(); return true; }
+    },
 
     onHTML5Drop: function(evt) {
-        lively.morphic.Clipboard.handleItemOrFileImport(evt);
-        evt.stop(); return true;
+      var w = this;
+      lively.lang.fun.composeAsync(
+        function(n) {
+          var m = module("lively.data.FileUpload");
+          if (m.isLoaded()) return n();
+          m.load(); m.runWhenLoaded(function() {n();})
+        },
+        function(n) {
+          var targetM = w.morphsContainingPoint(evt.getPosition()).first();
+          if (targetM && targetM.onHTML5Drop) targetM.onHTML5Drop(evt);
+          else lively.data.FileUpload.handleImportEvent(evt);
+          n();
+        }
+      )(function(err) { err && $world.logError(err); });
+      evt.stop();
+      return true;
     }
 },
 'window related', {

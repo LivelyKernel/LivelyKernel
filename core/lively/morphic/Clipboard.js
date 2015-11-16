@@ -19,7 +19,6 @@ Object.extend(lively.morphic.Clipboard, {
             if (Array.from(data.types).any(function(type) { return type.toLowerCase() === 'files'; })) {
                 evt.getPosition = function() { return $world.firstHand().getPosition(); };
                 var items = Array.from(data.items);
-          inspect(items.invoke('getAsFile'))
                 lively.data.FileUpload.handleDroppedFiles(items.invoke('getAsFile'), evt);
                 return;
             }

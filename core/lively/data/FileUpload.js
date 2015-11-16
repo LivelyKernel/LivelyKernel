@@ -27,9 +27,12 @@ module('lively.data.FileUpload').requires('lively.persistence.Serializer', 'live
 
 Object.subclass('lively.data.FileUpload.Handler',
 "initalization", {
-    initialize: function(evt, file) {
+    initialize: function(evt, fileOrItems) {
         this.evt = evt;
-        this.file = file;
+        if (fileOrItems instanceof File)
+          this.file = fileOrItems;
+        else if (fileOrItems[0] instanceof DataTransferItem)
+          this.items = fileOrItems;
     }
 },
 'handler interface', {
@@ -41,12 +44,14 @@ Object.subclass('lively.data.FileUpload.Handler',
 },
 'file reader', {
 
-    startReading: function() {
+    startReading: function(readMethod, file) {
+        if (readMethod === 'manual') return this.readManually(file);
+
         var reader = this.getFileReader();
-        if (this.readMethod === 'asBinary') reader.readAsBinaryString(this.file);
-        else if (this.readMethod === 'asText') reader.readAsText(this.file);
-        else if (this.readMethod === 'asArrayBuffer') reader.readAsArrayBuffer(this.file);
-        else reader.readAsDataURL(this.file);
+        if (readMethod === 'asBinary') reader.readAsBinaryString(file);
+        else if (readMethod === 'asText') reader.readAsText(file);
+        else if (readMethod === 'asArrayBuffer') reader.readAsArrayBuffer(file);
+        else reader.readAsDataURL(file);
     },
 
     getFileReader: function() {
@@ -58,8 +63,9 @@ Object.subclass('lively.data.FileUpload.Handler',
             onloadend: function(evt) { self.onLoadEnd && self.onLoadEnd(evt, self); },
             onprogress: function(evt) { self.onProgress && self.onProgress(evt, self); }
         });
-    }
+    },
 
+    readManually: function(file) {}
 },
 'file reader events', { // default handler methods. specific handlers can reimplement them
     onError: function(evt) {
@@ -101,14 +107,30 @@ Object.subclass('lively.data.FileUpload.Handler',
 
 Object.extend(lively.data.FileUpload, {
 
+    handleImportEvent: function(evt) {
+      // see https://developer.mozilla.org/en/Using_files_from_web_applications
+      var files = evt.dataTransfer.files;
+      if (files && files.length > 0) {
+          lively.data.FileUpload.handleDroppedFiles(files, evt);
+      }
+      var items = evt.dataTransfer.items;
+      if (items && items.length) {
+          lively.data.FileUpload.handleDroppedItems(items, evt);
+      }
+    },
+
     handleDroppedFiles: function(files, evt) {
         // handler for specific file types
         var pos = evt.getPosition(), i = 0,
             handlerClasses = lively.data.classes(true).concat(lively.Clipboard.classes(true))
-              .filter(function(ea) { return ea.isSubclassOf(lively.data.FileUpload.Handler); });
+              .filter(function(ea) { return ea.isSubclassOf(lively.data.FileUpload.Handler); }),
+            filesToUpload = [];
 
         if (evt.isAltDown()) {
-            this.uploadFilesToServer(files, evt);
+            this.uploadFilesToServer(files, evt, false, function(err, report) {
+              if (err) alert(err)
+              else alertOK('uploaded files: \n' + JSON.stringify(report, null, 2));
+            });
             return;
         }
 
@@ -120,15 +142,16 @@ Object.extend(lively.data.FileUpload, {
                     return false;
                 }
             });
-            if (!handlerClass) return null;
-            var handler = new handlerClass(evt, file);
+  
             i++;
-            var options = handler.getUploadSpec(evt, file);
+            var handler = new handlerClass(evt, file),
+                options = handler.getUploadSpec(evt, file),
+                readMethod = options.readMethod || 'asDataURL';
             Object.extend(handler, {
+                i: i,
                 showProgressbar: options.hasOwnProperty('showProgressbar') ? options.showProgressbar : true,
-                readMethod: options.readMethod || 'asDataURL',
                 pos: pos.addXY(15*i,15*i)});
-            handler.startReading();
+            handler.startReading(readMethod, file);
         });
     },
 
@@ -141,7 +164,7 @@ Object.extend(lively.data.FileUpload, {
         var handlerClass = handlerClasses.detect(function(handlerClass) {
             return handlerClass.prototype.handlesItems(items, evt); });
         if (handlerClass) {
-            var handler = new handlerClass();
+            var handler = new handlerClass(evt, items);
             handler.handleItems(items, evt);
         } else {
             // default behavior, FIXME, should go into handler class...
@@ -152,13 +175,13 @@ Object.extend(lively.data.FileUpload, {
             }
             content = evt.dataTransfer.getData('text/plain');
             if (content) {
-                this.addCodeEditor({content: content, gutter: false, textMode: 'text'});
+                $world.addCodeEditor({content: content, gutter: false, textMode: 'text'});
                 return;
             }
         }
     },
 
-    uploadFilesToServer: function(files) {
+    uploadFilesToServer: function(files, evt, askForLocation, thenDo) {
         // use XHR2 form data object to upload data via POST /upload
         // implemented by subserver UploadServer
 
@@ -166,17 +189,26 @@ Object.extend(lively.data.FileUpload, {
             files = Array.from(files);
         files.forEach(function(file) { formData.append('file', file); });
 
-        alertOK('Uploading ...' + files.pluck("name").join(', '));
-
         // files will be put into a designated directory on server once
         // uploaded, let user choose this dir here
         Functions.composeAsync(
+            function(n) {
+              var m = module("lively.ide.CommandLineInterface");
+              if (m.isLoaded()) return n();
+              m.load(); m.runWhenLoaded(function() { n(); });
+            },
+            
+            function(n) {
+              var uploadDir = lively.lang.string.joinPath(lively.shell.WORKSPACE_LK, $world.getUserDir().fullPath(), "uploads");
+              n(null, uploadDir);
+            },
 
-            function askForLocation(defaultLocation, next) {
+            askForLocation ?
+              function askForLocation(defaultLocation, next) {
                 $world.prompt('Location to upload files to', function(input) {
                     next(null, input || defaultLocation);
                 }, defaultLocation);
-            },
+              } : function(loc, n) { n(null, loc); },
 
             function upload(location, next) {
                 formData.append('location', location);
@@ -186,12 +218,9 @@ Object.extend(lively.data.FileUpload, {
                     .withJSONWhenDone(function(json, stat) { next(null, json, stat); });
             },
 
-            function report(uploadReport, postStatus, next) {
-                alertOK('uploaded files: \n' + JSON.stringify(uploadReport, null, 2));
-                next();
-            }
+            function report(uploadReport, postStatus, next) { next(null, uploadReport); }
 
-        )(lively.shell.getWorkingDirectory(), function(err) {});
+        )(function(err, uploadReport) { thenDo && thenDo(err, uploadReport); });
 
     }
 });

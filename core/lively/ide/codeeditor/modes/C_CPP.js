@@ -194,6 +194,7 @@ Object.extend(lively.ide.codeeditor.modes.C_CPP, {
 
       options.askForExecutable ?
         function(files, n) {
+          if (files.length === 1) return n(null, files);
           lively.ide.tools.SelectionNarrowing.chooseOne(
             files, n, {name: "lively.ide.codeeditor.modes.C_CPP.run-executable"});
         } : function(files, n) { n(null, files[0]); },
@@ -206,9 +207,13 @@ Object.extend(lively.ide.codeeditor.modes.C_CPP, {
 
       function(execFile, n) {
         var runnerName = "shell-command-runner-for-" + execFile, runner;
-        if ($morph(runnerName) && !$morph(runnerName).currentCommand) {
-          runner = $morph(runnerName);
-          runner.runCommand(execFile);
+        var runner = $morph(runnerName);
+        if (runner) {
+          var t = runner.targetMorph;
+          if (t.currentCommand) t.killCommand("SIGKILL");
+          lively.lang.fun.waitFor({timout: 1000},
+            () => !t.currentCommand,
+            () => t.runCommand(execFile));
         } else {
           runner = lively.ide.tools.ShellCommandRunner.run(execFile);
           runner.name = runnerName;
@@ -832,10 +837,12 @@ var ModeExtension = {
 
         "lively.ide.c_cpp.findDefinitionAtPoint": {
           exec: function(ed) {
-            var file = ed.$morph.getTargetFilePath();
-            var pos = ed.getCursorPosition();
-            var content = ed.getValue();
-            lively.ide.codeeditor.modes.C_CPP.openDefinition(file, pos, content, function(err, ed) {})
+            var file = ed.$morph.getTargetFilePath(),
+                pos = ed.getCursorPosition(),
+                content = ed.getValue();
+            lively.ide.codeeditor.modes.C_CPP.openDefinition(
+              file, pos, content,
+              function(err, defEd) { if (err) ed.$morph.showError(err); })
           }
         },
 

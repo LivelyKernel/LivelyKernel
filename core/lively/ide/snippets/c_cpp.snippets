@@ -155,3 +155,11 @@ snippet lld
 	[${1}](${2}){
 		${3:/* code */}
 	}${4}
+###
+## exceptions
+snippet try
+	try {
+		${0}
+	} catch(${1:const std::exception& ${2:e}}) {
+		${3:std::cout << e.what() << std::endl;}
+	}

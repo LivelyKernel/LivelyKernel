@@ -1144,7 +1144,8 @@ Object.extend(lively.ide.CommandLineInterface, {
 
         addCommand: function(cmd) {
             var h = lively.ide.CommandLineInterface.history,
-                rec = {time: Date.now(), group: cmd.getGroup(), commandString: cmd._commandString};
+                cmdString = Array.isArray(cmd._commandString) ? cmd._commandString.join(" ") : cmd._commandString,
+                rec = {time: Date.now(), group: cmd.getGroup(), commandString: cmdString};
             return h.setCommands(h.getCommands().concat([rec]))
         },
 

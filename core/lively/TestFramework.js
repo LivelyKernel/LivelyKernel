@@ -144,6 +144,8 @@ Object.subclass('TestCase',
 'running (private)', {
     show: function(string) { this.log(string) },
     running: function() {
+        if (Config.serverInvokedTest)
+          URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post("console.log('Test: " + this.id() + "');").content
         this.show('Running ' + this.id());
         this.statusUpdateFunc && this.statusUpdateFunc(this, 'running');
     },

@@ -29,8 +29,14 @@ function getURLParam(name) {
     return match && unescape(match[1]);
 }
 
+function serverLog(msg) {
+    URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post(msg).content;
+}
 
 // some preparation
+
+serverLog("Automatic test process started.");
+
 var testRunId = getURLParam("testRunId");
 
 if (!testRunId) {
@@ -199,6 +205,8 @@ prepareConfig();
     lively.morphic.World.current().setCurrentUser("run_tests-" + testRunId);
 })();
 
+serverLog("Automatic test process configuration done.");
+
 if (lively.Config.get("serverTestDebug")) {
     // So we can connect to the test server via l2l
     function sendLogMessage() {
@@ -207,6 +215,7 @@ if (lively.Config.get("serverTestDebug")) {
     }
     Global.travisDebugLogInterval = setInterval(sendLogMessage, 10*1000);
 } else {
+    serverLog("Automatic test process will run " + testList.length + " tests.");
     require(['lively.TestFramework'].concat(testList)).toRun(function() {
         var suite = TestSuite.forAllAvailableTests(suiteFilter);
         suite.runFinished = function() {

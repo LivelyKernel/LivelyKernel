@@ -226,7 +226,7 @@
 
   "lively.TestFramework": [
     ["serverInvokedTest", false],
-    ["serverTestDebug", false]
+    ["serverTestDebug", true]
   ],
 
   "lively.ModuleSystem": [

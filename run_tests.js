@@ -200,6 +200,7 @@ prepareConfig();
 })();
 
 if (lively.Config.get("serverTestDebug")) {
+    // So we can connect to the test server via l2l
     function sendLogMessage() {
         var code = "console.log('debugging the tests in progress');";
         URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post(code).content;

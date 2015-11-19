@@ -460,7 +460,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
   },
 
   drawLine: function(line, options) {
-    return this.drawWithOptions(options, ctx => {
+    return this.drawWithOptions(options, function(ctx) {
       ctx.beginPath()
       ctx.moveTo(line.start.x, line.start.y)
       ctx.lineTo(line.end.x, line.end.y)

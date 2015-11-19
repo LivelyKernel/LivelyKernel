@@ -1,6 +1,6 @@
 {
   "bootstrap": [
-    ["optimizedLoading", false, "Combine commonly used modules into one file and load that while bootstrapping instead of individual modules."],
+    ["optimizedLoading", true, "Combine commonly used modules into one file and load that while bootstrapping instead of individual modules."],
     ["loadUserConfig", true, "For sth like jens/config.js, used in lively.bootstrap."],
     ["libsFile", "core/lib/lively-libs-debug.js", "Library code."],
 
@@ -227,7 +227,7 @@
 
   "lively.TestFramework": [
     ["serverInvokedTest", false],
-    ["serverTestDebug", true]
+    ["serverTestDebug", false]
   ],
 
   "lively.ModuleSystem": [

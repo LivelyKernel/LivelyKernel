@@ -15,8 +15,13 @@ lively.morphic.Morph.addMethods(
         // a classPlaceHolder object is created
         // we will create a morph for a classPlaceHolder so that the system will run
         if (!this.submorphs) return;
+        var compactNeeded = false;
         for (var i = 0; i < this.submorphs.length; i++) {
             var obj = this.submorphs[i];
+            if (!obj) {
+              compactNeeded = true;
+              continue;
+            }
             if (obj.isClassPlaceHolder) {
                 var errorMorph = new lively.morphic.Box((obj.position || pt(0,0)).extent(pt(200,200)));
                 errorMorph.isErrorMorph = true;
@@ -27,6 +32,7 @@ lively.morphic.Morph.addMethods(
                 this.submorphs[i] = errorMorph;
             }
         }
+        if (compactNeeded) this.submorphs = this.submorphs.compact();
     },
 
     onstore: function() {}

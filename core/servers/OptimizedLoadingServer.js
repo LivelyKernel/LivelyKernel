@@ -81,6 +81,10 @@ function moduleToFile(module) {
 }
 
 (function setup() {
+    if (!lively.Config.optimizedLoading) {
+      console.log("Optimized loading disabled.");
+      return;
+    }
     if (isWindows) {
         console.log("Optimized file loading currently not supported on Windows. "
                   + "There seems to be an issue with gaze module used by the file-fuser to "

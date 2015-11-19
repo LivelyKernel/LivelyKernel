@@ -166,10 +166,7 @@ Object.subclass('lively.Main.Loader',
 
         if (UserAgent.webKitVersion) {
             cssDef += ':focus:not(input) { outline:none; }\n'
-                    + '.visibleSelection:focus { outline: 2px auto -webkit-focus-ring-color; }\n'
-                    // For fixing CHrome rendering artifacts
-                    // see http://greensock.com/forums/topic/6533-how-to-fix-rendering-artifacts-in-chrome/
-                    + 'body { -webkit-backface-visibility: hidden; }\n';
+                    + '.visibleSelection:focus { outline: 2px auto -webkit-focus-ring-color; }\n';
         }
 
         if (UserAgent.fireFoxVersion) {

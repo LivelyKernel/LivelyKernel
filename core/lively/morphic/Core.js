@@ -1082,7 +1082,7 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
             return $super(evt);
 
         this.showControlPointsHalos();
-        return true;
+        return false;
     }
 });
 

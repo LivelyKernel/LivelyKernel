@@ -872,7 +872,7 @@ lively.BuildSpec('lively.wiki.VersionViewer', {
                 } catch (e) { show(e); date = 'Invalid date'; }
                 return {
                     isListItem: true,
-                    string: version.author + ' - ' + date + ' (' + version.change + ')',
+                    string: version.author + ' - ' + date + ' (' + version.version + ", " + version.change + ')',
                     value: version
                 }
             });

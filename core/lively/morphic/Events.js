@@ -2013,23 +2013,10 @@ lively.morphic.World.addMethods(
     }
 
     function build() {
-      var pseudoHand = lively.newMorph({extent: pt(6,6)})
+      var pseudoHand = new lively.morphic.HandMorph(pt(6,6));
       pseudoHand.isEpiMorph = true;
       pseudoHand.applyStyle({fill: Global.Color.orange, fill: Global.Color.orange, borderRadius: 3});
       pseudoHand.setPosition($world.hand().getPosition())
-      pseudoHand.addScript(function radar(thenDo) {
-        var radar = lively.morphic.Morph.makeCircle(this.bounds().center(), 5, 3, Global.Color.red, null);
-        radar.openInWorld();
-        radar.setFill(null)
-        radar.withCSSTransitionDo(
-          function() { radar.moveBy(pt(-30+5,-30+5)); radar.setExtent(pt(60,60)); },
-          800, function() { radar.remove(); thenDo && thenDo(); });
-      });
-
-      pseudoHand.addScript(function moveOver(morph, time, thenDo) {
-        if (typeof time === "function") { thenDo = time; time === 1000; }
-        this.setPositionAnimated(morph.globalBounds().center(), time, thenDo)
-      });
 
       // pseudoHand.setPositionAnimated(pt(200,100), 800);
       return pseudoHand;
@@ -2040,29 +2027,27 @@ lively.morphic.World.addMethods(
 
 lively.morphic.Morph.subclass('lively.morphic.HandMorph',
 'settings', {
-    style: {enableDropping: false, enableHalos: false, zIndex: 1100}
-},
-'testing', {
+    style: {
+      enableGrabbing: false, enableDragging: false, enableDropping: false,
+      enableHalos: false, zIndex: 1100
+    },
     isHand: true
 },
 'initializing', {
-    initialize: function($super) {
-        $super()
-        this.ignoreEvents();
-        this.setFill(Color.red);
-        this.setBounds(new Rectangle(0, 0, 2, 2));
-        this.setPointerEvents('none');
+    initialize: function($super, optExtent) {
+        $super();
+        var ext = optExtent || pt(2,2);
+        this.setFill(lively.Color.red);
+        this.setBounds(ext.extentAsRectangle());
+        this.disableEvents();
     }
 },
 'accessing -- morphic relationship', {
-
     hand: function() { return this },
-    morphsContainingPoint: function(point, list) {
-        return list || [];
-    },
+    morphsContainingPoint: function(point, list) { return list || []; },
     morphUnderMe: function() {
         return this.world().morphsContainingPoint(this.getPosition()).first();
-    },
+    }
 },
 'testing', {
     isPressed: function() {
@@ -2071,6 +2056,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     }
 },
 'event handling', {
+
     grabMorph: function(morph, evt) {
         morph.logTransformationForUndo('grab', 'start', evt);
         morph.previousOwner = morph.owner;
@@ -2079,6 +2065,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         morph.setFixedPosition(false);
         return this.grabMorphs([morph], evt)
     },
+
     grabMorphs: function(morphs, evt) {
         if (this.submorphs.length > 0) return false;
         this.carriesGrabbedMorphs = true;
@@ -2123,6 +2110,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     }
 },
 'menu', {
+
     removeOpenMenu: function(evt) {
         var world = this.world(),
             menu = world.currentMenu;
@@ -2135,6 +2123,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     }
 },
 'moving', {
+
     move: function(evt) {
         var offsetX = 2, offsetY = 2;
 
@@ -2165,14 +2154,73 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
           || !topmostMorph
           || !topmostMorph.isLayoutable
           || !topmostMorph.wantsDroppedMorph(carriedMorph)
-          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) { return; }
+          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) return;
+
         var layouter = topmostMorph.getLayouter();
         if (layouter && layouter.displaysPlaceholders()) {
             layouter.showPlaceholderFor(carriedMorph, evt);
         } else if (carriedMorph.placeholder) {
             carriedMorph.destroyPlaceholder();
         }
+    },
+
+    move: function(evt) {
+        var offsetX = 2, offsetY = 2;
+
+        // rk 04/08/12 this is just a quick hack to have a correct mouse pos
+        // when the world is offsetted. Since this depends on HTML rendering,
+        // this should rather go into lively.morphic.Hand>>setPositionHTML or
+        // #getPositionHTML
+        var worldNode = this.world().renderContext().morphNode,
+            worldOffsetLeft = worldNode.offsetLeft,
+            worldOffsetTop = worldNode.offsetTop;
+
+        var pos = pt((evt.pageX || evt.clientX) + offsetX - worldOffsetLeft,
+                     (evt.pageY || evt.clientY) + offsetY - worldOffsetTop);
+
+        pos = pos.scaleBy(1/this.world().getScale());
+        this.setPosition(pos);
+        if (!this.carriesGrabbedMorphs) return;
+
+        var carriedMorphs = this.submorphs.filter(function(ea) {return !ea.isGrabShadow;}),
+            carriedMorph = carriedMorphs[0],
+            topmostMorph = this.world().getTopmostMorph(evt.getPosition());
+
+        // onGrabMove event
+        carriedMorphs.invoke("onGrabMove", evt, topmostMorph);
+
+        // placeholders
+        if (!carriedMorph
+          || !topmostMorph
+          || !topmostMorph.isLayoutable
+          || !topmostMorph.wantsDroppedMorph(carriedMorph)
+          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) return;
+
+        var layouter = topmostMorph.getLayouter();
+        if (layouter && layouter.displaysPlaceholders()) {
+            layouter.showPlaceholderFor(carriedMorph, evt);
+        } else if (carriedMorph.placeholder) {
+            carriedMorph.destroyPlaceholder();
+        }
+    },
+    
+    moveOver: function(morph, time, thenDo) {
+      if (typeof time === "function") { thenDo = time; time === 1000; }
+      this.setPositionAnimated(morph.globalBounds().center(), time, thenDo)
     }
+
+},
+"effects", {
+
+    radar: function(thenDo) {
+      var radar = lively.morphic.Morph.makeCircle(this.bounds().center(), 5, 3, Global.Color.red, null);
+      radar.openInWorld();
+      radar.setFill(null)
+      radar.withCSSTransitionDo(
+        function() { radar.moveBy(pt(-30+5,-30+5)); radar.setExtent(pt(60,60)); },
+        800, function() { radar.remove(); thenDo && thenDo(); });
+    }
+
 });
 
 Object.extend(lively.morphic.Events, {

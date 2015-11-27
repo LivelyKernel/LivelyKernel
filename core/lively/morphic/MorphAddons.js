@@ -1329,11 +1329,6 @@ lively.morphic.World.addMethods(
     }
 });
 
-lively.morphic.HandMorph.addMethods(
-'focus', {
-    setKeyboardFocus: function() {},
-});
-
 // really necessary to have this class?
 lively.morphic.Box.subclass('lively.morphic.Panel',
 'settings', {

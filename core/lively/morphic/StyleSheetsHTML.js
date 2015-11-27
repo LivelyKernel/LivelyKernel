@@ -374,11 +374,11 @@ lively.morphic.Morph.addMethods(
                     mCtx = m.renderContext();
                 if (mCtx.styleNode && m !== this) {
                     mCtx.styleNode.parentNode.insertBefore(styleNode, mCtx.styleNode.nextSibling);
-
                     return;
                 }
             }
         }
+
         // If still no styleNode was found
         // search downward in morph hierarchy ...
         while (submorphs.length > 0) {
@@ -391,9 +391,7 @@ lively.morphic.Morph.addMethods(
                     return;
                 }
                 if (m.submorphs) {
-                    m.submorphs.each(function (ms) {
-                        nextLevelSubmorphs.push(ms);
-                    });
+                    m.submorphs.forEach(function(ms) { nextLevelSubmorphs.push(ms); });
                 }
             }
             submorphs = nextLevelSubmorphs;

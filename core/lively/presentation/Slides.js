@@ -169,7 +169,7 @@ lively.morphic.Morph.subclass("lively.presentation.Slides.PageMorph",
     },
     makeSelection: function(evt) {  //default behavior is to grab a submorph
         if (this.currentSelection != null) this.currentSelection.removeOnlyIt();
-        var m = new SelectionMorph(this.localize(evt.point()).asRectangle());
+        var m = new lively.morphic.Selection(this.localize(evt.point()).asRectangle());
         this.addMorph(m);
         this.currentSelection = m;
         var handle = new HandleMorph(pt(0,0), lively.scene.Rectangle, evt.hand, m, "bottomRight");

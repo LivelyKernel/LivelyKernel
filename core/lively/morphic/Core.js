@@ -68,12 +68,16 @@ Object.subclass('lively.morphic.Morph',
         return this.morphicSetter('Scale', value);
     },
     getScale: function() { return this.morphicGetter('Scale') || 1 },
+
     setBounds: function(bounds) {
         this.setPosition(bounds.topLeft().addPt(this.getOrigin()));
         this.setExtent(bounds.extent());
         return bounds;
     },
-    getBounds: function() {
+
+    getBounds: function() { return this.bounds(); },
+
+    bounds: function() {
         if (this.cachedBounds && !this.hasFixedPosition()) return this.cachedBounds;
 
         var tfm = this.getTransform(),
@@ -91,12 +95,15 @@ Object.subclass('lively.morphic.Morph',
 
         return this.cachedBounds = bounds;
     },
-    globalBounds: function() {
-        return this.owner ?
-            this.owner.getGlobalTransform().transformRectToRect(this.bounds()) : this.bounds();
-    },
 
     innerBounds: function() { return this.shape.getBounds() },
+
+    globalBounds: function() {
+        return this.owner ?
+            this.owner.getGlobalTransform().transformRectToRect(this.bounds()) :
+            this.bounds();
+    },
+
     setVisible: function(bool) { return this.morphicSetter('Visible', bool)  },
     isVisible: function() {
         var v = this.morphicGetter('Visible')
@@ -163,9 +170,28 @@ Object.subclass('lively.morphic.Morph',
         // s-resize, sw-resize, w-resize, nw-resize, text, wait, help, progress
          return this.morphicSetter('HandStyle', styleName)
     },
-	getHandStyle: function(styleName) { return this.morphicGetter('HandStyle') },
+
+  	getHandStyle: function(styleName) { return this.morphicGetter('HandStyle') },
+
     setToolTip: function(string) { return this.morphicSetter('ToolTip', string) },
     getToolTip: function() { return this.morphicGetter('ToolTip') }
+},
+'geometry', {
+
+    moveBy: function(point) { this.setPosition(this.getPosition().addPt(point)); },
+    translateBy: function(p) { this.setPosition(this.getPosition().addPt(p)); return this; },
+    align: function (p1, p2) { return this.translateBy(p2.subPt(p1)); },
+    centerAt: function (p) { return this.align(this.bounds().center(), p); },
+    rotateBy: function(delta) { this.setRotation(this.getRotation() + delta); return this; },
+    scaleBy: function(factor) { this.setScale(this.getScale()*factor); },
+    centerAt: function(p) { return this.align(this.bounds().center(), p); },
+    getCenter:  function () { return this.bounds().center(); },
+    resizeBy: function(point) { this.setExtent(this.getExtent().addPt(point)); },
+    width: function() { return this.getExtent().x; },
+    setWidth: function(w) { return this.setExtent(this.getExtent().withX(w)); },
+    height: function() { return this.getExtent().y; },
+    setHeight: function(h) { return this.setExtent(this.getExtent().withY(h)); }
+
 },
 'accessing -- shape properties', {
     setExtent: function(newExtent) {
@@ -302,6 +328,13 @@ Object.subclass('lively.morphic.Morph',
         return morph;
     },
 
+    addMorphBack: function(other) {
+        var next = other === this.submorphs[0] ? this.submorphs[1] : this.submorphs[0];
+        return this.addMorph(other, next);
+    },
+
+    addMorphFront: function(other) { return this.addMorph(other); },
+
     withAllSubmorphsDo: function(func, context, depth) {
         if (!depth) depth = 0;
         var result = [func.call(context || Global, this, depth)];
@@ -389,6 +422,25 @@ Object.subclass('lively.morphic.Morph',
         // This method well get called when my direct or any of my indirect(!)
         // owners changes, i.e. I or any of my parents is added or removed to/
         // from another morph. On remove newOwner will be null.
+    },
+
+    isSubmorphOf: function(otherMorph) {
+        return otherMorph.withAllSubmorphsDetect(
+          function(morph) { return morph === this }, this);
+    },
+
+    topSubmorph: function() {
+        // the morph on top is the last one in the list
+        return this.submorphs.last();
+    },
+
+    ownerChain: function() {
+        var owners = [], morph = this;
+        while (morph.owner) {
+            owners.push(morph.owner)
+            morph = morph.owner;
+        }
+        return owners;
     }
 
 },
@@ -423,8 +475,9 @@ Object.subclass('lively.morphic.Morph',
             this.getLayouter().onSubmorphRemoved(this, morph, this.submorphs);
         }
         this.renderContextDispatch('removeMorph');
-    }
+    },
 
+    removeAllMorphs: function() { this.submorphs.invoke('remove'); }
 },
 'morph replacement', {
 
@@ -441,11 +494,10 @@ Object.subclass('lively.morphic.Morph',
     },
 
     swapWith: function(morph2) {
-      var morph1 = this;
-
-      var owner1 = morph1.owner, idx1 = owner1.submorphs.indexOf(morph1),
-          next1 = owner1.submorphs[idx1+1], pos1 = morph1.bounds().center();
-      var owner2 = morph2.owner, idx2 = owner2.submorphs.indexOf(morph2),
+      var morph1 = this,
+          owner1 = morph1.owner, idx1 = owner1.submorphs.indexOf(morph1),
+          next1 = owner1.submorphs[idx1+1], pos1 = morph1.bounds().center(),
+          owner2 = morph2.owner, idx2 = owner2.submorphs.indexOf(morph2),
           next2 = owner2.submorphs[idx2+1], pos2 = morph2.bounds().center();
       morph1.align(pos1, pos2);
       morph2.align(pos2, pos1);
@@ -457,21 +509,25 @@ Object.subclass('lively.morphic.Morph',
 
 },
 'transformation', {
+
     localize: function(point) {
         // map world point to local coordinates
         var world = this.world();
         if (!world) return point;
         return point.matrixTransform(world.transformToMorph(this));
     },
+
     transformToMorph: function(other) {
         var tfm = this.getGlobalTransform(),
             inv = other.getGlobalTransform().inverse();
         tfm.preConcatenate(inv);
         return tfm;
     },
+
     transformForNewOwner: function(newOwner) {
         return new lively.morphic.Similitude(this.transformToMorph(newOwner));
     },
+
     localizePointFrom: function(pt, otherMorph) {
         // map local point to owner coordinates
         try {
@@ -481,6 +537,7 @@ Object.subclass('lively.morphic.Morph',
             return pt;
         }
     },
+
     getGlobalTransform: function() {
         var globalTransform = new lively.morphic.Similitude(),
             world = this.world();
@@ -488,21 +545,22 @@ Object.subclass('lively.morphic.Morph',
             globalTransform.preConcatenate(morph.getTransform());
         return globalTransform;
     },
+
     worldPoint: function(pt) {
         return pt.matrixTransform(this.transformToMorph(this.world()));
     },
+
     getTransform: function () {
         var scale = this.getScale(),
             pos = this.getPosition();
-        if (Object.isNumber(scale)) {
-            scale = pt(scale,scale);
-        }
+        if (Object.isNumber(scale)) scale = pt(scale,scale);
         if (this.isClip()) {
             var scroll = this.getScroll();
             pos = pos.subXY(scroll[0], scroll[1]);
         }
         return new lively.morphic.Similitude(pos, this.getRotation(), scale);
     },
+
     setTransform: function(tfm) {
         this.setPosition(tfm.getTranslation());
         this.setRotation(tfm.getRotation().toRadians());
@@ -512,12 +570,15 @@ Object.subclass('lively.morphic.Morph',
     fullContainsWorldPoint: function(p) { // p is in world coordinates
         return this.fullContainsPoint(this.owner == null ? p : this.owner.localize(p));
     },
+
     fullContainsPoint: function(p) { // p is in owner coordinates
         return this.getBounds().containsPoint(p);
     },
+
     innerBoundsContainsWorldPoint: function(p) { // p is in world coordinates
         return this.innerBoundsContainsPoint(this.owner == null ? p : this.localize(p));
     },
+
     innerBoundsContainsPoint: function(p) { return this.innerBounds().containsPoint(p);  }
 },
 'prototypical scripting', {

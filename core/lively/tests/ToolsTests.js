@@ -100,7 +100,7 @@ TestCase.subclass('lively.tests.ToolsTests.KeyboardTest', {
         }
 
         keyWatcher.openInWorld();
-        lively.morphic.World.current().hands.first().setKeyboardFocus(keyWatcher);
+        keyWatcher.focus();
     },
 });
 
@@ -120,7 +120,7 @@ TestCase.subclass('lively.tests.ToolsTests.MouseEventTest', {
 		}
 
 		mouseWatcher.openInWorld();
-		lively.morphic.World.current().hands.first().setKeyboardFocus(mouseWatcher);
+		mouseWatcher.focus();
 	},
 });
 

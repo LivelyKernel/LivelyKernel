@@ -162,11 +162,13 @@ lively.morphic.Morph.subclass("lively.presentation.Slides.PageMorph",
 },
 'mouse events', {
     handlesMouseDown: Functions.True,
+
     onMouseDown: function ($super, evt) {
         var result = $super(evt);
         if (!Config.isNewMorphic) this.makeSelection(evt);
         return result;
     },
+
     makeSelection: function(evt) {  //default behavior is to grab a submorph
         if (this.currentSelection != null) this.currentSelection.removeOnlyIt();
         var m = new lively.morphic.Selection(this.localize(evt.point()).asRectangle());
@@ -176,9 +178,8 @@ lively.morphic.Morph.subclass("lively.presentation.Slides.PageMorph",
         handle.setExtent(pt(0, 0));
         handle.mode = 'reshape';
         m.addMorph(handle);
-        evt.hand.setMouseFocus(handle);
-        // evt.hand.setKeyboardFocus(handle);
     },
+
     isFocusable: function() { return false },
 
 });

@@ -139,16 +139,28 @@ Object.extend(lively.morphic, {
     },
 
     printInspect: (function() {
+      var maxColLength = 300;
       function inspectPrinter(val, ignore) {
-        return val && val.isMorph ? String(val) : ignore;
+        if (!val) return ignore;
+        if (val.isMorph) return String(val);
+        var length = val.length || val.byteLength;
+        if (Global.ImageData && val instanceof Global.ImageData) return String(val);
+        if (length !== undefined && length > maxColLength && val.slice) {
+          var printed = val.byteLength ? String(val.slice(0, maxColLength)) : val.slice(0,maxColLength).map(lively.lang.string.print);
+          return "[" + printed + ",...]";
+        }
+        return ignore;
       }
-      
+
       return function(obj, maxDepth) {
-        return Object.isObject(obj) ? lively.lang.obj.inspect(obj, {
+        if (!obj) return String(obj);
+        if (typeof obj === "string") return obj.length > maxColLength ? (obj.slice(0,maxColLength) + "...") : String(obj);
+        if (!Object.isObject(obj)) return String(obj);
+        return lively.lang.obj.inspect(obj, {
           customPrinter: inspectPrinter,
           maxDepth: maxDepth,
           printFunctionSource: true
-        }) : String(obj);
+        });
       }
     })(),
 
@@ -247,20 +259,21 @@ lively.morphic.Morph.addMethods(
         var item = {name: this.name || "a " + lively.Class.getConstructor(this).displayName, value: this},
             children = this.submorphs.invoke('treeItemsOfMorphNames', options).compact();
         if (children.length > 0) item.children = children;
-        Properties.own(properties).each(function (v) { item[v] = properties[v]; });
-        scripts.each(function (script) { Object.addScript(item, script); });
+        Properties.own(properties).forEach(function (v) { item[v] = properties[v]; });
+        scripts.forEach(function (script) { Object.addScript(item, script); });
         return item;
     },
 
     isSubmorphOf: function(otherMorph) {
-        return otherMorph.withAllSubmorphsDetect(function(morph) {
-            return morph === this }, this);
+        return otherMorph.withAllSubmorphsDetect(
+          function(morph) { return morph === this }, this);
     },
 
     topSubmorph: function() {
         // the morph on top is the last one in the list
         return this.submorphs.last();
     },
+
     ownerChain: function() {
         var owners = [], morph = this;
         while (morph.owner) {
@@ -268,7 +281,8 @@ lively.morphic.Morph.addMethods(
             morph = morph.owner;
         }
         return owners;
-    },
+    }
+
 },
 'convenience accessing', {
     bounds: function() { return this.getBounds(); },

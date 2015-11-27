@@ -352,7 +352,7 @@ lively.morphic.Morph.addMethods(
             var parent = ctx.baseThemeNode.parentNode || (styleNode && styleNode.parentNode) || document.head;
             parent.insertBefore(styleNode, ctx.baseThemeNode.nextSibling);
             return;
-        } else if (ctx.styleNode && ctx.styleNode !== styleNode) {
+        } else if (ctx.styleNode && ctx.styleNode.parentNode && ctx.styleNode !== styleNode) {
             ctx.styleNode.parentNode.insertBefore(styleNode, ctx.styleNode);
             return;
         }
@@ -360,7 +360,7 @@ lively.morphic.Morph.addMethods(
         // Search upward in morph hierarchy ...
         while ((parent = parent.owner)) {
             var parentCtx = parent.renderContext();
-            if (parentCtx.styleNode) {
+            if (parentCtx.styleNode && parentCtx.styleNode.parentNode) {
                 parentCtx.styleNode.parentNode.insertBefore(styleNode, parentCtx.styleNode.nextSibling);
                 return;
             }

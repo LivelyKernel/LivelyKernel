@@ -2919,6 +2919,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.helperMorphs.invoke('remove');
         this.collapsedExtent = this.computeOptimalCollapsedExtent(this.collapsedExtent);
         if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(true);
+        if (this.collapseButton) this.collapseButton.setLabel("+");
         var self = this;
         function finCollapse() {
             self.state = 'collapsed';  // Set it now so setExtent works right
@@ -2936,6 +2937,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
         this.collapsedExtent = this.innerBounds().extent();
         this.collapsedPosition = this.getPosition();
         if (this.titleBar.lookCollapsedOrNot) this.titleBar.lookCollapsedOrNot(false);
+        if (this.collapseButton) this.collapseButton.setLabel("–");
         var self = this;
         function finExpand() {
             self.state = 'expanded';

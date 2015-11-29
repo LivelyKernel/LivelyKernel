@@ -1185,10 +1185,9 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
         this.targetMorph.showHalos();
 
         if (!this.overOther) return;
-        if (this.controlPoint.next() !== this.overOther.controlPoint &&
-            this.controlPoint.prev() !== this.overOther.controlPoint) return;
+        // if (this.controlPoint.next() !== this.overOther.controlPoint &&
+        //     this.controlPoint.prev() !== this.overOther.controlPoint) return;
         if (this.controlPoint.isLast() || this.controlPoint.isFirst()) return;
-
         this.controlPoint.remove();
 
         if (lively.Config.get('enableMagneticConnections') && this.magnetSet) {
@@ -1199,13 +1198,17 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
     },
 
     findIntersectingControlPoint: function() {
-        var halos = this.targetMorph.halos;
-        if (!halos) return;
-        for (var i = 0; i < halos.length; i++)
-            if (halos[i].isVertexControlHalo &&
-                halos[i] !== this &&
-                this.bounds().intersects(halos[i].bounds()))
+        // var halos = this.targetMorph.halos;
+        if(this.controlPoint.isFirst()||this.controlPoint.isLast()) return;
+        var halos = this.targetMorph.getControlPointHalos();
+        if (!halos.length) return;
+        for (var i = 0; i < halos.length; i++){
+            if (halos[i].isVertexControlHalo && 
+                halos[i].controlPoint !== this.controlPoint &&
+                this.bounds().containsPoint(halos[i].controlPoint.getGlobalPos())){
                     return halos[i];
+            }
+        }
     },
 
     highlightIfOverOther: function() {
@@ -1218,7 +1221,7 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
 
 lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathInsertPointHalo',
 'settings', {
-    style: {borderRadius: 6},
+    style: {borderRadius: 0},
 },
 'properies', {
     isPathControlPointHalo: true,

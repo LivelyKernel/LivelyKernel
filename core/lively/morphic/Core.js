@@ -1153,11 +1153,24 @@ Object.subclass('lively.morphic.ControlPoint',
 },
 'manipulation', {
     moveBy: function(p) {
+        var oldPos = this.getPos();
         var element = this.getElement();
         if (!element) return;
         element.translatePt(p);
         this.elementChanged();
         this.signalChange();
+        // fix for moving first & last cp of a polygon
+        var other;
+        if(this.isFirst())
+          other = this.getMorph().controlPoints.last();
+        if(this.isLast())
+          other = this.getMorph().controlPoints.first();
+        if(other&&other.getPos().x==oldPos.x&&other.getPos().y==oldPos.y){ 
+          this.movedAlready = true;
+          if(!other.movedAlready) 
+            other.moveBy(p);
+          delete(this.movedAlready);
+        }
     },
     setPos: function(p) {
         this.moveBy(p.subPt(this.getPos()))
@@ -1197,7 +1210,6 @@ Object.subclass('lively.morphic.ControlPoint',
         var next = this.next();
         next && next.remove();
     }
-
 },
 'removing', {
     remove: function() {
@@ -1209,8 +1221,7 @@ Object.subclass('lively.morphic.ControlPoint',
 
         var ctrlPts = this.morph.controlPoints;
         ctrlPts.removeAt(this.index);
-
-        ctrlPts[this.index].signalChange();
+        ctrlPts[this.index] && ctrlPts[this.index].signalChange();
     },
 
 },

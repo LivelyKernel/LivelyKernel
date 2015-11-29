@@ -935,7 +935,20 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     }
 },
 'accessing', {
-    vertices: function() { return this.shape.vertices() }
+    vertices: function() { return this.shape.vertices() },
+     setExtent: function(newExt){
+      var br = this.getBounds().bottomRight();
+      br = br.subPt(this.getPositionInWorld());
+      var xRatio = newExt.x/br.x;
+      var yRatio = newExt.y/br.y;
+      var newVerts = [];
+      this.vertices().forEach(function(ea){
+        var newPt = pt(ea.x*xRatio,ea.y*yRatio);
+        newVerts.push(newPt);
+      });
+      this.setVertices(newVerts);
+      this.cachedBounds = null;
+  },
 },
 'vertex and control point computations', {
     pathBetweenRects: function(rect1, rect2) {

@@ -54,8 +54,8 @@ Object.subclass('lively.morphic.Magnet',
 
     initialize: function(morph, pos) {
         this.setMorph(morph);
-        this.setPosition(pos);
         this.connectedControlPoints = [];
+        this.setPosition(pos);
     },
     setMorph: function(morph) {
         this.morph = morph
@@ -80,7 +80,7 @@ Object.subclass('lively.morphic.Magnet',
         return this.position
     },
     setPosition: function(pos) {
-       this.position = pos
+       this.position = pos;
     },
     getGlobalPosition: function() {
         if (!this.morph || !this.morph.world()) return pt(0,0);

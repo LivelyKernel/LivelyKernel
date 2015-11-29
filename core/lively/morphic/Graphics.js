@@ -215,6 +215,9 @@ Object.subclass("lively.Point",
 'printing', {
     toString: function() {
         return Strings.format("lively.pt(%1.f,%1.f)", this.x, this.y);
+    },
+    toShortString: function() {
+        return Strings.format("pt(%1.f,%1.f)", this.x, this.y);
     }
 },
 'debugging', {

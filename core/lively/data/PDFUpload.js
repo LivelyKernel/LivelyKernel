@@ -16,36 +16,27 @@ lively.data.FileUpload.Handler.subclass('lively.data.PDFUpload.Handler', {
     },
 
     uploadAndOpenPDFTo: function(url, mime, binaryData, pos) {
-        var onloadDo = function(status) {
+        var self = this;
+        this.uploadBinary(url, mime, binaryData, function(status) {
             if (!status.isDone()) return;
-            if (status.isSuccess()) this.openPDF(url, mime, pos)
+            if (status.isSuccess()) self.openPDF(url, mime, pos)
             else alert('Failure uploading ' + url + ': ' + status);
-        }.bind(this)
-        var webR = this.uploadBinary(url, mime, binaryData, onloadDo);
+        });
     },
 
     openPDF: function(url, mime, pos) {
-        if (false) {
-            var embedNode = XHTMLNS.create('embed');
-            embedNode.type = mime;
-            embedNode.src = url;
-            embedNode.width="400"
-            embedNode.height="400"
-            var pdfNode = embedNode
-        } else {
-            var objectNode = XHTMLNS.create('object');
-            objectNode.type = mime;
-            objectNode.data = url;
-            objectNode.width="400"
-            objectNode.height="400"
-            var linkNode = XHTMLNS.create('a');
-            linkNode.setAttribute('href', url);
-            linkNode.textContent = url
-            objectNode.appendChild(linkNode);
-            var pdfNode = objectNode;
-        }
-        // FIXME implement video morph?
+        var extent = pt(400,400),
+            pdfNode = document.createElement('object'),
+            linkNode = document.createElement('a');
+        pdfNode.type = mime;
+        pdfNode.data = url;
+        linkNode.setAttribute('href', url);
+        linkNode.textContent = url
+        pdfNode.appendChild(linkNode);
+
         var morph = new lively.morphic.Morph(new lively.morphic.Shapes.External(pdfNode));
+        morph.disableGrabbing();
+
         morph.addScript(function getURL() { return this.renderContext().shapeNode.childNodes[0].href })
         morph.addScript(function setURL(url) {
             this.renderContext().shapeNode.data = String(url);
@@ -56,7 +47,7 @@ lively.data.FileUpload.Handler.subclass('lively.data.PDFUpload.Handler', {
             owner.addMorph(this)
         })
 
-        morph.applyStyle({borderWidth: 1, borderColor: Color.black})
+        morph.applyStyle({extent: extent, borderWidth: 1, borderColor: Color.black})
         morph.openInWorld(pos);
     }
 

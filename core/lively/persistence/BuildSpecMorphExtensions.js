@@ -109,6 +109,7 @@ lively.morphic.Morph.addMethods(
         },
         shape: {
           exclude: true,
+          getter: function(morph, val) { return morph.getShape().constructor.type; }
         }
     },
 

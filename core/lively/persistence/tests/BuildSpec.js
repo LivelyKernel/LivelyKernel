@@ -180,10 +180,10 @@ Functions.timeToRun(function() {
     },
     test16PreservesShapeForEllipse: function() {
         // enter comment here
-        var ellipse = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,42,42));
-        var spec = ellipse.buildSpec();
+        var ellipse = lively.morphic.Morph.makeEllipse(new Rectangle(0,0,42,42)),
+            spec = ellipse.buildSpec();
         this.assertEquals(spec.attributeStore.shape != undefined, true);
-        this.assertEquals(spec.createMorph().getShape().constructor.name == 'Ellipse', true);        
+        this.assertEquals("Ellipse", spec.createMorph().getShape().constructor.name, true);        
     }
 
 });

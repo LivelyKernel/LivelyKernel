@@ -923,7 +923,8 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
     isPath: true,
     style: {
         borderWidth: 1, borderColor: Color.black
-    }
+    },
+    isPolygon: function(){return (this.vertices().length>2 && this.vertices().first().equals(this.vertices().last()));}
 },
 'initializing', {
     initialize: function($super, vertices) {
@@ -937,17 +938,20 @@ lively.morphic.Morph.subclass('lively.morphic.Path',
 'accessing', {
     vertices: function() { return this.shape.vertices() },
      setExtent: function(newExt){
-      var br = this.getBounds().bottomRight();
-      br = br.subPt(this.getPositionInWorld());
-      var xRatio = newExt.x/br.x;
-      var yRatio = newExt.y/br.y;
+       
+      var oldExt = this.getExtent();
+      var originPos = this.getOrigin();
+      var xRatio = newExt.x/oldExt.x;
+      var yRatio = newExt.y/oldExt.y;
+      this.setOrigin(pt(0,0));
       var newVerts = [];
       this.vertices().forEach(function(ea){
-        var newPt = pt(ea.x*xRatio,ea.y*yRatio);
-        newVerts.push(newPt);
+          var newPt = pt(ea.x*xRatio,ea.y*yRatio);
+          newVerts.push(newPt);
       });
       this.setVertices(newVerts);
       this.cachedBounds = null;
+      this.setOrigin(originPos);
   },
 },
 'vertex and control point computations', {
@@ -1166,9 +1170,9 @@ Object.subclass('lively.morphic.ControlPoint',
 },
 'manipulation', {
     moveBy: function(p) {
-        var oldPos = this.getPos();
         var element = this.getElement();
         if (!element) return;
+        var isPolygon = this.getMorph().isPolygon();
         element.translatePt(p);
         this.elementChanged();
         this.signalChange();
@@ -1178,12 +1182,8 @@ Object.subclass('lively.morphic.ControlPoint',
           other = this.getMorph().controlPoints.last();
         if(this.isLast())
           other = this.getMorph().controlPoints.first();
-        if(other&&other.getPos().x==oldPos.x&&other.getPos().y==oldPos.y){ 
-          this.movedAlready = true;
-          if(!other.movedAlready) 
-            other.moveBy(p);
-          delete(this.movedAlready);
-        }
+        if(isPolygon && other)
+          other.moveBy(p);
     },
     setPos: function(p) {
         this.moveBy(p.subPt(this.getPos()))

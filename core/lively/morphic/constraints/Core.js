@@ -71,13 +71,68 @@ Object.extend(lively.morphic.constraints, {
     var mergeFn = (options && options.mergeFn) || lively.morphic.constraints.merge,
         applyFn = (options && options.applyFn) || lively.morphic.constraints.apply,
         maxDuration = (options && options.maxDuration) || 50,
-        t = Date.now(), i = 0, currError, lastError = Infinity;
+        t = new Date(), i = 0, currError, lastError = Infinity;
+
+    // for constraints which are "searchable" (i.e. they provide a set of
+    // discrete values as solutions) we gather the solutions from each
+    // constraint and create step-by-step all possible combinations of the
+    // solutions.  For each step, a combination is passed into
+    // `solveForDuration` as `predefinedSolutions`
+
+    var discreteConstraints = constraints.filterByKey("searchable"),
+        searchSpace = discreteConstraints.reduce(function(searchSpace, c) {
+            var err = c.error(t);
+            if (err <= Math.abs(c.epsilon())) return searchSpace;
+            return searchSpace.concat(c.solve(t).map(function(solution) {
+                return solution.values.map(function(v) {
+                  return lively.lang.obj.merge(solution, {value: v, constraint: c, error: err});
+                });
+              }))
+          }, []);
+
+    var searchSolutionsN = searchSpace.reduce(function(prod, space) { return prod * space.length; }, 1),
+        searchState = searchSpace.map(function() { return 0; });
+    for (var i = 0; i < searchSolutionsN; i++) {
+      var result = searchStep(searchSpace, searchState),
+          discreteSolutions = result[0];
+      lively.morphic.constraints.solveForDuration(
+          constraints, t, maxDuration, mergeFn, applyFn, discreteSolutions);
+      if (discreteConstraints.every(function(c) { return c.error(t) <= Math.abs(c.epsilon()); }))
+        break;
+      searchState = result[1];
+    }
+
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function searchStep(searchSpace, searchState) {
+      var values = searchSpace.map(function(subspace, i) { return subspace[searchState[i]]; });
+      var nextState = searchState.clone();
+      for (var i = searchSpace.length; i--; i >= 0) {
+        var subspace = searchSpace[i];
+        var nextIndex = nextState[i] + 1;
+        if (subspace[nextIndex]) { nextState[i] = nextIndex; break; }
+        else if (i === 0) { nextState = undefined; break; }
+        else { nextState[i] = 0; }
+      }
+      return [values, nextState];
+    }
+
+  },
+
+  solveForDuration: function(constraints, time, duration, mergeFn, applyFn, predefinedSolutions) {
+    // The actual relaxation iterations happen in here.  For up to duration the
+    // algorithm below tries to minimize the error of `constraints`.
+    // `predefinedSolutions` might be passed in if `solveForDuration` is called
+    // with searchable constraints. `predefinedSolutions` then represent the
+    // current search state
 
     // ignore constraints per var that have a lower priority than the
     // constraint with the highest priority affecting the var. We use a
     // blacklist so that the constraints won't be considered even if the high
     // priority constrained was solved (to not undo its changes)
     var priorityBlacklist = {};
+    var i = 0, currError, lastError = Infinity;
 
     while (true) {
       currError = 0;
@@ -90,71 +145,37 @@ Object.extend(lively.morphic.constraints, {
       // This will be fed to a merge function that reduces values to a single new value
 
       var empty = true;
-      var solutionMap = constraints.reduce(function(solutionMap, c) {
-        var error = c.error();
-        if (error <= Math.abs(c.epsilon())) return solutionMap; // satisfied?
+      var solutionMap = {};
+      
+      predefinedSolutions.forEach(function(ea) {
+        currError += ea.error; empty = false;
+        addSolutionToMap(ea, solutionMap, ea.constraint, ea.error);
+      });
+      
+      constraints.forEach(function(c) {
+        if (c.searchable) return; // dealt with in solve()
+
+        var error = c.error(time);
+        if (error <= Math.abs(c.epsilon())) return; // satisfied?
+
         currError += error; empty = false;
 
         // Gather solutions for all constraints. Constraint>>solve returns a
         // list of proposed values, for each variable that needs to be changed
-        var solutionsOfConstraint = c.solve(t);
-        solutionsOfConstraint.forEach(function(solution) {
-          // Solutions for morph or arbitrary variable? Derive var-id accordingly...
-          var varId, isMorphSolution = false;
-          if (solution.morph) {
-            if (!solution.property) throw new Error("constraint solve: Solution for morph " + solution.morph + " needs a property field!");
-            varId = solution.morph.id + " " + solution.property;
-            isMorphSolution = true;
-          } else {
-            if (!solution.id) throw new Error("constraint solve: Solution for non-morph needs an id!");
-            if (!solution.type) throw new Error("constraint solve: Solution for non-morph needs a type!");
-            varId = solution.id;
-          }
-
-          // ignore variable if current constraint is blacklisted
-          if (priorityBlacklist[varId] && priorityBlacklist[varId].include(c)) return;
-
-          if (!solution.hasOwnProperty("value")) throw new Error("constraint solve: Solution " + varId + " expected to have a value");
-
-          var s = solutionMap[varId];
-          if (!s) { // first solution for var
-            s = solutionMap[varId] = {
-              isMorphSolution: isMorphSolution,
-              priority: c.priority,
-              morph: solution.morph,
-              type: solution.type,
-              property: solution.property,
-              values: [], constraints: [], errors: []
-            }
-          } else if (c.priority < s.priority) {
-            priorityBlacklist[varId] = (priorityBlacklist[varId] || []).concat([c]);
-            return;
-          } else if (c.priority > s.priority) {
-            // if current constraint is ranked with a higher priority than the
-            // constraints that were used for the recorded solutions, get rid
-            // of existing recordings and blacklist those lower priority constraints
-            priorityBlacklist[varId] = (priorityBlacklist[varId] || []).concat(s.constraints);
-            s.priority = c.priority;
-            s.values.clear(); s.constraints.clear(); s.errors.clear();
-          } else if (isMorphSolution !== s.isMorphSolution) {
-            throw new Error("Constraint solve: solution for morph and arbitrary var mixed up? " + varId);
-          }
-          s.values.push(solution.value);
-          s.constraints.push(c);
-          s.errors.push(error);
+        c.solve(time).forEach(function(solution) {
+          addSolutionToMap(solution, solutionMap, c, error);
         });
-        return solutionMap;
-      }, {});
+      });
 
       // show("%s\n%s", Date.now() - t, Object.keys(solutionMap).map((k) => k + ": " + solutionMap[k].values.length + ", " + solutionMap[k].constraints.pluck("priority")).join("\n"))
 
       // all constraints satisfied, nothing todo
-      if (empty) break;
+      if (empty) return;
 
       // stop if we aren't converging;
-      if (currError > lastError) break;
+      if (currError > lastError) return;
       lastError = currError;
-      
+
       // merge solutions and modify the system's state
       for (var variable in solutionMap) {
         if (solutionMap[variable].isMorphSolution) {
@@ -166,7 +187,56 @@ Object.extend(lively.morphic.constraints, {
       }
 
       // stop if we run out of time
-      if (Date.now() - t > maxDuration) break;
+      var time2 = new Date();
+      if (time2 - time > duration) return;
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    
+    function addSolutionToMap(solution, solutionMap, constraint, error) {
+      // Solutions for morph or arbitrary variable? Derive var-id accordingly...
+      var varId, isMorphSolution = false;
+      if (solution.morph) {
+        if (!solution.property) throw new Error("constraint solve: Solution for morph " + solution.morph + " needs a property field!");
+        varId = solution.morph.id + " " + solution.property;
+        isMorphSolution = true;
+      } else {
+        if (!solution.id) throw new Error("constraint solve: Solution for non-morph needs an id!");
+        if (!solution.type) throw new Error("constraint solve: Solution for non-morph needs a type!");
+        varId = solution.id;
+      }
+
+      // ignore variable if current constraint is blacklisted
+      if (priorityBlacklist[varId] && priorityBlacklist[varId].include(constraint)) return;
+
+      if (!solution.hasOwnProperty("value")) throw new Error("constraint solve: Solution " + varId + " expected to have a value");
+
+      var s = solutionMap[varId];
+      if (!s) { // first solution for var
+        s = solutionMap[varId] = {
+          isMorphSolution: isMorphSolution,
+          priority: constraint.priority,
+          morph: solution.morph,
+          type: solution.type,
+          property: solution.property,
+          values: [], constraints: [], errors: []
+        }
+      } else if (constraint.priority < s.priority) {
+        priorityBlacklist[varId] = (priorityBlacklist[varId] || []).concat([constraint]);
+        return;
+      } else if (constraint.priority > s.priority) {
+        // if current constraint is ranked with a higher priority than the
+        // constraints that were used for the recorded solutions, get rid
+        // of existing recordings and blacklist those lower priority constraints
+        priorityBlacklist[varId] = (priorityBlacklist[varId] || []).concat(s.constraints);
+        s.priority = constraint.priority;
+        s.values.clear(); s.constraints.clear(); s.errors.clear();
+      } else if (isMorphSolution !== s.isMorphSolution) {
+        throw new Error("Constraint solve: solution for morph and arbitrary var mixed up? " + varId);
+      }
+      s.values.push(solution.value);
+      s.constraints.push(constraint);
+      s.errors.push(error);
     }
   },
 
@@ -180,7 +250,7 @@ Object.extend(lively.morphic.constraints, {
     }
     return solution;
   },
-  
+
   apply: function(solution, varId) {
     // solution as in merge
     throw new Error("Don't know how to apply solution " + varId);
@@ -199,22 +269,8 @@ lively.morphic.Morph.addMethods(
 "constraints", {
   
   constraintsMergePosition: function(values, constraints) {
-    // solutions = [value: {morph: MORPH, value: POINT, property: "position"}]
-    // 	var damping = 0.25, avg = lively.lang.num.average(solutions);
-    // 	return curr + (damping * (avg - curr))
-
-    // var morph = values[0].morph;
-    // if (morph.showsHalos) return {property: "position", morph: morph, value: morph.getPosition()}  
-
-    // var c = constraints.max(c => c.error());
-    // var i = constraints.indexOf(c);
-    // return {property: "position", morph: morph, value: values[i].value};
-    
-
-    // var damping = 0.25,
     if (this.showsHalos) return {property: "position", value: this.getPosition()}
-
-    var damping = 1,
+    var damping = 0.25,
         avg = values.reduce(function(all, ea) { return all.addPt(ea); }, pt(0,0)).scaleBy(1/values.length);
     return {property: "position", value: this.getPosition().addPt(avg.subPt(this.getPosition()).scaleBy(damping))};
   },
@@ -293,11 +349,24 @@ Trait("lively.morphic.constraints.SolverProcessTrait",
     if (other) other.priority = c.priority;
     else cs.push(c);
     if (!this.constraintSolveLoopIsRunning()) this.constraintSolveLoopStart();
+    return c;
   },
 
   constraintAddAndSolve: function(/*c, ...*/) {
-    this.constraintAdd.apply(this, arguments);
+    var c = this.constraintAdd.apply(this, arguments);
     this.constraintSolveLoop();
+    return c;
+  },
+
+  constraintRemove: function(c) {
+    this.constraints = (this.constraints || []).without(c);
+    if (!this.constraints.length) this.constraintsRemoveAll();
+  },
+
+  constraintsRemoveAllReferencingMorph: function(morph) {
+    (this.constraints || [])
+      .filter(function(ea) { return lively.lang.obj.values(ea).some(function(val) { return val === morph; }); })
+      .forEach(function(c) { this.constraintRemove(c); }, this);
   },
 
   constraintsRemoveAll: function() {
@@ -315,7 +384,7 @@ Trait("lively.morphic.constraints.SolverProcessTrait",
   },
 
   constraintSolveLoopIsRunning: function() {
-    return ($world.scripts || []).some(function(script) { return script.selector === "constraintSolveLoop"; });
+    return (this.scripts || []).some(function(script) { return script.selector === "constraintSolveLoop"; });
   },
 
   constraintSolveLoopStart: function() {
@@ -440,8 +509,8 @@ lively.morphic.constraints.Constraint.subclass("lively.morphic.constraints.TwoPo
     //     delta = p1.subPt(p2).scaleBy(m1.getExtent().fastR()/100),
     var angle = this.computeAngle(),
         scale = this.computeScale();
-    return [{morph: this.targetMorph, type: "rotation", value: angle},
-            {morph: this.targetMorph, type: "scale", value: scale}]
+    return [{morph: this.targetMorph, property: "rotation", value: angle},
+            {morph: this.targetMorph, property: "scale", value: scale}]
   }
 
 });

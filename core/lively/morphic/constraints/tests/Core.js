@@ -79,11 +79,118 @@ TestCase.subclass('lively.morphic.constraints.tests.BasicConstraintSolving',
 
 });
 
+TestCase.subclass('lively.morphic.constraints.tests.SearchConstraints',
+"helper", {
+
+  permutations: function permutations(arr, values) {
+    values = values || [];
+    if (!arr.length) return [values];
+    return lively.lang.arr.flatmap(arr,
+      function(ea, i) {
+        return permutations(
+          arr.slice(0, i).concat(arr.slice(i+1)),
+          values.concat([ea])); })
+  },
+
+  isSorted: function isSorted(arr) {
+    return arr.every(function(n, i) { return i === 0 || arr[i-1] <= n; });
+  },
+  
+  merge: function(solution, varId) { return {type: "number", value: solution.values[0]}; },
+
+  apply: function(state, solution, varId) { state[varId] = solution.value; }
+
+},
+"testing", {
+
+  testSimple: function() {
+    var state = {numbers: [3,4,1,2,1]};
+
+    var permutations = this.permutations, isSorted = this.isSorted,
+        merge = this.merge, apply = this.apply.curry(state);
+
+    var c = {
+      searchable: true,
+      epsilon: function() { return 0; },
+      error: function() { return isSorted(state.numbers) ? 0 : 1; },
+      solve: function() {
+        return [{id: "numbers", type: "array", values: permutations(state.numbers)}]
+      }
+    }
+
+    lively.morphic.constraints.solve([c], {mergeFn: merge, applyFn: apply});
+    this.assertEquals([1,1,2,3,4], state.numbers, "not sorted");
+  },
+
+  testMultipleVariables: function() {
+    var state = {numbers1: [3,4,1,2,1], numbers2: [3,1,2], numbers3: [6,5,4]};
+
+    var permutations = this.permutations, isSorted = this.isSorted,
+        merge = this.merge, apply = this.apply.curry(state);
+
+    var c1 = {
+      searchable: true,
+      epsilon: function() { return 0; },
+      error: function() { return isSorted(state.numbers1) && isSorted(state.numbers2) ? 0 : 1; },
+      solve: function() {
+        return [
+          {id: "numbers1", type: "array", values: permutations(state.numbers1)},
+          {id: "numbers2", type: "array", values: permutations(state.numbers2)}];
+      }
+    }
+    
+    var c2 = {
+      searchable: true,
+      epsilon: function() { return 0; },
+      error: function() { return isSorted(state.numbers3) ? 0 : 1; },
+      solve: function() {
+        return [{id: "numbers3", type: "array", values: permutations(state.numbers3)}];
+      }
+    }
+
+    lively.morphic.constraints.solve([c1, c2], {mergeFn: merge, applyFn: apply});
+    this.assertEquals([1,1,2,3,4], state.numbers1, "not sorted");
+    this.assertEquals([1,2,3], state.numbers2, "not sorted");
+    this.assertEquals([4,5,6], state.numbers3, "not sorted");
+  },
+
+  testMultipleConstraintsForOneVariable: function() {
+    var state = {numbers: [1,2,3,4,5]};
+
+    var permutations = this.permutations, isSorted = this.isSorted,
+        merge = this.merge, apply = this.apply.curry(state);
+
+    var c1 = {
+      searchable: true,
+      epsilon: function() { return 0; },
+      error: function() { return state.numbers.first() === 5 && state.numbers.last() === 4 ? 0 : 1; },
+      solve: function() {
+        return [{id: "numbers", type: "array", values: permutations(state.numbers)}];
+      }
+    }
+
+    var c2 = {
+      searchable: true,
+      epsilon: function() { return 0; },
+      error: function() { return state.numbers[2] === 1 ? 0 : 1; },
+      solve: function() {
+        return [{id: "numbers", type: "array", values: permutations(state.numbers)}];
+      }
+    }
+
+    lively.morphic.constraints.solve([c1, c2], {mergeFn: merge, applyFn: apply});
+    this.assert(lively.lang.obj.equals([5, 2, 1, 3, 4], state.numbers)
+             || lively.lang.obj.equals([5, 3, 1, 2, 4], state.numbers), "not solved")
+  }
+
+});
+
 TestCase.subclass('lively.morphic.constraints.tests.ConstraintManagement',
 "running", {
 
   setUp: function($super) {
     $super();
+    this.epsilon = 0.2;
     this.realConstraints = $world.constraints;
     this.constraintProcessWasRunning = $world.constraintSolveLoopIsRunning();
     $world.constraintsRemoveAll();
@@ -107,7 +214,7 @@ TestCase.subclass('lively.morphic.constraints.tests.ConstraintManagement',
     $world.constraintAddAndSolve(c);
     this.assert($world.constraintSolveLoopIsRunning());
     this.assertEquals($world.constraints, [c], "not added");
-    this.assertEquals(fixedPos, m.getPosition(), "not solved");
+    this.assertEqualsEpsilon(fixedPos, m.getPosition(), "not solved");
   },
 
   testDontAddSimilarConstraintTwice: function() {
@@ -127,7 +234,7 @@ TestCase.subclass('lively.morphic.constraints.tests.ConstraintManagement',
     $world.constraintAddAndSolve("FixedPositionConstraint", m, fixedPos);
     this.assertEquals(1, $world.constraints.length, "not added");
     this.assert($world.constraints[0] instanceof lively.morphic.constraints.FixedPositionConstraint, "wrong constraint type");
-    this.assertEquals(fixedPos, m.getPosition(), "not solved");
+    this.assertEqualsEpsilon(fixedPos, m.getPosition(), "not solved");
   }
 
 });

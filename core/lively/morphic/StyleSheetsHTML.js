@@ -77,6 +77,7 @@ Trait('StyleSheetsHTMLShapeTrait',
     },
 
     setBorderWidthHTML: function(ctx, width) {
+        if (!ctx.shapeNode) return width;
         if (this.getBorderStylingMode()) {
             ctx.shapeNode.style.border = '';
             ctx.shapeNode.style.borderWidth = parseInt(width) + 'px ';
@@ -348,7 +349,8 @@ lively.morphic.Morph.addMethods(
         // Check if the own context has either a baseThemeNode or a styleNode
         // (the baseThemeNode should always be inserted before the styleNode)
         if (ctx.baseThemeNode && ctx.baseThemeNode !== styleNode) {
-            ctx.baseThemeNode.parentNode.insertBefore(styleNode, ctx.baseThemeNode.nextSibling);
+            var parent = ctx.baseThemeNode.parentNode || (styleNode && styleNode.parentNode) || document.head;
+            parent.insertBefore(styleNode, ctx.baseThemeNode.nextSibling);
             return;
         } else if (ctx.styleNode && ctx.styleNode !== styleNode) {
             ctx.styleNode.parentNode.insertBefore(styleNode, ctx.styleNode);

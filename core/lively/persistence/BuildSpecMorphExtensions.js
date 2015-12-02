@@ -107,29 +107,9 @@ lively.morphic.Morph.addMethods(
                     if (!excludes.include(name)) layout[name] = prop; });
             }
         },
-        shape: { exclude: true,
-                 getter: function(morph, val) {
-                    if(morph.shape.constructor.name === 'Ellipse') {
-                        var shape = {}
-                        for ( var key in morph.shape ) {
-                            if(key != '_renderContext')
-                                shape[key] = morph.shape[key];
-                        }
-                        shape.constructor = morph.shape.constructor;
-                        return shape;
-                    } else {
-                        return null;
-                    }
-                },
-                recreate: function(instance, spec) {
-                    if(spec.shape && spec.shape.constructor.name === 'Ellipse') {
-                        var shape = new spec.shape.constructor();
-                        for ( var key in spec.shape )
-                            shape[key] = spec.shape[key];
-                        instance.setShape(shape);
-                    }
-                }
-            }
+        shape: {
+          exclude: true,
+        }
     },
 
     getBuildSpecProperties: function(rawProps) {

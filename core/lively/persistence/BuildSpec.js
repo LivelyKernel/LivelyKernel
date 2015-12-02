@@ -188,6 +188,8 @@ Object.subclass('lively.persistence.SpecObject',
         // helper for assigning retrieving attribute values of instance
         function set(key, val, buildSpecAttr) {
             // buildSpec #recreate
+            if (key === "shape") return;
+
             if (buildSpecAttr && buildSpecAttr.recreate) {
                 buildSpecAttr.recreate(instance, object, key, val); return; }
 
@@ -233,12 +235,18 @@ Object.subclass('lively.persistence.SpecObject',
                 var watchSpec = buildSpecProps[key].watch;
                 lively.PropertyPath(key).watch(Object.extend(watchSpec, {target: instance}));
             });
+            
+        var shape;
+        if (typeof object.shape === "string") {
+          var constr = lively.morphic.Shapes[object.shape] || lively.lookup(object.shape);
+          shape = constr && new constr(new lively.Rectangle(0,0,0,0));
+        }
 
         // initialize morph
         if (instance.isMorph) {
             instance.submorphs = [];
             instance.scripts = [];
-            instance.shape = instance.defaultShape();
+            instance.shape = shape || instance.defaultShape();
             instance.prepareForNewRenderContext(instance.defaultRenderContext());
             instance.setNewId();
             instance.applyStyle(instance.getStyle());

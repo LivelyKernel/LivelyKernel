@@ -57,7 +57,7 @@ var options = args.options([
     "Starts a Lively Kernel server.");
 
 var port = options.port || env.LIFE_STAR_PORT,
-    host = options.port || env.LIFE_STAR_HOST,
+    host = options.host || env.LIFE_STAR_HOST,
     subservers = {};
 
 if (!options.lkDir && env.WORKSPACE_LK_EXISTS) {

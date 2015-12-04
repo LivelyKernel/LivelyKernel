@@ -448,10 +448,7 @@ lively.morphic.Morph.addMethods(
 
         if (this.owner) amendments.endIndexInSubmorphs = this.owner.submorphs.indexOf(this)
             $world.amendMorphicAction(amendments);
-        }
-    },
-'copying', {
-    duplicate: function() { return this.copy() }
+    }
 },
 'styling', {
 

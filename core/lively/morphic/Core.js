@@ -971,14 +971,6 @@ lively.morphic.Morph.subclass('lively.morphic.Box',
     }
 });
 
-lively.morphic.Box.subclass('lively.morphic.Clip',
-'initializing', {
-    initialize: function($super, initialBounds) {
-        $super(initialBounds);
-        this.applyStyle({clipMode: 'scroll'});
-    }
-});
-
 lively.morphic.Morph.subclass('lively.morphic.Path',
 'properties', {
     isPath: true,

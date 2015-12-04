@@ -840,7 +840,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
 
     testDuplicateBinding: function() {
         var p = pt(50,50);
-        var copy = this.sut.duplicate();
+        var copy = this.sut.copy();
         this.assertEquals(copy.attributeConnections.length, this.sut.attributeConnections.length,
                  " number of attributes connections is broken");
         this.assert(copy.attributeConnections[1].getTargetObj(), "no source object in copy");
@@ -853,7 +853,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
     },
 
     testAttributeConnectionsAreDuplicated: function() {
-        var copy = this.sut.duplicate();
+        var copy = this.sut.copy();
         this.assert(this.sut.attributeConnections, "original has no connections");
         this.assert(copy.attributeConnections, "copy has no connections");
         this.assert(copy.attributeConnections !== this.sut.attributeConnections, "cconnections are not copied");
@@ -861,14 +861,14 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
 
     testCopyHasObservers: function() {
         this.assert(this.sut.__lookupGetter__('_Position'), "original as no observer")
-        var copy = this.sut.duplicate();
+        var copy = this.sut.copy();
         this.assert(copy.__lookupGetter__('_Position'), "copy as no observer")
 
     },
 
     testUpdaterIsCopied: function() {
         this.assert(this.sut.attributeConnections[1].getUpdater(), "no update in fillConnection");
-        var copy = this.sut.duplicate();
+        var copy = this.sut.copy();
         this.assert(copy.attributeConnections[1].getUpdater(), "no update in fillConnection copy");
     },
 
@@ -878,7 +878,7 @@ TestCase.subclass('lively.bindings.tests.BindingTests.BindingsDuplicateTest', {
         var sut = lively.bindings.connect(o1, 'x', o2, 'y');
 
         this.assert(this.sut.attributeConnections[1].getUpdater(), "no update in fillConnection");
-        var copy = this.sut.duplicate();
+        var copy = this.sut.copy();
         this.assert(copy.attributeConnections[1].getUpdater(), "no update in fillConnection copy");
     },
 

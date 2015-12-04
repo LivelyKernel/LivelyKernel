@@ -2155,50 +2155,11 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
             carriedMorph.destroyPlaceholder();
         }
     },
-
-    move: function(evt) {
-        var offsetX = 2, offsetY = 2;
-
-        // rk 04/08/12 this is just a quick hack to have a correct mouse pos
-        // when the world is offsetted. Since this depends on HTML rendering,
-        // this should rather go into lively.morphic.Hand>>setPositionHTML or
-        // #getPositionHTML
-        var worldNode = this.world().renderContext().morphNode,
-            worldOffsetLeft = worldNode.offsetLeft,
-            worldOffsetTop = worldNode.offsetTop;
-
-        var pos = pt((evt.pageX || evt.clientX) + offsetX - worldOffsetLeft,
-                     (evt.pageY || evt.clientY) + offsetY - worldOffsetTop);
-
-        pos = pos.scaleBy(1/this.world().getScale());
-        this.setPosition(pos);
-        if (!this.carriesGrabbedMorphs) return;
-
-        var carriedMorphs = this.submorphs.filter(function(ea) {return !ea.isGrabShadow;}),
-            carriedMorph = carriedMorphs[0],
-            topmostMorph = this.world().getTopmostMorph(evt.getPosition());
-
-        // onGrabMove event
-        carriedMorphs.invoke("onGrabMove", evt, topmostMorph);
-
-        // placeholders
-        if (!carriedMorph
-          || !topmostMorph
-          || !topmostMorph.isLayoutable
-          || !topmostMorph.wantsDroppedMorph(carriedMorph)
-          || !carriedMorph.wantsToBeDroppedInto(topmostMorph)) return;
-
-        var layouter = topmostMorph.getLayouter();
-        if (layouter && layouter.displaysPlaceholders()) {
-            layouter.showPlaceholderFor(carriedMorph, evt);
-        } else if (carriedMorph.placeholder) {
-            carriedMorph.destroyPlaceholder();
-        }
-    },
     
     moveOver: function(morph, time, thenDo) {
       if (typeof time === "function") { thenDo = time; time === 1000; }
-      this.setPositionAnimated(morph.globalBounds().center(), time, thenDo)
+      this.setPositionAnimated(morph.globalBounds().center(), time, thenDo);
+      return this;
     }
 
 },
@@ -2211,6 +2172,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
       radar.withCSSTransitionDo(
         function() { radar.moveBy(pt(-30+5,-30+5)); radar.setExtent(pt(60,60)); },
         800, function() { radar.remove(); thenDo && thenDo(); });
+      return radar;
     }
 
 });

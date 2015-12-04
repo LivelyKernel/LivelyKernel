@@ -96,7 +96,7 @@ Object.subclass('lively.morphic.Morph',
         return this.cachedBounds = bounds;
     },
 
-    innerBounds: function() { return this.shape.getBounds() },
+    innerBounds: function() { return this.shape.bounds() },
 
     globalBounds: function() {
         return this.owner ?
@@ -233,7 +233,7 @@ Object.subclass('lively.morphic.Morph',
     setStrokeWidth: function(newWidth) {
         // This protocol is used for rectangles masquerading as lines
         var oldWidth = this.getStrokeWidth();
-        var newShapeBounds = this.shape.getBounds().insetByPt(pt(0, (oldWidth-newWidth)/2));
+        var newShapeBounds = this.shape.bounds().insetByPt(pt(0, (oldWidth-newWidth)/2));
         this.shape.setBounds(newShapeBounds);
     },
     getStrokeWidth: function() {
@@ -384,7 +384,7 @@ Object.subclass('lively.morphic.Morph',
         tfm = tfm || this.getTransform();
         var subBounds;
         for (var i = 0; i < this.submorphs.length; i++) {
-            var morphBounds = this.submorphs[i].getBounds();
+            var morphBounds = this.submorphs[i].bounds();
             subBounds = subBounds ? subBounds.union(morphBounds) : morphBounds;
         }
         return subBounds ? tfm.transformRectToRect(subBounds) : null;
@@ -572,7 +572,7 @@ Object.subclass('lively.morphic.Morph',
     },
 
     fullContainsPoint: function(p) { // p is in owner coordinates
-        return this.getBounds().containsPoint(p);
+        return this.bounds().containsPoint(p);
     },
 
     innerBoundsContainsWorldPoint: function(p) { // p is in world coordinates

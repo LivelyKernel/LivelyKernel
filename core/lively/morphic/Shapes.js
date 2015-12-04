@@ -17,8 +17,8 @@ Object.subclass('lively.morphic.Shapes.Shape',
         this.setExtent(bounds.extent());
         return bounds
     },
-    getBounds: function() { return this.getPosition().extent(this.getExtent()) },
-    bounds: function() { return this.getBounds() },
+    getBounds: function() { return this.bounds(); },
+    bounds: function() { return this.getPosition().extent(this.getExtent()) },
     setFill: function(fill) { return this.shapeSetter('Fill', fill) },
     getFill: function() { return this.shapeGetter('Fill') || null },
     setFillOpacity: function(opacity) {

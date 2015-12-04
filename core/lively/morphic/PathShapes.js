@@ -61,13 +61,11 @@ lively.morphic.Shapes.Shape.subclass('lively.morphic.Shapes.Path',
         return cachedVertices;
         //return this.cachedVertices;
     },
-    getBounds: function() {
+    bounds: function() {
         return this.renderContextDispatch('getPathBounds')
             || lively.rect(0,0,0,0);
     },
-    getExtent: function() {
-        return this.getBounds().extent()
-    },
+    getExtent: function() { return this.bounds().extent(); },
     getTotalLength: function() { return this.renderContextDispatch('getTotalLength') },
     getPointAtTotalLength: function(length) {
         return this.renderContextDispatch('getPointAtTotalLength', length) },

@@ -2537,7 +2537,7 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
         var buttonLocation = this.innerBounds().topRight().subXY(sp, -sp);
 
         this.buttons.forEach(function(ea) {
-            buttonLocation = buttonLocation.subXY(ea.shape.getBounds().width, 0);
+            buttonLocation = buttonLocation.subXY(ea.shape.bounds().width, 0);
             ea.setPosition(buttonLocation);
             buttonLocation = buttonLocation.subXY(sp, 0)
         });
@@ -2701,7 +2701,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
     },
 
 
-    getBounds: function($super) {
+    bounds: function($super) {
         if (this.titleBar && this.isCollapsed()) {
             var titleBarTranslation = this.titleBar.getGlobalTransform().getTranslation();
             return this.titleBar.bounds().translatedBy(titleBarTranslation);
@@ -4462,13 +4462,13 @@ lively.morphic.Box.subclass('lively.morphic.Tree',
 
     initializeWrapping: function() {
         // do some futher wrapping, to make the optional search bar work
-        var wrapper = new lively.morphic.Box(this.getBounds());
+        var wrapper = new lively.morphic.Box(this.bounds());
         wrapper.setPosition(this.getPosition())
         wrapper.setClipMode('scroll');
         wrapper.setLayouter({type: 'vertical'});
         wrapper.layout.resizeHeight = true;
         wrapper.layout.resizeWidth = true;
-        var snapper = new lively.morphic.Box(this.getBounds());
+        var snapper = new lively.morphic.Box(this.bounds());
         snapper.setLayouter({type: 'vertical'});
         snapper.getLayouter().setSpacing(0);
         snapper.getLayouter().setBorderSize(0);

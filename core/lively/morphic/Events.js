@@ -1586,14 +1586,6 @@ lively.morphic.Text.addMethods(
     doKeyPaste: Functions.Null
 });
 
-lively.morphic.Clip.addMethods(
-'scrolling', {
-    basicGetScrollableNode: function() {
-        // FIXME HTML specific
-        return this.renderContext().shapeNode; //morphNode;
-    }
-});
-
 lively.morphic.World.addMethods(
 'event management', {
     registerForEvents: function($super, handleOnCapture) {

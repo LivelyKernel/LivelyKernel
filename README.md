@@ -31,7 +31,7 @@ Lively should now be running at [localhost:9001](http://localhost:9001/welcome.h
 
 Lively should now be running at [localhost:9001](http://localhost:9001/welcome.html).
 
-### VM distro (debian 7)
+### Docker
 
 Alternatively to the install instructions above you can run Lively via docker. See [LivelyKernel/lively-docker](https://github.com/LivelyKernel/lively-docker/blob/master/README.md) for setup instructions.
 

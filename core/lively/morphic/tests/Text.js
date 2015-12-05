@@ -146,7 +146,7 @@ AsyncTestCase.subclass('lively.morphic.tests.Text.TextMorphTests', lively.morphi
         // issue 285
         var m = new lively.morphic.Text(new Rectangle(0,0, 100, 20), "");
         connect(m, 'textString', m, 'someOtherField')
-        var copy = m.duplicate()
+        var copy = m.copy()
         this.assert(copy.textString == '', 'copy is broken')
         this.done();
     },

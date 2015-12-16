@@ -146,7 +146,6 @@ module.exports = function(route, app) {
 
     app.get(route + "users/resources-of/:userName", function(req, res) {
         var userName = req.param("userName");
-        var userDB = lively.server.lifeStar.authHandler.userDB;
         getResourcesOfAuthors([userName], function(err, resourcePaths) {
             if (err) res.status(400).json({error: String(err)})
             else res.json({resources: resourcePaths})

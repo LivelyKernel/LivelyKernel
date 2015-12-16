@@ -1185,14 +1185,27 @@ lively.morphic.World.addMethods(
         });
     },
 
-    getUserName: function(noninteractive) {
-        var userName = lively.Config.get('UserName')
-        if (userName && userName !== 'undefined') return userName;
-        if (!noninteractive) userName = this.askForUserName();
+    getUserName: function(noninteractive, thenDo) {
+        // 1. Try to retrieve the current user
+        var userName = lively.Config.get('UserName');
         if (userName && userName !== 'undefined') {
-            lively.Config.set('UserName', userName);
-            return userName;
+          thenDo && thenDo(null, userName);
+          return userName;
         }
+
+        // 2. If we have no current user but are allowed to ask, we do that
+        if (!noninteractive) {
+          this.askForUserName(undefined, function(username) {
+            if (userName && String(userName) !== 'undefined') {
+              lively.Config.set('UserName', userName);
+            }
+            thenDo && thenDo(null, userName || null);
+          });
+          return null;
+        }
+
+        // Otherwise we give up...
+        thenDo && thenDo(null, null);
         return null;
     },
 

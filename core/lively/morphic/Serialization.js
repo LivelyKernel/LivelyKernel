@@ -139,7 +139,7 @@ lively.morphic.World.addMethods(
     doNotSerialize: ["_lastZoomAttemptDelta","cachedWindowBounds","clickedOnMorph",
                      "clickedOnMorphTime","currentHaloTarget","currentMenu","draggedMorph",
                      "lastAlert","loadingMorph","revisionOnLoad","savedWorldAsURL","scrollOffset",
-                     "statusMessages","worldMenuOpened", "bertButton"],
+                     "statusMessages","worldMenuOpened", "bertButton", "currentUser"],
 
     onrestore: function($super) {
         $super();
@@ -194,11 +194,20 @@ lively.morphic.World.addMethods(
         }, URL.source.filename())
     },
 
-    saveWorldAs: function (url, checkForOverwrites, bootstrapModuleURL) {
+    saveWorldAs: function (url, checkForOverwrites, bootstrapModuleURL, thenDo) {
+        if (typeof bootstrapModuleURL === "function") {
+          thenDo = bootstrapModuleURL; bootstrapModuleURL = undefined;
+        }
+        if (typeof checkForOverwrites === "function") {
+          thenDo = checkForOverwrites; checkForOverwrites = undefined; bootstrapModuleURL = undefined;
+        }
+
         try {
             url = new URL(url)
         } catch (e) {
-            throw new Error('Cannot save world, not a valid URL: ' + url);
+            var err = new Error('Cannot save world, not a valid URL: ' + url);
+            if (thenDo) return thenDo(err);
+            else throw err;
         }
 
         this.enableMorphicUndo(); // Resets the undo queue to save space
@@ -212,7 +221,7 @@ lively.morphic.World.addMethods(
                 'You are saving ' + url.filename() + ' to a different Lively server.\n'
               + 'Please enter the root URL of that Lively server', function(input) {
                   if (!input) alert("save aborted, no input");
-                  else this.saveWorldAs(url, false, transformRootURLToBootstrapURL(input));
+                  else this.saveWorldAs(url, false, transformRootURLToBootstrapURL(input), thenDo);
               }.bind(this), String(url.withPath('/')));
             return;
         }
@@ -229,6 +238,8 @@ lively.morphic.World.addMethods(
         bootstrapModuleURL = bootstrapModuleURL ?
             new URL(bootstrapModuleURL) :
             new URL(module("lively.bootstrap").uri()).withoutTimemachinePath();
+
+        // Create new HTML document for world
         var preview = this.asHTMLLogo({asXML: false, asFragment: true}),
             title = this.name || url.filename().replace(/\.x?html$/, ''),
             bootstrapFile = bootstrapModuleURL.relativePathFrom(url),
@@ -256,14 +267,14 @@ lively.morphic.World.addMethods(
         })
 
         if (!URL.source.eqDomain(url)/*WebDAV stuff usually won't work cross domain*/ || URL.source.eq(url)) {
-            this.storeDoc(doc, url, checkForOverwrites);
+            this.storeDoc(doc, url, checkForOverwrites, thenDo);
         } else {
-            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites);
+            this.checkIfPathExistsAndStoreDoc(doc, url, checkForOverwrites, thenDo);
         }
     },
 
-    saveWorld: function() {
-        this.saveWorldAs(URL.source, true)
+    saveWorld: function(thenDo) {
+        this.saveWorldAs(URL.source, true, undefined, thenDo);
     },
 
     visitNewPageAfterSaveAs: function(url) {
@@ -276,24 +287,23 @@ lively.morphic.World.addMethods(
                 window.open(url.toString());
         });
     },
-    checkIfPathExistsAndStoreDoc: function(doc, url, checkForOverwrites) {
+    checkIfPathExistsAndStoreDoc: function(doc, url, checkForOverwrites, thenDo) {
         var dirWebR = new WebResource(url.getDirectory());
-        if (dirWebR.exists()) { this.storeDoc(doc, url, checkForOverwrites); return };
+        if (dirWebR.exists()) { this.storeDoc(doc, url, checkForOverwrites, thenDo); return };
 
         this.confirm('Directory ' + dirWebR.getURL() + ' does not exist! Create it?', function(answer) {
             if (!answer) return;
             lively.bindings.connect(dirWebR, 'status', this, 'setStatusMessage', {
                 updater: function($upd, status) {
                     if (!status.isDone()) return;
-                    if (!status.isSuccess()) $upd(status, Color.green)
-                    else $upd(status, Color.red)
+                    $upd(status, status.isSuccess() ? Color.green : Color.red);
                 }
             })
             dirWebR.ensureExistance();
-            this.storeDoc(doc, url, false/*no check if dir !exists*/);
+            this.storeDoc(doc, url, false/*no check if dir !exists*/, thenDo);
         }.bind(this))
     },
-    storeDoc: function (doc, url, checkForOverwrites) {
+    storeDoc: function (doc, url, checkForOverwrites, thenDo) {
         var webR = new WebResource(url).noProxy().beAsync();
         webR.createProgressBar('Saving...');
         lively.bindings.connect(webR, 'status', this, 'handleSaveStatus', {updater: function($upd, status) {
@@ -304,6 +314,15 @@ lively.morphic.World.addMethods(
             if (this.lastModified) putOptions.ifUnmodifiedSince = this.lastModified;
             else if (this.revisionOnLoad) putOptions.requiredSVNRevision = this.revisionOnLoad;
         }
+
+        thenDo && lively.bindings.connect(webR, 'status', thenDo, 'call', {
+          updater: function($upd, status) {
+            if (!status.isDone()) return;
+            $upd(Global, status.isSuccess() ? null : status);
+            this.disconnect();
+          }
+        });
+
         webR.put(doc, null, putOptions);
     },
     askToOverwrite: function(url) {

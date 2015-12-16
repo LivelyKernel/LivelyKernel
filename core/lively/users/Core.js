@@ -31,7 +31,7 @@ Object.subclass("lively.users.User",
 
   initialize: function(name, email, groups) {
     if (!name) throw new Error("Cannot create a user without a name!");
-    this.name = name;
+    this.name = String(name);
     if (email) this.email = email;
     this.groups = groups || [];
     this.authRules = [];
@@ -138,12 +138,16 @@ Object.subclass("lively.users.User",
 
 Object.extend(lively.users.User, {
 
-  defaultPermissions: [{type: "RegExp", rule: "users/${user.name}/.*"}],
+  defaultPermissions: [
+    {type: "RegExp", rule: "users/${user.name}/.*"},
+    {type: "Function", rule: String(function(url) { 
+      return {redirect: true, value: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })}
+  ],
 
   named: function(name) {
     var user = new lively.users.User(name),
-        permissions = lively.users.User.defaultPermissions
-        .concat((lively.Config.userPermissions || {})[name] || []);
+        permissions = (lively.Config.userPermissions || {})[name] || []
+          .concat(lively.users.User.defaultPermissions);
     permissions.forEach(function(rule) { user.addRule(rule); });
     return user;
   },
@@ -159,8 +163,8 @@ module("lively.morphic.Core").runWhenLoaded(function() {
 lively.morphic.World.addMethods(
 "users", {
   getCurrentUser: function() {
-    var name = $world.getUserName(true);
-    if (name === 'undefined' || name === 'unknown_user') name = null;
+    var name = String($world.getUserName(true));
+    if (name === 'null' || name === 'undefined' || name === 'unknown_user') name = null;
     return name ? lively.users.User.named(name) : lively.users.User.unknown();
   }
 })

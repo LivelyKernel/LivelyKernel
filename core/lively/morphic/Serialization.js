@@ -212,6 +212,18 @@ lively.morphic.World.addMethods(
 
         if (lively.Config.get("checkWriteAuthorizationOfUsers", true)) {
           var user = $world.getCurrentUser();
+
+          if (user.isUnknownUser()) {
+            var msg = "Only logged in users can save a world";;
+            $world.confirm(msg + ", log in now?", function(input) {
+              if (!input) thenDo && thenDo(new Error(msg));
+              else $world.askForUserName(undefined, function() {
+                $world.saveWorldAs(url, checkForOverwrites, bootstrapModuleURL, thenDo);
+              });
+            });
+            return;
+          }
+
           var answer = user.canWriteWorld(url);
           if (answer.value !== true) {
             var msg = answer.redirect ?

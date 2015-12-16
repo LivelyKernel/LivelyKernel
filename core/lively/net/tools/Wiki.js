@@ -21,8 +21,12 @@ lively.BuildSpec('lively.wiki.MenuBarEntry', lively.BuildSpec('lively.morphic.to
 
     morphMenuItems: function morphMenuItems() {
         function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
+        var user = String($world.getUserName(true));
+        if (user === "null" || user === "undefined" || user === "unknown_user") user = null;
         return [
-            ['Show login info', cmd('lively.net.wiki.tools.showLoginInfo')],
+            user ?
+              ['Show login info', cmd('lively.net.wiki.tools.showLoginInfo')] :
+              ['Login', function() { $world.askForUserName(); }],
             ['World versions', cmd('lively.ide.openVersionsViewer')]
         ];
     },
@@ -30,7 +34,8 @@ lively.BuildSpec('lively.wiki.MenuBarEntry', lively.BuildSpec('lively.morphic.to
     update: function update() {
       var menuBarItem = this;
       $world.getUserName(true, function(err, user) {
-        if (user === "undefined" || user === "unknown_user") user = null;
+        user = String(user);
+        if (user === "null" || user === "undefined" || user === "unknown_user") user = null;
         var label = user ? user : "not logged in";
         menuBarItem.textString = label;
 

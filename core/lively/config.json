@@ -187,7 +187,18 @@
     ["createWorldPreview", true, "Whether to store an HTML document showing a static version of the serialized world."],
     ["manuallyCreateWorld", false, "Loads up Lively and creates a complete new world from scratch instead of using a serialized one."],
     ["removeDOMContentBeforeWorldLoad", true, "Whether to remove all the DOM child nodes of the DOM element that is used to display the World."],
-    ["garbageCollectAttributeConnections", true, "Will remove connections and connected objects when connection targets in the object graph can only be reached through the connection itself. Can be disabled per connection using the garbageCollect: false option."]
+    ["garbageCollectAttributeConnections", true, "Will remove connections and connected objects when connection targets in the object graph can only be reached through the connection itself. Can be disabled per connection using the garbageCollect: false option."],
+    ["checkWriteAuthorizationOfUsers", false, "Saving worlds and parts will use the user's credentials to check if saving is allowed and stuff."],
+    {
+      "name": "userWriteRules",
+      "type": "Object",
+      "doc": "Map of special user permissions used when checkWriteAuthorizationOfUsers is on.",
+      "get": {
+          "type": "function",
+          "code": "function() { return this._userWriteRules || {}; }"
+      },
+      "set": {"type": "function", "code": "function() {}"}
+    }
   ],
 
   "lively.Storage": [

@@ -149,7 +149,7 @@ Object.extend(lively.ide.commands.byName, {
     'lively.morphic.World.save': {
         description: 'Lively: save world',
         exec: function() {
-            $world.saveWorld(); return true;
+            $world.interactiveSaveWorld(); return true;
         }
     },
     'lively.morphic.World.saveAs': {

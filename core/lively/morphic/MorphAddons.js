@@ -1176,6 +1176,7 @@ lively.morphic.World.addMethods(
     },
 
     setCurrentUser: function(username) {
+        if (!username) username = "unknown_user";
         this.currentUser = username;
         lively.Config.set('UserName', username);
         lively.require('lively.net.SessionTracker').toRun(function() {

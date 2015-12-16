@@ -2133,8 +2133,8 @@ lively.morphic.World.addMethods(
             ]],
             ['Report a bug', this.bugReport.bind(this)],
             ['Run command...', function() { lively.ide.commands.exec('lively.ide.commands.execute'); }],
-            ['Save world as ...', this.interactiveSaveWorldAs.bind(this), 'synchron'],
-            ['Save world', this.saveWorld.bind(this), 'synchron']
+            ['Save world as ...', this.interactiveSaveWorldAs.bind(this)],
+            ['Save world', this.interactiveSaveWorld.bind(this)]
         ];
 
         return items;

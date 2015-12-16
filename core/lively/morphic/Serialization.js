@@ -360,17 +360,18 @@ lively.morphic.World.addMethods(
             webR.beAsync().get();
         }
     },
+
     tryToGetWorldRevision: function() {
         var webR = new WebResource(URL.source);
-        connect(webR, 'headRevision', this, 'revisionOnLoad');
+        lively.bindings.connect;(webR, 'headRevision', this, 'revisionOnLoad');
         webR.beAsync().getHeadRevision();
     },
+
     getServerRevision: function() {
         return new WebResource(URL.source).getHeadRevision().headRevision;
     },
-    getCurrentAndServerVersion: function() {
-        return [this.revisionOnLoad, this.getServerRevision()]
-    }
+
+    getCurrentAndServerVersion: function() { return [this.revisionOnLoad, this.getServerRevision()] }
 });
 
 Object.extend(lively.morphic.World, {

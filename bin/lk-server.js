@@ -228,16 +228,17 @@ if (options.defined('info')) {
         });
     });
 } else {
+
     // let it fly!
     checkNPMPackages(function(err) {
         if (err) { console.error('error on server start: %s', err); return; }
         require("async").waterfall([
-    	      downloadPartsBin,
-    	      loadNodejsLively,
-            getServerInfo,
-            killOldServer, // Ensure that only one server for the given port is running
-            startServer,
-            writePid
+				    downloadPartsBin,
+				    loadNodejsLively,
+				    getServerInfo,
+				    killOldServer, // Ensure that only one server for the given port is running
+				    startServer,
+				    writePid
         ], function(err) {
             if (err) console.error('Error starting Lively server: %s', err);
             else console.log('Lively server starting...');

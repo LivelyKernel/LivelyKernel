@@ -173,6 +173,8 @@ var browserTests = [
     "lively.morphic.tests.TextUndoTests",
     "lively.morphic.tests.Tree",
 
+    "lively.users.tests.Tests",
+
     // cop
     "cop.tests.LayerTests"
 ];

@@ -4,41 +4,43 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
 "testing", {
   
   testIsUserAllowToWriteWorld: function() {
+    var test = this;
     var user = new lively.users.User("test-user-1");
     
     lively.lang.fun.composeAsync(
-      n => user.canWriteWorld("test/world.html", n),
-      (answer, n) => { this.assertEqualState({value: false}, answer); n(); },
-      n => {
-        user.addRule(url => !!url.fullPath().match(/\/test\//));
+      function(n) { return user.canWriteWorld("test/world.html", n); },
+      function(answer, n) { test.assertEqualState({value: false}, answer); n(); },
+      function(n) {
+        user.addRule(function(url) { return !!url.fullPath().match(/\/test\//); });
         user.canWriteWorld("test/world.html", n)
       },
-      (answer, n) => { this.assertEqualState({value: true}, answer); n(); },
-      n => {
+      function(answer, n) { test.assertEqualState({value: true}, answer); n(); },
+      function(n) {
         user.addRule({type: "RegExp", rule: "users/${user.name}/.*"});
         user.canWriteWorld("users/test-user-1/world.html", n)
       },
-      (answer, n) => { this.assertEqualState({value: true}, answer); n(); }
-    )(err => {
-      this.assert(!err, err && show(String(err.stack || err)));
-      this.done();
+      function(answer, n) { test.assertEqualState({value: true}, answer); n(); }
+    )(function(err) {
+      test.assert(!err, err && show(String(err.stack || err)));
+      test.done();
     });
   },
 
   testUserRedirect: function() {
+    var test = this;
     var user = new lively.users.User("test-user-1");
     var expected = {redirect: true, value: URL.root.withFilename("users/test-user-1/world.html")};
     
     lively.lang.fun.composeAsync(
-      n => {
+      function(n) {
         user.addRule({type: "Function", rule: String(function(url) { 
           return {redirect: true, value: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })});
         user.canWriteWorld("foo/world.html", n);
       },
-      (answer, n) => { this.assertEqualState(expected, answer); n(); }
-    )(err => {
-      this.assert(!err, err && show(String(err.stack || err)));
-      this.done();
+      function(answer, n) { test.assertEqualState(expected, answer); n(); }
+    )(function(err) {
+      test.assert(!err, err && show(String(err.stack || err)));
+      test.done();
     });
   }
 

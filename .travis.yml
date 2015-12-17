@@ -8,7 +8,7 @@ before_install:
   - "sudo chmod 1777 /dev/shm"
 
 before_script:
-  - "nvm use v0.12"
+  - "nvm use v4"
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "npm start &"
   - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"

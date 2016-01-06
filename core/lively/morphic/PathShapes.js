@@ -178,11 +178,10 @@ lively.morphic.Shapes.Path.addMethods(
 
         // Second control point
         if (partName < N*3) return ctls[partName - N*2][1];
-console.warn("can't find partName = " + partName);
-console.warn("verts = " + Object.inspect(verts));
-console.warn("ctls = " + Object.inspect(ctls));
+        console.warn("can't find partName = " + partName);
+        console.warn("verts = " + Object.inspect(verts));
+        console.warn("ctls = " + Object.inspect(ctls));
     },
-
 },
 'testing', {
     containsPoint: function(p) { return this.bounds().containsPoint(p) },

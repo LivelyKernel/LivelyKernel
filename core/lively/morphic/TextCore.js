@@ -295,6 +295,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         fontSize: 10,
         padding: Rectangle.inset(4, 2),
         selectable: true
+        
     },
 
     autoAdjustPadding: true,
@@ -419,7 +420,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.shape.setPadding(rect);
         this.fit();
     },
+    setTextPadding: function(rect){
+        this.shape.setTextPadding(rect);
+        this.fit();
+    },
     getPadding: function() { return this.shape.getPadding() },
+    getTextPadding: function(){return this.shape.getTextPadding()?this.shape.getTextPadding():rect(0,0,0,0);},
+
     setAlign: function(align) { return this.morphicSetter('Align', align) },
     getAlign: function() { return this.morphicGetter('Align') },
     setVerticalAlign: function(valign) { return this.morphicSetter('VerticalAlign', valign) },
@@ -541,17 +548,19 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             fixedWidth = isClip || this.fixedWidth,
             fixedHeight = isClip || this.fixedHeight,
             style = textNode.style,
-            prefix, padding, isMoz = !!UserAgent.fireFoxVersion;
+            prefix, padding, textPadding, isMoz = !!UserAgent.fireFoxVersion;
 
         if (fixedWidth || fixedHeight) {
             // only compute it when needed
             padding = this.getPadding();
+            textPadding = this.getTextPadding();
             prefix = this.renderContext().domInterface.html5CssPrefix;
         }
 
         if (fixedWidth) {
             var paddingWidth = padding ? padding.left() + padding.right() : 0,
-                newWidth = prefix + 'calc(100% - ' + paddingWidth + 'px)';
+                textPaddingWidth = textPadding.right(),
+                newWidth = prefix + 'calc(100% - (' + paddingWidth + 'px + ' + textPaddingWidth +'px))';
             style.minWidth = newWidth;
         } else {
             var minWidth = this.getMinTextWidth()
@@ -561,7 +570,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 
         if (fixedHeight) {
             var paddingHeight = padding ? padding.top() + padding.bottom() : 0,
-                newHeight = prefix + 'calc(100% - ' + paddingHeight + 'px)';
+                textPaddingHeight = textPadding.bottom(),
+                newHeight = prefix + 'calc(100% - (' + paddingHeight + 'px + ' + textPaddingHeight + 'px))';
             style.minHeight = newHeight;
         } else {
             var minHeight = this.getMinTextHeight();
@@ -752,7 +762,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.fixChunksDelayed();
     },
 
-    processCommandKeys: function(evt) {
+    processCommandKeys: function($super,evt) {
         var key = evt.getKeyChar();
         if (key) key = key.toLowerCase();
 
@@ -814,7 +824,16 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 return true;
             }
             case "x": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
-            case "c": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
+            case "c": { 
+                if(this.showsHalos){
+                  (function() {$super(evt);}).bind(this).delay(0);
+                  return false;
+                }
+                else{
+                  lively.morphic.Text.clipboardString = this.selectionString(); 
+                  return false; 
+                }
+              }
             case "v": { /*Just do the native paste*/ return false; }
             case "z": {
                 if (!this.undo) return false;

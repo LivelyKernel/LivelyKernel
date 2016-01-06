@@ -411,7 +411,9 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this.get("workspaceVarObserver"), "selection", this, "selectVarDef");
     }
-    },{
+    },
+    
+    {
         _BorderColor: Color.rgb(189,190,192),
         _BorderRadius: 5,
         _BorderWidth: 1,
@@ -419,6 +421,25 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         _Position: lively.pt(664.0,26.0),
         layout: {moveHorizontal: true},
         className: "lively.morphic.Button",
+        droppingEnabled: false,
+        grabbingEnabled: false,
+        label: "doit",
+        name: "toggleVarsButton",
+        sourceModule: "lively.morphic.Widgets",
+        connectionRebuilder: function connectionRebuilder() {
+          lively.bindings.connect(this, "fire", this.get("workspace"), "doit", {});
+        }
+    },
+
+    {
+        _BorderColor: Color.rgb(189,190,192),
+        _BorderRadius: 5,
+        _BorderWidth: 1,
+        _Extent: lively.pt(64.0,20.0),
+        _Position: lively.pt(664.0,26.0),
+        layout: {moveHorizontal: true},
+        className: "lively.morphic.Button",
+        _Visible: false,
         droppingEnabled: false,
         grabbingEnabled: false,
         label: "show vars",

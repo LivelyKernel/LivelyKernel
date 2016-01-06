@@ -1573,8 +1573,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     getLineWrapping: function() {
-        return this.hasOwnProperty("_LineWrapping") ? this._LineWrapping : this.withAceDo(function(ed) {
-            return ed.getOption('wrap'); });
+        return this.hasOwnProperty("_LineWrapping") ?
+          this._LineWrapping : lively.Config.get("aceDefaultLineWrapping");
+        // return this.hasOwnProperty("_LineWrapping") ? this._LineWrapping : this.withAceDo(function(ed) {
+        //     return ed.getOption('wrap'); });
     },
     setLineWrapping: function(value) {
         // value can either be a bool or "printMargin" or a number specifying the wrap limit

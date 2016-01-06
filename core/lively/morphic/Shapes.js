@@ -68,6 +68,14 @@ Object.subclass('lively.morphic.Shapes.Shape',
     getPadding: function() {
         return this.shapeGetter('Padding') || this.setPadding(new Rectangle(0,0,0,0));
     },
+    
+    setTextPadding: function(rect){
+        //this should probably be moved somewhere else
+        this._renderContext['shapeRenderContextTable']['setTextPadding']='setTextPaddingHTML'
+        return this.shapeSetter('TextPadding',rect);
+    },
+    
+    getTextPadding: function(){return this.shapeGetter('TextPadding')},
 
     setNodeClass: function(value) {
         return this.shapeSetter('NodeClass', value);

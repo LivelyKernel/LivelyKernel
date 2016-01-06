@@ -941,7 +941,7 @@ handleOnCapture);
         if (suppressScrollbarClick) {
             var scrollbarExtent = this.getScrollBarExtent(),
                 extent = this.getExtent();
-            //console.log("You clicked on: "+this.name);
+            // console.log("You clicked on: "+this.name);
             //console.log(this.grabbingEnabled);
             //console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
             //console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
@@ -1582,7 +1582,7 @@ lively.morphic.Text.addMethods(
         return !this.allowInput;
     },
 
-    doKeyCopy: Functions.Null,
+    //doKeyCopy: Functions.Null,
     doKeyPaste: Functions.Null
 });
 
@@ -1780,7 +1780,9 @@ lively.morphic.World.addMethods(
             // before dragging, we want to move the mouse pointer back to the spot we
             // clicked on when we started dragging.
             // FIXME this should also work for Cmd-Drag and Shift-Drag
-            if (targetMorph.isGrabbable()) { // world is never grabbable ...
+            
+            // only apply to morphs that does not have onDragStart overridden
+            if (targetMorph.isGrabbable() && targetMorph.onDragStart == targetMorph.__proto__.onDragStart) { // world is never grabbable ...
                 var lockOwner = targetMorph.lockOwner(),
                     grabTarget = lockOwner && targetMorph.isLocked() ? lockOwner : targetMorph;
                 if (grabTarget.correctForDragOffset()) {

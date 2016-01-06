@@ -111,23 +111,40 @@ Object.subclass("lively.users.User",
       }
     }
 
-    // check using all rules
+    // 1. Try global rules
     try {
-      for (var i = 0; i < this.authRules.length; i++) {
-        var ruleFunc = this.authRules[i];
-        var result = ruleFunc.call(user, url);
+      var globalRules = lively.Config.get("globalPermissions");
+      for (var i = 0; i < globalRules.length; i++) {
+        var ruleFunc = globalRules[i];
+        var result = ruleFunc.call(Global, url, user);
         if (!result || typeof result === "boolean") result = {value: result};
-        else if (!result.value) result = {value: result}
+        else if (!result.value) result = {value: result};
         if (result.value) { answer = result; break; }
       }
     } catch (e) {
-      console.error("Auth rule failed: " + e);
+      console.error("Global auth rule failed: " + e);
       answer.error = e;
       cb && cb(e, answer);
       return answer;
     }
+    // 2. user's rules
+    if (!answer.value) {
+      try {
+        for (var i = 0; i < this.authRules.length; i++) {
+          var ruleFunc = this.authRules[i];
+          var result = ruleFunc.call(user, url);
+          if (!result || typeof result === "boolean") result = {value: result};
+          else if (!result.value) result = {value: result}
+          if (result.value) { answer = result; break; }
+        }
+      } catch (e) {
+        console.error("Auth rule failed: " + e);
+        answer.error = e;
+        cb && cb(e, answer);
+        return answer;
+      }
+    }
 
-    if (!Object.isObject(answer)) answer = {value: answer};
     cb && cb(null, answer);
     return answer;
   },
@@ -153,6 +170,24 @@ Object.extend(lively.users.User, {
   },
 
   unknown: function() { return lively.users.User.named("unknown_user"); }
+});
+
+Object.extend(lively.users, {
+  GlobalRules: {
+    addRule: function(rule) {
+      lively.Config._globalPermissions.pushIfNotIncluded(rule);
+    },
+
+    removeRule: function(ruleOrName) {
+      if (typeof ruleOrName === "string") {
+        lively.Config._globalPermissions = lively.Config._globalPermissions.filter(
+          function(rule) { return rule.name !== ruleOrName; });
+      } else {
+        lively.Config._globalPermissions.remove(ruleOrName);
+      }
+    }
+
+  }
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

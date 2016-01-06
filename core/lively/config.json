@@ -198,6 +198,16 @@
           "code": "function() { return this._userPermissions || {}; }"
       },
       "set": {"type": "function", "code": "function() {}"}
+    },
+    {
+      "name": "globalPermissions",
+      "type": "Object",
+      "doc": "Global resource permissions.",
+      "get": {
+          "type": "function",
+          "code": "function() { return lively.Config._globalPermissions || []; }"
+      },
+      "set": {"type": "function", "code": "function() {}"}
     }
   ],
 

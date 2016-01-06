@@ -1,6 +1,20 @@
 module('lively.users.tests.Tests').requires("lively.users.Core", "lively.TestFramework").toRun(function() {
 
 AsyncTestCase.subclass('lively.users.tests.Authorization',
+'running', {
+  
+  setUp: function($super) {
+    lively.Config._globalPermissions = lively.Config._globalPermissions || [];
+    this.oldRules = lively.Config._globalPermissions.clone();
+    $super();
+  },
+
+  tearDown: function($super) {
+    lively.Config._globalPermissions = this.oldRules;
+    $super();
+  }
+
+},
 "testing", {
   
   testIsUserAllowToWriteWorld: function() {
@@ -23,6 +37,18 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
     )(function(err) {
       test.assert(!err, err && show(String(err.stack || err)));
       test.done();
+    });
+  },
+
+  testGlobalRule: function() {
+    var user = new lively.users.User("test-user-1");
+    lively.users.GlobalRules.addRule(url => ({value: !!url.fullPath().match(/\/test\//)}));
+    lively.lang.fun.composeAsync(
+      n => user.canWriteWorld("test/world.html", n),
+      (answer, n) => { this.assertEqualState({value: true}, answer); n(); }
+    )(err => {
+      this.assert(!err, err && show(String(err.stack || err)));
+      this.done();
     });
   },
 

@@ -146,7 +146,7 @@ Object.extend(lively.morphic, {
         var length = val.length || val.byteLength;
         if (Global.ImageData && val instanceof Global.ImageData) return String(val);
         if (length !== undefined && length > maxColLength && val.slice) {
-          var printed = val.byteLength ? String(val.slice(0, maxColLength)) : val.slice(0,maxColLength).map(lively.lang.string.print);
+          var printed = typeof val === "string" || val.byteLength ? String(val.slice(0, maxColLength)) : val.slice(0,maxColLength).map(lively.lang.string.print);
           return "[" + printed + ",...]";
         }
         return ignore;

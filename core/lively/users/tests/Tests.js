@@ -53,6 +53,18 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
     });
   },
 
+  testGlobalRule: function() {
+    var user = new lively.users.User("test-user-1");
+    lively.users.GlobalRules.addRule(url => ({value: !!url.fullPath().match(/\/test\//)}));
+    lively.lang.fun.composeAsync(
+      n => user.canWriteWorld("test/world.html", n),
+      (answer, n) => { this.assertEqualState({value: true}, answer); n(); }
+    )(err => {
+      this.assert(!err, err && show(String(err.stack || err)));
+      this.done();
+    });
+  },
+
   testUserRedirect: function() {
     var test = this;
     var user = new lively.users.User("test-user-1");

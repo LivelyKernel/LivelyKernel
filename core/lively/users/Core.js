@@ -175,12 +175,10 @@ Object.extend(lively.users.User, {
 Object.extend(lively.users, {
   GlobalRules: {
     addRule: function(rule) {
-      if (!lively.Config._globalPermissions) lively.Config._globalPermissions = [];
       lively.Config._globalPermissions.pushIfNotIncluded(rule);
     },
 
     removeRule: function(ruleOrName) {
-      if (!lively.Config._globalPermissions) return;
       if (typeof ruleOrName === "string") {
         lively.Config._globalPermissions = lively.Config._globalPermissions.filter(
           function(rule) { return rule.name !== ruleOrName; });

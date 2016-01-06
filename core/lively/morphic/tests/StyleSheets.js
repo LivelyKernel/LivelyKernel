@@ -878,7 +878,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.assertEquals(this.blueRectangle1, sheet.getOriginMorph(),
             'originMorph of sheet should be blue after adding');
     },
-
     test13RemoveStyleTagsForRemovedMorphs: function() {
         var id = this.yellowRectangle.id;
         this.yellowRectangle.setStyleSheet('.Morph { color: red; }');
@@ -886,11 +885,6 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.StyleSheets.CSSFo
         this.yellowRectangle.remove();
         lively.morphic.StyleSheets.removeStylesForMorphsNotIn(this.world);
         this.assertEquals(0, lively.$('head style[id="style-for-' + id + '"]').length);
-    },
-
-    test14StyleClassesAreCopued: function() {
-        var copied = this.yellowRectangle.copy();
-        this.assertEquals(["Morph", "Box", "yellowRectangle"], copied.getStyleClassNames());
     }
 
 });

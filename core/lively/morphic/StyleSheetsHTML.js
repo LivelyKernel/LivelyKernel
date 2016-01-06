@@ -450,10 +450,6 @@ lively.morphic.Morph.addMethods(
 },
 'Style Classes and Ids', {
     prepareDOMForStyleSheetsHTML: function (ctx) {
-        // var classes = this._StyleClassNames || [],
-        //     domClassString = (ctx.shapeNode.className || '').trim();
-        // if (domClassString !== '') classes.pushAll(domClassString.split(/\s+/));
-        // this.setStyleClassNamesHTML(ctx, classes); // rk: now?
         this.setStyleClassNamesHTML(ctx, this.getStyleClassNames());
         this.setStyleIdHTML(ctx, this.getStyleId());
         this.setNodeMorphIdHTML(ctx);

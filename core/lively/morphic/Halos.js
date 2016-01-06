@@ -973,13 +973,8 @@ lively.morphic.Halo.subclass('lively.morphic.InspectHalo',
         this.targetMorph.removeHalos();
         // FIXME: Should be moved to lively.bindings.FRP and only added when module is loaded!
         if (evt.isShiftDown()) {
-            var inspector = lively.PartsBin.getPart("property-cheat-sheet", "PartsBin/JSTiles");
-            inspector.openInWorld();
-            inspector.setTarget(this.targetMorph);
-            (function() {
-              inspector.fitToTiles();
-              inspector.align(inspector.bounds().topCenter(), this.targetMorph.globalBounds().bottomCenter())
-            }).bind(this).delay(0);
+            module("lively.bindings.FRP").load(true);
+            this.targetMorph.openFRPInspector();
             return;
         }
         $world.openInspectorFor(this.targetMorph)
@@ -1153,6 +1148,7 @@ lively.morphic.PathControlPointHalo.subclass('lively.morphic.PathVertexControlPo
 
     dragAction: function (evt, moveDelta) {
         this.overOther = this.highlightIfOverOther();
+
         var transform = this.targetMorph.getGlobalTransform(),
             oldPos = transform.transformPoint(pt(0,0)),
             newDelta = oldPos.addPt(moveDelta),

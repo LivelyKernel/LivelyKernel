@@ -808,7 +808,6 @@ lively.morphic.Shapes.Shape.addMethods(
         setPosition: 'setPositionHTML',
         setExtent: 'setExtentHTML',
         setPadding: 'setPaddingHTML',
-        setTextPadding: 'setTextPaddingHTML',   //alou
         setFill: 'setFillHTML',
         setBorderColor: 'setBorderColorHTML',
         setBorderWidth: 'setBorderWidthHTML',
@@ -949,13 +948,6 @@ lively.morphic.Shapes.Shape.addMethods(
         // CSS padding: [padding-top] [padding-right] [padding-bottom] [padding-left]
         var s = r.top() + "px " + r.right() + "px " + r.bottom() + "px " + r.left() + "px";
         ctx.shapeNode.style.padding = s;
-        return r;
-    },
-    
-    setTextPaddingHTML:function(ctx,r){
-        if (r === undefined || !ctx.textNode) return r;
-        var s = r.y + "px " + r.width + "px " + r.height + "px " + r.x + "px";
-        ctx.textNode.style.padding = s;
         return r;
     },
 

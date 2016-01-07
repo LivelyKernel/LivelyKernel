@@ -41,14 +41,15 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
   },
 
   testGlobalRule: function() {
+    var test = this;
     var user = new lively.users.User("test-user-1");
     lively.users.GlobalRules.addRule(function (url) { return {value: !!url.fullPath().match(/\/test\//)}; });
     lively.lang.fun.composeAsync(
       function(n) { return user.canWriteWorld("test/world.html", n); },
-      function(answer, n) { return this.assertEqualState({value: true}, answer); n(); }
+      function(answer, n) { return test.assertEqualState({value: true}, answer); n(); }
     )(function(err) {
-      this.assert(!err, err && show(String(err.stack || err)));
-      this.done();
+      test.assert(!err, err && show(String(err.stack || err)));
+      test.done();
     });
   },
 

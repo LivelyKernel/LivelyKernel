@@ -45,8 +45,8 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
     var user = new lively.users.User("test-user-1");
     lively.users.GlobalRules.addRule(function (url) { return {value: !!url.fullPath().match(/\/test\//)}; });
     lively.lang.fun.composeAsync(
-      function(n) { return user.canWriteWorld("test/world.html", n); },
-      function(answer, n) { return test.assertEqualState({value: true}, answer); n(); }
+      function(n) { user.canWriteWorld("test/world.html", n); },
+      function(answer, n) { test.assertEqualState({value: true}, answer); n(); }
     )(function(err) {
       test.assert(!err, err && show(String(err.stack || err)));
       test.done();

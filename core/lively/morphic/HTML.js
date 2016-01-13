@@ -1025,9 +1025,10 @@ lively.morphic.Shapes.Image.addMethods(
 'rendering', {
     initHTML: function($super, ctx) {
         if (!ctx.shapeNode) {
-            ctx.shapeNode = XHTMLNS.create('div');
+            ctx.shapeNode = document.createElement('div');
             ctx.imgNode = ctx.domInterface.htmlImg();
             ctx.shapeNode.appendChild(ctx.imgNode);
+            ctx.imgNode.crossOrigin = "anonymous";
             ctx.imgNode.draggable = false;
         }
 

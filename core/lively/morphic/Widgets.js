@@ -423,8 +423,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
             delete self._whenLoadedCallbacks;
             var cb; while (cbs && (cb = cbs.shift())) cb.bind(self).delay(0);
         }
-        lively.bindings.connect(this.shape, 'isLoaded', {run: whenLoaded}, 'run', {
-            removeAfterUpdate: true});
+        lively.bindings.once(this.shape, 'isLoaded', {run: whenLoaded}, 'run');
         return this;
     }
 

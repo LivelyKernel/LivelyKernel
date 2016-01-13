@@ -888,10 +888,11 @@ lively.morphic.HtmlWrapperMorph.subclass("lively.morphic.HTML5Video",
   },
 
   setVideoMarkup: function(videoURL) {
-    var videoName = videoURL.replace(/(\.mp4|\.webm|\.oggtheora.ogv)$/, ""),
+    var videoName = videoURL.replace(/(\.mov|\.mp4|\.webm|\.oggtheora.ogv)$/, ""),
         extent = this.getExtent(),
         html = lively.lang.string.format(
          "<video style=\"display: inline-block;\" width=\"%spx\" height=\"%spx\" autobuffer=\"autobuffer\">"
+      +   "<source src=\"%s.mov\" type=\"video/mp4;\"/>"
       +   "<source src=\"%s.mp4\" type=\"video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;\"/>"
       +   "<source src=\"%s.webm\" type=\"video/webm; codecs=&quot;webm, vp8&quot;\"/>"
       +   "<source src=\"%s.oggtheora.ogv\" type=\"video/ogg; codecs=&quot;theora, vorbis&quot;\"/>"

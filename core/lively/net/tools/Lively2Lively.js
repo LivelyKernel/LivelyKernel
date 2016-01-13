@@ -7,14 +7,8 @@ Object.extend(lively.net.tools.Lively2Lively, {
         var workspace = lively.BuildSpec('lively.net.tools.Lively2LivelyWorkspace').createMorph();
         workspace.openInWorldCenter().comeForward();
         (function() {
-            workspace.targetMorph.showSessionIdInput();
-            (function() {
-                var sel = workspace.get('ConnectionInput').getList().detect(function(item) {
-                    return item.value.id === sess.id;
-                });
-                workspace.get('ConnectionInput').setSelection(sel);
-            }).delay(.5);
-        }).delay(0);
+            workspace.targetMorph.selectTargetSession(sess);
+        }).delay(.5);
     },
 
     withWikiRecordsDo: function(lastUpdate, thenDo) {

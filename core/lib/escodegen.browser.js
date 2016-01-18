@@ -35,7 +35,7 @@
       var cwd = '/';
       return {
         title: 'browser',
-        version: 'v4.2.1',
+        version: 'v4.1.1',
         browser: true,
         env: {},
         argv: [],
@@ -1004,18 +1004,20 @@
         EmptyStatement: function (stmt, flags) {
           return ';';
         },
-        ExportDeclaration: function (stmt, flags) {
+        ExportDefaultDeclaration: function (stmt, flags) {
+          var result = ['export'], bodyFlags;
+          bodyFlags = flags & F_SEMICOLON_OPT ? S_TFFT : S_TFFF;
+          result = join(result, 'default');
+          if (isStatement(stmt.declaration)) {
+            result = join(result, this.generateStatement(stmt.declaration, bodyFlags));
+          } else {
+            result = join(result, this.generateExpression(stmt.declaration, Precedence.Assignment, E_TTT) + this.semicolon(flags));
+          }
+          return result;
+        },
+        ExportNamedDeclaration: function (stmt, flags) {
           var result = ['export'], bodyFlags, that = this;
           bodyFlags = flags & F_SEMICOLON_OPT ? S_TFFT : S_TFFF;
-          if (stmt['default']) {
-            result = join(result, 'default');
-            if (isStatement(stmt.declaration)) {
-              result = join(result, this.generateStatement(stmt.declaration, bodyFlags));
-            } else {
-              result = join(result, this.generateExpression(stmt.declaration, Precedence.Assignment, E_TTT) + this.semicolon(flags));
-            }
-            return result;
-          }
           if (stmt.declaration) {
             return join(result, this.generateStatement(stmt.declaration, bodyFlags));
           }
@@ -1054,12 +1056,14 @@
           }
           return result;
         },
-        ExportDefaultDeclaration: function (stmt, flags) {
-          stmt.default = true;
-          return this.ExportDeclaration(stmt, flags);
-        },
-        ExportNamedDeclaration: function (stmt, flags) {
-          return this.ExportDeclaration(stmt, flags);
+        ExportAllDeclaration: function (stmt, flags) {
+          return [
+            'export' + space,
+            '*' + space,
+            'from' + space,
+            this.generateExpression(stmt.source, Precedence.Sequence, E_TTT),
+            this.semicolon(flags)
+          ];
         },
         ExpressionStatement: function (stmt, flags) {
           var result, fragment;
@@ -1449,7 +1453,7 @@
             generateAsyncPrefix(stmt, true),
             'function',
             generateStarSuffix(stmt) || noEmptySpace(),
-            generateIdentifier(stmt.id),
+            stmt.id ? generateIdentifier(stmt.id) : '',
             this.generateFunctionBody(stmt)
           ];
         },
@@ -1613,6 +1617,14 @@
           }
           return parenthesize(result, Precedence.Member, precedence);
         },
+        MetaProperty: function (expr, precedence, flags) {
+          var result;
+          result = [];
+          result.push(expr.meta);
+          result.push('.');
+          result.push(expr.property);
+          return parenthesize(result, Precedence.Member, precedence);
+        },
         UnaryExpression: function (expr, precedence, flags) {
           var result, fragment, rightCharCode, leftSource, leftCharCode;
           fragment = this.generateExpression(expr.argument, Precedence.Unary, E_TTT);
@@ -1677,9 +1689,6 @@
           }
           result.push(this.generateFunctionBody(expr));
           return result;
-        },
-        ExportBatchSpecifier: function (expr, precedence, flags) {
-          return '*';
         },
         ArrayPattern: function (expr, precedence, flags) {
           return this.ArrayExpression(expr, precedence, flags, true);
@@ -1829,6 +1838,9 @@
           result.push('}');
           return result;
         },
+        AssignmentPattern: function (expr, precedence, flags) {
+          return this.generateAssignment(expr.left, expr.right, expr.operator, precedence, flags);
+        },
         ObjectPattern: function (expr, precedence, flags) {
           var result, i, iz, multiline, property, that = this;
           if (!expr.properties.length) {
@@ -1891,14 +1903,20 @@
           return result;
         },
         ImportSpecifier: function (expr, precedence, flags) {
-          return this.ExportSpecifier(expr, precedence, flags);
+          var imported = expr.imported;
+          var result = [imported.name];
+          var local = expr.local;
+          if (local && local.name !== imported.name) {
+            result.push(noEmptySpace() + 'as' + noEmptySpace() + generateIdentifier(local));
+          }
+          return result;
         },
         ExportSpecifier: function (expr, precedence, flags) {
-          var exported = (expr.id || expr.imported).name;
-          var result = [exported];
-          var id = expr.name || expr.local;
-          if (id && id.name !== exported) {
-            result.push(noEmptySpace() + 'as' + noEmptySpace() + generateIdentifier(id));
+          var local = expr.local;
+          var result = [local.name];
+          var exported = expr.exported;
+          if (exported && exported.name !== local.name) {
+            result.push(noEmptySpace() + 'as' + noEmptySpace() + generateIdentifier(exported));
           }
           return result;
         },
@@ -2168,8 +2186,8 @@
         'escodegen.js',
         'package.json'
       ],
-      'version': '1.7.0',
-      'engines': { 'node': '>=0.10.0' },
+      'version': '1.8.0',
+      'engines': { 'node': '>=0.12.0' },
       'maintainers': [{
           'name': 'Yusuke Suzuki',
           'email': 'utatane.tea@gmail.com',
@@ -2182,8 +2200,8 @@
       'dependencies': {
         'estraverse': '^1.9.1',
         'esutils': '^2.0.2',
-        'esprima': '^1.2.2',
-        'optionator': '^0.5.0'
+        'esprima': '^2.7.1',
+        'optionator': '^0.8.1'
       },
       'optionalDependencies': { 'source-map': '~0.2.0' },
       'devDependencies': {
@@ -2192,11 +2210,10 @@
         'bower-registry-client': '^0.2.1',
         'chai': '^1.10.0',
         'commonjs-everywhere': '^0.9.7',
-        'esprima-moz': '1.0.0-dev-harmony-moz',
         'gulp': '^3.8.10',
         'gulp-eslint': '^0.2.0',
         'gulp-mocha': '^2.0.0',
-        'semver': '^4.1.0'
+        'semver': '^5.1.0'
       },
       'license': 'BSD-2-Clause',
       'scripts': {

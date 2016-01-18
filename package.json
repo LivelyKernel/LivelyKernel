@@ -13,7 +13,7 @@
     "async": "~0.9",
     "babel-core": "^5.8.24",
     "colorize": "~0.1",
-    "escodegen": "^1.6.1",
+    "escodegen": "^1.8.0",
     "file-fuser": ">=0.0.8",
     "life_star": ">=0.8.5",
     "lively-loader": ">=0.2.5",

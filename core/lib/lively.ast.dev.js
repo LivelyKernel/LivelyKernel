@@ -1,803 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.acorn = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = require('acorn-jsx');
-},{"acorn-jsx":"acorn-jsx"}],2:[function(require,module,exports){
-'use strict';
-
-module.exports = function(acorn) {
-  var tt = acorn.tokTypes;
-  var tc = acorn.tokContexts;
-
-  tc.j_oTag = new acorn.TokContext('<tag', false);
-  tc.j_cTag = new acorn.TokContext('</tag', false);
-  tc.j_expr = new acorn.TokContext('<tag>...</tag>', true, true);
-
-  tt.jsxName = new acorn.TokenType('jsxName');
-  tt.jsxText = new acorn.TokenType('jsxText', {beforeExpr: true});
-  tt.jsxTagStart = new acorn.TokenType('jsxTagStart');
-  tt.jsxTagEnd = new acorn.TokenType('jsxTagEnd');
-
-  tt.jsxTagStart.updateContext = function() {
-    this.context.push(tc.j_expr); // treat as beginning of JSX expression
-    this.context.push(tc.j_oTag); // start opening tag context
-    this.exprAllowed = false;
-  };
-  tt.jsxTagEnd.updateContext = function(prevType) {
-    var out = this.context.pop();
-    if (out === tc.j_oTag && prevType === tt.slash || out === tc.j_cTag) {
-      this.context.pop();
-      this.exprAllowed = this.curContext() === tc.j_expr;
-    } else {
-      this.exprAllowed = true;
-    }
-  };
-
-  var pp = acorn.Parser.prototype;
-
-  // Reads inline JSX contents token.
-
-  pp.jsx_readToken = function() {
-    var out = '', chunkStart = this.pos;
-    for (;;) {
-      if (this.pos >= this.input.length)
-        this.raise(this.start, 'Unterminated JSX contents');
-      var ch = this.input.charCodeAt(this.pos);
-
-      switch (ch) {
-      case 60: // '<'
-      case 123: // '{'
-        if (this.pos === this.start) {
-          if (ch === 60 && this.exprAllowed) {
-            ++this.pos;
-            return this.finishToken(tt.jsxTagStart);
-          }
-          return this.getTokenFromCode(ch);
-        }
-        out += this.input.slice(chunkStart, this.pos);
-        return this.finishToken(tt.jsxText, out);
-
-      case 38: // '&'
-        out += this.input.slice(chunkStart, this.pos);
-        out += this.jsx_readEntity();
-        chunkStart = this.pos;
-        break;
-
-      default:
-        if (acorn.isNewLine(ch)) {
-          out += this.input.slice(chunkStart, this.pos);
-          out += this.jsx_readNewLine(true);
-          chunkStart = this.pos;
-        } else {
-          ++this.pos;
-        }
-      }
-    }
-  };
-
-  pp.jsx_readNewLine = function(normalizeCRLF) {
-    var ch = this.input.charCodeAt(this.pos);
-    var out;
-    ++this.pos;
-    if (ch === 13 && this.input.charCodeAt(this.pos) === 10) {
-      ++this.pos;
-      out = normalizeCRLF ? '\n' : '\r\n';
-    } else {
-      out = String.fromCharCode(ch);
-    }
-    if (this.options.locations) {
-      ++this.curLine;
-      this.lineStart = this.pos;
-    }
-
-    return out;
-  };
-
-  pp.jsx_readString = function(quote) {
-    var out = '', chunkStart = ++this.pos;
-    for (;;) {
-      if (this.pos >= this.input.length)
-        this.raise(this.start, 'Unterminated string constant');
-      var ch = this.input.charCodeAt(this.pos);
-      if (ch === quote) break;
-      if (ch === 38) { // '&'
-        out += this.input.slice(chunkStart, this.pos);
-        out += this.jsx_readEntity();
-        chunkStart = this.pos;
-      } else if (acorn.isNewLine(ch)) {
-        out += this.input.slice(chunkStart, this.pos);
-        out += this.jsx_readNewLine(false);
-        chunkStart = this.pos;
-      } else {
-        ++this.pos;
-      }
-    }
-    out += this.input.slice(chunkStart, this.pos++);
-    return this.finishToken(tt.string, out);
-  };
-
-  var XHTMLEntities = {
-    quot: '\u0022',
-    amp: '&',
-    apos: '\u0027',
-    lt: '<',
-    gt: '>',
-    nbsp: '\u00A0',
-    iexcl: '\u00A1',
-    cent: '\u00A2',
-    pound: '\u00A3',
-    curren: '\u00A4',
-    yen: '\u00A5',
-    brvbar: '\u00A6',
-    sect: '\u00A7',
-    uml: '\u00A8',
-    copy: '\u00A9',
-    ordf: '\u00AA',
-    laquo: '\u00AB',
-    not: '\u00AC',
-    shy: '\u00AD',
-    reg: '\u00AE',
-    macr: '\u00AF',
-    deg: '\u00B0',
-    plusmn: '\u00B1',
-    sup2: '\u00B2',
-    sup3: '\u00B3',
-    acute: '\u00B4',
-    micro: '\u00B5',
-    para: '\u00B6',
-    middot: '\u00B7',
-    cedil: '\u00B8',
-    sup1: '\u00B9',
-    ordm: '\u00BA',
-    raquo: '\u00BB',
-    frac14: '\u00BC',
-    frac12: '\u00BD',
-    frac34: '\u00BE',
-    iquest: '\u00BF',
-    Agrave: '\u00C0',
-    Aacute: '\u00C1',
-    Acirc: '\u00C2',
-    Atilde: '\u00C3',
-    Auml: '\u00C4',
-    Aring: '\u00C5',
-    AElig: '\u00C6',
-    Ccedil: '\u00C7',
-    Egrave: '\u00C8',
-    Eacute: '\u00C9',
-    Ecirc: '\u00CA',
-    Euml: '\u00CB',
-    Igrave: '\u00CC',
-    Iacute: '\u00CD',
-    Icirc: '\u00CE',
-    Iuml: '\u00CF',
-    ETH: '\u00D0',
-    Ntilde: '\u00D1',
-    Ograve: '\u00D2',
-    Oacute: '\u00D3',
-    Ocirc: '\u00D4',
-    Otilde: '\u00D5',
-    Ouml: '\u00D6',
-    times: '\u00D7',
-    Oslash: '\u00D8',
-    Ugrave: '\u00D9',
-    Uacute: '\u00DA',
-    Ucirc: '\u00DB',
-    Uuml: '\u00DC',
-    Yacute: '\u00DD',
-    THORN: '\u00DE',
-    szlig: '\u00DF',
-    agrave: '\u00E0',
-    aacute: '\u00E1',
-    acirc: '\u00E2',
-    atilde: '\u00E3',
-    auml: '\u00E4',
-    aring: '\u00E5',
-    aelig: '\u00E6',
-    ccedil: '\u00E7',
-    egrave: '\u00E8',
-    eacute: '\u00E9',
-    ecirc: '\u00EA',
-    euml: '\u00EB',
-    igrave: '\u00EC',
-    iacute: '\u00ED',
-    icirc: '\u00EE',
-    iuml: '\u00EF',
-    eth: '\u00F0',
-    ntilde: '\u00F1',
-    ograve: '\u00F2',
-    oacute: '\u00F3',
-    ocirc: '\u00F4',
-    otilde: '\u00F5',
-    ouml: '\u00F6',
-    divide: '\u00F7',
-    oslash: '\u00F8',
-    ugrave: '\u00F9',
-    uacute: '\u00FA',
-    ucirc: '\u00FB',
-    uuml: '\u00FC',
-    yacute: '\u00FD',
-    thorn: '\u00FE',
-    yuml: '\u00FF',
-    OElig: '\u0152',
-    oelig: '\u0153',
-    Scaron: '\u0160',
-    scaron: '\u0161',
-    Yuml: '\u0178',
-    fnof: '\u0192',
-    circ: '\u02C6',
-    tilde: '\u02DC',
-    Alpha: '\u0391',
-    Beta: '\u0392',
-    Gamma: '\u0393',
-    Delta: '\u0394',
-    Epsilon: '\u0395',
-    Zeta: '\u0396',
-    Eta: '\u0397',
-    Theta: '\u0398',
-    Iota: '\u0399',
-    Kappa: '\u039A',
-    Lambda: '\u039B',
-    Mu: '\u039C',
-    Nu: '\u039D',
-    Xi: '\u039E',
-    Omicron: '\u039F',
-    Pi: '\u03A0',
-    Rho: '\u03A1',
-    Sigma: '\u03A3',
-    Tau: '\u03A4',
-    Upsilon: '\u03A5',
-    Phi: '\u03A6',
-    Chi: '\u03A7',
-    Psi: '\u03A8',
-    Omega: '\u03A9',
-    alpha: '\u03B1',
-    beta: '\u03B2',
-    gamma: '\u03B3',
-    delta: '\u03B4',
-    epsilon: '\u03B5',
-    zeta: '\u03B6',
-    eta: '\u03B7',
-    theta: '\u03B8',
-    iota: '\u03B9',
-    kappa: '\u03BA',
-    lambda: '\u03BB',
-    mu: '\u03BC',
-    nu: '\u03BD',
-    xi: '\u03BE',
-    omicron: '\u03BF',
-    pi: '\u03C0',
-    rho: '\u03C1',
-    sigmaf: '\u03C2',
-    sigma: '\u03C3',
-    tau: '\u03C4',
-    upsilon: '\u03C5',
-    phi: '\u03C6',
-    chi: '\u03C7',
-    psi: '\u03C8',
-    omega: '\u03C9',
-    thetasym: '\u03D1',
-    upsih: '\u03D2',
-    piv: '\u03D6',
-    ensp: '\u2002',
-    emsp: '\u2003',
-    thinsp: '\u2009',
-    zwnj: '\u200C',
-    zwj: '\u200D',
-    lrm: '\u200E',
-    rlm: '\u200F',
-    ndash: '\u2013',
-    mdash: '\u2014',
-    lsquo: '\u2018',
-    rsquo: '\u2019',
-    sbquo: '\u201A',
-    ldquo: '\u201C',
-    rdquo: '\u201D',
-    bdquo: '\u201E',
-    dagger: '\u2020',
-    Dagger: '\u2021',
-    bull: '\u2022',
-    hellip: '\u2026',
-    permil: '\u2030',
-    prime: '\u2032',
-    Prime: '\u2033',
-    lsaquo: '\u2039',
-    rsaquo: '\u203A',
-    oline: '\u203E',
-    frasl: '\u2044',
-    euro: '\u20AC',
-    image: '\u2111',
-    weierp: '\u2118',
-    real: '\u211C',
-    trade: '\u2122',
-    alefsym: '\u2135',
-    larr: '\u2190',
-    uarr: '\u2191',
-    rarr: '\u2192',
-    darr: '\u2193',
-    harr: '\u2194',
-    crarr: '\u21B5',
-    lArr: '\u21D0',
-    uArr: '\u21D1',
-    rArr: '\u21D2',
-    dArr: '\u21D3',
-    hArr: '\u21D4',
-    forall: '\u2200',
-    part: '\u2202',
-    exist: '\u2203',
-    empty: '\u2205',
-    nabla: '\u2207',
-    isin: '\u2208',
-    notin: '\u2209',
-    ni: '\u220B',
-    prod: '\u220F',
-    sum: '\u2211',
-    minus: '\u2212',
-    lowast: '\u2217',
-    radic: '\u221A',
-    prop: '\u221D',
-    infin: '\u221E',
-    ang: '\u2220',
-    and: '\u2227',
-    or: '\u2228',
-    cap: '\u2229',
-    cup: '\u222A',
-    'int': '\u222B',
-    there4: '\u2234',
-    sim: '\u223C',
-    cong: '\u2245',
-    asymp: '\u2248',
-    ne: '\u2260',
-    equiv: '\u2261',
-    le: '\u2264',
-    ge: '\u2265',
-    sub: '\u2282',
-    sup: '\u2283',
-    nsub: '\u2284',
-    sube: '\u2286',
-    supe: '\u2287',
-    oplus: '\u2295',
-    otimes: '\u2297',
-    perp: '\u22A5',
-    sdot: '\u22C5',
-    lceil: '\u2308',
-    rceil: '\u2309',
-    lfloor: '\u230A',
-    rfloor: '\u230B',
-    lang: '\u2329',
-    rang: '\u232A',
-    loz: '\u25CA',
-    spades: '\u2660',
-    clubs: '\u2663',
-    hearts: '\u2665',
-    diams: '\u2666'
-  };
-
-  var hexNumber = /^[\da-fA-F]+$/;
-  var decimalNumber = /^\d+$/;
-
-  pp.jsx_readEntity = function() {
-    var str = '', count = 0, entity;
-    var ch = this.input[this.pos];
-    if (ch !== '&')
-      this.raise(this.pos, 'Entity must start with an ampersand');
-    var startPos = ++this.pos;
-    while (this.pos < this.input.length && count++ < 10) {
-      ch = this.input[this.pos++];
-      if (ch === ';') {
-        if (str[0] === '#') {
-          if (str[1] === 'x') {
-            str = str.substr(2);
-            if (hexNumber.test(str))
-              entity = String.fromCharCode(parseInt(str, 16));
-          } else {
-            str = str.substr(1);
-            if (decimalNumber.test(str))
-              entity = String.fromCharCode(parseInt(str, 10));
-          }
-        } else {
-          entity = XHTMLEntities[str];
-        }
-        break;
-      }
-      str += ch;
-    }
-    if (!entity) {
-      this.pos = startPos;
-      return '&';
-    }
-    return entity;
-  };
-
-
-  // Read a JSX identifier (valid tag or attribute name).
-  //
-  // Optimized version since JSX identifiers can't contain
-  // escape characters and so can be read as single slice.
-  // Also assumes that first character was already checked
-  // by isIdentifierStart in readToken.
-
-  pp.jsx_readWord = function() {
-    var ch, start = this.pos;
-    do {
-      ch = this.input.charCodeAt(++this.pos);
-    } while (acorn.isIdentifierChar(ch) || ch === 45); // '-'
-    return this.finishToken(tt.jsxName, this.input.slice(start, this.pos));
-  };
-
-  // Transforms JSX element name to string.
-
-  function getQualifiedJSXName(object) {
-    if (object.type === 'JSXIdentifier')
-      return object.name;
-
-    if (object.type === 'JSXNamespacedName')
-      return object.namespace.name + ':' + object.name.name;
-
-    if (object.type === 'JSXMemberExpression')
-      return getQualifiedJSXName(object.object) + '.' +
-      getQualifiedJSXName(object.property);
-  }
-
-  // Parse next token as JSX identifier
-
-  pp.jsx_parseIdentifier = function() {
-    var node = this.startNode();
-    if (this.type === tt.jsxName)
-      node.name = this.value;
-    else if (this.type.keyword)
-      node.name = this.type.keyword;
-    else
-      this.unexpected();
-    this.next();
-    return this.finishNode(node, 'JSXIdentifier');
-  };
-
-  // Parse namespaced identifier.
-
-  pp.jsx_parseNamespacedName = function() {
-    var start = this.markPosition();
-    var name = this.jsx_parseIdentifier();
-    if (!this.eat(tt.colon)) return name;
-    var node = this.startNodeAt(start);
-    node.namespace = name;
-    node.name = this.jsx_parseIdentifier();
-    return this.finishNode(node, 'JSXNamespacedName');
-  };
-
-  // Parses element name in any form - namespaced, member
-  // or single identifier.
-
-  pp.jsx_parseElementName = function() {
-    var start = this.markPosition();
-    var node = this.jsx_parseNamespacedName();
-    while (this.eat(tt.dot)) {
-      var newNode = this.startNodeAt(start);
-      newNode.object = node;
-      newNode.property = this.jsx_parseIdentifier();
-      node = this.finishNode(newNode, 'JSXMemberExpression');
-    }
-    return node;
-  };
-
-  // Parses any type of JSX attribute value.
-
-  pp.jsx_parseAttributeValue = function() {
-    switch (this.type) {
-    case tt.braceL:
-      var node = this.jsx_parseExpressionContainer();
-      if (node.expression.type === 'JSXEmptyExpression')
-        this.raise(node.start, 'JSX attributes must only be assigned a non-empty expression');
-      return node;
-
-    case tt.jsxTagStart:
-    case tt.string:
-      return this.parseExprAtom();
-
-    default:
-      this.raise(this.start, 'JSX value should be either an expression or a quoted JSX text');
-    }
-  };
-
-  // JSXEmptyExpression is unique type since it doesn't actually parse anything,
-  // and so it should start at the end of last read token (left brace) and finish
-  // at the beginning of the next one (right brace).
-
-  pp.jsx_parseEmptyExpression = function() {
-    var tmp = this.start;
-    this.start = this.lastTokEnd;
-    this.lastTokEnd = tmp;
-
-    tmp = this.startLoc;
-    this.startLoc = this.lastTokEndLoc;
-    this.lastTokEndLoc = tmp;
-
-    return this.finishNode(this.startNode(), 'JSXEmptyExpression');
-  };
-
-  // Parses JSX expression enclosed into curly brackets.
-
-
-  pp.jsx_parseExpressionContainer = function() {
-    var node = this.startNode();
-    this.next();
-    node.expression = this.type === tt.braceR
-      ? this.jsx_parseEmptyExpression()
-      : this.parseExpression();
-    this.expect(tt.braceR);
-    return this.finishNode(node, 'JSXExpressionContainer');
-  };
-
-  // Parses following JSX attribute name-value pair.
-
-  pp.jsx_parseAttribute = function() {
-    var node = this.startNode();
-    if (this.eat(tt.braceL)) {
-      this.expect(tt.ellipsis);
-      node.argument = this.parseMaybeAssign();
-      this.expect(tt.braceR);
-      return this.finishNode(node, 'JSXSpreadAttribute');
-    }
-    node.name = this.jsx_parseNamespacedName();
-    node.value = this.eat(tt.eq) ? this.jsx_parseAttributeValue() : null;
-    return this.finishNode(node, 'JSXAttribute');
-  };
-
-  // Parses JSX opening tag starting after '<'.
-
-  pp.jsx_parseOpeningElementAt = function(start) {
-    var node = this.startNodeAt(start);
-    node.attributes = [];
-    node.name = this.jsx_parseElementName();
-    while (this.type !== tt.slash && this.type !== tt.jsxTagEnd)
-      node.attributes.push(this.jsx_parseAttribute());
-    node.selfClosing = this.eat(tt.slash);
-    this.expect(tt.jsxTagEnd);
-    return this.finishNode(node, 'JSXOpeningElement');
-  };
-
-  // Parses JSX closing tag starting after '</'.
-
-  pp.jsx_parseClosingElementAt = function(start) {
-    var node = this.startNodeAt(start);
-    node.name = this.jsx_parseElementName();
-    this.expect(tt.jsxTagEnd);
-    return this.finishNode(node, 'JSXClosingElement');
-  };
-
-  // Parses entire JSX element, including it's opening tag
-  // (starting after '<'), attributes, contents and closing tag.
-
-  pp.jsx_parseElementAt = function(start) {
-    var node = this.startNodeAt(start);
-    var children = [];
-    var openingElement = this.jsx_parseOpeningElementAt(start);
-    var closingElement = null;
-
-    if (!openingElement.selfClosing) {
-      contents: for (;;) {
-        switch (this.type) {
-        case tt.jsxTagStart:
-          start = this.markPosition();
-          this.next();
-          if (this.eat(tt.slash)) {
-            closingElement = this.jsx_parseClosingElementAt(start);
-            break contents;
-          }
-          children.push(this.jsx_parseElementAt(start));
-          break;
-
-        case tt.jsxText:
-          children.push(this.parseExprAtom());
-          break;
-
-        case tt.braceL:
-          children.push(this.jsx_parseExpressionContainer());
-          break;
-
-        default:
-          this.unexpected();
-        }
-      }
-      if (getQualifiedJSXName(closingElement.name) !== getQualifiedJSXName(openingElement.name))
-        this.raise(
-          closingElement.start,
-          'Expected corresponding JSX closing tag for <' + getQualifiedJSXName(openingElement.name) + '>');
-    }
-
-    node.openingElement = openingElement;
-    node.closingElement = closingElement;
-    node.children = children;
-    if (this.type === tt.relational && this.value === "<") {
-      this.raise(this.pos, "Adjacent JSX elements must be wrapped in an enclosing tag");
-    }
-    return this.finishNode(node, 'JSXElement');
-  };
-
-  // Parses entire JSX element from current position.
-
-  pp.jsx_parseElement = function() {
-    var start = this.markPosition();
-    this.next();
-    return this.jsx_parseElementAt(start);
-  };
-
-  acorn.plugins.jsx = function(instance) {
-    instance.extend('parseExprAtom', function(inner) {
-      return function(refShortHandDefaultPos) {
-        if (this.type === tt.jsxText)
-          return this.parseLiteral(this.value);
-        else if (this.type === tt.jsxTagStart)
-          return this.jsx_parseElement();
-        else
-          return inner.call(this, refShortHandDefaultPos);
-      };
-    });
-
-    instance.extend('readToken', function(inner) {
-      return function(code) {
-        var context = this.curContext();
-
-        if (context === tc.j_expr) return this.jsx_readToken();
-
-        if (context === tc.j_oTag || context === tc.j_cTag) {
-          if (acorn.isIdentifierStart(code)) return this.jsx_readWord();
-
-          if (code == 62) {
-            ++this.pos;
-            return this.finishToken(tt.jsxTagEnd);
-          }
-
-          if ((code === 34 || code === 39) && context == tc.j_oTag)
-            return this.jsx_readString(code);
-        }
-
-        if (code === 60 && this.exprAllowed) {
-          ++this.pos;
-          return this.finishToken(tt.jsxTagStart);
-        }
-        return inner.call(this, code);
-      };
-    });
-
-    instance.extend('updateContext', function(inner) {
-      return function(prevType) {
-        if (this.type == tt.braceL) {
-          var curContext = this.curContext();
-          if (curContext == tc.j_oTag) this.context.push(tc.b_expr);
-          else if (curContext == tc.j_expr) this.context.push(tc.b_tmpl);
-          else inner.call(this, prevType);
-          this.exprAllowed = true;
-        } else if (this.type === tt.slash && prevType === tt.jsxTagStart) {
-          this.context.length -= 2; // do not consider JSX expr -> JSX open tag -> ... anymore
-          this.context.push(tc.j_cTag); // reconsider as closing tag context
-          this.exprAllowed = false;
-        } else {
-          return inner.call(this, prevType);
-        }
-      };
-    });
-  };
-
-  return acorn;
-};
-
-},{}],3:[function(require,module,exports){
-(function (global){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.acorn = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-
-
-// The main exported interface (under `self.acorn` when in the
-// browser) is a `parse` function that takes a code string and
-// returns an abstract syntax tree as specified by [Mozilla parser
-// API][api].
-//
-// [api]: https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
-
-"use strict";
-
-exports.parse = parse;
-
-// This function tries to parse a single expression at a given
-// offset in a string. Useful for parsing mixed-language formats
-// that embed JavaScript expressions.
-
-exports.parseExpressionAt = parseExpressionAt;
-
-// Acorn is organized as a tokenizer and a recursive-descent parser.
-// The `tokenize` export provides an interface to the tokenizer.
-
-exports.tokenizer = tokenizer;
-exports.__esModule = true;
-// Acorn is a tiny, fast JavaScript parser written in JavaScript.
-//
-// Acorn was written by Marijn Haverbeke, Ingvar Stepanyan, and
-// various contributors and released under an MIT license.
-//
-// Git repositories for Acorn are available at
-//
-//     http://marijnhaverbeke.nl/git/acorn
-//     https://github.com/marijnh/acorn.git
-//
-// Please use the [github bug tracker][ghbt] to report issues.
-//
-// [ghbt]: https://github.com/marijnh/acorn/issues
-//
-// This file defines the main parser interface. The library also comes
-// with a [error-tolerant parser][dammit] and an
-// [abstract syntax tree walker][walk], defined in other files.
-//
-// [dammit]: acorn_loose.js
-// [walk]: util/walk.js
-
-var _state = _dereq_("./state");
-
-var Parser = _state.Parser;
-
-var _options = _dereq_("./options");
-
-var getOptions = _options.getOptions;
-
-_dereq_("./parseutil");
-
-_dereq_("./statement");
-
-_dereq_("./lval");
-
-_dereq_("./expression");
-
-exports.Parser = _state.Parser;
-exports.plugins = _state.plugins;
-exports.defaultOptions = _options.defaultOptions;
-
-var _location = _dereq_("./location");
-
-exports.SourceLocation = _location.SourceLocation;
-exports.getLineInfo = _location.getLineInfo;
-exports.Node = _dereq_("./node").Node;
-
-var _tokentype = _dereq_("./tokentype");
-
-exports.TokenType = _tokentype.TokenType;
-exports.tokTypes = _tokentype.types;
-
-var _tokencontext = _dereq_("./tokencontext");
-
-exports.TokContext = _tokencontext.TokContext;
-exports.tokContexts = _tokencontext.types;
-
-var _identifier = _dereq_("./identifier");
-
-exports.isIdentifierChar = _identifier.isIdentifierChar;
-exports.isIdentifierStart = _identifier.isIdentifierStart;
-exports.Token = _dereq_("./tokenize").Token;
-
-var _whitespace = _dereq_("./whitespace");
-
-exports.isNewLine = _whitespace.isNewLine;
-exports.lineBreak = _whitespace.lineBreak;
-exports.lineBreakG = _whitespace.lineBreakG;
-var version = "1.0.3";exports.version = version;
-
-function parse(input, options) {
-  var p = parser(options, input);
-  var startPos = p.options.locations ? [p.pos, p.curPosition()] : p.pos;
-  p.nextToken();
-  return p.parseTopLevel(p.options.program || p.startNodeAt(startPos));
-}
-
-function parseExpressionAt(input, pos, options) {
-  var p = parser(options, input, pos);
-  p.nextToken();
-  return p.parseExpression();
-}
-
-function tokenizer(input, options) {
-  return parser(options, input);
-}
-
-function parser(options, input) {
-  return new Parser(getOptions(options), String(input));
-}
-
-},{"./expression":2,"./identifier":3,"./location":4,"./lval":5,"./node":6,"./options":7,"./parseutil":8,"./state":9,"./statement":10,"./tokencontext":11,"./tokenize":12,"./tokentype":13,"./whitespace":15}],2:[function(_dereq_,module,exports){
 // A recursive descent parser operates by defining functions for all
 // syntactic elements, and recursively calling those, each function
 // advancing the input stream and returning an AST node. Precedence
@@ -818,15 +19,15 @@ function parser(options, input) {
 
 "use strict";
 
-var tt = _dereq_("./tokentype").types;
+var _tokentype = _dereq_("./tokentype");
 
-var Parser = _dereq_("./state").Parser;
+var _state = _dereq_("./state");
 
-var reservedWords = _dereq_("./identifier").reservedWords;
+var _identifier = _dereq_("./identifier");
 
-var has = _dereq_("./util").has;
+var _util = _dereq_("./util");
 
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
 
 // Check if property name clashes with already added.
 // Object/class getters and setters are not allowed to clash —
@@ -834,7 +35,7 @@ var pp = Parser.prototype;
 // strict mode, init properties are also not allowed to be repeated.
 
 pp.checkPropClash = function (prop, propHash) {
-  if (this.options.ecmaVersion >= 6) return;
+  if (this.options.ecmaVersion >= 6 && (prop.computed || prop.method || prop.shorthand)) return;
   var key = prop.key,
       name = undefined;
   switch (key.type) {
@@ -845,9 +46,16 @@ pp.checkPropClash = function (prop, propHash) {
     default:
       return;
   }
-  var kind = prop.kind || "init",
-      other = undefined;
-  if (has(propHash, name)) {
+  var kind = prop.kind;
+  if (this.options.ecmaVersion >= 6) {
+    if (name === "__proto__" && kind === "init") {
+      if (propHash.proto) this.raise(key.start, "Redefinition of __proto__ property");
+      propHash.proto = true;
+    }
+    return;
+  }
+  var other = undefined;
+  if (_util.has(propHash, name)) {
     other = propHash[name];
     var isGetSet = kind !== "init";
     if ((this.strict || isGetSet) && other[kind] || !(isGetSet ^ other.init)) this.raise(key.start, "Redefinition of property");
@@ -877,12 +85,13 @@ pp.checkPropClash = function (prop, propHash) {
 // delayed syntax error at correct position).
 
 pp.parseExpression = function (noIn, refShorthandDefaultPos) {
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
   var expr = this.parseMaybeAssign(noIn, refShorthandDefaultPos);
-  if (this.type === tt.comma) {
-    var node = this.startNodeAt(start);
+  if (this.type === _tokentype.types.comma) {
+    var node = this.startNodeAt(startPos, startLoc);
     node.expressions = [expr];
-    while (this.eat(tt.comma)) node.expressions.push(this.parseMaybeAssign(noIn, refShorthandDefaultPos));
+    while (this.eat(_tokentype.types.comma)) node.expressions.push(this.parseMaybeAssign(noIn, refShorthandDefaultPos));
     return this.finishNode(node, "SequenceExpression");
   }
   return expr;
@@ -891,8 +100,8 @@ pp.parseExpression = function (noIn, refShorthandDefaultPos) {
 // Parse an assignment expression. This includes applications of
 // operators like `+=`.
 
-pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos) {
-  if (this.type == tt._yield && this.inGenerator) return this.parseYield();
+pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos, afterLeftParse) {
+  if (this.type == _tokentype.types._yield && this.inGenerator) return this.parseYield();
 
   var failOnShorthandAssign = undefined;
   if (!refShorthandDefaultPos) {
@@ -901,12 +110,15 @@ pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos) {
   } else {
     failOnShorthandAssign = false;
   }
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
+  if (this.type == _tokentype.types.parenL || this.type == _tokentype.types.name) this.potentialArrowAt = this.start;
   var left = this.parseMaybeConditional(noIn, refShorthandDefaultPos);
+  if (afterLeftParse) left = afterLeftParse.call(this, left, startPos, startLoc);
   if (this.type.isAssign) {
-    var node = this.startNodeAt(start);
+    var node = this.startNodeAt(startPos, startLoc);
     node.operator = this.value;
-    node.left = this.type === tt.eq ? this.toAssignable(left) : left;
+    node.left = this.type === _tokentype.types.eq ? this.toAssignable(left) : left;
     refShorthandDefaultPos.start = 0; // reset because shorthand default was used correctly
     this.checkLVal(left);
     this.next();
@@ -921,14 +133,15 @@ pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos) {
 // Parse a ternary conditional (`?:`) operator.
 
 pp.parseMaybeConditional = function (noIn, refShorthandDefaultPos) {
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
   var expr = this.parseExprOps(noIn, refShorthandDefaultPos);
   if (refShorthandDefaultPos && refShorthandDefaultPos.start) return expr;
-  if (this.eat(tt.question)) {
-    var node = this.startNodeAt(start);
+  if (this.eat(_tokentype.types.question)) {
+    var node = this.startNodeAt(startPos, startLoc);
     node.test = expr;
     node.consequent = this.parseMaybeAssign();
-    this.expect(tt.colon);
+    this.expect(_tokentype.types.colon);
     node.alternate = this.parseMaybeAssign(noIn);
     return this.finishNode(node, "ConditionalExpression");
   }
@@ -938,10 +151,11 @@ pp.parseMaybeConditional = function (noIn, refShorthandDefaultPos) {
 // Start the precedence parser.
 
 pp.parseExprOps = function (noIn, refShorthandDefaultPos) {
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
   var expr = this.parseMaybeUnary(refShorthandDefaultPos);
   if (refShorthandDefaultPos && refShorthandDefaultPos.start) return expr;
-  return this.parseExprOp(expr, start, -1, noIn);
+  return this.parseExprOp(expr, startPos, startLoc, -1, noIn);
 };
 
 // Parse binary operators with the operator precedence parsing
@@ -950,19 +164,20 @@ pp.parseExprOps = function (noIn, refShorthandDefaultPos) {
 // defer further parser to one of its callers when it encounters an
 // operator that has a lower precedence than the set it is parsing.
 
-pp.parseExprOp = function (left, leftStart, minPrec, noIn) {
+pp.parseExprOp = function (left, leftStartPos, leftStartLoc, minPrec, noIn) {
   var prec = this.type.binop;
-  if (prec != null && (!noIn || this.type !== tt._in)) {
+  if (prec != null && (!noIn || this.type !== _tokentype.types._in)) {
     if (prec > minPrec) {
-      var node = this.startNodeAt(leftStart);
+      var node = this.startNodeAt(leftStartPos, leftStartLoc);
       node.left = left;
       node.operator = this.value;
       var op = this.type;
       this.next();
-      var start = this.markPosition();
-      node.right = this.parseExprOp(this.parseMaybeUnary(), start, prec, noIn);
-      this.finishNode(node, op === tt.logicalOR || op === tt.logicalAND ? "LogicalExpression" : "BinaryExpression");
-      return this.parseExprOp(node, leftStart, minPrec, noIn);
+      var startPos = this.start,
+          startLoc = this.startLoc;
+      node.right = this.parseExprOp(this.parseMaybeUnary(), startPos, startLoc, prec, noIn);
+      this.finishNode(node, op === _tokentype.types.logicalOR || op === _tokentype.types.logicalAND ? "LogicalExpression" : "BinaryExpression");
+      return this.parseExprOp(node, leftStartPos, leftStartLoc, minPrec, noIn);
     }
   }
   return left;
@@ -973,7 +188,7 @@ pp.parseExprOp = function (left, leftStart, minPrec, noIn) {
 pp.parseMaybeUnary = function (refShorthandDefaultPos) {
   if (this.type.prefix) {
     var node = this.startNode(),
-        update = this.type === tt.incDec;
+        update = this.type === _tokentype.types.incDec;
     node.operator = this.value;
     node.prefix = true;
     this.next();
@@ -982,11 +197,12 @@ pp.parseMaybeUnary = function (refShorthandDefaultPos) {
     if (update) this.checkLVal(node.argument);else if (this.strict && node.operator === "delete" && node.argument.type === "Identifier") this.raise(node.start, "Deleting local variable in strict mode");
     return this.finishNode(node, update ? "UpdateExpression" : "UnaryExpression");
   }
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
   var expr = this.parseExprSubscripts(refShorthandDefaultPos);
   if (refShorthandDefaultPos && refShorthandDefaultPos.start) return expr;
   while (this.type.postfix && !this.canInsertSemicolon()) {
-    var node = this.startNodeAt(start);
+    var node = this.startNodeAt(startPos, startLoc);
     node.operator = this.value;
     node.prefix = false;
     node.argument = expr;
@@ -1000,37 +216,42 @@ pp.parseMaybeUnary = function (refShorthandDefaultPos) {
 // Parse call, dot, and `[]`-subscript expressions.
 
 pp.parseExprSubscripts = function (refShorthandDefaultPos) {
-  var start = this.markPosition();
+  var startPos = this.start,
+      startLoc = this.startLoc;
   var expr = this.parseExprAtom(refShorthandDefaultPos);
   if (refShorthandDefaultPos && refShorthandDefaultPos.start) return expr;
-  return this.parseSubscripts(expr, start);
+  return this.parseSubscripts(expr, startPos, startLoc);
 };
 
-pp.parseSubscripts = function (base, start, noCalls) {
-  if (this.eat(tt.dot)) {
-    var node = this.startNodeAt(start);
-    node.object = base;
-    node.property = this.parseIdent(true);
-    node.computed = false;
-    return this.parseSubscripts(this.finishNode(node, "MemberExpression"), start, noCalls);
-  } else if (this.eat(tt.bracketL)) {
-    var node = this.startNodeAt(start);
-    node.object = base;
-    node.property = this.parseExpression();
-    node.computed = true;
-    this.expect(tt.bracketR);
-    return this.parseSubscripts(this.finishNode(node, "MemberExpression"), start, noCalls);
-  } else if (!noCalls && this.eat(tt.parenL)) {
-    var node = this.startNodeAt(start);
-    node.callee = base;
-    node.arguments = this.parseExprList(tt.parenR, false);
-    return this.parseSubscripts(this.finishNode(node, "CallExpression"), start, noCalls);
-  } else if (this.type === tt.backQuote) {
-    var node = this.startNodeAt(start);
-    node.tag = base;
-    node.quasi = this.parseTemplate();
-    return this.parseSubscripts(this.finishNode(node, "TaggedTemplateExpression"), start, noCalls);
-  }return base;
+pp.parseSubscripts = function (base, startPos, startLoc, noCalls) {
+  for (;;) {
+    if (this.eat(_tokentype.types.dot)) {
+      var node = this.startNodeAt(startPos, startLoc);
+      node.object = base;
+      node.property = this.parseIdent(true);
+      node.computed = false;
+      base = this.finishNode(node, "MemberExpression");
+    } else if (this.eat(_tokentype.types.bracketL)) {
+      var node = this.startNodeAt(startPos, startLoc);
+      node.object = base;
+      node.property = this.parseExpression();
+      node.computed = true;
+      this.expect(_tokentype.types.bracketR);
+      base = this.finishNode(node, "MemberExpression");
+    } else if (!noCalls && this.eat(_tokentype.types.parenL)) {
+      var node = this.startNodeAt(startPos, startLoc);
+      node.callee = base;
+      node.arguments = this.parseExprList(_tokentype.types.parenR, false);
+      base = this.finishNode(node, "CallExpression");
+    } else if (this.type === _tokentype.types.backQuote) {
+      var node = this.startNodeAt(startPos, startLoc);
+      node.tag = base;
+      node.quasi = this.parseTemplate();
+      base = this.finishNode(node, "TaggedTemplateExpression");
+    } else {
+      return base;
+    }
+  }
 };
 
 // Parse an atomic expression — either a single token that is an
@@ -1039,70 +260,71 @@ pp.parseSubscripts = function (base, start, noCalls) {
 // or `{}`.
 
 pp.parseExprAtom = function (refShorthandDefaultPos) {
-  var node = undefined;
+  var node = undefined,
+      canBeArrow = this.potentialArrowAt == this.start;
   switch (this.type) {
-    case tt._this:
-    case tt._super:
-      var type = this.type === tt._this ? "ThisExpression" : "Super";
+    case _tokentype.types._super:
+      if (!this.inFunction) this.raise(this.start, "'super' outside of function or class");
+    case _tokentype.types._this:
+      var type = this.type === _tokentype.types._this ? "ThisExpression" : "Super";
       node = this.startNode();
       this.next();
       return this.finishNode(node, type);
 
-    case tt._yield:
+    case _tokentype.types._yield:
       if (this.inGenerator) this.unexpected();
 
-    case tt.name:
-      var start = this.markPosition();
-      var id = this.parseIdent(this.type !== tt.name);
-      if (!this.canInsertSemicolon() && this.eat(tt.arrow)) {
-        return this.parseArrowExpression(this.startNodeAt(start), [id]);
-      }
+    case _tokentype.types.name:
+      var startPos = this.start,
+          startLoc = this.startLoc;
+      var id = this.parseIdent(this.type !== _tokentype.types.name);
+      if (canBeArrow && !this.canInsertSemicolon() && this.eat(_tokentype.types.arrow)) return this.parseArrowExpression(this.startNodeAt(startPos, startLoc), [id]);
       return id;
 
-    case tt.regexp:
+    case _tokentype.types.regexp:
       var value = this.value;
       node = this.parseLiteral(value.value);
       node.regex = { pattern: value.pattern, flags: value.flags };
       return node;
 
-    case tt.num:case tt.string:
+    case _tokentype.types.num:case _tokentype.types.string:
       return this.parseLiteral(this.value);
 
-    case tt._null:case tt._true:case tt._false:
+    case _tokentype.types._null:case _tokentype.types._true:case _tokentype.types._false:
       node = this.startNode();
-      node.value = this.type === tt._null ? null : this.type === tt._true;
+      node.value = this.type === _tokentype.types._null ? null : this.type === _tokentype.types._true;
       node.raw = this.type.keyword;
       this.next();
       return this.finishNode(node, "Literal");
 
-    case tt.parenL:
-      return this.parseParenAndDistinguishExpression();
+    case _tokentype.types.parenL:
+      return this.parseParenAndDistinguishExpression(canBeArrow);
 
-    case tt.bracketL:
+    case _tokentype.types.bracketL:
       node = this.startNode();
       this.next();
       // check whether this is array comprehension or regular array
-      if (this.options.ecmaVersion >= 7 && this.type === tt._for) {
+      if (this.options.ecmaVersion >= 7 && this.type === _tokentype.types._for) {
         return this.parseComprehension(node, false);
       }
-      node.elements = this.parseExprList(tt.bracketR, true, true, refShorthandDefaultPos);
+      node.elements = this.parseExprList(_tokentype.types.bracketR, true, true, refShorthandDefaultPos);
       return this.finishNode(node, "ArrayExpression");
 
-    case tt.braceL:
+    case _tokentype.types.braceL:
       return this.parseObj(false, refShorthandDefaultPos);
 
-    case tt._function:
+    case _tokentype.types._function:
       node = this.startNode();
       this.next();
       return this.parseFunction(node, false);
 
-    case tt._class:
+    case _tokentype.types._class:
       return this.parseClass(this.startNode(), false);
 
-    case tt._new:
+    case _tokentype.types._new:
       return this.parseNew();
 
-    case tt.backQuote:
+    case _tokentype.types.backQuote:
       return this.parseTemplate();
 
     default:
@@ -1119,47 +341,50 @@ pp.parseLiteral = function (value) {
 };
 
 pp.parseParenExpression = function () {
-  this.expect(tt.parenL);
+  this.expect(_tokentype.types.parenL);
   var val = this.parseExpression();
-  this.expect(tt.parenR);
+  this.expect(_tokentype.types.parenR);
   return val;
 };
 
-pp.parseParenAndDistinguishExpression = function () {
-  var start = this.markPosition(),
+pp.parseParenAndDistinguishExpression = function (canBeArrow) {
+  var startPos = this.start,
+      startLoc = this.startLoc,
       val = undefined;
   if (this.options.ecmaVersion >= 6) {
     this.next();
 
-    if (this.options.ecmaVersion >= 7 && this.type === tt._for) {
-      return this.parseComprehension(this.startNodeAt(start), true);
+    if (this.options.ecmaVersion >= 7 && this.type === _tokentype.types._for) {
+      return this.parseComprehension(this.startNodeAt(startPos, startLoc), true);
     }
 
-    var innerStart = this.markPosition(),
-        exprList = [],
+    var innerStartPos = this.start,
+        innerStartLoc = this.startLoc;
+    var exprList = [],
         first = true;
     var refShorthandDefaultPos = { start: 0 },
         spreadStart = undefined,
         innerParenStart = undefined;
-    while (this.type !== tt.parenR) {
-      first ? first = false : this.expect(tt.comma);
-      if (this.type === tt.ellipsis) {
+    while (this.type !== _tokentype.types.parenR) {
+      first ? first = false : this.expect(_tokentype.types.comma);
+      if (this.type === _tokentype.types.ellipsis) {
         spreadStart = this.start;
-        exprList.push(this.parseRest());
+        exprList.push(this.parseParenItem(this.parseRest()));
         break;
       } else {
-        if (this.type === tt.parenL && !innerParenStart) {
+        if (this.type === _tokentype.types.parenL && !innerParenStart) {
           innerParenStart = this.start;
         }
-        exprList.push(this.parseMaybeAssign(false, refShorthandDefaultPos));
+        exprList.push(this.parseMaybeAssign(false, refShorthandDefaultPos, this.parseParenItem));
       }
     }
-    var innerEnd = this.markPosition();
-    this.expect(tt.parenR);
+    var innerEndPos = this.start,
+        innerEndLoc = this.startLoc;
+    this.expect(_tokentype.types.parenR);
 
-    if (!this.canInsertSemicolon() && this.eat(tt.arrow)) {
+    if (canBeArrow && !this.canInsertSemicolon() && this.eat(_tokentype.types.arrow)) {
       if (innerParenStart) this.unexpected(innerParenStart);
-      return this.parseArrowExpression(this.startNodeAt(start), exprList);
+      return this.parseParenArrowList(startPos, startLoc, exprList);
     }
 
     if (!exprList.length) this.unexpected(this.lastTokStart);
@@ -1167,9 +392,9 @@ pp.parseParenAndDistinguishExpression = function () {
     if (refShorthandDefaultPos.start) this.unexpected(refShorthandDefaultPos.start);
 
     if (exprList.length > 1) {
-      val = this.startNodeAt(innerStart);
+      val = this.startNodeAt(innerStartPos, innerStartLoc);
       val.expressions = exprList;
-      this.finishNodeAt(val, "SequenceExpression", innerEnd);
+      this.finishNodeAt(val, "SequenceExpression", innerEndPos, innerEndLoc);
     } else {
       val = exprList[0];
     }
@@ -1178,12 +403,20 @@ pp.parseParenAndDistinguishExpression = function () {
   }
 
   if (this.options.preserveParens) {
-    var par = this.startNodeAt(start);
+    var par = this.startNodeAt(startPos, startLoc);
     par.expression = val;
     return this.finishNode(par, "ParenthesizedExpression");
   } else {
     return val;
   }
+};
+
+pp.parseParenItem = function (item) {
+  return item;
+};
+
+pp.parseParenArrowList = function (startPos, startLoc, exprList) {
+  return this.parseArrowExpression(this.startNodeAt(startPos, startLoc), exprList);
 };
 
 // New's precedence is slightly tricky. It must allow its argument
@@ -1195,15 +428,16 @@ var empty = [];
 pp.parseNew = function () {
   var node = this.startNode();
   var meta = this.parseIdent(true);
-  if (this.options.ecmaVersion >= 6 && this.eat(tt.dot)) {
+  if (this.options.ecmaVersion >= 6 && this.eat(_tokentype.types.dot)) {
     node.meta = meta;
     node.property = this.parseIdent(true);
     if (node.property.name !== "target") this.raise(node.property.start, "The only valid meta property for new is new.target");
     return this.finishNode(node, "MetaProperty");
   }
-  var start = this.markPosition();
-  node.callee = this.parseSubscripts(this.parseExprAtom(), start, true);
-  if (this.eat(tt.parenL)) node.arguments = this.parseExprList(tt.parenR, false);else node.arguments = empty;
+  var startPos = this.start,
+      startLoc = this.startLoc;
+  node.callee = this.parseSubscripts(this.parseExprAtom(), startPos, startLoc, true);
+  if (this.eat(_tokentype.types.parenL)) node.arguments = this.parseExprList(_tokentype.types.parenR, false);else node.arguments = empty;
   return this.finishNode(node, "NewExpression");
 };
 
@@ -1212,11 +446,11 @@ pp.parseNew = function () {
 pp.parseTemplateElement = function () {
   var elem = this.startNode();
   elem.value = {
-    raw: this.input.slice(this.start, this.end),
+    raw: this.input.slice(this.start, this.end).replace(/\r\n?/g, "\n"),
     cooked: this.value
   };
   this.next();
-  elem.tail = this.type === tt.backQuote;
+  elem.tail = this.type === _tokentype.types.backQuote;
   return this.finishNode(elem, "TemplateElement");
 };
 
@@ -1227,9 +461,9 @@ pp.parseTemplate = function () {
   var curElt = this.parseTemplateElement();
   node.quasis = [curElt];
   while (!curElt.tail) {
-    this.expect(tt.dollarBraceL);
+    this.expect(_tokentype.types.dollarBraceL);
     node.expressions.push(this.parseExpression());
-    this.expect(tt.braceR);
+    this.expect(_tokentype.types.braceR);
     node.quasis.push(curElt = this.parseTemplateElement());
   }
   this.next();
@@ -1244,67 +478,79 @@ pp.parseObj = function (isPattern, refShorthandDefaultPos) {
       propHash = {};
   node.properties = [];
   this.next();
-  while (!this.eat(tt.braceR)) {
+  while (!this.eat(_tokentype.types.braceR)) {
     if (!first) {
-      this.expect(tt.comma);
-      if (this.afterTrailingComma(tt.braceR)) break;
+      this.expect(_tokentype.types.comma);
+      if (this.afterTrailingComma(_tokentype.types.braceR)) break;
     } else first = false;
 
     var prop = this.startNode(),
         isGenerator = undefined,
-        start = undefined;
+        startPos = undefined,
+        startLoc = undefined;
     if (this.options.ecmaVersion >= 6) {
       prop.method = false;
       prop.shorthand = false;
-      if (isPattern || refShorthandDefaultPos) start = this.markPosition();
-      if (!isPattern) isGenerator = this.eat(tt.star);
+      if (isPattern || refShorthandDefaultPos) {
+        startPos = this.start;
+        startLoc = this.startLoc;
+      }
+      if (!isPattern) isGenerator = this.eat(_tokentype.types.star);
     }
     this.parsePropertyName(prop);
-    if (this.eat(tt.colon)) {
-      prop.value = isPattern ? this.parseMaybeDefault() : this.parseMaybeAssign(false, refShorthandDefaultPos);
-      prop.kind = "init";
-    } else if (this.options.ecmaVersion >= 6 && this.type === tt.parenL) {
-      if (isPattern) this.unexpected();
-      prop.kind = "init";
-      prop.method = true;
-      prop.value = this.parseMethod(isGenerator);
-    } else if (this.options.ecmaVersion >= 5 && !prop.computed && prop.key.type === "Identifier" && (prop.key.name === "get" || prop.key.name === "set") && (this.type != tt.comma && this.type != tt.braceR)) {
-      if (isGenerator || isPattern) this.unexpected();
-      prop.kind = prop.key.name;
-      this.parsePropertyName(prop);
-      prop.value = this.parseMethod(false);
-    } else if (this.options.ecmaVersion >= 6 && !prop.computed && prop.key.type === "Identifier") {
-      prop.kind = "init";
-      if (isPattern) {
-        if (this.isKeyword(prop.key.name) || this.strict && (reservedWords.strictBind(prop.key.name) || reservedWords.strict(prop.key.name)) || !this.options.allowReserved && this.isReservedWord(prop.key.name)) this.raise(prop.key.start, "Binding " + prop.key.name);
-        prop.value = this.parseMaybeDefault(start, prop.key);
-      } else if (this.type === tt.eq && refShorthandDefaultPos) {
-        if (!refShorthandDefaultPos.start) refShorthandDefaultPos.start = this.start;
-        prop.value = this.parseMaybeDefault(start, prop.key);
-      } else {
-        prop.value = prop.key;
-      }
-      prop.shorthand = true;
-    } else this.unexpected();
-
+    this.parsePropertyValue(prop, isPattern, isGenerator, startPos, startLoc, refShorthandDefaultPos);
     this.checkPropClash(prop, propHash);
     node.properties.push(this.finishNode(prop, "Property"));
   }
   return this.finishNode(node, isPattern ? "ObjectPattern" : "ObjectExpression");
 };
 
+pp.parsePropertyValue = function (prop, isPattern, isGenerator, startPos, startLoc, refShorthandDefaultPos) {
+  if (this.eat(_tokentype.types.colon)) {
+    prop.value = isPattern ? this.parseMaybeDefault(this.start, this.startLoc) : this.parseMaybeAssign(false, refShorthandDefaultPos);
+    prop.kind = "init";
+  } else if (this.options.ecmaVersion >= 6 && this.type === _tokentype.types.parenL) {
+    if (isPattern) this.unexpected();
+    prop.kind = "init";
+    prop.method = true;
+    prop.value = this.parseMethod(isGenerator);
+  } else if (this.options.ecmaVersion >= 5 && !prop.computed && prop.key.type === "Identifier" && (prop.key.name === "get" || prop.key.name === "set") && (this.type != _tokentype.types.comma && this.type != _tokentype.types.braceR)) {
+    if (isGenerator || isPattern) this.unexpected();
+    prop.kind = prop.key.name;
+    this.parsePropertyName(prop);
+    prop.value = this.parseMethod(false);
+    var paramCount = prop.kind === "get" ? 0 : 1;
+    if (prop.value.params.length !== paramCount) {
+      var start = prop.value.start;
+      if (prop.kind === "get") this.raise(start, "getter should have no params");else this.raise(start, "setter should have exactly one param");
+    }
+  } else if (this.options.ecmaVersion >= 6 && !prop.computed && prop.key.type === "Identifier") {
+    prop.kind = "init";
+    if (isPattern) {
+      if (this.isKeyword(prop.key.name) || this.strict && (_identifier.reservedWords.strictBind(prop.key.name) || _identifier.reservedWords.strict(prop.key.name)) || !this.options.allowReserved && this.isReservedWord(prop.key.name)) this.raise(prop.key.start, "Binding " + prop.key.name);
+      prop.value = this.parseMaybeDefault(startPos, startLoc, prop.key);
+    } else if (this.type === _tokentype.types.eq && refShorthandDefaultPos) {
+      if (!refShorthandDefaultPos.start) refShorthandDefaultPos.start = this.start;
+      prop.value = this.parseMaybeDefault(startPos, startLoc, prop.key);
+    } else {
+      prop.value = prop.key;
+    }
+    prop.shorthand = true;
+  } else this.unexpected();
+};
+
 pp.parsePropertyName = function (prop) {
   if (this.options.ecmaVersion >= 6) {
-    if (this.eat(tt.bracketL)) {
+    if (this.eat(_tokentype.types.bracketL)) {
       prop.computed = true;
       prop.key = this.parseMaybeAssign();
-      this.expect(tt.bracketR);
-      return;
+      this.expect(_tokentype.types.bracketR);
+      return prop.key;
     } else {
       prop.computed = false;
     }
   }
-  prop.key = this.type === tt.num || this.type === tt.string ? this.parseExprAtom() : this.parseIdent(true);
+  return prop.key = this.type === _tokentype.types.num || this.type === _tokentype.types.string ? this.parseExprAtom() : this.parseIdent(true);
 };
 
 // Initialize empty function node.
@@ -1322,16 +568,13 @@ pp.initFunction = function (node) {
 pp.parseMethod = function (isGenerator) {
   var node = this.startNode();
   this.initFunction(node);
-  this.expect(tt.parenL);
-  node.params = this.parseBindingList(tt.parenR, false, false);
+  this.expect(_tokentype.types.parenL);
+  node.params = this.parseBindingList(_tokentype.types.parenR, false, false);
   var allowExpressionBody = undefined;
   if (this.options.ecmaVersion >= 6) {
     node.generator = isGenerator;
-    allowExpressionBody = true;
-  } else {
-    allowExpressionBody = false;
   }
-  this.parseFunctionBody(node, allowExpressionBody);
+  this.parseFunctionBody(node, false);
   return this.finishNode(node, "FunctionExpression");
 };
 
@@ -1347,7 +590,7 @@ pp.parseArrowExpression = function (node, params) {
 // Parse function body and check parameters.
 
 pp.parseFunctionBody = function (node, allowExpression) {
-  var isExpression = allowExpression && this.type !== tt.braceL;
+  var isExpression = allowExpression && this.type !== _tokentype.types.braceL;
 
   if (isExpression) {
     node.body = this.parseMaybeAssign();
@@ -1389,15 +632,13 @@ pp.parseExprList = function (close, allowTrailingComma, allowEmpty, refShorthand
       first = true;
   while (!this.eat(close)) {
     if (!first) {
-      this.expect(tt.comma);
+      this.expect(_tokentype.types.comma);
       if (allowTrailingComma && this.afterTrailingComma(close)) break;
     } else first = false;
 
-    if (allowEmpty && this.type === tt.comma) {
-      elts.push(null);
-    } else {
-      if (this.type === tt.ellipsis) elts.push(this.parseSpread(refShorthandDefaultPos));else elts.push(this.parseMaybeAssign(false, refShorthandDefaultPos));
-    }
+    var elt = undefined;
+    if (allowEmpty && this.type === _tokentype.types.comma) elt = null;else if (this.type === _tokentype.types.ellipsis) elt = this.parseSpread(refShorthandDefaultPos);else elt = this.parseMaybeAssign(false, refShorthandDefaultPos);
+    elts.push(elt);
   }
   return elts;
 };
@@ -1409,8 +650,8 @@ pp.parseExprList = function (close, allowTrailingComma, allowEmpty, refShorthand
 pp.parseIdent = function (liberal) {
   var node = this.startNode();
   if (liberal && this.options.allowReserved == "never") liberal = false;
-  if (this.type === tt.name) {
-    if (!liberal && (!this.options.allowReserved && this.isReservedWord(this.value) || this.strict && reservedWords.strict(this.value) && (this.options.ecmaVersion >= 6 || this.input.slice(this.start, this.end).indexOf("\\") == -1))) this.raise(this.start, "The keyword '" + this.value + "' is reserved");
+  if (this.type === _tokentype.types.name) {
+    if (!liberal && (!this.options.allowReserved && this.isReservedWord(this.value) || this.strict && _identifier.reservedWords.strict(this.value) && (this.options.ecmaVersion >= 6 || this.input.slice(this.start, this.end).indexOf("\\") == -1))) this.raise(this.start, "The keyword '" + this.value + "' is reserved");
     node.name = this.value;
   } else if (liberal && this.type.keyword) {
     node.name = this.type.keyword;
@@ -1426,11 +667,11 @@ pp.parseIdent = function (liberal) {
 pp.parseYield = function () {
   var node = this.startNode();
   this.next();
-  if (this.type == tt.semi || this.canInsertSemicolon() || this.type != tt.star && !this.type.startsExpr) {
+  if (this.type == _tokentype.types.semi || this.canInsertSemicolon() || this.type != _tokentype.types.star && !this.type.startsExpr) {
     node.delegate = false;
     node.argument = null;
   } else {
-    node.delegate = this.eat(tt.star);
+    node.delegate = this.eat(_tokentype.types.star);
     node.argument = this.parseMaybeAssign();
   }
   return this.finishNode(node, "YieldExpression");
@@ -1440,37 +681,25 @@ pp.parseYield = function () {
 
 pp.parseComprehension = function (node, isGenerator) {
   node.blocks = [];
-  while (this.type === tt._for) {
+  while (this.type === _tokentype.types._for) {
     var block = this.startNode();
     this.next();
-    this.expect(tt.parenL);
+    this.expect(_tokentype.types.parenL);
     block.left = this.parseBindingAtom();
     this.checkLVal(block.left, true);
     this.expectContextual("of");
     block.right = this.parseExpression();
-    this.expect(tt.parenR);
+    this.expect(_tokentype.types.parenR);
     node.blocks.push(this.finishNode(block, "ComprehensionBlock"));
   }
-  node.filter = this.eat(tt._if) ? this.parseParenExpression() : null;
+  node.filter = this.eat(_tokentype.types._if) ? this.parseParenExpression() : null;
   node.body = this.parseExpression();
-  this.expect(isGenerator ? tt.parenR : tt.bracketR);
+  this.expect(isGenerator ? _tokentype.types.parenR : _tokentype.types.bracketR);
   node.generator = isGenerator;
   return this.finishNode(node, "ComprehensionExpression");
 };
 
-},{"./identifier":3,"./state":9,"./tokentype":13,"./util":14}],3:[function(_dereq_,module,exports){
-
-
-// Test whether a given character code starts an identifier.
-
-"use strict";
-
-exports.isIdentifierStart = isIdentifierStart;
-
-// Test whether a given character is part of an identifier.
-
-exports.isIdentifierChar = isIdentifierChar;
-exports.__esModule = true;
+},{"./identifier":2,"./state":10,"./tokentype":14,"./util":15}],2:[function(_dereq_,module,exports){
 // This is a trick taken from Esprima. It turns out that, on
 // non-Chrome browsers, to check whether a string is in a set, a
 // predicate containing a big ugly `switch` statement is faster than
@@ -1480,6 +709,11 @@ exports.__esModule = true;
 //
 // It starts by sorting the words by length.
 
+"use strict";
+
+exports.__esModule = true;
+exports.isIdentifierStart = isIdentifierStart;
+exports.isIdentifierChar = isIdentifierChar;
 function makePredicate(words) {
   words = words.split(" ");
   var f = "",
@@ -1493,9 +727,8 @@ function makePredicate(words) {
     }cats.push([words[i]]);
   }
   function compareTo(arr) {
-    if (arr.length == 1) {
-      return f += "return str === " + JSON.stringify(arr[0]) + ";";
-    }f += "switch(str){";
+    if (arr.length == 1) return f += "return str === " + JSON.stringify(arr[0]) + ";";
+    f += "switch(str){";
     for (var i = 0; i < arr.length; ++i) {
       f += "case " + JSON.stringify(arr[i]) + ":";
     }f += "return true}return false;";
@@ -1574,75 +807,196 @@ var astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3
 // assumption is that looking up astral identifier characters is
 // rare.
 function isInAstralSet(code, set) {
-  var pos = 65536;
+  var pos = 0x10000;
   for (var i = 0; i < set.length; i += 2) {
     pos += set[i];
-    if (pos > code) {
-      return false;
-    }pos += set[i + 1];
-    if (pos >= code) {
-      return true;
-    }
+    if (pos > code) return false;
+    pos += set[i + 1];
+    if (pos >= code) return true;
   }
 }
+
+// Test whether a given character code starts an identifier.
+
 function isIdentifierStart(code, astral) {
-  if (code < 65) {
-    return code === 36;
-  }if (code < 91) {
-    return true;
-  }if (code < 97) {
-    return code === 95;
-  }if (code < 123) {
-    return true;
-  }if (code <= 65535) {
-    return code >= 170 && nonASCIIidentifierStart.test(String.fromCharCode(code));
-  }if (astral === false) {
-    return false;
-  }return isInAstralSet(code, astralIdentifierStartCodes);
+  if (code < 65) return code === 36;
+  if (code < 91) return true;
+  if (code < 97) return code === 95;
+  if (code < 123) return true;
+  if (code <= 0xffff) return code >= 0xaa && nonASCIIidentifierStart.test(String.fromCharCode(code));
+  if (astral === false) return false;
+  return isInAstralSet(code, astralIdentifierStartCodes);
 }
+
+// Test whether a given character is part of an identifier.
 
 function isIdentifierChar(code, astral) {
-  if (code < 48) {
-    return code === 36;
-  }if (code < 58) {
-    return true;
-  }if (code < 65) {
-    return false;
-  }if (code < 91) {
-    return true;
-  }if (code < 97) {
-    return code === 95;
-  }if (code < 123) {
-    return true;
-  }if (code <= 65535) {
-    return code >= 170 && nonASCIIidentifier.test(String.fromCharCode(code));
-  }if (astral === false) {
-    return false;
-  }return isInAstralSet(code, astralIdentifierStartCodes) || isInAstralSet(code, astralIdentifierCodes);
+  if (code < 48) return code === 36;
+  if (code < 58) return true;
+  if (code < 65) return false;
+  if (code < 91) return true;
+  if (code < 97) return code === 95;
+  if (code < 123) return true;
+  if (code <= 0xffff) return code >= 0xaa && nonASCIIidentifier.test(String.fromCharCode(code));
+  if (astral === false) return false;
+  return isInAstralSet(code, astralIdentifierStartCodes) || isInAstralSet(code, astralIdentifierCodes);
 }
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
+// Acorn is a tiny, fast JavaScript parser written in JavaScript.
+//
+// Acorn was written by Marijn Haverbeke, Ingvar Stepanyan, and
+// various contributors and released under an MIT license.
+//
+// Git repositories for Acorn are available at
+//
+//     http://marijnhaverbeke.nl/git/acorn
+//     https://github.com/marijnh/acorn.git
+//
+// Please use the [github bug tracker][ghbt] to report issues.
+//
+// [ghbt]: https://github.com/marijnh/acorn/issues
+//
+// This file defines the main parser interface. The library also comes
+// with a [error-tolerant parser][dammit] and an
+// [abstract syntax tree walker][walk], defined in other files.
+//
+// [dammit]: acorn_loose.js
+// [walk]: util/walk.js
+
 "use strict";
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-// The `getLineInfo` function is mostly useful when the
-// `locations` option is off (for performance reasons) and you
-// want to find the line/column position for a given character
-// offset. `input` should be the code string that the offset refers
-// into.
-
-exports.getLineInfo = getLineInfo;
 exports.__esModule = true;
+exports.parse = parse;
+exports.parseExpressionAt = parseExpressionAt;
+exports.tokenizer = tokenizer;
 
-var Parser = _dereq_("./state").Parser;
+var _state = _dereq_("./state");
 
-var lineBreakG = _dereq_("./whitespace").lineBreakG;
+var _options = _dereq_("./options");
+
+_dereq_("./parseutil");
+
+_dereq_("./statement");
+
+_dereq_("./lval");
+
+_dereq_("./expression");
+
+_dereq_("./location");
+
+exports.Parser = _state.Parser;
+exports.plugins = _state.plugins;
+exports.defaultOptions = _options.defaultOptions;
+
+var _locutil = _dereq_("./locutil");
+
+exports.Position = _locutil.Position;
+exports.SourceLocation = _locutil.SourceLocation;
+exports.getLineInfo = _locutil.getLineInfo;
+
+var _node = _dereq_("./node");
+
+exports.Node = _node.Node;
+
+var _tokentype = _dereq_("./tokentype");
+
+exports.TokenType = _tokentype.TokenType;
+exports.tokTypes = _tokentype.types;
+
+var _tokencontext = _dereq_("./tokencontext");
+
+exports.TokContext = _tokencontext.TokContext;
+exports.tokContexts = _tokencontext.types;
+
+var _identifier = _dereq_("./identifier");
+
+exports.isIdentifierChar = _identifier.isIdentifierChar;
+exports.isIdentifierStart = _identifier.isIdentifierStart;
+
+var _tokenize = _dereq_("./tokenize");
+
+exports.Token = _tokenize.Token;
+
+var _whitespace = _dereq_("./whitespace");
+
+exports.isNewLine = _whitespace.isNewLine;
+exports.lineBreak = _whitespace.lineBreak;
+exports.lineBreakG = _whitespace.lineBreakG;
+var version = "2.4.0";
+
+exports.version = version;
+// The main exported interface (under `self.acorn` when in the
+// browser) is a `parse` function that takes a code string and
+// returns an abstract syntax tree as specified by [Mozilla parser
+// API][api].
+//
+// [api]: https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
+
+function parse(input, options) {
+  return new _state.Parser(options, input).parse();
+}
+
+// This function tries to parse a single expression at a given
+// offset in a string. Useful for parsing mixed-language formats
+// that embed JavaScript expressions.
+
+function parseExpressionAt(input, pos, options) {
+  var p = new _state.Parser(options, input, pos);
+  p.nextToken();
+  return p.parseExpression();
+}
+
+// Acorn is organized as a tokenizer and a recursive-descent parser.
+// The `tokenize` export provides an interface to the tokenizer.
+
+function tokenizer(input, options) {
+  return new _state.Parser(options, input);
+}
+
+},{"./expression":1,"./identifier":2,"./location":4,"./locutil":5,"./lval":6,"./node":7,"./options":8,"./parseutil":9,"./state":10,"./statement":11,"./tokencontext":12,"./tokenize":13,"./tokentype":14,"./whitespace":16}],4:[function(_dereq_,module,exports){
+"use strict";
+
+var _state = _dereq_("./state");
+
+var _locutil = _dereq_("./locutil");
+
+var pp = _state.Parser.prototype;
+
+// This function is used to raise exceptions on parse errors. It
+// takes an offset integer (into the current `input`) to indicate
+// the location of the error, attaches the position to the end
+// of the error message, and then raises a `SyntaxError` with that
+// message.
+
+pp.raise = function (pos, message) {
+  var loc = _locutil.getLineInfo(this.input, pos);
+  message += " (" + loc.line + ":" + loc.column + ")";
+  var err = new SyntaxError(message);
+  err.pos = pos;err.loc = loc;err.raisedAt = this.pos;
+  throw err;
+};
+
+pp.curPosition = function () {
+  if (this.options.locations) {
+    return new _locutil.Position(this.curLine, this.pos - this.lineStart);
+  }
+};
+
+},{"./locutil":5,"./state":10}],5:[function(_dereq_,module,exports){
+"use strict";
+
+exports.__esModule = true;
+exports.getLineInfo = getLineInfo;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _whitespace = _dereq_("./whitespace");
 
 // These are used when `options.locations` is on, for the
 // `startLoc` and `endLoc` properties.
 
-var Position = exports.Position = (function () {
+var Position = (function () {
   function Position(line, col) {
     _classCallCheck(this, Position);
 
@@ -1657,7 +1011,9 @@ var Position = exports.Position = (function () {
   return Position;
 })();
 
-var SourceLocation = exports.SourceLocation = function SourceLocation(p, start, end) {
+exports.Position = Position;
+
+var SourceLocation = function SourceLocation(p, start, end) {
   _classCallCheck(this, SourceLocation);
 
   this.start = start;
@@ -1665,10 +1021,18 @@ var SourceLocation = exports.SourceLocation = function SourceLocation(p, start, 
   if (p.sourceFile !== null) this.source = p.sourceFile;
 };
 
+exports.SourceLocation = SourceLocation;
+
+// The `getLineInfo` function is mostly useful when the
+// `locations` option is off (for performance reasons) and you
+// want to find the line/column position for a given character
+// offset. `input` should be the code string that the offset refers
+// into.
+
 function getLineInfo(input, offset) {
   for (var line = 1, cur = 0;;) {
-    lineBreakG.lastIndex = cur;
-    var match = lineBreakG.exec(input);
+    _whitespace.lineBreakG.lastIndex = cur;
+    var match = _whitespace.lineBreakG.exec(input);
     if (match && match.index < offset) {
       ++line;
       cur = match.index + match[0].length;
@@ -1678,42 +1042,18 @@ function getLineInfo(input, offset) {
   }
 }
 
-var pp = Parser.prototype;
-
-// This function is used to raise exceptions on parse errors. It
-// takes an offset integer (into the current `input`) to indicate
-// the location of the error, attaches the position to the end
-// of the error message, and then raises a `SyntaxError` with that
-// message.
-
-pp.raise = function (pos, message) {
-  var loc = getLineInfo(this.input, pos);
-  message += " (" + loc.line + ":" + loc.column + ")";
-  var err = new SyntaxError(message);
-  err.pos = pos;err.loc = loc;err.raisedAt = this.pos;
-  throw err;
-};
-
-pp.curPosition = function () {
-  return new Position(this.curLine, this.pos - this.lineStart);
-};
-
-pp.markPosition = function () {
-  return this.options.locations ? [this.start, this.startLoc] : this.start;
-};
-
-},{"./state":9,"./whitespace":15}],5:[function(_dereq_,module,exports){
+},{"./whitespace":16}],6:[function(_dereq_,module,exports){
 "use strict";
 
-var tt = _dereq_("./tokentype").types;
+var _tokentype = _dereq_("./tokentype");
 
-var Parser = _dereq_("./state").Parser;
+var _state = _dereq_("./state");
 
-var reservedWords = _dereq_("./identifier").reservedWords;
+var _identifier = _dereq_("./identifier");
 
-var has = _dereq_("./util").has;
+var _util = _dereq_("./util");
 
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
 
 // Convert existing expression atom to assignable pattern
 // if possible.
@@ -1744,9 +1084,14 @@ pp.toAssignable = function (node, isBinding) {
       case "AssignmentExpression":
         if (node.operator === "=") {
           node.type = "AssignmentPattern";
+          delete node.operator;
         } else {
           this.raise(node.left.end, "Only '=' operator can be used for specifying default value.");
         }
+        break;
+
+      case "ParenthesizedExpression":
+        node.expression = this.toAssignable(node.expression, isBinding);
         break;
 
       case "MemberExpression":
@@ -1794,7 +1139,7 @@ pp.parseSpread = function (refShorthandDefaultPos) {
 pp.parseRest = function () {
   var node = this.startNode();
   this.next();
-  node.argument = this.type === tt.name || this.type === tt.bracketL ? this.parseBindingAtom() : this.unexpected();
+  node.argument = this.type === _tokentype.types.name || this.type === _tokentype.types.bracketL ? this.parseBindingAtom() : this.unexpected();
   return this.finishNode(node, "RestElement");
 };
 
@@ -1803,16 +1148,16 @@ pp.parseRest = function () {
 pp.parseBindingAtom = function () {
   if (this.options.ecmaVersion < 6) return this.parseIdent();
   switch (this.type) {
-    case tt.name:
+    case _tokentype.types.name:
       return this.parseIdent();
 
-    case tt.bracketL:
+    case _tokentype.types.bracketL:
       var node = this.startNode();
       this.next();
-      node.elements = this.parseBindingList(tt.bracketR, true, true);
+      node.elements = this.parseBindingList(_tokentype.types.bracketR, true, true);
       return this.finishNode(node, "ArrayPattern");
 
-    case tt.braceL:
+    case _tokentype.types.braceL:
       return this.parseObj(true);
 
     default:
@@ -1824,30 +1169,36 @@ pp.parseBindingList = function (close, allowEmpty, allowTrailingComma) {
   var elts = [],
       first = true;
   while (!this.eat(close)) {
-    if (first) first = false;else this.expect(tt.comma);
-    if (allowEmpty && this.type === tt.comma) {
+    if (first) first = false;else this.expect(_tokentype.types.comma);
+    if (allowEmpty && this.type === _tokentype.types.comma) {
       elts.push(null);
     } else if (allowTrailingComma && this.afterTrailingComma(close)) {
       break;
-    } else if (this.type === tt.ellipsis) {
-      elts.push(this.parseRest());
+    } else if (this.type === _tokentype.types.ellipsis) {
+      var rest = this.parseRest();
+      this.parseBindingListItem(rest);
+      elts.push(rest);
       this.expect(close);
       break;
     } else {
-      elts.push(this.parseMaybeDefault());
+      var elem = this.parseMaybeDefault(this.start, this.startLoc);
+      this.parseBindingListItem(elem);
+      elts.push(elem);
     }
   }
   return elts;
 };
 
+pp.parseBindingListItem = function (param) {
+  return param;
+};
+
 // Parses assignment pattern around given atom if possible.
 
-pp.parseMaybeDefault = function (startPos, left) {
-  startPos = startPos || this.markPosition();
+pp.parseMaybeDefault = function (startPos, startLoc, left) {
   left = left || this.parseBindingAtom();
-  if (!this.eat(tt.eq)) return left;
-  var node = this.startNodeAt(startPos);
-  node.operator = "=";
+  if (this.options.ecmaVersion < 6 || !this.eat(_tokentype.types.eq)) return left;
+  var node = this.startNodeAt(startPos, startLoc);
   node.left = left;
   node.right = this.parseMaybeAssign();
   return this.finishNode(node, "AssignmentPattern");
@@ -1859,9 +1210,9 @@ pp.parseMaybeDefault = function (startPos, left) {
 pp.checkLVal = function (expr, isBinding, checkClashes) {
   switch (expr.type) {
     case "Identifier":
-      if (this.strict && (reservedWords.strictBind(expr.name) || reservedWords.strict(expr.name))) this.raise(expr.start, (isBinding ? "Binding " : "Assigning to ") + expr.name + " in strict mode");
+      if (this.strict && (_identifier.reservedWords.strictBind(expr.name) || _identifier.reservedWords.strict(expr.name))) this.raise(expr.start, (isBinding ? "Binding " : "Assigning to ") + expr.name + " in strict mode");
       if (checkClashes) {
-        if (has(checkClashes, expr.name)) this.raise(expr.start, "Argument name clash in strict mode");
+        if (_util.has(checkClashes, expr.name)) this.raise(expr.start, "Argument name clash in strict mode");
         checkClashes[expr.name] = true;
       }
       break;
@@ -1890,90 +1241,80 @@ pp.checkLVal = function (expr, isBinding, checkClashes) {
       this.checkLVal(expr.argument, isBinding, checkClashes);
       break;
 
+    case "ParenthesizedExpression":
+      this.checkLVal(expr.expression, isBinding, checkClashes);
+      break;
+
     default:
       this.raise(expr.start, (isBinding ? "Binding" : "Assigning to") + " rvalue");
   }
 };
 
-},{"./identifier":3,"./state":9,"./tokentype":13,"./util":14}],6:[function(_dereq_,module,exports){
+},{"./identifier":2,"./state":10,"./tokentype":14,"./util":15}],7:[function(_dereq_,module,exports){
 "use strict";
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
 exports.__esModule = true;
 
-var Parser = _dereq_("./state").Parser;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var SourceLocation = _dereq_("./location").SourceLocation;
+var _state = _dereq_("./state");
+
+var _locutil = _dereq_("./locutil");
+
+var Node = function Node(parser, pos, loc) {
+  _classCallCheck(this, Node);
+
+  this.type = "";
+  this.start = pos;
+  this.end = 0;
+  if (parser.options.locations) this.loc = new _locutil.SourceLocation(parser, loc);
+  if (parser.options.directSourceFile) this.sourceFile = parser.options.directSourceFile;
+  if (parser.options.ranges) this.range = [pos, 0];
+};
+
+exports.Node = Node;
 
 // Start an AST node, attaching a start offset.
 
-var pp = Parser.prototype;
-
-var Node = exports.Node = function Node() {
-  _classCallCheck(this, Node);
-};
+var pp = _state.Parser.prototype;
 
 pp.startNode = function () {
-  var node = new Node();
-  node.start = this.start;
-  if (this.options.locations) node.loc = new SourceLocation(this, this.startLoc);
-  if (this.options.directSourceFile) node.sourceFile = this.options.directSourceFile;
-  if (this.options.ranges) node.range = [this.start, 0];
-  return node;
+  return new Node(this, this.start, this.startLoc);
 };
 
-pp.startNodeAt = function (pos) {
-  var node = new Node(),
-      start = pos;
-  if (this.options.locations) {
-    node.loc = new SourceLocation(this, start[1]);
-    start = pos[0];
-  }
-  node.start = start;
-  if (this.options.directSourceFile) node.sourceFile = this.options.directSourceFile;
-  if (this.options.ranges) node.range = [start, 0];
-  return node;
+pp.startNodeAt = function (pos, loc) {
+  return new Node(this, pos, loc);
 };
 
 // Finish an AST node, adding `type` and `end` properties.
 
-pp.finishNode = function (node, type) {
+function finishNodeAt(node, type, pos, loc) {
   node.type = type;
-  node.end = this.lastTokEnd;
-  if (this.options.locations) node.loc.end = this.lastTokEndLoc;
-  if (this.options.ranges) node.range[1] = this.lastTokEnd;
+  node.end = pos;
+  if (this.options.locations) node.loc.end = loc;
+  if (this.options.ranges) node.range[1] = pos;
   return node;
+}
+
+pp.finishNode = function (node, type) {
+  return finishNodeAt.call(this, node, type, this.lastTokEnd, this.lastTokEndLoc);
 };
 
 // Finish node at given position
 
-pp.finishNodeAt = function (node, type, pos) {
-  if (this.options.locations) {
-    node.loc.end = pos[1];pos = pos[0];
-  }
-  node.type = type;
-  node.end = pos;
-  if (this.options.ranges) node.range[1] = pos;
-  return node;
+pp.finishNodeAt = function (node, type, pos, loc) {
+  return finishNodeAt.call(this, node, type, pos, loc);
 };
 
-},{"./location":4,"./state":9}],7:[function(_dereq_,module,exports){
-
-
-// Interpret and default an options object
-
+},{"./locutil":5,"./state":10}],8:[function(_dereq_,module,exports){
 "use strict";
 
-exports.getOptions = getOptions;
 exports.__esModule = true;
+exports.getOptions = getOptions;
 
 var _util = _dereq_("./util");
 
-var has = _util.has;
-var isArray = _util.isArray;
-
-var SourceLocation = _dereq_("./location").SourceLocation;
+var _locutil = _dereq_("./locutil");
 
 // A second optional argument can be given to further configure
 // the parser process. These options are recognized:
@@ -2056,13 +1397,16 @@ var defaultOptions = {
   // (non-standard) ParenthesizedExpression nodes
   preserveParens: false,
   plugins: {}
-};exports.defaultOptions = defaultOptions;
+};
+
+exports.defaultOptions = defaultOptions;
+// Interpret and default an options object
 
 function getOptions(opts) {
   var options = {};
   for (var opt in defaultOptions) {
-    options[opt] = opts && has(opts, opt) ? opts[opt] : defaultOptions[opt];
-  }if (isArray(options.onToken)) {
+    options[opt] = opts && _util.has(opts, opt) ? opts[opt] : defaultOptions[opt];
+  }if (_util.isArray(options.onToken)) {
     (function () {
       var tokens = options.onToken;
       options.onToken = function (token) {
@@ -2070,7 +1414,7 @@ function getOptions(opts) {
       };
     })();
   }
-  if (isArray(options.onComment)) options.onComment = pushComment(options, options.onComment);
+  if (_util.isArray(options.onComment)) options.onComment = pushComment(options, options.onComment);
 
   return options;
 }
@@ -2083,29 +1427,29 @@ function pushComment(options, array) {
       start: start,
       end: end
     };
-    if (options.locations) comment.loc = new SourceLocation(this, startLoc, endLoc);
+    if (options.locations) comment.loc = new _locutil.SourceLocation(this, startLoc, endLoc);
     if (options.ranges) comment.range = [start, end];
     array.push(comment);
   };
 }
 
-},{"./location":4,"./util":14}],8:[function(_dereq_,module,exports){
+},{"./locutil":5,"./util":15}],9:[function(_dereq_,module,exports){
 "use strict";
 
-var tt = _dereq_("./tokentype").types;
+var _tokentype = _dereq_("./tokentype");
 
-var Parser = _dereq_("./state").Parser;
+var _state = _dereq_("./state");
 
-var lineBreak = _dereq_("./whitespace").lineBreak;
+var _whitespace = _dereq_("./whitespace");
 
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
 
 // ## Parser utilities
 
 // Test whether a statement node is the string literal `"use strict"`.
 
 pp.isUseStrict = function (stmt) {
-  return this.options.ecmaVersion >= 5 && stmt.type === "ExpressionStatement" && stmt.expression.type === "Literal" && stmt.expression.value === "use strict";
+  return this.options.ecmaVersion >= 5 && stmt.type === "ExpressionStatement" && stmt.expression.type === "Literal" && stmt.expression.raw.slice(1, -1) === "use strict";
 };
 
 // Predicate that tests whether the next token is of the given
@@ -2123,13 +1467,13 @@ pp.eat = function (type) {
 // Tests whether parsed token is a contextual keyword.
 
 pp.isContextual = function (name) {
-  return this.type === tt.name && this.value === name;
+  return this.type === _tokentype.types.name && this.value === name;
 };
 
 // Consumes contextual keyword if possible.
 
 pp.eatContextual = function (name) {
-  return this.value === name && this.eat(tt.name);
+  return this.value === name && this.eat(_tokentype.types.name);
 };
 
 // Asserts that following token is given contextual keyword.
@@ -2141,7 +1485,7 @@ pp.expectContextual = function (name) {
 // Test whether a semicolon can be inserted at the current position.
 
 pp.canInsertSemicolon = function () {
-  return this.type === tt.eof || this.type === tt.braceR || lineBreak.test(this.input.slice(this.lastTokEnd, this.start));
+  return this.type === _tokentype.types.eof || this.type === _tokentype.types.braceR || _whitespace.lineBreak.test(this.input.slice(this.lastTokEnd, this.start));
 };
 
 pp.insertSemicolon = function () {
@@ -2155,7 +1499,7 @@ pp.insertSemicolon = function () {
 // pretend that there is a semicolon at this position.
 
 pp.semicolon = function () {
-  if (!this.eat(tt.semi) && !this.insertSemicolon()) this.unexpected();
+  if (!this.eat(_tokentype.types.semi) && !this.insertSemicolon()) this.unexpected();
 };
 
 pp.afterTrailingComma = function (tokType) {
@@ -2179,102 +1523,125 @@ pp.unexpected = function (pos) {
   this.raise(pos != null ? pos : this.start, "Unexpected token");
 };
 
-},{"./state":9,"./tokentype":13,"./whitespace":15}],9:[function(_dereq_,module,exports){
+},{"./state":10,"./tokentype":14,"./whitespace":16}],10:[function(_dereq_,module,exports){
 "use strict";
 
-exports.Parser = Parser;
 exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _identifier = _dereq_("./identifier");
 
-var reservedWords = _identifier.reservedWords;
-var keywords = _identifier.keywords;
-
 var _tokentype = _dereq_("./tokentype");
 
-var tt = _tokentype.types;
-var lineBreak = _tokentype.lineBreak;
+var _whitespace = _dereq_("./whitespace");
 
-function Parser(options, input, startPos) {
-  this.options = options;
-  this.loadPlugins(this.options.plugins);
-  this.sourceFile = this.options.sourceFile || null;
-  this.isKeyword = keywords[this.options.ecmaVersion >= 6 ? 6 : 5];
-  this.isReservedWord = reservedWords[this.options.ecmaVersion];
-  this.input = input;
-
-  // Set up token state
-
-  // The current position of the tokenizer in the input.
-  if (startPos) {
-    this.pos = startPos;
-    this.lineStart = Math.max(0, this.input.lastIndexOf("\n", startPos));
-    this.curLine = this.input.slice(0, this.lineStart).split(lineBreak).length;
-  } else {
-    this.pos = this.lineStart = 0;
-    this.curLine = 1;
-  }
-
-  // Properties of the current token:
-  // Its type
-  this.type = tt.eof;
-  // For tokens that include more information than their type, the value
-  this.value = null;
-  // Its start and end offset
-  this.start = this.end = this.pos;
-  // And, if locations are used, the {line, column} object
-  // corresponding to those offsets
-  this.startLoc = this.endLoc = null;
-
-  // Position information for the previous token
-  this.lastTokEndLoc = this.lastTokStartLoc = null;
-  this.lastTokStart = this.lastTokEnd = this.pos;
-
-  // The context stack is used to superficially track syntactic
-  // context to predict whether a regular expression is allowed in a
-  // given position.
-  this.context = this.initialContext();
-  this.exprAllowed = true;
-
-  // Figure out if it's a module code.
-  this.strict = this.inModule = this.options.sourceType === "module";
-
-  // Flags to track whether we are in a function, a generator.
-  this.inFunction = this.inGenerator = false;
-  // Labels in scope.
-  this.labels = [];
-
-  // If enabled, skip leading hashbang line.
-  if (this.pos === 0 && this.options.allowHashBang && this.input.slice(0, 2) === "#!") this.skipLineComment(2);
-}
-
-Parser.prototype.extend = function (name, f) {
-  this[name] = f(this[name]);
-};
+var _options = _dereq_("./options");
 
 // Registered plugins
-
 var plugins = {};
 
 exports.plugins = plugins;
-Parser.prototype.loadPlugins = function (plugins) {
-  for (var _name in plugins) {
-    var plugin = exports.plugins[_name];
-    if (!plugin) throw new Error("Plugin '" + _name + "' not found");
-    plugin(this, plugins[_name]);
-  }
-};
 
-},{"./identifier":3,"./tokentype":13}],10:[function(_dereq_,module,exports){
+var Parser = (function () {
+  function Parser(options, input, startPos) {
+    _classCallCheck(this, Parser);
+
+    this.options = _options.getOptions(options);
+    this.sourceFile = this.options.sourceFile;
+    this.isKeyword = _identifier.keywords[this.options.ecmaVersion >= 6 ? 6 : 5];
+    this.isReservedWord = _identifier.reservedWords[this.options.ecmaVersion];
+    this.input = String(input);
+
+    // Used to signal to callers of `readWord1` whether the word
+    // contained any escape sequences. This is needed because words with
+    // escape sequences must not be interpreted as keywords.
+    this.containsEsc = false;
+
+    // Load plugins
+    this.loadPlugins(this.options.plugins);
+
+    // Set up token state
+
+    // The current position of the tokenizer in the input.
+    if (startPos) {
+      this.pos = startPos;
+      this.lineStart = Math.max(0, this.input.lastIndexOf("\n", startPos));
+      this.curLine = this.input.slice(0, this.lineStart).split(_whitespace.lineBreak).length;
+    } else {
+      this.pos = this.lineStart = 0;
+      this.curLine = 1;
+    }
+
+    // Properties of the current token:
+    // Its type
+    this.type = _tokentype.types.eof;
+    // For tokens that include more information than their type, the value
+    this.value = null;
+    // Its start and end offset
+    this.start = this.end = this.pos;
+    // And, if locations are used, the {line, column} object
+    // corresponding to those offsets
+    this.startLoc = this.endLoc = this.curPosition();
+
+    // Position information for the previous token
+    this.lastTokEndLoc = this.lastTokStartLoc = null;
+    this.lastTokStart = this.lastTokEnd = this.pos;
+
+    // The context stack is used to superficially track syntactic
+    // context to predict whether a regular expression is allowed in a
+    // given position.
+    this.context = this.initialContext();
+    this.exprAllowed = true;
+
+    // Figure out if it's a module code.
+    this.strict = this.inModule = this.options.sourceType === "module";
+
+    // Used to signify the start of a potential arrow function
+    this.potentialArrowAt = -1;
+
+    // Flags to track whether we are in a function, a generator.
+    this.inFunction = this.inGenerator = false;
+    // Labels in scope.
+    this.labels = [];
+
+    // If enabled, skip leading hashbang line.
+    if (this.pos === 0 && this.options.allowHashBang && this.input.slice(0, 2) === "#!") this.skipLineComment(2);
+  }
+
+  Parser.prototype.extend = function extend(name, f) {
+    this[name] = f(this[name]);
+  };
+
+  Parser.prototype.loadPlugins = function loadPlugins(pluginConfigs) {
+    for (var _name in pluginConfigs) {
+      var plugin = plugins[_name];
+      if (!plugin) throw new Error("Plugin '" + _name + "' not found");
+      plugin(this, pluginConfigs[_name]);
+    }
+  };
+
+  Parser.prototype.parse = function parse() {
+    var node = this.options.program || this.startNode();
+    this.nextToken();
+    return this.parseTopLevel(node);
+  };
+
+  return Parser;
+})();
+
+exports.Parser = Parser;
+
+},{"./identifier":2,"./options":8,"./tokentype":14,"./whitespace":16}],11:[function(_dereq_,module,exports){
 "use strict";
 
-var tt = _dereq_("./tokentype").types;
+var _tokentype = _dereq_("./tokentype");
 
-var Parser = _dereq_("./state").Parser;
+var _state = _dereq_("./state");
 
-var lineBreak = _dereq_("./whitespace").lineBreak;
+var _whitespace = _dereq_("./whitespace");
 
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
 
 // ### Statement parsing
 
@@ -2286,11 +1653,13 @@ var pp = Parser.prototype;
 pp.parseTopLevel = function (node) {
   var first = true;
   if (!node.body) node.body = [];
-  while (this.type !== tt.eof) {
+  while (this.type !== _tokentype.types.eof) {
     var stmt = this.parseStatement(true, true);
     node.body.push(stmt);
-    if (first && this.isUseStrict(stmt)) this.setStrict(true);
-    first = false;
+    if (first) {
+      if (this.isUseStrict(stmt)) this.setStrict(true);
+      first = false;
+    }
   }
   this.next();
   if (this.options.ecmaVersion >= 6) {
@@ -2318,49 +1687,49 @@ pp.parseStatement = function (declaration, topLevel) {
   // complexity.
 
   switch (starttype) {
-    case tt._break:case tt._continue:
+    case _tokentype.types._break:case _tokentype.types._continue:
       return this.parseBreakContinueStatement(node, starttype.keyword);
-    case tt._debugger:
+    case _tokentype.types._debugger:
       return this.parseDebuggerStatement(node);
-    case tt._do:
+    case _tokentype.types._do:
       return this.parseDoStatement(node);
-    case tt._for:
+    case _tokentype.types._for:
       return this.parseForStatement(node);
-    case tt._function:
+    case _tokentype.types._function:
       if (!declaration && this.options.ecmaVersion >= 6) this.unexpected();
       return this.parseFunctionStatement(node);
-    case tt._class:
+    case _tokentype.types._class:
       if (!declaration) this.unexpected();
       return this.parseClass(node, true);
-    case tt._if:
+    case _tokentype.types._if:
       return this.parseIfStatement(node);
-    case tt._return:
+    case _tokentype.types._return:
       return this.parseReturnStatement(node);
-    case tt._switch:
+    case _tokentype.types._switch:
       return this.parseSwitchStatement(node);
-    case tt._throw:
+    case _tokentype.types._throw:
       return this.parseThrowStatement(node);
-    case tt._try:
+    case _tokentype.types._try:
       return this.parseTryStatement(node);
-    case tt._let:case tt._const:
+    case _tokentype.types._let:case _tokentype.types._const:
       if (!declaration) this.unexpected(); // NOTE: falls through to _var
-    case tt._var:
+    case _tokentype.types._var:
       return this.parseVarStatement(node, starttype);
-    case tt._while:
+    case _tokentype.types._while:
       return this.parseWhileStatement(node);
-    case tt._with:
+    case _tokentype.types._with:
       return this.parseWithStatement(node);
-    case tt.braceL:
+    case _tokentype.types.braceL:
       return this.parseBlock();
-    case tt.semi:
+    case _tokentype.types.semi:
       return this.parseEmptyStatement(node);
-    case tt._export:
-    case tt._import:
+    case _tokentype.types._export:
+    case _tokentype.types._import:
       if (!this.options.allowImportExportEverywhere) {
         if (!topLevel) this.raise(this.start, "'import' and 'export' may only appear at the top level");
         if (!this.inModule) this.raise(this.start, "'import' and 'export' may appear only with 'sourceType: module'");
       }
-      return starttype === tt._import ? this.parseImport(node) : this.parseExport(node);
+      return starttype === _tokentype.types._import ? this.parseImport(node) : this.parseExport(node);
 
     // If the statement does not start with a statement keyword or a
     // brace, it's an ExpressionStatement or LabeledStatement. We
@@ -2370,14 +1739,14 @@ pp.parseStatement = function (declaration, topLevel) {
     default:
       var maybeName = this.value,
           expr = this.parseExpression();
-      if (starttype === tt.name && expr.type === "Identifier" && this.eat(tt.colon)) return this.parseLabeledStatement(node, maybeName, expr);else return this.parseExpressionStatement(node, expr);
+      if (starttype === _tokentype.types.name && expr.type === "Identifier" && this.eat(_tokentype.types.colon)) return this.parseLabeledStatement(node, maybeName, expr);else return this.parseExpressionStatement(node, expr);
   }
 };
 
 pp.parseBreakContinueStatement = function (node, keyword) {
   var isBreak = keyword == "break";
   this.next();
-  if (this.eat(tt.semi) || this.insertSemicolon()) node.label = null;else if (this.type !== tt.name) this.unexpected();else {
+  if (this.eat(_tokentype.types.semi) || this.insertSemicolon()) node.label = null;else if (this.type !== _tokentype.types.name) this.unexpected();else {
     node.label = this.parseIdent();
     this.semicolon();
   }
@@ -2406,9 +1775,9 @@ pp.parseDoStatement = function (node) {
   this.labels.push(loopLabel);
   node.body = this.parseStatement(false);
   this.labels.pop();
-  this.expect(tt._while);
+  this.expect(_tokentype.types._while);
   node.test = this.parseParenExpression();
-  if (this.options.ecmaVersion >= 6) this.eat(tt.semi);else this.semicolon();
+  if (this.options.ecmaVersion >= 6) this.eat(_tokentype.types.semi);else this.semicolon();
   return this.finishNode(node, "DoWhileStatement");
 };
 
@@ -2423,20 +1792,20 @@ pp.parseDoStatement = function (node) {
 pp.parseForStatement = function (node) {
   this.next();
   this.labels.push(loopLabel);
-  this.expect(tt.parenL);
-  if (this.type === tt.semi) return this.parseFor(node, null);
-  if (this.type === tt._var || this.type === tt._let || this.type === tt._const) {
+  this.expect(_tokentype.types.parenL);
+  if (this.type === _tokentype.types.semi) return this.parseFor(node, null);
+  if (this.type === _tokentype.types._var || this.type === _tokentype.types._let || this.type === _tokentype.types._const) {
     var _init = this.startNode(),
         varKind = this.type;
     this.next();
     this.parseVar(_init, true, varKind);
     this.finishNode(_init, "VariableDeclaration");
-    if ((this.type === tt._in || this.options.ecmaVersion >= 6 && this.isContextual("of")) && _init.declarations.length === 1 && !(varKind !== tt._var && _init.declarations[0].init)) return this.parseForIn(node, _init);
+    if ((this.type === _tokentype.types._in || this.options.ecmaVersion >= 6 && this.isContextual("of")) && _init.declarations.length === 1 && !(varKind !== _tokentype.types._var && _init.declarations[0].init)) return this.parseForIn(node, _init);
     return this.parseFor(node, _init);
   }
   var refShorthandDefaultPos = { start: 0 };
   var init = this.parseExpression(true, refShorthandDefaultPos);
-  if (this.type === tt._in || this.options.ecmaVersion >= 6 && this.isContextual("of")) {
+  if (this.type === _tokentype.types._in || this.options.ecmaVersion >= 6 && this.isContextual("of")) {
     this.toAssignable(init);
     this.checkLVal(init);
     return this.parseForIn(node, init);
@@ -2455,7 +1824,7 @@ pp.parseIfStatement = function (node) {
   this.next();
   node.test = this.parseParenExpression();
   node.consequent = this.parseStatement(false);
-  node.alternate = this.eat(tt._else) ? this.parseStatement(false) : null;
+  node.alternate = this.eat(_tokentype.types._else) ? this.parseStatement(false) : null;
   return this.finishNode(node, "IfStatement");
 };
 
@@ -2467,7 +1836,7 @@ pp.parseReturnStatement = function (node) {
   // optional arguments, we eagerly look for a semicolon or the
   // possibility to insert one.
 
-  if (this.eat(tt.semi) || this.insertSemicolon()) node.argument = null;else {
+  if (this.eat(_tokentype.types.semi) || this.insertSemicolon()) node.argument = null;else {
     node.argument = this.parseExpression();this.semicolon();
   }
   return this.finishNode(node, "ReturnStatement");
@@ -2477,16 +1846,16 @@ pp.parseSwitchStatement = function (node) {
   this.next();
   node.discriminant = this.parseParenExpression();
   node.cases = [];
-  this.expect(tt.braceL);
+  this.expect(_tokentype.types.braceL);
   this.labels.push(switchLabel);
 
   // Statements under must be grouped (by label) in SwitchCase
   // nodes. `cur` is used to keep the node that we are currently
   // adding statements to.
 
-  for (var cur, sawDefault; this.type != tt.braceR;) {
-    if (this.type === tt._case || this.type === tt._default) {
-      var isCase = this.type === tt._case;
+  for (var cur, sawDefault = false; this.type != _tokentype.types.braceR;) {
+    if (this.type === _tokentype.types._case || this.type === _tokentype.types._default) {
+      var isCase = this.type === _tokentype.types._case;
       if (cur) this.finishNode(cur, "SwitchCase");
       node.cases.push(cur = this.startNode());
       cur.consequent = [];
@@ -2498,7 +1867,7 @@ pp.parseSwitchStatement = function (node) {
         sawDefault = true;
         cur.test = null;
       }
-      this.expect(tt.colon);
+      this.expect(_tokentype.types.colon);
     } else {
       if (!cur) this.unexpected();
       cur.consequent.push(this.parseStatement(true));
@@ -2512,7 +1881,7 @@ pp.parseSwitchStatement = function (node) {
 
 pp.parseThrowStatement = function (node) {
   this.next();
-  if (lineBreak.test(this.input.slice(this.lastTokEnd, this.start))) this.raise(this.lastTokEnd, "Illegal newline after throw");
+  if (_whitespace.lineBreak.test(this.input.slice(this.lastTokEnd, this.start))) this.raise(this.lastTokEnd, "Illegal newline after throw");
   node.argument = this.parseExpression();
   this.semicolon();
   return this.finishNode(node, "ThrowStatement");
@@ -2526,19 +1895,19 @@ pp.parseTryStatement = function (node) {
   this.next();
   node.block = this.parseBlock();
   node.handler = null;
-  if (this.type === tt._catch) {
+  if (this.type === _tokentype.types._catch) {
     var clause = this.startNode();
     this.next();
-    this.expect(tt.parenL);
+    this.expect(_tokentype.types.parenL);
     clause.param = this.parseBindingAtom();
     this.checkLVal(clause.param, true);
-    this.expect(tt.parenR);
+    this.expect(_tokentype.types.parenR);
     clause.guard = null;
     clause.body = this.parseBlock();
     node.handler = this.finishNode(clause, "CatchClause");
   }
   node.guardedHandlers = empty;
-  node.finalizer = this.eat(tt._finally) ? this.parseBlock() : null;
+  node.finalizer = this.eat(_tokentype.types._finally) ? this.parseBlock() : null;
   if (!node.handler && !node.finalizer) this.raise(node.start, "Missing catch or finally clause");
   return this.finishNode(node, "TryStatement");
 };
@@ -2575,8 +1944,15 @@ pp.parseEmptyStatement = function (node) {
 pp.parseLabeledStatement = function (node, maybeName, expr) {
   for (var i = 0; i < this.labels.length; ++i) {
     if (this.labels[i].name === maybeName) this.raise(expr.start, "Label '" + maybeName + "' is already declared");
-  }var kind = this.type.isLoop ? "loop" : this.type === tt._switch ? "switch" : null;
-  this.labels.push({ name: maybeName, kind: kind });
+  }var kind = this.type.isLoop ? "loop" : this.type === _tokentype.types._switch ? "switch" : null;
+  for (var i = this.labels.length - 1; i >= 0; i--) {
+    var label = this.labels[i];
+    if (label.statementStart == node.start) {
+      label.statementStart = this.start;
+      label.kind = kind;
+    } else break;
+  }
+  this.labels.push({ name: maybeName, kind: kind, statementStart: this.start });
   node.body = this.parseStatement(true);
   this.labels.pop();
   node.label = expr;
@@ -2598,8 +1974,8 @@ pp.parseBlock = function (allowStrict) {
       first = true,
       oldStrict = undefined;
   node.body = [];
-  this.expect(tt.braceL);
-  while (!this.eat(tt.braceR)) {
+  this.expect(_tokentype.types.braceL);
+  while (!this.eat(_tokentype.types.braceR)) {
     var stmt = this.parseStatement(true);
     node.body.push(stmt);
     if (first && allowStrict && this.isUseStrict(stmt)) {
@@ -2618,11 +1994,11 @@ pp.parseBlock = function (allowStrict) {
 
 pp.parseFor = function (node, init) {
   node.init = init;
-  this.expect(tt.semi);
-  node.test = this.type === tt.semi ? null : this.parseExpression();
-  this.expect(tt.semi);
-  node.update = this.type === tt.parenR ? null : this.parseExpression();
-  this.expect(tt.parenR);
+  this.expect(_tokentype.types.semi);
+  node.test = this.type === _tokentype.types.semi ? null : this.parseExpression();
+  this.expect(_tokentype.types.semi);
+  node.update = this.type === _tokentype.types.parenR ? null : this.parseExpression();
+  this.expect(_tokentype.types.parenR);
   node.body = this.parseStatement(false);
   this.labels.pop();
   return this.finishNode(node, "ForStatement");
@@ -2632,11 +2008,11 @@ pp.parseFor = function (node, init) {
 // same from parser's perspective.
 
 pp.parseForIn = function (node, init) {
-  var type = this.type === tt._in ? "ForInStatement" : "ForOfStatement";
+  var type = this.type === _tokentype.types._in ? "ForInStatement" : "ForOfStatement";
   this.next();
   node.left = init;
   node.right = this.parseExpression();
-  this.expect(tt.parenR);
+  this.expect(_tokentype.types.parenR);
   node.body = this.parseStatement(false);
   this.labels.pop();
   return this.finishNode(node, type);
@@ -2649,21 +2025,25 @@ pp.parseVar = function (node, isFor, kind) {
   node.kind = kind.keyword;
   for (;;) {
     var decl = this.startNode();
-    decl.id = this.parseBindingAtom();
-    this.checkLVal(decl.id, true);
-    if (this.eat(tt.eq)) {
+    this.parseVarId(decl);
+    if (this.eat(_tokentype.types.eq)) {
       decl.init = this.parseMaybeAssign(isFor);
-    } else if (kind === tt._const && !(this.type === tt._in || this.options.ecmaVersion >= 6 && this.isContextual("of"))) {
+    } else if (kind === _tokentype.types._const && !(this.type === _tokentype.types._in || this.options.ecmaVersion >= 6 && this.isContextual("of"))) {
       this.unexpected();
-    } else if (decl.id.type != "Identifier" && !(isFor && (this.type === tt._in || this.isContextual("of")))) {
+    } else if (decl.id.type != "Identifier" && !(isFor && (this.type === _tokentype.types._in || this.isContextual("of")))) {
       this.raise(this.lastTokEnd, "Complex binding patterns require an initialization value");
     } else {
       decl.init = null;
     }
     node.declarations.push(this.finishNode(decl, "VariableDeclarator"));
-    if (!this.eat(tt.comma)) break;
+    if (!this.eat(_tokentype.types.comma)) break;
   }
   return node;
+};
+
+pp.parseVarId = function (decl) {
+  decl.id = this.parseBindingAtom();
+  this.checkLVal(decl.id, true);
 };
 
 // Parse a function declaration or literal (depending on the
@@ -2671,12 +2051,16 @@ pp.parseVar = function (node, isFor, kind) {
 
 pp.parseFunction = function (node, isStatement, allowExpressionBody) {
   this.initFunction(node);
-  if (this.options.ecmaVersion >= 6) node.generator = this.eat(tt.star);
-  if (isStatement || this.type === tt.name) node.id = this.parseIdent();
-  this.expect(tt.parenL);
-  node.params = this.parseBindingList(tt.parenR, false, false);
+  if (this.options.ecmaVersion >= 6) node.generator = this.eat(_tokentype.types.star);
+  if (isStatement || this.type === _tokentype.types.name) node.id = this.parseIdent();
+  this.parseFunctionParams(node);
   this.parseFunctionBody(node, allowExpressionBody);
   return this.finishNode(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
+};
+
+pp.parseFunctionParams = function (node) {
+  this.expect(_tokentype.types.parenL);
+  node.params = this.parseBindingList(_tokentype.types.parenR, false, false);
 };
 
 // Parse a class declaration or literal (depending on the
@@ -2684,42 +2068,66 @@ pp.parseFunction = function (node, isStatement, allowExpressionBody) {
 
 pp.parseClass = function (node, isStatement) {
   this.next();
-  node.id = this.type === tt.name ? this.parseIdent() : isStatement ? this.unexpected() : null;
-  node.superClass = this.eat(tt._extends) ? this.parseExprSubscripts() : null;
+  this.parseClassId(node, isStatement);
+  this.parseClassSuper(node);
   var classBody = this.startNode();
+  var hadConstructor = false;
   classBody.body = [];
-  this.expect(tt.braceL);
-  while (!this.eat(tt.braceR)) {
-    if (this.eat(tt.semi)) continue;
+  this.expect(_tokentype.types.braceL);
+  while (!this.eat(_tokentype.types.braceR)) {
+    if (this.eat(_tokentype.types.semi)) continue;
     var method = this.startNode();
-    var isGenerator = this.eat(tt.star);
+    var isGenerator = this.eat(_tokentype.types.star);
+    var isMaybeStatic = this.type === _tokentype.types.name && this.value === "static";
     this.parsePropertyName(method);
-    if (this.type !== tt.parenL && !method.computed && method.key.type === "Identifier" && method.key.name === "static") {
+    method["static"] = isMaybeStatic && this.type !== _tokentype.types.parenL;
+    if (method["static"]) {
       if (isGenerator) this.unexpected();
-      method["static"] = true;
-      isGenerator = this.eat(tt.star);
+      isGenerator = this.eat(_tokentype.types.star);
       this.parsePropertyName(method);
-    } else {
-      method["static"] = false;
     }
     method.kind = "method";
-    if (!method.computed && !isGenerator) {
-      if (method.key.type === "Identifier") {
-        if (this.type !== tt.parenL && (method.key.name === "get" || method.key.name === "set")) {
-          method.kind = method.key.name;
-          this.parsePropertyName(method);
-        } else if (!method["static"] && method.key.name === "constructor") {
-          method.kind = "constructor";
-        }
-      } else if (!method["static"] && method.key.type === "Literal" && method.key.value === "constructor") {
+    var isGetSet = false;
+    if (!method.computed) {
+      var key = method.key;
+
+      if (!isGenerator && key.type === "Identifier" && this.type !== _tokentype.types.parenL && (key.name === "get" || key.name === "set")) {
+        isGetSet = true;
+        method.kind = key.name;
+        key = this.parsePropertyName(method);
+      }
+      if (!method["static"] && (key.type === "Identifier" && key.name === "constructor" || key.type === "Literal" && key.value === "constructor")) {
+        if (hadConstructor) this.raise(key.start, "Duplicate constructor in the same class");
+        if (isGetSet) this.raise(key.start, "Constructor can't have get/set modifier");
+        if (isGenerator) this.raise(key.start, "Constructor can't be a generator");
         method.kind = "constructor";
+        hadConstructor = true;
       }
     }
-    method.value = this.parseMethod(isGenerator);
-    classBody.body.push(this.finishNode(method, "MethodDefinition"));
+    this.parseClassMethod(classBody, method, isGenerator);
+    if (isGetSet) {
+      var paramCount = method.kind === "get" ? 0 : 1;
+      if (method.value.params.length !== paramCount) {
+        var start = method.value.start;
+        if (method.kind === "get") this.raise(start, "getter should have no params");else this.raise(start, "setter should have exactly one param");
+      }
+    }
   }
   node.body = this.finishNode(classBody, "ClassBody");
   return this.finishNode(node, isStatement ? "ClassDeclaration" : "ClassExpression");
+};
+
+pp.parseClassMethod = function (classBody, method, isGenerator) {
+  method.value = this.parseMethod(isGenerator);
+  classBody.body.push(this.finishNode(method, "MethodDefinition"));
+};
+
+pp.parseClassId = function (node, isStatement) {
+  node.id = this.type === _tokentype.types.name ? this.parseIdent() : isStatement ? this.unexpected() : null;
+};
+
+pp.parseClassSuper = function (node) {
+  node.superClass = this.eat(_tokentype.types._extends) ? this.parseExprSubscripts() : null;
 };
 
 // Parses module export declaration.
@@ -2727,13 +2135,13 @@ pp.parseClass = function (node, isStatement) {
 pp.parseExport = function (node) {
   this.next();
   // export * from '...'
-  if (this.eat(tt.star)) {
+  if (this.eat(_tokentype.types.star)) {
     this.expectContextual("from");
-    node.source = this.type === tt.string ? this.parseExprAtom() : this.unexpected();
+    node.source = this.type === _tokentype.types.string ? this.parseExprAtom() : this.unexpected();
     this.semicolon();
     return this.finishNode(node, "ExportAllDeclaration");
   }
-  if (this.eat(tt._default)) {
+  if (this.eat(_tokentype.types._default)) {
     // export default ...
     var expr = this.parseMaybeAssign();
     var needsSemi = true;
@@ -2748,7 +2156,7 @@ pp.parseExport = function (node) {
     return this.finishNode(node, "ExportDefaultDeclaration");
   }
   // export var|const|let|function|class ...
-  if (this.type.keyword) {
+  if (this.shouldParseExportStatement()) {
     node.declaration = this.parseStatement(true);
     node.specifiers = [];
     node.source = null;
@@ -2757,7 +2165,7 @@ pp.parseExport = function (node) {
     node.declaration = null;
     node.specifiers = this.parseExportSpecifiers();
     if (this.eatContextual("from")) {
-      node.source = this.type === tt.string ? this.parseExprAtom() : this.unexpected();
+      node.source = this.type === _tokentype.types.string ? this.parseExprAtom() : this.unexpected();
     } else {
       node.source = null;
     }
@@ -2766,21 +2174,25 @@ pp.parseExport = function (node) {
   return this.finishNode(node, "ExportNamedDeclaration");
 };
 
+pp.shouldParseExportStatement = function () {
+  return this.type.keyword;
+};
+
 // Parses a comma-separated list of module exports.
 
 pp.parseExportSpecifiers = function () {
   var nodes = [],
       first = true;
   // export { x, y as z } [from '...']
-  this.expect(tt.braceL);
-  while (!this.eat(tt.braceR)) {
+  this.expect(_tokentype.types.braceL);
+  while (!this.eat(_tokentype.types.braceR)) {
     if (!first) {
-      this.expect(tt.comma);
-      if (this.afterTrailingComma(tt.braceR)) break;
+      this.expect(_tokentype.types.comma);
+      if (this.afterTrailingComma(_tokentype.types.braceR)) break;
     } else first = false;
 
     var node = this.startNode();
-    node.local = this.parseIdent(this.type === tt._default);
+    node.local = this.parseIdent(this.type === _tokentype.types._default);
     node.exported = this.eatContextual("as") ? this.parseIdent(true) : node.local;
     nodes.push(this.finishNode(node, "ExportSpecifier"));
   }
@@ -2792,14 +2204,13 @@ pp.parseExportSpecifiers = function () {
 pp.parseImport = function (node) {
   this.next();
   // import '...'
-  if (this.type === tt.string) {
+  if (this.type === _tokentype.types.string) {
     node.specifiers = empty;
     node.source = this.parseExprAtom();
-    node.kind = "";
   } else {
     node.specifiers = this.parseImportSpecifiers();
     this.expectContextual("from");
-    node.source = this.type === tt.string ? this.parseExprAtom() : this.unexpected();
+    node.source = this.type === _tokentype.types.string ? this.parseExprAtom() : this.unexpected();
   }
   this.semicolon();
   return this.finishNode(node, "ImportDeclaration");
@@ -2810,15 +2221,15 @@ pp.parseImport = function (node) {
 pp.parseImportSpecifiers = function () {
   var nodes = [],
       first = true;
-  if (this.type === tt.name) {
+  if (this.type === _tokentype.types.name) {
     // import defaultObj, { x, y as z } from '...'
     var node = this.startNode();
     node.local = this.parseIdent();
     this.checkLVal(node.local, true);
     nodes.push(this.finishNode(node, "ImportDefaultSpecifier"));
-    if (!this.eat(tt.comma)) return nodes;
+    if (!this.eat(_tokentype.types.comma)) return nodes;
   }
-  if (this.type === tt.star) {
+  if (this.type === _tokentype.types.star) {
     var node = this.startNode();
     this.next();
     this.expectContextual("as");
@@ -2827,11 +2238,11 @@ pp.parseImportSpecifiers = function () {
     nodes.push(this.finishNode(node, "ImportNamespaceSpecifier"));
     return nodes;
   }
-  this.expect(tt.braceL);
-  while (!this.eat(tt.braceR)) {
+  this.expect(_tokentype.types.braceL);
+  while (!this.eat(_tokentype.types.braceR)) {
     if (!first) {
-      this.expect(tt.comma);
-      if (this.afterTrailingComma(tt.braceR)) break;
+      this.expect(_tokentype.types.comma);
+      if (this.afterTrailingComma(_tokentype.types.braceR)) break;
     } else first = false;
 
     var node = this.startNode();
@@ -2843,31 +2254,33 @@ pp.parseImportSpecifiers = function () {
   return nodes;
 };
 
-},{"./state":9,"./tokentype":13,"./whitespace":15}],11:[function(_dereq_,module,exports){
-"use strict";
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-exports.__esModule = true;
+},{"./state":10,"./tokentype":14,"./whitespace":16}],12:[function(_dereq_,module,exports){
 // The algorithm used to determine whether a regexp can appear at a
 // given point in the program is loosely based on sweet.js' approach.
 // See https://github.com/mozilla/sweet.js/wiki/design
 
-var Parser = _dereq_("./state").Parser;
+"use strict";
 
-var tt = _dereq_("./tokentype").types;
+exports.__esModule = true;
 
-var lineBreak = _dereq_("./whitespace").lineBreak;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TokContext = exports.TokContext = function TokContext(token, isExpr, preserveSpace, override) {
+var _state = _dereq_("./state");
+
+var _tokentype = _dereq_("./tokentype");
+
+var _whitespace = _dereq_("./whitespace");
+
+var TokContext = function TokContext(token, isExpr, preserveSpace, override) {
   _classCallCheck(this, TokContext);
 
   this.token = token;
-  this.isExpr = isExpr;
-  this.preserveSpace = preserveSpace;
+  this.isExpr = !!isExpr;
+  this.preserveSpace = !!preserveSpace;
   this.override = override;
 };
 
+exports.TokContext = TokContext;
 var types = {
   b_stat: new TokContext("{", false),
   b_expr: new TokContext("{", true),
@@ -2881,30 +2294,32 @@ var types = {
 };
 
 exports.types = types;
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
 
 pp.initialContext = function () {
   return [types.b_stat];
 };
 
 pp.braceIsBlock = function (prevType) {
-  var parent = undefined;
-  if (prevType === tt.colon && (parent = this.curContext()).token == "{") return !parent.isExpr;
-  if (prevType === tt._return) return lineBreak.test(this.input.slice(this.lastTokEnd, this.start));
-  if (prevType === tt._else || prevType === tt.semi || prevType === tt.eof) return true;
-  if (prevType == tt.braceL) return this.curContext() === types.b_stat;
+  if (prevType === _tokentype.types.colon) {
+    var _parent = this.curContext();
+    if (_parent === types.b_stat || _parent === types.b_expr) return !_parent.isExpr;
+  }
+  if (prevType === _tokentype.types._return) return _whitespace.lineBreak.test(this.input.slice(this.lastTokEnd, this.start));
+  if (prevType === _tokentype.types._else || prevType === _tokentype.types.semi || prevType === _tokentype.types.eof || prevType === _tokentype.types.parenR) return true;
+  if (prevType == _tokentype.types.braceL) return this.curContext() === types.b_stat;
   return !this.exprAllowed;
 };
 
 pp.updateContext = function (prevType) {
   var update = undefined,
       type = this.type;
-  if (type.keyword && prevType == tt.dot) this.exprAllowed = false;else if (update = type.updateContext) update.call(this, prevType);else this.exprAllowed = type.beforeExpr;
+  if (type.keyword && prevType == _tokentype.types.dot) this.exprAllowed = false;else if (update = type.updateContext) update.call(this, prevType);else this.exprAllowed = type.beforeExpr;
 };
 
 // Token-specific context update code
 
-tt.parenR.updateContext = tt.braceR.updateContext = function () {
+_tokentype.types.parenR.updateContext = _tokentype.types.braceR.updateContext = function () {
   if (this.context.length == 1) {
     this.exprAllowed = true;
     return;
@@ -2920,82 +2335,76 @@ tt.parenR.updateContext = tt.braceR.updateContext = function () {
   }
 };
 
-tt.braceL.updateContext = function (prevType) {
+_tokentype.types.braceL.updateContext = function (prevType) {
   this.context.push(this.braceIsBlock(prevType) ? types.b_stat : types.b_expr);
   this.exprAllowed = true;
 };
 
-tt.dollarBraceL.updateContext = function () {
+_tokentype.types.dollarBraceL.updateContext = function () {
   this.context.push(types.b_tmpl);
   this.exprAllowed = true;
 };
 
-tt.parenL.updateContext = function (prevType) {
-  var statementParens = prevType === tt._if || prevType === tt._for || prevType === tt._with || prevType === tt._while;
+_tokentype.types.parenL.updateContext = function (prevType) {
+  var statementParens = prevType === _tokentype.types._if || prevType === _tokentype.types._for || prevType === _tokentype.types._with || prevType === _tokentype.types._while;
   this.context.push(statementParens ? types.p_stat : types.p_expr);
   this.exprAllowed = true;
 };
 
-tt.incDec.updateContext = function () {};
+_tokentype.types.incDec.updateContext = function () {};
 
-tt._function.updateContext = function () {
+_tokentype.types._function.updateContext = function () {
   if (this.curContext() !== types.b_stat) this.context.push(types.f_expr);
   this.exprAllowed = false;
 };
 
-tt.backQuote.updateContext = function () {
+_tokentype.types.backQuote.updateContext = function () {
   if (this.curContext() === types.q_tmpl) this.context.pop();else this.context.push(types.q_tmpl);
   this.exprAllowed = false;
 };
 
 // tokExprAllowed stays unchanged
 
-},{"./state":9,"./tokentype":13,"./whitespace":15}],12:[function(_dereq_,module,exports){
+},{"./state":10,"./tokentype":14,"./whitespace":16}],13:[function(_dereq_,module,exports){
 "use strict";
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
 exports.__esModule = true;
 
-var _identifier = _dereq_("./identifier");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var isIdentifierStart = _identifier.isIdentifierStart;
-var isIdentifierChar = _identifier.isIdentifierChar;
+var _identifier = _dereq_("./identifier");
 
 var _tokentype = _dereq_("./tokentype");
 
-var tt = _tokentype.types;
-var keywordTypes = _tokentype.keywords;
+var _state = _dereq_("./state");
 
-var Parser = _dereq_("./state").Parser;
-
-var SourceLocation = _dereq_("./location").SourceLocation;
+var _locutil = _dereq_("./locutil");
 
 var _whitespace = _dereq_("./whitespace");
-
-var lineBreak = _whitespace.lineBreak;
-var lineBreakG = _whitespace.lineBreakG;
-var isNewLine = _whitespace.isNewLine;
-var nonASCIIwhitespace = _whitespace.nonASCIIwhitespace;
 
 // Object type used to represent tokens. Note that normally, tokens
 // simply exist as properties on the parser object. This is only
 // used for the onToken callback and the external tokenizer.
 
-var Token = exports.Token = function Token(p) {
+var Token = function Token(p) {
   _classCallCheck(this, Token);
 
   this.type = p.type;
   this.value = p.value;
   this.start = p.start;
   this.end = p.end;
-  if (p.options.locations) this.loc = new SourceLocation(p, p.startLoc, p.endLoc);
+  if (p.options.locations) this.loc = new _locutil.SourceLocation(p, p.startLoc, p.endLoc);
   if (p.options.ranges) this.range = [p.start, p.end];
 };
 
+exports.Token = Token;
+
 // ## Tokenizer
 
-var pp = Parser.prototype;
+var pp = _state.Parser.prototype;
+
+// Are we running under Rhino?
+var isRhino = typeof Packages == "object" && Object.prototype.toString.call(Packages) == "[object JavaPackage]";
 
 // Move to the next token
 
@@ -3020,7 +2429,7 @@ if (typeof Symbol !== "undefined") pp[Symbol.iterator] = function () {
   return { next: function next() {
       var token = self.getToken();
       return {
-        done: token.type === tt.eof,
+        done: token.type === _tokentype.types.eof,
         value: token
       };
     } };
@@ -3031,7 +2440,7 @@ if (typeof Symbol !== "undefined") pp[Symbol.iterator] = function () {
 
 pp.setStrict = function (strict) {
   this.strict = strict;
-  if (this.type !== tt.num && this.type !== tt.string) return;
+  if (this.type !== _tokentype.types.num && this.type !== _tokentype.types.string) return;
   this.pos = this.start;
   if (this.options.locations) {
     while (this.pos < this.lineStart) {
@@ -3055,7 +2464,7 @@ pp.nextToken = function () {
 
   this.start = this.pos;
   if (this.options.locations) this.startLoc = this.curPosition();
-  if (this.pos >= this.input.length) return this.finishToken(tt.eof);
+  if (this.pos >= this.input.length) return this.finishToken(_tokentype.types.eof);
 
   if (curContext.override) return curContext.override(this);else this.readToken(this.fullCharCodeAtPos());
 };
@@ -3063,90 +2472,88 @@ pp.nextToken = function () {
 pp.readToken = function (code) {
   // Identifier or keyword. '\uXXXX' sequences are allowed in
   // identifiers, so '\' also dispatches to that.
-  if (isIdentifierStart(code, this.options.ecmaVersion >= 6) || code === 92 /* '\' */) return this.readWord();
+  if (_identifier.isIdentifierStart(code, this.options.ecmaVersion >= 6) || code === 92 /* '\' */) return this.readWord();
 
   return this.getTokenFromCode(code);
 };
 
 pp.fullCharCodeAtPos = function () {
   var code = this.input.charCodeAt(this.pos);
-  if (code <= 55295 || code >= 57344) return code;
+  if (code <= 0xd7ff || code >= 0xe000) return code;
   var next = this.input.charCodeAt(this.pos + 1);
-  return (code << 10) + next - 56613888;
+  return (code << 10) + next - 0x35fdc00;
 };
 
 pp.skipBlockComment = function () {
-  var startLoc = this.options.onComment && this.options.locations && this.curPosition();
+  var startLoc = this.options.onComment && this.curPosition();
   var start = this.pos,
       end = this.input.indexOf("*/", this.pos += 2);
   if (end === -1) this.raise(this.pos - 2, "Unterminated comment");
   this.pos = end + 2;
   if (this.options.locations) {
-    lineBreakG.lastIndex = start;
+    _whitespace.lineBreakG.lastIndex = start;
     var match = undefined;
-    while ((match = lineBreakG.exec(this.input)) && match.index < this.pos) {
+    while ((match = _whitespace.lineBreakG.exec(this.input)) && match.index < this.pos) {
       ++this.curLine;
       this.lineStart = match.index + match[0].length;
     }
   }
-  if (this.options.onComment) this.options.onComment(true, this.input.slice(start + 2, end), start, this.pos, startLoc, this.options.locations && this.curPosition());
+  if (this.options.onComment) this.options.onComment(true, this.input.slice(start + 2, end), start, this.pos, startLoc, this.curPosition());
 };
 
 pp.skipLineComment = function (startSkip) {
   var start = this.pos;
-  var startLoc = this.options.onComment && this.options.locations && this.curPosition();
+  var startLoc = this.options.onComment && this.curPosition();
   var ch = this.input.charCodeAt(this.pos += startSkip);
   while (this.pos < this.input.length && ch !== 10 && ch !== 13 && ch !== 8232 && ch !== 8233) {
     ++this.pos;
     ch = this.input.charCodeAt(this.pos);
   }
-  if (this.options.onComment) this.options.onComment(false, this.input.slice(start + startSkip, this.pos), start, this.pos, startLoc, this.options.locations && this.curPosition());
+  if (this.options.onComment) this.options.onComment(false, this.input.slice(start + startSkip, this.pos), start, this.pos, startLoc, this.curPosition());
 };
 
 // Called at the start of the parse and after every token. Skips
 // whitespace and comments, and.
 
 pp.skipSpace = function () {
-  while (this.pos < this.input.length) {
+  loop: while (this.pos < this.input.length) {
     var ch = this.input.charCodeAt(this.pos);
-    if (ch === 32) {
-      // ' '
-      ++this.pos;
-    } else if (ch === 13) {
-      ++this.pos;
-      var next = this.input.charCodeAt(this.pos);
-      if (next === 10) {
+    switch (ch) {
+      case 32:case 160:
+        // ' '
         ++this.pos;
-      }
-      if (this.options.locations) {
-        ++this.curLine;
-        this.lineStart = this.pos;
-      }
-    } else if (ch === 10 || ch === 8232 || ch === 8233) {
-      ++this.pos;
-      if (this.options.locations) {
-        ++this.curLine;
-        this.lineStart = this.pos;
-      }
-    } else if (ch > 8 && ch < 14) {
-      ++this.pos;
-    } else if (ch === 47) {
-      // '/'
-      var next = this.input.charCodeAt(this.pos + 1);
-      if (next === 42) {
-        // '*'
-        this.skipBlockComment();
-      } else if (next === 47) {
+        break;
+      case 13:
+        if (this.input.charCodeAt(this.pos + 1) === 10) {
+          ++this.pos;
+        }
+      case 10:case 8232:case 8233:
+        ++this.pos;
+        if (this.options.locations) {
+          ++this.curLine;
+          this.lineStart = this.pos;
+        }
+        break;
+      case 47:
         // '/'
-        this.skipLineComment(2);
-      } else break;
-    } else if (ch === 160) {
-      // '\xa0'
-      ++this.pos;
-    } else if (ch >= 5760 && nonASCIIwhitespace.test(String.fromCharCode(ch))) {
-      ++this.pos;
-    } else {
-      break;
+        switch (this.input.charCodeAt(this.pos + 1)) {
+          case 42:
+            // '*'
+            this.skipBlockComment();
+            break;
+          case 47:
+            this.skipLineComment(2);
+            break;
+          default:
+            break loop;
+        }
+        break;
+      default:
+        if (ch > 8 && ch < 14 || ch >= 5760 && _whitespace.nonASCIIwhitespace.test(String.fromCharCode(ch))) {
+          ++this.pos;
+        } else {
+          break loop;
+        }
     }
   }
 };
@@ -3182,10 +2589,10 @@ pp.readToken_dot = function () {
   if (this.options.ecmaVersion >= 6 && next === 46 && next2 === 46) {
     // 46 = dot '.'
     this.pos += 3;
-    return this.finishToken(tt.ellipsis);
+    return this.finishToken(_tokentype.types.ellipsis);
   } else {
     ++this.pos;
-    return this.finishToken(tt.dot);
+    return this.finishToken(_tokentype.types.dot);
   }
 };
 
@@ -3195,46 +2602,46 @@ pp.readToken_slash = function () {
   if (this.exprAllowed) {
     ++this.pos;return this.readRegexp();
   }
-  if (next === 61) return this.finishOp(tt.assign, 2);
-  return this.finishOp(tt.slash, 1);
+  if (next === 61) return this.finishOp(_tokentype.types.assign, 2);
+  return this.finishOp(_tokentype.types.slash, 1);
 };
 
 pp.readToken_mult_modulo = function (code) {
   // '%*'
   var next = this.input.charCodeAt(this.pos + 1);
-  if (next === 61) return this.finishOp(tt.assign, 2);
-  return this.finishOp(code === 42 ? tt.star : tt.modulo, 1);
+  if (next === 61) return this.finishOp(_tokentype.types.assign, 2);
+  return this.finishOp(code === 42 ? _tokentype.types.star : _tokentype.types.modulo, 1);
 };
 
 pp.readToken_pipe_amp = function (code) {
   // '|&'
   var next = this.input.charCodeAt(this.pos + 1);
-  if (next === code) return this.finishOp(code === 124 ? tt.logicalOR : tt.logicalAND, 2);
-  if (next === 61) return this.finishOp(tt.assign, 2);
-  return this.finishOp(code === 124 ? tt.bitwiseOR : tt.bitwiseAND, 1);
+  if (next === code) return this.finishOp(code === 124 ? _tokentype.types.logicalOR : _tokentype.types.logicalAND, 2);
+  if (next === 61) return this.finishOp(_tokentype.types.assign, 2);
+  return this.finishOp(code === 124 ? _tokentype.types.bitwiseOR : _tokentype.types.bitwiseAND, 1);
 };
 
 pp.readToken_caret = function () {
   // '^'
   var next = this.input.charCodeAt(this.pos + 1);
-  if (next === 61) return this.finishOp(tt.assign, 2);
-  return this.finishOp(tt.bitwiseXOR, 1);
+  if (next === 61) return this.finishOp(_tokentype.types.assign, 2);
+  return this.finishOp(_tokentype.types.bitwiseXOR, 1);
 };
 
 pp.readToken_plus_min = function (code) {
   // '+-'
   var next = this.input.charCodeAt(this.pos + 1);
   if (next === code) {
-    if (next == 45 && this.input.charCodeAt(this.pos + 2) == 62 && lineBreak.test(this.input.slice(this.lastTokEnd, this.pos))) {
+    if (next == 45 && this.input.charCodeAt(this.pos + 2) == 62 && _whitespace.lineBreak.test(this.input.slice(this.lastTokEnd, this.pos))) {
       // A `-->` line comment
       this.skipLineComment(3);
       this.skipSpace();
       return this.nextToken();
     }
-    return this.finishOp(tt.incDec, 2);
+    return this.finishOp(_tokentype.types.incDec, 2);
   }
-  if (next === 61) return this.finishOp(tt.assign, 2);
-  return this.finishOp(tt.plusMin, 1);
+  if (next === 61) return this.finishOp(_tokentype.types.assign, 2);
+  return this.finishOp(_tokentype.types.plusMin, 1);
 };
 
 pp.readToken_lt_gt = function (code) {
@@ -3243,30 +2650,30 @@ pp.readToken_lt_gt = function (code) {
   var size = 1;
   if (next === code) {
     size = code === 62 && this.input.charCodeAt(this.pos + 2) === 62 ? 3 : 2;
-    if (this.input.charCodeAt(this.pos + size) === 61) return this.finishOp(tt.assign, size + 1);
-    return this.finishOp(tt.bitShift, size);
+    if (this.input.charCodeAt(this.pos + size) === 61) return this.finishOp(_tokentype.types.assign, size + 1);
+    return this.finishOp(_tokentype.types.bitShift, size);
   }
   if (next == 33 && code == 60 && this.input.charCodeAt(this.pos + 2) == 45 && this.input.charCodeAt(this.pos + 3) == 45) {
-    if (this.inModule) unexpected();
+    if (this.inModule) this.unexpected();
     // `<!--`, an XML-style comment that should be interpreted as a line comment
     this.skipLineComment(4);
     this.skipSpace();
     return this.nextToken();
   }
   if (next === 61) size = this.input.charCodeAt(this.pos + 2) === 61 ? 3 : 2;
-  return this.finishOp(tt.relational, size);
+  return this.finishOp(_tokentype.types.relational, size);
 };
 
 pp.readToken_eq_excl = function (code) {
   // '=!'
   var next = this.input.charCodeAt(this.pos + 1);
-  if (next === 61) return this.finishOp(tt.equality, this.input.charCodeAt(this.pos + 2) === 61 ? 3 : 2);
+  if (next === 61) return this.finishOp(_tokentype.types.equality, this.input.charCodeAt(this.pos + 2) === 61 ? 3 : 2);
   if (code === 61 && next === 62 && this.options.ecmaVersion >= 6) {
     // '=>'
     this.pos += 2;
-    return this.finishToken(tt.arrow);
+    return this.finishToken(_tokentype.types.arrow);
   }
-  return this.finishOp(code === 61 ? tt.eq : tt.prefix, 1);
+  return this.finishOp(code === 61 ? _tokentype.types.eq : _tokentype.types.prefix, 1);
 };
 
 pp.getTokenFromCode = function (code) {
@@ -3279,31 +2686,31 @@ pp.getTokenFromCode = function (code) {
 
     // Punctuation tokens.
     case 40:
-      ++this.pos;return this.finishToken(tt.parenL);
+      ++this.pos;return this.finishToken(_tokentype.types.parenL);
     case 41:
-      ++this.pos;return this.finishToken(tt.parenR);
+      ++this.pos;return this.finishToken(_tokentype.types.parenR);
     case 59:
-      ++this.pos;return this.finishToken(tt.semi);
+      ++this.pos;return this.finishToken(_tokentype.types.semi);
     case 44:
-      ++this.pos;return this.finishToken(tt.comma);
+      ++this.pos;return this.finishToken(_tokentype.types.comma);
     case 91:
-      ++this.pos;return this.finishToken(tt.bracketL);
+      ++this.pos;return this.finishToken(_tokentype.types.bracketL);
     case 93:
-      ++this.pos;return this.finishToken(tt.bracketR);
+      ++this.pos;return this.finishToken(_tokentype.types.bracketR);
     case 123:
-      ++this.pos;return this.finishToken(tt.braceL);
+      ++this.pos;return this.finishToken(_tokentype.types.braceL);
     case 125:
-      ++this.pos;return this.finishToken(tt.braceR);
+      ++this.pos;return this.finishToken(_tokentype.types.braceR);
     case 58:
-      ++this.pos;return this.finishToken(tt.colon);
+      ++this.pos;return this.finishToken(_tokentype.types.colon);
     case 63:
-      ++this.pos;return this.finishToken(tt.question);
+      ++this.pos;return this.finishToken(_tokentype.types.question);
 
     case 96:
       // '`'
       if (this.options.ecmaVersion < 6) break;
       ++this.pos;
-      return this.finishToken(tt.backQuote);
+      return this.finishToken(_tokentype.types.backQuote);
 
     case 48:
       // '0'
@@ -3359,7 +2766,7 @@ pp.getTokenFromCode = function (code) {
 
     case 126:
       // '~'
-      return this.finishOp(tt.prefix, 1);
+      return this.finishOp(_tokentype.types.prefix, 1);
   }
 
   this.raise(this.pos, "Unexpected character '" + codePointToString(code) + "'");
@@ -3371,22 +2778,32 @@ pp.finishOp = function (type, size) {
   return this.finishToken(type, str);
 };
 
-var regexpUnicodeSupport = false;
-try {
-  new RegExp("￿", "u");regexpUnicodeSupport = true;
-} catch (e) {}
-
 // Parse a regular expression. Some context-awareness is necessary,
 // since a '/' inside a '[]' set does not end the expression.
 
+function tryCreateRegexp(src, flags, throwErrorAt) {
+  try {
+    return new RegExp(src, flags);
+  } catch (e) {
+    if (throwErrorAt !== undefined) {
+      if (e instanceof SyntaxError) this.raise(throwErrorAt, "Error parsing regular expression: " + e.message);
+      this.raise(e);
+    }
+  }
+}
+
+var regexpUnicodeSupport = !!tryCreateRegexp("￿", "u");
+
 pp.readRegexp = function () {
+  var _this = this;
+
   var escaped = undefined,
       inClass = undefined,
       start = this.pos;
   for (;;) {
     if (this.pos >= this.input.length) this.raise(start, "Unterminated regular expression");
     var ch = this.input.charAt(this.pos);
-    if (lineBreak.test(ch)) this.raise(start, "Unterminated regular expression");
+    if (_whitespace.lineBreak.test(ch)) this.raise(start, "Unterminated regular expression");
     if (!escaped) {
       if (ch === "[") inClass = true;else if (ch === "]" && inClass) inClass = false;else if (ch === "/" && !inClass) break;
       escaped = ch === "\\";
@@ -3412,25 +2829,25 @@ pp.readRegexp = function () {
       // negatives in unlikely scenarios. For example, `[\u{61}-b]` is a
       // perfectly valid pattern that is equivalent to `[a-b]`, but it would
       // be replaced by `[x-b]` which throws an error.
-      tmp = tmp.replace(/\\u([a-fA-F0-9]{4})|\\u\{([0-9a-fA-F]+)\}|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "x");
+      tmp = tmp.replace(/\\u\{([0-9a-fA-F]+)\}/g, function (match, code, offset) {
+        code = Number("0x" + code);
+        if (code > 0x10FFFF) _this.raise(start + offset + 3, "Code point out of bounds");
+        return "x";
+      });
+      tmp = tmp.replace(/\\u([a-fA-F0-9]{4})|[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "x");
     }
   }
   // Detect invalid regular expressions.
-  try {
-    new RegExp(tmp);
-  } catch (e) {
-    if (e instanceof SyntaxError) this.raise(start, "Error parsing regular expression: " + e.message);
-    this.raise(e);
+  var value = null;
+  // Rhino's regular expression parser is flaky and throws uncatchable exceptions,
+  // so don't do detection if we are running under Rhino
+  if (!isRhino) {
+    tryCreateRegexp(tmp, undefined, start);
+    // Get a regular expression object for this pattern-flag pair, or `null` in
+    // case the current environment doesn't support the flags it uses.
+    value = tryCreateRegexp(content, mods);
   }
-  // Get a regular expression object for this pattern-flag pair, or `null` in
-  // case the current environment doesn't support the flags it uses.
-  var value = undefined;
-  try {
-    value = new RegExp(content, mods);
-  } catch (err) {
-    value = null;
-  }
-  return this.finishToken(tt.regexp, { pattern: content, flags: mods, value: value });
+  return this.finishToken(_tokentype.types.regexp, { pattern: content, flags: mods, value: value });
 };
 
 // Read an integer in the given radix. Return null if zero digits
@@ -3460,8 +2877,8 @@ pp.readRadixNumber = function (radix) {
   this.pos += 2; // 0x
   var val = this.readInt(radix);
   if (val == null) this.raise(this.start + 2, "Expected number in radix " + radix);
-  if (isIdentifierStart(this.fullCharCodeAtPos())) this.raise(this.pos, "Identifier directly after number");
-  return this.finishToken(tt.num, val);
+  if (_identifier.isIdentifierStart(this.fullCharCodeAtPos())) this.raise(this.pos, "Identifier directly after number");
+  return this.finishToken(_tokentype.types.num, val);
 };
 
 // Read an integer, octal integer, or floating-point number.
@@ -3471,12 +2888,14 @@ pp.readNumber = function (startsWithDot) {
       isFloat = false,
       octal = this.input.charCodeAt(this.pos) === 48;
   if (!startsWithDot && this.readInt(10) === null) this.raise(start, "Invalid number");
-  if (this.input.charCodeAt(this.pos) === 46) {
+  var next = this.input.charCodeAt(this.pos);
+  if (next === 46) {
+    // '.'
     ++this.pos;
     this.readInt(10);
     isFloat = true;
+    next = this.input.charCodeAt(this.pos);
   }
-  var next = this.input.charCodeAt(this.pos);
   if (next === 69 || next === 101) {
     // 'eE'
     next = this.input.charCodeAt(++this.pos);
@@ -3484,12 +2903,12 @@ pp.readNumber = function (startsWithDot) {
     if (this.readInt(10) === null) this.raise(start, "Invalid number");
     isFloat = true;
   }
-  if (isIdentifierStart(this.fullCharCodeAtPos())) this.raise(this.pos, "Identifier directly after number");
+  if (_identifier.isIdentifierStart(this.fullCharCodeAtPos())) this.raise(this.pos, "Identifier directly after number");
 
   var str = this.input.slice(start, this.pos),
       val = undefined;
   if (isFloat) val = parseFloat(str);else if (!octal || str.length === 1) val = parseInt(str, 10);else if (/[89]/.test(str) || this.strict) this.raise(start, "Invalid number");else val = parseInt(str, 8);
-  return this.finishToken(tt.num, val);
+  return this.finishToken(_tokentype.types.num, val);
 };
 
 // Read a string value, interpreting backslash-escapes.
@@ -3500,10 +2919,10 @@ pp.readCodePoint = function () {
 
   if (ch === 123) {
     if (this.options.ecmaVersion < 6) this.unexpected();
-    ++this.pos;
+    var codePos = ++this.pos;
     code = this.readHexChar(this.input.indexOf("}", this.pos) - this.pos);
     ++this.pos;
-    if (code > 1114111) this.unexpected();
+    if (code > 0x10FFFF) this.raise(codePos, "Code point out of bounds");
   } else {
     code = this.readHexChar(4);
   }
@@ -3512,9 +2931,9 @@ pp.readCodePoint = function () {
 
 function codePointToString(code) {
   // UTF-16 Decoding
-  if (code <= 65535) {
-    return String.fromCharCode(code);
-  }return String.fromCharCode((code - 65536 >> 10) + 55296, (code - 65536 & 1023) + 56320);
+  if (code <= 0xFFFF) return String.fromCharCode(code);
+  code -= 0x10000;
+  return String.fromCharCode((code >> 10) + 0xD800, (code & 1023) + 0xDC00);
 }
 
 pp.readString = function (quote) {
@@ -3527,15 +2946,15 @@ pp.readString = function (quote) {
     if (ch === 92) {
       // '\'
       out += this.input.slice(chunkStart, this.pos);
-      out += this.readEscapedChar();
+      out += this.readEscapedChar(false);
       chunkStart = this.pos;
     } else {
-      if (isNewLine(ch)) this.raise(this.start, "Unterminated string constant");
+      if (_whitespace.isNewLine(ch)) this.raise(this.start, "Unterminated string constant");
       ++this.pos;
     }
   }
   out += this.input.slice(chunkStart, this.pos++);
-  return this.finishToken(tt.string, out);
+  return this.finishToken(_tokentype.types.string, out);
 };
 
 // Reads template string tokens.
@@ -3548,31 +2967,35 @@ pp.readTmplToken = function () {
     var ch = this.input.charCodeAt(this.pos);
     if (ch === 96 || ch === 36 && this.input.charCodeAt(this.pos + 1) === 123) {
       // '`', '${'
-      if (this.pos === this.start && this.type === tt.template) {
+      if (this.pos === this.start && this.type === _tokentype.types.template) {
         if (ch === 36) {
           this.pos += 2;
-          return this.finishToken(tt.dollarBraceL);
+          return this.finishToken(_tokentype.types.dollarBraceL);
         } else {
           ++this.pos;
-          return this.finishToken(tt.backQuote);
+          return this.finishToken(_tokentype.types.backQuote);
         }
       }
       out += this.input.slice(chunkStart, this.pos);
-      return this.finishToken(tt.template, out);
+      return this.finishToken(_tokentype.types.template, out);
     }
     if (ch === 92) {
       // '\'
       out += this.input.slice(chunkStart, this.pos);
-      out += this.readEscapedChar();
+      out += this.readEscapedChar(true);
       chunkStart = this.pos;
-    } else if (isNewLine(ch)) {
+    } else if (_whitespace.isNewLine(ch)) {
       out += this.input.slice(chunkStart, this.pos);
       ++this.pos;
-      if (ch === 13 && this.input.charCodeAt(this.pos) === 10) {
-        ++this.pos;
-        out += "\n";
-      } else {
-        out += String.fromCharCode(ch);
+      switch (ch) {
+        case 13:
+          if (this.input.charCodeAt(this.pos) === 10) ++this.pos;
+        case 10:
+          out += "\n";
+          break;
+        default:
+          out += String.fromCharCode(ch);
+          break;
       }
       if (this.options.locations) {
         ++this.curLine;
@@ -3587,91 +3010,87 @@ pp.readTmplToken = function () {
 
 // Used to read escaped characters
 
-pp.readEscapedChar = function () {
+pp.readEscapedChar = function (inTemplate) {
   var ch = this.input.charCodeAt(++this.pos);
-  var octal = /^[0-7]+/.exec(this.input.slice(this.pos, this.pos + 3));
-  if (octal) octal = octal[0];
-  while (octal && parseInt(octal, 8) > 255) octal = octal.slice(0, -1);
-  if (octal === "0") octal = null;
   ++this.pos;
-  if (octal) {
-    if (this.strict) this.raise(this.pos - 2, "Octal literal in strict mode");
-    this.pos += octal.length - 1;
-    return String.fromCharCode(parseInt(octal, 8));
-  } else {
-    switch (ch) {
-      case 110:
-        return "\n"; // 'n' -> '\n'
-      case 114:
-        return "\r"; // 'r' -> '\r'
-      case 120:
-        return String.fromCharCode(this.readHexChar(2)); // 'x'
-      case 117:
-        return codePointToString(this.readCodePoint()); // 'u'
-      case 116:
-        return "\t"; // 't' -> '\t'
-      case 98:
-        return "\b"; // 'b' -> '\b'
-      case 118:
-        return "\u000b"; // 'v' -> '\u000b'
-      case 102:
-        return "\f"; // 'f' -> '\f'
-      case 48:
-        return "\u0000"; // 0 -> '\0'
-      case 13:
-        if (this.input.charCodeAt(this.pos) === 10) ++this.pos; // '\r\n'
-      case 10:
-        // ' \n'
-        if (this.options.locations) {
-          this.lineStart = this.pos;++this.curLine;
+  switch (ch) {
+    case 110:
+      return "\n"; // 'n' -> '\n'
+    case 114:
+      return "\r"; // 'r' -> '\r'
+    case 120:
+      return String.fromCharCode(this.readHexChar(2)); // 'x'
+    case 117:
+      return codePointToString(this.readCodePoint()); // 'u'
+    case 116:
+      return "\t"; // 't' -> '\t'
+    case 98:
+      return "\b"; // 'b' -> '\b'
+    case 118:
+      return "\u000b"; // 'v' -> '\u000b'
+    case 102:
+      return "\f"; // 'f' -> '\f'
+    case 13:
+      if (this.input.charCodeAt(this.pos) === 10) ++this.pos; // '\r\n'
+    case 10:
+      // ' \n'
+      if (this.options.locations) {
+        this.lineStart = this.pos;++this.curLine;
+      }
+      return "";
+    default:
+      if (ch >= 48 && ch <= 55) {
+        var octalStr = this.input.substr(this.pos - 1, 3).match(/^[0-7]+/)[0];
+        var octal = parseInt(octalStr, 8);
+        if (octal > 255) {
+          octalStr = octalStr.slice(0, -1);
+          octal = parseInt(octalStr, 8);
         }
-        return "";
-      default:
-        return String.fromCharCode(ch);
-    }
+        if (octal > 0 && (this.strict || inTemplate)) {
+          this.raise(this.pos - 2, "Octal literal in strict mode");
+        }
+        this.pos += octalStr.length - 1;
+        return String.fromCharCode(octal);
+      }
+      return String.fromCharCode(ch);
   }
 };
 
 // Used to read character escape sequences ('\x', '\u', '\U').
 
 pp.readHexChar = function (len) {
+  var codePos = this.pos;
   var n = this.readInt(16, len);
-  if (n === null) this.raise(this.start, "Bad character escape sequence");
+  if (n === null) this.raise(codePos, "Bad character escape sequence");
   return n;
 };
 
-// Used to signal to callers of `readWord1` whether the word
-// contained any escape sequences. This is needed because words with
-// escape sequences must not be interpreted as keywords.
-
-var containsEsc;
-
-// Read an identifier, and return it as a string. Sets `containsEsc`
+// Read an identifier, and return it as a string. Sets `this.containsEsc`
 // to whether the word contained a '\u' escape.
 //
 // Incrementally adds only escaped chars, adding other chunks as-is
 // as a micro-optimization.
 
 pp.readWord1 = function () {
-  containsEsc = false;
+  this.containsEsc = false;
   var word = "",
       first = true,
       chunkStart = this.pos;
   var astral = this.options.ecmaVersion >= 6;
   while (this.pos < this.input.length) {
     var ch = this.fullCharCodeAtPos();
-    if (isIdentifierChar(ch, astral)) {
-      this.pos += ch <= 65535 ? 1 : 2;
+    if (_identifier.isIdentifierChar(ch, astral)) {
+      this.pos += ch <= 0xffff ? 1 : 2;
     } else if (ch === 92) {
       // "\"
-      containsEsc = true;
+      this.containsEsc = true;
       word += this.input.slice(chunkStart, this.pos);
       var escStart = this.pos;
       if (this.input.charCodeAt(++this.pos) != 117) // "u"
         this.raise(this.pos, "Expecting Unicode escape sequence \\uXXXX");
       ++this.pos;
       var esc = this.readCodePoint();
-      if (!(first ? isIdentifierStart : isIdentifierChar)(esc, astral)) this.raise(escStart, "Invalid Unicode escape");
+      if (!(first ? _identifier.isIdentifierStart : _identifier.isIdentifierChar)(esc, astral)) this.raise(escStart, "Invalid Unicode escape");
       word += codePointToString(esc);
       chunkStart = this.pos;
     } else {
@@ -3687,17 +3106,12 @@ pp.readWord1 = function () {
 
 pp.readWord = function () {
   var word = this.readWord1();
-  var type = tt.name;
-  if ((this.options.ecmaVersion >= 6 || !containsEsc) && this.isKeyword(word)) type = keywordTypes[word];
+  var type = _tokentype.types.name;
+  if ((this.options.ecmaVersion >= 6 || !this.containsEsc) && this.isKeyword(word)) type = _tokentype.keywords[word];
   return this.finishToken(type, word);
 };
 
-},{"./identifier":3,"./location":4,"./state":9,"./tokentype":13,"./whitespace":15}],13:[function(_dereq_,module,exports){
-"use strict";
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-exports.__esModule = true;
+},{"./identifier":2,"./locutil":5,"./state":10,"./tokentype":14,"./whitespace":16}],14:[function(_dereq_,module,exports){
 // ## Token types
 
 // The assignment of fine-grained, information-carrying type objects
@@ -3716,8 +3130,14 @@ exports.__esModule = true;
 // to know when parsing a label, in order to allow or disallow
 // continue jumps to that label.
 
-var TokenType = exports.TokenType = function TokenType(label) {
-  var conf = arguments[1] === undefined ? {} : arguments[1];
+"use strict";
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var TokenType = function TokenType(label) {
+  var conf = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   _classCallCheck(this, TokenType);
 
@@ -3732,6 +3152,8 @@ var TokenType = exports.TokenType = function TokenType(label) {
   this.binop = conf.binop || null;
   this.updateContext = null;
 };
+
+exports.TokenType = TokenType;
 
 function binop(name, prec) {
   return new TokenType(name, { beforeExpr: true, binop: prec });
@@ -3804,7 +3226,7 @@ var keywords = {};
 exports.keywords = keywords;
 // Succinct definitions of keyword token types
 function kw(name) {
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   options.keyword = name;
   keywords[name] = types["_" + name] = new TokenType(name, options);
@@ -3815,12 +3237,12 @@ kw("case", beforeExpr);
 kw("catch");
 kw("continue");
 kw("debugger");
-kw("default");
+kw("default", beforeExpr);
 kw("do", { isLoop: true });
 kw("else", beforeExpr);
 kw("finally");
 kw("for", { isLoop: true });
-kw("function");
+kw("function", startsExpr);
 kw("if");
 kw("return", beforeExpr);
 kw("switch");
@@ -3848,32 +3270,31 @@ kw("typeof", { beforeExpr: true, prefix: true, startsExpr: true });
 kw("void", { beforeExpr: true, prefix: true, startsExpr: true });
 kw("delete", { beforeExpr: true, prefix: true, startsExpr: true });
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 "use strict";
 
-exports.isArray = isArray;
-
-// Checks if an object has a property.
-
-exports.has = has;
 exports.__esModule = true;
+exports.isArray = isArray;
+exports.has = has;
 
 function isArray(obj) {
   return Object.prototype.toString.call(obj) === "[object Array]";
 }
 
+// Checks if an object has a property.
+
 function has(obj, propName) {
   return Object.prototype.hasOwnProperty.call(obj, propName);
 }
 
-},{}],15:[function(_dereq_,module,exports){
-"use strict";
-
-exports.isNewLine = isNewLine;
-exports.__esModule = true;
+},{}],16:[function(_dereq_,module,exports){
 // Matches a whole line break (where CRLF is considered a single
 // line break). Used to count lines.
 
+"use strict";
+
+exports.__esModule = true;
+exports.isNewLine = isNewLine;
 var lineBreak = /\r\n?|\n|\u2028|\u2029/;
 exports.lineBreak = lineBreak;
 var lineBreakG = new RegExp(lineBreak.source, "g");
@@ -3881,27 +3302,15 @@ var lineBreakG = new RegExp(lineBreak.source, "g");
 exports.lineBreakG = lineBreakG;
 
 function isNewLine(code) {
-  return code === 10 || code === 13 || code === 8232 || code == 8233;
+  return code === 10 || code === 13 || code === 0x2028 || code == 0x2029;
 }
 
 var nonASCIIwhitespace = /[\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]/;
 exports.nonASCIIwhitespace = nonASCIIwhitespace;
 
-},{}]},{},[1])(1)
-});
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"acorn-jsx":[function(require,module,exports){
-'use strict';
-
-module.exports = require('./inject')(require('acorn'));
-
-},{"./inject":2,"acorn":3}]},{},[1])("acorn-jsx")
+},{}]},{},[3])(3)
 });;
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.acorn || (g.acorn = {})).walk = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-"use strict";
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
 // AST walker module for Mozilla Parser API compatible trees
 
 // A simple walk is one where you simply specify callbacks to be
@@ -3920,47 +3329,31 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 // walker, and state can be used to give this walked an initial
 // state.
 
-exports.simple = simple;
+"use strict";
 
-// An ancestor walk builds up an array of ancestor nodes (including
-// the current node) and passes them to the callback as the state parameter.
-exports.ancestor = ancestor;
-
-// A recursive walk is one where your functions override the default
-// walkers. They can modify and replace the state parameter that's
-// threaded through the walk, and can opt how and whether to walk
-// their child nodes (by calling their third argument on these
-// nodes).
-exports.recursive = recursive;
-
-// Find a node with a given start, end, and type (all are optional,
-// null can be used as wildcard). Returns a {node, state} object, or
-// undefined when it doesn't find a matching node.
-exports.findNodeAt = findNodeAt;
-
-// Find the innermost node of a given type that contains the given
-// position. Interface similar to findNodeAt.
-exports.findNodeAround = findNodeAround;
-
-// Find the outermost matching node after a given position.
-exports.findNodeAfter = findNodeAfter;
-
-// Find the outermost matching node before a given position.
-exports.findNodeBefore = findNodeBefore;
-
-// Used to create a custom walker. Will fill in all missing node
-// type properties with the defaults.
-exports.make = make;
 exports.__esModule = true;
+exports.simple = simple;
+exports.ancestor = ancestor;
+exports.recursive = recursive;
+exports.findNodeAt = findNodeAt;
+exports.findNodeAround = findNodeAround;
+exports.findNodeAfter = findNodeAfter;
+exports.findNodeBefore = findNodeBefore;
+exports.make = make;
 
-function simple(node, visitors, base, state) {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function simple(node, visitors, base, state, override) {
   if (!base) base = exports.base;(function c(node, st, override) {
     var type = override || node.type,
         found = visitors[type];
     base[type](node, st, c);
     if (found) found(node, st);
-  })(node, state);
+  })(node, state, override);
 }
+
+// An ancestor walk builds up an array of ancestor nodes (including
+// the current node) and passes them to the callback as the state parameter.
 
 function ancestor(node, visitors, base, state) {
   if (!base) base = exports.base;
@@ -3976,24 +3369,24 @@ function ancestor(node, visitors, base, state) {
   })(node, state);
 }
 
-function recursive(node, state, funcs, base) {
+// A recursive walk is one where your functions override the default
+// walkers. They can modify and replace the state parameter that's
+// threaded through the walk, and can opt how and whether to walk
+// their child nodes (by calling their third argument on these
+// nodes).
+
+function recursive(node, state, funcs, base, override) {
   var visitor = funcs ? exports.make(funcs, base) : base;(function c(node, st, override) {
     visitor[override || node.type](node, st, c);
-  })(node, state);
+  })(node, state, override);
 }
 
 function makeTest(test) {
-  if (typeof test == "string") {
-    return function (type) {
-      return type == test;
-    };
-  } else if (!test) {
-    return function () {
-      return true;
-    };
-  } else {
-    return test;
-  }
+  if (typeof test == "string") return function (type) {
+    return type == test;
+  };else if (!test) return function () {
+    return true;
+  };else return test;
 }
 
 var Found = function Found(node, state) {
@@ -4002,6 +3395,10 @@ var Found = function Found(node, state) {
   this.node = node;this.state = state;
 };
 
+// Find a node with a given start, end, and type (all are optional,
+// null can be used as wildcard). Returns a {node, state} object, or
+// undefined when it doesn't find a matching node.
+
 function findNodeAt(node, start, end, test, base, state) {
   test = makeTest(test);
   if (!base) base = exports.base;
@@ -4009,14 +3406,16 @@ function findNodeAt(node, start, end, test, base, state) {
     ;(function c(node, st, override) {
       var type = override || node.type;
       if ((start == null || node.start <= start) && (end == null || node.end >= end)) base[type](node, st, c);
-      if (test(type, node) && (start == null || node.start == start) && (end == null || node.end == end)) throw new Found(node, st);
+      if ((start == null || node.start == start) && (end == null || node.end == end) && test(type, node)) throw new Found(node, st);
     })(node, state);
   } catch (e) {
-    if (e instanceof Found) {
-      return e;
-    }throw e;
+    if (e instanceof Found) return e;
+    throw e;
   }
 }
+
+// Find the innermost node of a given type that contains the given
+// position. Interface similar to findNodeAt.
 
 function findNodeAround(node, pos, test, base, state) {
   test = makeTest(test);
@@ -4024,48 +3423,50 @@ function findNodeAround(node, pos, test, base, state) {
   try {
     ;(function c(node, st, override) {
       var type = override || node.type;
-      if (node.start > pos || node.end < pos) {
-        return;
-      }base[type](node, st, c);
+      if (node.start > pos || node.end < pos) return;
+      base[type](node, st, c);
       if (test(type, node)) throw new Found(node, st);
     })(node, state);
   } catch (e) {
-    if (e instanceof Found) {
-      return e;
-    }throw e;
+    if (e instanceof Found) return e;
+    throw e;
   }
 }
+
+// Find the outermost matching node after a given position.
 
 function findNodeAfter(node, pos, test, base, state) {
   test = makeTest(test);
   if (!base) base = exports.base;
   try {
     ;(function c(node, st, override) {
-      if (node.end < pos) {
-        return;
-      }var type = override || node.type;
+      if (node.end < pos) return;
+      var type = override || node.type;
       if (node.start >= pos && test(type, node)) throw new Found(node, st);
       base[type](node, st, c);
     })(node, state);
   } catch (e) {
-    if (e instanceof Found) {
-      return e;
-    }throw e;
+    if (e instanceof Found) return e;
+    throw e;
   }
 }
+
+// Find the outermost matching node before a given position.
 
 function findNodeBefore(node, pos, test, base, state) {
   test = makeTest(test);
   if (!base) base = exports.base;
   var max = undefined;(function c(node, st, override) {
-    if (node.start > pos) {
-      return;
-    }var type = override || node.type;
+    if (node.start > pos) return;
+    var type = override || node.type;
     if (node.end <= pos && (!max || max.node.end < node.end) && test(type, node)) max = new Found(node, st);
     base[type](node, st, c);
   })(node, state);
   return max;
 }
+
+// Used to create a custom walker. Will fill in all missing node
+// type properties with the defaults.
 
 function make(funcs, base) {
   if (!base) base = exports.base;
@@ -4121,12 +3522,15 @@ base.SwitchStatement = function (node, st, c) {
 base.ReturnStatement = base.YieldExpression = function (node, st, c) {
   if (node.argument) c(node.argument, st, "Expression");
 };
-base.ThrowStatement = base.SpreadElement = base.RestElement = function (node, st, c) {
+base.ThrowStatement = base.SpreadElement = function (node, st, c) {
   return c(node.argument, st, "Expression");
 };
 base.TryStatement = function (node, st, c) {
   c(node.block, st, "Statement");
-  if (node.handler) c(node.handler.body, st, "ScopeBody");
+  if (node.handler) {
+    c(node.handler.param, st, "Pattern");
+    c(node.handler.body, st, "ScopeBody");
+  }
   if (node.finalizer) c(node.finalizer, st, "Statement");
 };
 base.WhileStatement = base.DoWhileStatement = function (node, st, c) {
@@ -4154,27 +3558,58 @@ base.FunctionDeclaration = function (node, st, c) {
 };
 base.VariableDeclaration = function (node, st, c) {
   for (var i = 0; i < node.declarations.length; ++i) {
-    var decl = node.declarations[i];
-    if (decl.init) c(decl.init, st, "Expression");
+    c(node.declarations[i], st);
   }
+};
+base.VariableDeclarator = function (node, st, c) {
+  c(node.id, st, "Pattern");
+  if (node.init) c(node.init, st, "Expression");
 };
 
 base.Function = function (node, st, c) {
-  return c(node.body, st, "ScopeBody");
+  if (node.id) c(node.id, st, "Pattern");
+  for (var i = 0; i < node.params.length; i++) {
+    c(node.params[i], st, "Pattern");
+  }c(node.body, st, node.expression ? "ScopeExpression" : "ScopeBody");
 };
+// FIXME drop these node types in next major version
+// (They are awkward, and in ES6 every block can be a scope.)
 base.ScopeBody = function (node, st, c) {
   return c(node, st, "Statement");
+};
+base.ScopeExpression = function (node, st, c) {
+  return c(node, st, "Expression");
+};
+
+base.Pattern = function (node, st, c) {
+  if (node.type == "Identifier") c(node, st, "VariablePattern");else if (node.type == "MemberExpression") c(node, st, "MemberPattern");else c(node, st);
+};
+base.VariablePattern = ignore;
+base.MemberPattern = skipThrough;
+base.RestElement = function (node, st, c) {
+  return c(node.argument, st, "Pattern");
+};
+base.ArrayPattern = function (node, st, c) {
+  for (var i = 0; i < node.elements.length; ++i) {
+    var elt = node.elements[i];
+    if (elt) c(elt, st, "Pattern");
+  }
+};
+base.ObjectPattern = function (node, st, c) {
+  for (var i = 0; i < node.properties.length; ++i) {
+    c(node.properties[i].value, st, "Pattern");
+  }
 };
 
 base.Expression = skipThrough;
 base.ThisExpression = base.Super = base.MetaProperty = ignore;
-base.ArrayExpression = base.ArrayPattern = function (node, st, c) {
+base.ArrayExpression = function (node, st, c) {
   for (var i = 0; i < node.elements.length; ++i) {
     var elt = node.elements[i];
     if (elt) c(elt, st, "Expression");
   }
 };
-base.ObjectExpression = base.ObjectPattern = function (node, st, c) {
+base.ObjectExpression = function (node, st, c) {
   for (var i = 0; i < node.properties.length; ++i) {
     c(node.properties[i], st);
   }
@@ -4188,8 +3623,12 @@ base.SequenceExpression = base.TemplateLiteral = function (node, st, c) {
 base.UnaryExpression = base.UpdateExpression = function (node, st, c) {
   c(node.argument, st, "Expression");
 };
-base.BinaryExpression = base.AssignmentExpression = base.AssignmentPattern = base.LogicalExpression = function (node, st, c) {
+base.BinaryExpression = base.LogicalExpression = function (node, st, c) {
   c(node.left, st, "Expression");
+  c(node.right, st, "Expression");
+};
+base.AssignmentExpression = base.AssignmentPattern = function (node, st, c) {
+  c(node.left, st, "Pattern");
   c(node.right, st, "Expression");
 };
 base.ConditionalExpression = function (node, st, c) {
@@ -4208,12 +3647,16 @@ base.MemberExpression = function (node, st, c) {
   if (node.computed) c(node.property, st, "Expression");
 };
 base.ExportNamedDeclaration = base.ExportDefaultDeclaration = function (node, st, c) {
-  return c(node.declaration, st);
+  if (node.declaration) c(node.declaration, st);
+  if (node.source) c(node.source, st, "Expression");
+};
+base.ExportAllDeclaration = function (node, st, c) {
+  c(node.source, st, "Expression");
 };
 base.ImportDeclaration = function (node, st, c) {
   for (var i = 0; i < node.specifiers.length; i++) {
     c(node.specifiers[i], st);
-  }
+  }c(node.source, st, "Expression");
 };
 base.ImportSpecifier = base.ImportDefaultSpecifier = base.ImportNamespaceSpecifier = base.Identifier = base.Literal = ignore;
 
@@ -4222,6 +3665,10 @@ base.TaggedTemplateExpression = function (node, st, c) {
   c(node.quasi, st);
 };
 base.ClassDeclaration = base.ClassExpression = function (node, st, c) {
+  return c(node, st, "Class");
+};
+base.Class = function (node, st, c) {
+  if (node.id) c(node.id, st, "Pattern");
   if (node.superClass) c(node.superClass, st, "Expression");
   for (var i = 0; i < node.body.body.length; i++) {
     c(node.body.body[i], st);
@@ -4242,83 +3689,18 @@ base.ComprehensionExpression = function (node, st, c) {
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.acorn || (g.acorn = {})).loose = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 "use strict";
 
-var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
+module.exports = typeof acorn != 'undefined' ? acorn : require("./acorn");
 
-exports.parse_dammit = parse_dammit;
-exports.__esModule = true;
-// Acorn: Loose parser
-//
-// This module provides an alternative parser (`parse_dammit`) that
-// exposes that same interface as `parse`, but will try to parse
-// anything as JavaScript, repairing syntax error the best it can.
-// There are circumstances in which it will raise an error and give
-// up, but they are very rare. The resulting AST will be a mostly
-// valid JavaScript AST (as per the [Mozilla parser API][api], except
-// that:
-//
-// - Return outside functions is allowed
-//
-// - Label consistency (no conflicts, break only to existing labels)
-//   is not enforced.
-//
-// - Bogus Identifier nodes with a name of `"✖"` are inserted whenever
-//   the parser got too confused to return anything meaningful.
-//
-// [api]: https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
-//
-// The expected use for this is to *first* try `acorn.parse`, and only
-// if that fails switch to `parse_dammit`. The loose parser might
-// parse badly indented code incorrectly, so **don't** use it as
-// your default parser.
-//
-// Quite a lot of acorn.js is duplicated here. The alternative was to
-// add a *lot* of extra cruft to that file, making it less readable
-// and slower. Copying and editing the code allowed me to make
-// invasive changes and simplifications without creating a complicated
-// tangle.
-
-var acorn = _interopRequireWildcard(_dereq_(".."));
+},{}],2:[function(_dereq_,module,exports){
+"use strict";
 
 var _state = _dereq_("./state");
 
-var LooseParser = _state.LooseParser;
+var _parseutil = _dereq_("./parseutil");
 
-_dereq_("./tokenize");
+var _ = _dereq_("..");
 
-_dereq_("./parseutil");
-
-_dereq_("./statement");
-
-_dereq_("./expression");
-
-exports.LooseParser = _state.LooseParser;
-
-acorn.defaultOptions.tabSize = 4;
-
-function parse_dammit(input, options) {
-  var p = new LooseParser(input, options);
-  p.next();
-  return p.parseTopLevel();
-}
-
-acorn.parse_dammit = parse_dammit;
-acorn.LooseParser = LooseParser;
-
-},{"..":2,"./expression":3,"./parseutil":4,"./state":5,"./statement":6,"./tokenize":7}],2:[function(_dereq_,module,exports){
-"use strict";
-
-module.exports = typeof acorn != "undefined" ? acorn : _dereq_("./acorn");
-
-},{}],3:[function(_dereq_,module,exports){
-"use strict";
-
-var LooseParser = _dereq_("./state").LooseParser;
-
-var isDummy = _dereq_("./parseutil").isDummy;
-
-var tt = _dereq_("..").tokTypes;
-
-var lp = LooseParser.prototype;
+var lp = _state.LooseParser.prototype;
 
 lp.checkLVal = function (expr, binding) {
   if (!expr) return expr;
@@ -4329,6 +3711,11 @@ lp.checkLVal = function (expr, binding) {
     case "MemberExpression":
       return binding ? this.dummyIdent() : expr;
 
+    case "ParenthesizedExpression":
+      expr.expression = this.checkLVal(expr.expression, binding);
+      return expr;
+
+    // FIXME recursively check contents
     case "ObjectPattern":
     case "ArrayPattern":
     case "RestElement":
@@ -4343,10 +3730,10 @@ lp.checkLVal = function (expr, binding) {
 lp.parseExpression = function (noIn) {
   var start = this.storeCurrentPos();
   var expr = this.parseMaybeAssign(noIn);
-  if (this.tok.type === tt.comma) {
+  if (this.tok.type === _.tokTypes.comma) {
     var node = this.startNodeAt(start);
     node.expressions = [expr];
-    while (this.eat(tt.comma)) node.expressions.push(this.parseMaybeAssign(noIn));
+    while (this.eat(_.tokTypes.comma)) node.expressions.push(this.parseMaybeAssign(noIn));
     return this.finishNode(node, "SequenceExpression");
   }
   return expr;
@@ -4354,10 +3741,10 @@ lp.parseExpression = function (noIn) {
 
 lp.parseParenExpression = function () {
   this.pushCx();
-  this.expect(tt.parenL);
+  this.expect(_.tokTypes.parenL);
   var val = this.parseExpression();
   this.popCx();
-  this.expect(tt.parenR);
+  this.expect(_.tokTypes.parenR);
   return val;
 };
 
@@ -4367,7 +3754,7 @@ lp.parseMaybeAssign = function (noIn) {
   if (this.tok.type.isAssign) {
     var node = this.startNodeAt(start);
     node.operator = this.tok.value;
-    node.left = this.tok.type === tt.eq ? this.toAssignable(left) : this.checkLVal(left);
+    node.left = this.tok.type === _.tokTypes.eq ? this.toAssignable(left) : this.checkLVal(left);
     this.next();
     node.right = this.parseMaybeAssign(noIn);
     return this.finishNode(node, "AssignmentExpression");
@@ -4378,11 +3765,11 @@ lp.parseMaybeAssign = function (noIn) {
 lp.parseMaybeConditional = function (noIn) {
   var start = this.storeCurrentPos();
   var expr = this.parseExprOps(noIn);
-  if (this.eat(tt.question)) {
+  if (this.eat(_.tokTypes.question)) {
     var node = this.startNodeAt(start);
     node.test = expr;
     node.consequent = this.parseMaybeAssign();
-    node.alternate = this.expect(tt.colon) ? this.parseMaybeAssign(noIn) : this.dummyIdent();
+    node.alternate = this.expect(_.tokTypes.colon) ? this.parseMaybeAssign(noIn) : this.dummyIdent();
     return this.finishNode(node, "ConditionalExpression");
   }
   return expr;
@@ -4398,7 +3785,7 @@ lp.parseExprOps = function (noIn) {
 lp.parseExprOp = function (left, start, minPrec, noIn, indent, line) {
   if (this.curLineStart != line && this.curIndent < indent && this.tokenStartsLine()) return left;
   var prec = this.tok.type.binop;
-  if (prec != null && (!noIn || this.tok.type !== tt._in)) {
+  if (prec != null && (!noIn || this.tok.type !== _.tokTypes._in)) {
     if (prec > minPrec) {
       var node = this.startNodeAt(start);
       node.left = left;
@@ -4420,14 +3807,14 @@ lp.parseExprOp = function (left, start, minPrec, noIn, indent, line) {
 lp.parseMaybeUnary = function (noIn) {
   if (this.tok.type.prefix) {
     var node = this.startNode(),
-        update = this.tok.type === tt.incDec;
+        update = this.tok.type === _.tokTypes.incDec;
     node.operator = this.tok.value;
     node.prefix = true;
     this.next();
     node.argument = this.parseMaybeUnary(noIn);
     if (update) node.argument = this.checkLVal(node.argument);
     return this.finishNode(node, update ? "UpdateExpression" : "UnaryExpression");
-  } else if (this.tok.type === tt.ellipsis) {
+  } else if (this.tok.type === _.tokTypes.ellipsis) {
     var node = this.startNode();
     this.next();
     node.argument = this.parseMaybeUnary(noIn);
@@ -4454,16 +3841,16 @@ lp.parseExprSubscripts = function () {
 lp.parseSubscripts = function (base, start, noCalls, startIndent, line) {
   for (;;) {
     if (this.curLineStart != line && this.curIndent <= startIndent && this.tokenStartsLine()) {
-      if (this.tok.type == tt.dot && this.curIndent == startIndent) --startIndent;else return base;
+      if (this.tok.type == _.tokTypes.dot && this.curIndent == startIndent) --startIndent;else return base;
     }
 
-    if (this.eat(tt.dot)) {
+    if (this.eat(_.tokTypes.dot)) {
       var node = this.startNodeAt(start);
       node.object = base;
       if (this.curLineStart != line && this.curIndent <= startIndent && this.tokenStartsLine()) node.property = this.dummyIdent();else node.property = this.parsePropertyAccessor() || this.dummyIdent();
       node.computed = false;
       base = this.finishNode(node, "MemberExpression");
-    } else if (this.tok.type == tt.bracketL) {
+    } else if (this.tok.type == _.tokTypes.bracketL) {
       this.pushCx();
       this.next();
       var node = this.startNodeAt(start);
@@ -4471,14 +3858,14 @@ lp.parseSubscripts = function (base, start, noCalls, startIndent, line) {
       node.property = this.parseExpression();
       node.computed = true;
       this.popCx();
-      this.expect(tt.bracketR);
+      this.expect(_.tokTypes.bracketR);
       base = this.finishNode(node, "MemberExpression");
-    } else if (!noCalls && this.tok.type == tt.parenL) {
+    } else if (!noCalls && this.tok.type == _.tokTypes.parenL) {
       var node = this.startNodeAt(start);
       node.callee = base;
-      node.arguments = this.parseExprList(tt.parenR);
+      node.arguments = this.parseExprList(_.tokTypes.parenR);
       base = this.finishNode(node, "CallExpression");
-    } else if (this.tok.type == tt.backQuote) {
+    } else if (this.tok.type == _.tokTypes.backQuote) {
       var node = this.startNodeAt(start);
       node.tag = base;
       node.quasi = this.parseTemplate();
@@ -4492,19 +3879,19 @@ lp.parseSubscripts = function (base, start, noCalls, startIndent, line) {
 lp.parseExprAtom = function () {
   var node = undefined;
   switch (this.tok.type) {
-    case tt._this:
-    case tt._super:
-      var type = this.tok.type === tt._this ? "ThisExpression" : "Super";
+    case _.tokTypes._this:
+    case _.tokTypes._super:
+      var type = this.tok.type === _.tokTypes._this ? "ThisExpression" : "Super";
       node = this.startNode();
       this.next();
       return this.finishNode(node, type);
 
-    case tt.name:
+    case _.tokTypes.name:
       var start = this.storeCurrentPos();
       var id = this.parseIdent();
-      return this.eat(tt.arrow) ? this.parseArrowExpression(this.startNodeAt(start), [id]) : id;
+      return this.eat(_.tokTypes.arrow) ? this.parseArrowExpression(this.startNodeAt(start), [id]) : id;
 
-    case tt.regexp:
+    case _.tokTypes.regexp:
       node = this.startNode();
       var val = this.tok.value;
       node.regex = { pattern: val.pattern, flags: val.flags };
@@ -4513,27 +3900,27 @@ lp.parseExprAtom = function () {
       this.next();
       return this.finishNode(node, "Literal");
 
-    case tt.num:case tt.string:
+    case _.tokTypes.num:case _.tokTypes.string:
       node = this.startNode();
       node.value = this.tok.value;
       node.raw = this.input.slice(this.tok.start, this.tok.end);
       this.next();
       return this.finishNode(node, "Literal");
 
-    case tt._null:case tt._true:case tt._false:
+    case _.tokTypes._null:case _.tokTypes._true:case _.tokTypes._false:
       node = this.startNode();
-      node.value = this.tok.type === tt._null ? null : this.tok.type === tt._true;
+      node.value = this.tok.type === _.tokTypes._null ? null : this.tok.type === _.tokTypes._true;
       node.raw = this.tok.type.keyword;
       this.next();
       return this.finishNode(node, "Literal");
 
-    case tt.parenL:
+    case _.tokTypes.parenL:
       var parenStart = this.storeCurrentPos();
       this.next();
       var inner = this.parseExpression();
-      this.expect(tt.parenR);
-      if (this.eat(tt.arrow)) {
-        return this.parseArrowExpression(this.startNodeAt(parenStart), inner.expressions || (isDummy(inner) ? [] : [inner]));
+      this.expect(_.tokTypes.parenR);
+      if (this.eat(_.tokTypes.arrow)) {
+        return this.parseArrowExpression(this.startNodeAt(parenStart), inner.expressions || (_parseutil.isDummy(inner) ? [] : [inner]));
       }
       if (this.options.preserveParens) {
         var par = this.startNodeAt(parenStart);
@@ -4542,38 +3929,38 @@ lp.parseExprAtom = function () {
       }
       return inner;
 
-    case tt.bracketL:
+    case _.tokTypes.bracketL:
       node = this.startNode();
-      node.elements = this.parseExprList(tt.bracketR, true);
+      node.elements = this.parseExprList(_.tokTypes.bracketR, true);
       return this.finishNode(node, "ArrayExpression");
 
-    case tt.braceL:
+    case _.tokTypes.braceL:
       return this.parseObj();
 
-    case tt._class:
+    case _.tokTypes._class:
       return this.parseClass();
 
-    case tt._function:
+    case _.tokTypes._function:
       node = this.startNode();
       this.next();
       return this.parseFunction(node, false);
 
-    case tt._new:
+    case _.tokTypes._new:
       return this.parseNew();
 
-    case tt._yield:
+    case _.tokTypes._yield:
       node = this.startNode();
       this.next();
-      if (this.semicolon() || this.canInsertSemicolon() || this.tok.type != tt.star && !this.tok.type.startsExpr) {
+      if (this.semicolon() || this.canInsertSemicolon() || this.tok.type != _.tokTypes.star && !this.tok.type.startsExpr) {
         node.delegate = false;
         node.argument = null;
       } else {
-        node.delegate = this.eat(tt.star);
+        node.delegate = this.eat(_.tokTypes.star);
         node.argument = this.parseMaybeAssign();
       }
       return this.finishNode(node, "YieldExpression");
 
-    case tt.backQuote:
+    case _.tokTypes.backQuote:
       return this.parseTemplate();
 
     default:
@@ -4586,15 +3973,15 @@ lp.parseNew = function () {
       startIndent = this.curIndent,
       line = this.curLineStart;
   var meta = this.parseIdent(true);
-  if (this.options.ecmaVersion >= 6 && this.eat(tt.dot)) {
+  if (this.options.ecmaVersion >= 6 && this.eat(_.tokTypes.dot)) {
     node.meta = meta;
     node.property = this.parseIdent(true);
     return this.finishNode(node, "MetaProperty");
   }
   var start = this.storeCurrentPos();
   node.callee = this.parseSubscripts(this.parseExprAtom(), start, true, startIndent, line);
-  if (this.tok.type == tt.parenL) {
-    node.arguments = this.parseExprList(tt.parenR);
+  if (this.tok.type == _.tokTypes.parenL) {
+    node.arguments = this.parseExprList(_.tokTypes.parenR);
   } else {
     node.arguments = [];
   }
@@ -4604,11 +3991,11 @@ lp.parseNew = function () {
 lp.parseTemplateElement = function () {
   var elem = this.startNode();
   elem.value = {
-    raw: this.input.slice(this.tok.start, this.tok.end),
+    raw: this.input.slice(this.tok.start, this.tok.end).replace(/\r\n?/g, "\n"),
     cooked: this.tok.value
   };
   this.next();
-  elem.tail = this.tok.type === tt.backQuote;
+  elem.tail = this.tok.type === _.tokTypes.backQuote;
   return this.finishNode(elem, "TemplateElement");
 };
 
@@ -4621,7 +4008,7 @@ lp.parseTemplate = function () {
   while (!curElt.tail) {
     this.next();
     node.expressions.push(this.parseExpression());
-    if (this.expect(tt.braceR)) {
+    if (this.expect(_.tokTypes.braceR)) {
       curElt = this.parseTemplateElement();
     } else {
       curElt = this.startNode();
@@ -4630,7 +4017,7 @@ lp.parseTemplate = function () {
     }
     node.quasis.push(curElt);
   }
-  this.expect(tt.backQuote);
+  this.expect(_.tokTypes.backQuote);
   return this.finishNode(node, "TemplateLiteral");
 };
 
@@ -4640,11 +4027,11 @@ lp.parseObj = function () {
   this.pushCx();
   var indent = this.curIndent + 1,
       line = this.curLineStart;
-  this.eat(tt.braceL);
+  this.eat(_.tokTypes.braceL);
   if (this.curIndent + 1 < indent) {
     indent = this.curIndent;line = this.curLineStart;
   }
-  while (!this.closes(tt.braceR, indent, line)) {
+  while (!this.closes(_.tokTypes.braceR, indent, line)) {
     var prop = this.startNode(),
         isGenerator = undefined,
         start = undefined;
@@ -4652,27 +4039,27 @@ lp.parseObj = function () {
       start = this.storeCurrentPos();
       prop.method = false;
       prop.shorthand = false;
-      isGenerator = this.eat(tt.star);
+      isGenerator = this.eat(_.tokTypes.star);
     }
     this.parsePropertyName(prop);
-    if (isDummy(prop.key)) {
-      if (isDummy(this.parseMaybeAssign())) this.next();this.eat(tt.comma);continue;
+    if (_parseutil.isDummy(prop.key)) {
+      if (_parseutil.isDummy(this.parseMaybeAssign())) this.next();this.eat(_.tokTypes.comma);continue;
     }
-    if (this.eat(tt.colon)) {
+    if (this.eat(_.tokTypes.colon)) {
       prop.kind = "init";
       prop.value = this.parseMaybeAssign();
-    } else if (this.options.ecmaVersion >= 6 && (this.tok.type === tt.parenL || this.tok.type === tt.braceL)) {
+    } else if (this.options.ecmaVersion >= 6 && (this.tok.type === _.tokTypes.parenL || this.tok.type === _.tokTypes.braceL)) {
       prop.kind = "init";
       prop.method = true;
       prop.value = this.parseMethod(isGenerator);
-    } else if (this.options.ecmaVersion >= 5 && prop.key.type === "Identifier" && !prop.computed && (prop.key.name === "get" || prop.key.name === "set") && (this.tok.type != tt.comma && this.tok.type != tt.braceR)) {
+    } else if (this.options.ecmaVersion >= 5 && prop.key.type === "Identifier" && !prop.computed && (prop.key.name === "get" || prop.key.name === "set") && (this.tok.type != _.tokTypes.comma && this.tok.type != _.tokTypes.braceR)) {
       prop.kind = prop.key.name;
       this.parsePropertyName(prop);
       prop.value = this.parseMethod(false);
     } else {
       prop.kind = "init";
       if (this.options.ecmaVersion >= 6) {
-        if (this.eat(tt.eq)) {
+        if (this.eat(_.tokTypes.eq)) {
           var assign = this.startNodeAt(start);
           assign.operator = "=";
           assign.left = prop.key;
@@ -4687,10 +4074,10 @@ lp.parseObj = function () {
       prop.shorthand = true;
     }
     node.properties.push(this.finishNode(prop, "Property"));
-    this.eat(tt.comma);
+    this.eat(_.tokTypes.comma);
   }
   this.popCx();
-  if (!this.eat(tt.braceR)) {
+  if (!this.eat(_.tokTypes.braceR)) {
     // If there is no closing brace, make the node span to the start
     // of the next token (this is useful for Tern)
     this.last.end = this.tok.start;
@@ -4701,25 +4088,25 @@ lp.parseObj = function () {
 
 lp.parsePropertyName = function (prop) {
   if (this.options.ecmaVersion >= 6) {
-    if (this.eat(tt.bracketL)) {
+    if (this.eat(_.tokTypes.bracketL)) {
       prop.computed = true;
       prop.key = this.parseExpression();
-      this.expect(tt.bracketR);
+      this.expect(_.tokTypes.bracketR);
       return;
     } else {
       prop.computed = false;
     }
   }
-  var key = this.tok.type === tt.num || this.tok.type === tt.string ? this.parseExprAtom() : this.parseIdent();
+  var key = this.tok.type === _.tokTypes.num || this.tok.type === _.tokTypes.string ? this.parseExprAtom() : this.parseIdent();
   prop.key = key || this.dummyIdent();
 };
 
 lp.parsePropertyAccessor = function () {
-  if (this.tok.type === tt.name || this.tok.type.keyword) return this.parseIdent();
+  if (this.tok.type === _.tokTypes.name || this.tok.type.keyword) return this.parseIdent();
 };
 
 lp.parseIdent = function () {
-  var name = this.tok.type === tt.name ? this.tok.value : this.tok.type.keyword;
+  var name = this.tok.type === _.tokTypes.name ? this.tok.value : this.tok.type.keyword;
   if (!name) return this.dummyIdent();
   var node = this.startNode();
   this.next();
@@ -4761,6 +4148,7 @@ lp.toAssignable = function (node, binding) {
 
       case "AssignmentExpression":
         node.type = "AssignmentPattern";
+        delete node.operator;
         break;
     }
   }
@@ -4774,7 +4162,7 @@ lp.toAssignableList = function (exprList, binding) {
 };
 
 lp.parseFunctionParams = function (params) {
-  params = this.parseExprList(tt.parenR);
+  params = this.parseExprList(_.tokTypes.parenR);
   return this.toAssignableList(params, true);
 };
 
@@ -4783,7 +4171,7 @@ lp.parseMethod = function (isGenerator) {
   this.initFunction(node);
   node.params = this.parseFunctionParams();
   node.generator = isGenerator || false;
-  node.expression = this.options.ecmaVersion >= 6 && this.tok.type !== tt.braceL;
+  node.expression = this.options.ecmaVersion >= 6 && this.tok.type !== _.tokTypes.braceL;
   node.body = node.expression ? this.parseMaybeAssign() : this.parseBlock();
   return this.finishNode(node, "FunctionExpression");
 };
@@ -4791,7 +4179,7 @@ lp.parseMethod = function (isGenerator) {
 lp.parseArrowExpression = function (node, params) {
   this.initFunction(node);
   node.params = this.toAssignableList(params, true);
-  node.expression = this.tok.type !== tt.braceL;
+  node.expression = this.tok.type !== _.tokTypes.braceL;
   node.body = node.expression ? this.parseMaybeAssign() : this.parseBlock();
   return this.finishNode(node, "ArrowFunctionExpression");
 };
@@ -4803,18 +4191,18 @@ lp.parseExprList = function (close, allowEmpty) {
       elts = [];
   this.next(); // Opening bracket
   while (!this.closes(close, indent + 1, line)) {
-    if (this.eat(tt.comma)) {
+    if (this.eat(_.tokTypes.comma)) {
       elts.push(allowEmpty ? null : this.dummyIdent());
       continue;
     }
     var elt = this.parseMaybeAssign();
-    if (isDummy(elt)) {
+    if (_parseutil.isDummy(elt)) {
       if (this.closes(close, indent, line)) break;
       this.next();
     } else {
       elts.push(elt);
     }
-    this.eat(tt.comma);
+    this.eat(_.tokTypes.comma);
   }
   this.popCx();
   if (!this.eat(close)) {
@@ -4826,183 +4214,233 @@ lp.parseExprList = function (close, allowEmpty) {
   return elts;
 };
 
-},{"..":2,"./parseutil":4,"./state":5}],4:[function(_dereq_,module,exports){
+},{"..":1,"./parseutil":4,"./state":5}],3:[function(_dereq_,module,exports){
+// Acorn: Loose parser
+//
+// This module provides an alternative parser (`parse_dammit`) that
+// exposes that same interface as `parse`, but will try to parse
+// anything as JavaScript, repairing syntax error the best it can.
+// There are circumstances in which it will raise an error and give
+// up, but they are very rare. The resulting AST will be a mostly
+// valid JavaScript AST (as per the [Mozilla parser API][api], except
+// that:
+//
+// - Return outside functions is allowed
+//
+// - Label consistency (no conflicts, break only to existing labels)
+//   is not enforced.
+//
+// - Bogus Identifier nodes with a name of `"✖"` are inserted whenever
+//   the parser got too confused to return anything meaningful.
+//
+// [api]: https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
+//
+// The expected use for this is to *first* try `acorn.parse`, and only
+// if that fails switch to `parse_dammit`. The loose parser might
+// parse badly indented code incorrectly, so **don't** use it as
+// your default parser.
+//
+// Quite a lot of acorn.js is duplicated here. The alternative was to
+// add a *lot* of extra cruft to that file, making it less readable
+// and slower. Copying and editing the code allowed me to make
+// invasive changes and simplifications without creating a complicated
+// tangle.
+
 "use strict";
 
-exports.isDummy = isDummy;
 exports.__esModule = true;
+exports.parse_dammit = parse_dammit;
 
-var LooseParser = _dereq_("./state").LooseParser;
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
 
 var _ = _dereq_("..");
 
-var Node = _.Node;
-var SourceLocation = _.SourceLocation;
-var lineBreak = _.lineBreak;
-var isNewLine = _.isNewLine;
-var tt = _.tokTypes;
+var acorn = _interopRequireWildcard(_);
 
-var lp = LooseParser.prototype;
+var _state = _dereq_("./state");
 
-lp.startNode = function () {
-  var node = new Node();
-  node.start = this.tok.start;
-  if (this.options.locations) node.loc = new SourceLocation(this.toks, this.tok.loc.start);
-  if (this.options.directSourceFile) node.sourceFile = this.options.directSourceFile;
-  if (this.options.ranges) node.range = [this.tok.start, 0];
-  return node;
-};
+_dereq_("./tokenize");
 
-lp.storeCurrentPos = function () {
-  return this.options.locations ? [this.tok.start, this.tok.loc.start] : this.tok.start;
-};
+_dereq_("./statement");
 
-lp.startNodeAt = function (pos) {
-  var node = new Node();
-  if (this.options.locations) {
-    node.start = pos[0];
-    node.loc = new SourceLocation(this.toks, pos[1]);
-    pos = pos[0];
-  } else {
-    node.start = pos;
-  }
-  if (this.options.directSourceFile) node.sourceFile = this.options.directSourceFile;
-  if (this.options.ranges) node.range = [pos, 0];
-  return node;
-};
+_dereq_("./expression");
 
-lp.finishNode = function (node, type) {
-  node.type = type;
-  node.end = this.last.end;
-  if (this.options.locations) node.loc.end = this.last.loc.end;
-  if (this.options.ranges) node.range[1] = this.last.end;
-  return node;
-};
+exports.LooseParser = _state.LooseParser;
 
-lp.dummyIdent = function () {
-  var dummy = this.startNode();
-  dummy.name = "✖";
-  return this.finishNode(dummy, "Identifier");
-};
+acorn.defaultOptions.tabSize = 4;
+
+function parse_dammit(input, options) {
+  var p = new _state.LooseParser(input, options);
+  p.next();
+  return p.parseTopLevel();
+}
+
+acorn.parse_dammit = parse_dammit;
+acorn.LooseParser = _state.LooseParser;
+
+},{"..":1,"./expression":2,"./state":5,"./statement":6,"./tokenize":7}],4:[function(_dereq_,module,exports){
+"use strict";
+
+exports.__esModule = true;
+exports.isDummy = isDummy;
 
 function isDummy(node) {
   return node.name == "✖";
 }
 
-lp.eat = function (type) {
-  if (this.tok.type === type) {
-    this.next();
-    return true;
-  } else {
-    return false;
-  }
-};
-
-lp.isContextual = function (name) {
-  return this.tok.type === tt.name && this.tok.value === name;
-};
-
-lp.eatContextual = function (name) {
-  return this.tok.value === name && this.eat(tt.name);
-};
-
-lp.canInsertSemicolon = function () {
-  return this.tok.type === tt.eof || this.tok.type === tt.braceR || lineBreak.test(this.input.slice(this.last.end, this.tok.start));
-};
-
-lp.semicolon = function () {
-  return this.eat(tt.semi);
-};
-
-lp.expect = function (type) {
-  if (this.eat(type)) return true;
-  for (var i = 1; i <= 2; i++) {
-    if (this.lookAhead(i).type == type) {
-      for (var j = 0; j < i; j++) {
-        this.next();
-      }return true;
-    }
-  }
-};
-
-lp.pushCx = function () {
-  this.context.push(this.curIndent);
-};
-lp.popCx = function () {
-  this.curIndent = this.context.pop();
-};
-
-lp.lineEnd = function (pos) {
-  while (pos < this.input.length && !isNewLine(this.input.charCodeAt(pos))) ++pos;
-  return pos;
-};
-
-lp.indentationAfter = function (pos) {
-  for (var count = 0;; ++pos) {
-    var ch = this.input.charCodeAt(pos);
-    if (ch === 32) ++count;else if (ch === 9) count += this.options.tabSize;else return count;
-  }
-};
-
-lp.closes = function (closeTok, indent, line, blockHeuristic) {
-  if (this.tok.type === closeTok || this.tok.type === tt.eof) return true;
-  return line != this.curLineStart && this.curIndent < indent && this.tokenStartsLine() && (!blockHeuristic || this.nextLineStart >= this.input.length || this.indentationAfter(this.nextLineStart) < indent);
-};
-
-lp.tokenStartsLine = function () {
-  for (var p = this.tok.start - 1; p >= this.curLineStart; --p) {
-    var ch = this.input.charCodeAt(p);
-    if (ch !== 9 && ch !== 32) return false;
-  }
-  return true;
-};
-
-},{"..":2,"./state":5}],5:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 "use strict";
 
-exports.LooseParser = LooseParser;
 exports.__esModule = true;
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var _ = _dereq_("..");
 
-var tokenizer = _.tokenizer;
-var SourceLocation = _.SourceLocation;
-var tt = _.tokTypes;
+var LooseParser = (function () {
+  function LooseParser(input, options) {
+    _classCallCheck(this, LooseParser);
 
-function LooseParser(input, options) {
-  this.toks = tokenizer(input, options);
-  this.options = this.toks.options;
-  this.input = this.toks.input;
-  this.tok = this.last = { type: tt.eof, start: 0, end: 0 };
-  if (this.options.locations) {
-    var here = this.toks.curPosition();
-    this.tok.loc = new SourceLocation(this.toks, here, here);
+    this.toks = _.tokenizer(input, options);
+    this.options = this.toks.options;
+    this.input = this.toks.input;
+    this.tok = this.last = { type: _.tokTypes.eof, start: 0, end: 0 };
+    if (this.options.locations) {
+      var here = this.toks.curPosition();
+      this.tok.loc = new _.SourceLocation(this.toks, here, here);
+    }
+    this.ahead = []; // Tokens ahead
+    this.context = []; // Indentation contexted
+    this.curIndent = 0;
+    this.curLineStart = 0;
+    this.nextLineStart = this.lineEnd(this.curLineStart) + 1;
   }
-  this.ahead = []; // Tokens ahead
-  this.context = []; // Indentation contexted
-  this.curIndent = 0;
-  this.curLineStart = 0;
-  this.nextLineStart = this.lineEnd(this.curLineStart) + 1;
-}
 
-},{"..":2}],6:[function(_dereq_,module,exports){
+  LooseParser.prototype.startNode = function startNode() {
+    return new _.Node(this.toks, this.tok.start, this.options.locations ? this.tok.loc.start : null);
+  };
+
+  LooseParser.prototype.storeCurrentPos = function storeCurrentPos() {
+    return this.options.locations ? [this.tok.start, this.tok.loc.start] : this.tok.start;
+  };
+
+  LooseParser.prototype.startNodeAt = function startNodeAt(pos) {
+    if (this.options.locations) {
+      return new _.Node(this.toks, pos[0], pos[1]);
+    } else {
+      return new _.Node(this.toks, pos);
+    }
+  };
+
+  LooseParser.prototype.finishNode = function finishNode(node, type) {
+    node.type = type;
+    node.end = this.last.end;
+    if (this.options.locations) node.loc.end = this.last.loc.end;
+    if (this.options.ranges) node.range[1] = this.last.end;
+    return node;
+  };
+
+  LooseParser.prototype.dummyIdent = function dummyIdent() {
+    var dummy = this.startNode();
+    dummy.name = "✖";
+    return this.finishNode(dummy, "Identifier");
+  };
+
+  LooseParser.prototype.dummyString = function dummyString() {
+    var dummy = this.startNode();
+    dummy.value = dummy.raw = "✖";
+    return this.finishNode(dummy, "Literal");
+  };
+
+  LooseParser.prototype.eat = function eat(type) {
+    if (this.tok.type === type) {
+      this.next();
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  LooseParser.prototype.isContextual = function isContextual(name) {
+    return this.tok.type === _.tokTypes.name && this.tok.value === name;
+  };
+
+  LooseParser.prototype.eatContextual = function eatContextual(name) {
+    return this.tok.value === name && this.eat(_.tokTypes.name);
+  };
+
+  LooseParser.prototype.canInsertSemicolon = function canInsertSemicolon() {
+    return this.tok.type === _.tokTypes.eof || this.tok.type === _.tokTypes.braceR || _.lineBreak.test(this.input.slice(this.last.end, this.tok.start));
+  };
+
+  LooseParser.prototype.semicolon = function semicolon() {
+    return this.eat(_.tokTypes.semi);
+  };
+
+  LooseParser.prototype.expect = function expect(type) {
+    if (this.eat(type)) return true;
+    for (var i = 1; i <= 2; i++) {
+      if (this.lookAhead(i).type == type) {
+        for (var j = 0; j < i; j++) {
+          this.next();
+        }return true;
+      }
+    }
+  };
+
+  LooseParser.prototype.pushCx = function pushCx() {
+    this.context.push(this.curIndent);
+  };
+
+  LooseParser.prototype.popCx = function popCx() {
+    this.curIndent = this.context.pop();
+  };
+
+  LooseParser.prototype.lineEnd = function lineEnd(pos) {
+    while (pos < this.input.length && !_.isNewLine(this.input.charCodeAt(pos))) ++pos;
+    return pos;
+  };
+
+  LooseParser.prototype.indentationAfter = function indentationAfter(pos) {
+    for (var count = 0;; ++pos) {
+      var ch = this.input.charCodeAt(pos);
+      if (ch === 32) ++count;else if (ch === 9) count += this.options.tabSize;else return count;
+    }
+  };
+
+  LooseParser.prototype.closes = function closes(closeTok, indent, line, blockHeuristic) {
+    if (this.tok.type === closeTok || this.tok.type === _.tokTypes.eof) return true;
+    return line != this.curLineStart && this.curIndent < indent && this.tokenStartsLine() && (!blockHeuristic || this.nextLineStart >= this.input.length || this.indentationAfter(this.nextLineStart) < indent);
+  };
+
+  LooseParser.prototype.tokenStartsLine = function tokenStartsLine() {
+    for (var p = this.tok.start - 1; p >= this.curLineStart; --p) {
+      var ch = this.input.charCodeAt(p);
+      if (ch !== 9 && ch !== 32) return false;
+    }
+    return true;
+  };
+
+  return LooseParser;
+})();
+
+exports.LooseParser = LooseParser;
+
+},{"..":1}],6:[function(_dereq_,module,exports){
 "use strict";
 
-var LooseParser = _dereq_("./state").LooseParser;
+var _state = _dereq_("./state");
 
-var isDummy = _dereq_("./parseutil").isDummy;
+var _parseutil = _dereq_("./parseutil");
 
 var _ = _dereq_("..");
 
-var getLineInfo = _.getLineInfo;
-var tt = _.tokTypes;
-
-var lp = LooseParser.prototype;
+var lp = _state.LooseParser.prototype;
 
 lp.parseTopLevel = function () {
-  var node = this.startNodeAt(this.options.locations ? [0, getLineInfo(this.input, 0)] : 0);
+  var node = this.startNodeAt(this.options.locations ? [0, _.getLineInfo(this.input, 0)] : 0);
   node.body = [];
-  while (this.tok.type !== tt.eof) node.body.push(this.parseStatement());
+  while (this.tok.type !== _.tokTypes.eof) node.body.push(this.parseStatement());
   this.last = this.tok;
   if (this.options.ecmaVersion >= 6) {
     node.sourceType = this.options.sourceType;
@@ -5015,82 +4453,82 @@ lp.parseStatement = function () {
       node = this.startNode();
 
   switch (starttype) {
-    case tt._break:case tt._continue:
+    case _.tokTypes._break:case _.tokTypes._continue:
       this.next();
-      var isBreak = starttype === tt._break;
+      var isBreak = starttype === _.tokTypes._break;
       if (this.semicolon() || this.canInsertSemicolon()) {
         node.label = null;
       } else {
-        node.label = this.tok.type === tt.name ? this.parseIdent() : null;
+        node.label = this.tok.type === _.tokTypes.name ? this.parseIdent() : null;
         this.semicolon();
       }
       return this.finishNode(node, isBreak ? "BreakStatement" : "ContinueStatement");
 
-    case tt._debugger:
+    case _.tokTypes._debugger:
       this.next();
       this.semicolon();
       return this.finishNode(node, "DebuggerStatement");
 
-    case tt._do:
+    case _.tokTypes._do:
       this.next();
       node.body = this.parseStatement();
-      node.test = this.eat(tt._while) ? this.parseParenExpression() : this.dummyIdent();
+      node.test = this.eat(_.tokTypes._while) ? this.parseParenExpression() : this.dummyIdent();
       this.semicolon();
       return this.finishNode(node, "DoWhileStatement");
 
-    case tt._for:
+    case _.tokTypes._for:
       this.next();
       this.pushCx();
-      this.expect(tt.parenL);
-      if (this.tok.type === tt.semi) return this.parseFor(node, null);
-      if (this.tok.type === tt._var || this.tok.type === tt._let || this.tok.type === tt._const) {
+      this.expect(_.tokTypes.parenL);
+      if (this.tok.type === _.tokTypes.semi) return this.parseFor(node, null);
+      if (this.tok.type === _.tokTypes._var || this.tok.type === _.tokTypes._let || this.tok.type === _.tokTypes._const) {
         var _init = this.parseVar(true);
-        if (_init.declarations.length === 1 && (this.tok.type === tt._in || this.isContextual("of"))) {
+        if (_init.declarations.length === 1 && (this.tok.type === _.tokTypes._in || this.isContextual("of"))) {
           return this.parseForIn(node, _init);
         }
         return this.parseFor(node, _init);
       }
       var init = this.parseExpression(true);
-      if (this.tok.type === tt._in || this.isContextual("of")) return this.parseForIn(node, this.toAssignable(init));
+      if (this.tok.type === _.tokTypes._in || this.isContextual("of")) return this.parseForIn(node, this.toAssignable(init));
       return this.parseFor(node, init);
 
-    case tt._function:
+    case _.tokTypes._function:
       this.next();
       return this.parseFunction(node, true);
 
-    case tt._if:
+    case _.tokTypes._if:
       this.next();
       node.test = this.parseParenExpression();
       node.consequent = this.parseStatement();
-      node.alternate = this.eat(tt._else) ? this.parseStatement() : null;
+      node.alternate = this.eat(_.tokTypes._else) ? this.parseStatement() : null;
       return this.finishNode(node, "IfStatement");
 
-    case tt._return:
+    case _.tokTypes._return:
       this.next();
-      if (this.eat(tt.semi) || this.canInsertSemicolon()) node.argument = null;else {
+      if (this.eat(_.tokTypes.semi) || this.canInsertSemicolon()) node.argument = null;else {
         node.argument = this.parseExpression();this.semicolon();
       }
       return this.finishNode(node, "ReturnStatement");
 
-    case tt._switch:
+    case _.tokTypes._switch:
       var blockIndent = this.curIndent,
           line = this.curLineStart;
       this.next();
       node.discriminant = this.parseParenExpression();
       node.cases = [];
       this.pushCx();
-      this.expect(tt.braceL);
+      this.expect(_.tokTypes.braceL);
 
       var cur = undefined;
-      while (!this.closes(tt.braceR, blockIndent, line, true)) {
-        if (this.tok.type === tt._case || this.tok.type === tt._default) {
-          var isCase = this.tok.type === tt._case;
+      while (!this.closes(_.tokTypes.braceR, blockIndent, line, true)) {
+        if (this.tok.type === _.tokTypes._case || this.tok.type === _.tokTypes._default) {
+          var isCase = this.tok.type === _.tokTypes._case;
           if (cur) this.finishNode(cur, "SwitchCase");
           node.cases.push(cur = this.startNode());
           cur.consequent = [];
           this.next();
           if (isCase) cur.test = this.parseExpression();else cur.test = null;
-          this.expect(tt.colon);
+          this.expect(_.tokTypes.colon);
         } else {
           if (!cur) {
             node.cases.push(cur = this.startNode());
@@ -5102,73 +4540,73 @@ lp.parseStatement = function () {
       }
       if (cur) this.finishNode(cur, "SwitchCase");
       this.popCx();
-      this.eat(tt.braceR);
+      this.eat(_.tokTypes.braceR);
       return this.finishNode(node, "SwitchStatement");
 
-    case tt._throw:
+    case _.tokTypes._throw:
       this.next();
       node.argument = this.parseExpression();
       this.semicolon();
       return this.finishNode(node, "ThrowStatement");
 
-    case tt._try:
+    case _.tokTypes._try:
       this.next();
       node.block = this.parseBlock();
       node.handler = null;
-      if (this.tok.type === tt._catch) {
+      if (this.tok.type === _.tokTypes._catch) {
         var clause = this.startNode();
         this.next();
-        this.expect(tt.parenL);
+        this.expect(_.tokTypes.parenL);
         clause.param = this.toAssignable(this.parseExprAtom(), true);
-        this.expect(tt.parenR);
+        this.expect(_.tokTypes.parenR);
         clause.guard = null;
         clause.body = this.parseBlock();
         node.handler = this.finishNode(clause, "CatchClause");
       }
-      node.finalizer = this.eat(tt._finally) ? this.parseBlock() : null;
+      node.finalizer = this.eat(_.tokTypes._finally) ? this.parseBlock() : null;
       if (!node.handler && !node.finalizer) return node.block;
       return this.finishNode(node, "TryStatement");
 
-    case tt._var:
-    case tt._let:
-    case tt._const:
+    case _.tokTypes._var:
+    case _.tokTypes._let:
+    case _.tokTypes._const:
       return this.parseVar();
 
-    case tt._while:
+    case _.tokTypes._while:
       this.next();
       node.test = this.parseParenExpression();
       node.body = this.parseStatement();
       return this.finishNode(node, "WhileStatement");
 
-    case tt._with:
+    case _.tokTypes._with:
       this.next();
       node.object = this.parseParenExpression();
       node.body = this.parseStatement();
       return this.finishNode(node, "WithStatement");
 
-    case tt.braceL:
+    case _.tokTypes.braceL:
       return this.parseBlock();
 
-    case tt.semi:
+    case _.tokTypes.semi:
       this.next();
       return this.finishNode(node, "EmptyStatement");
 
-    case tt._class:
+    case _.tokTypes._class:
       return this.parseClass(true);
 
-    case tt._import:
+    case _.tokTypes._import:
       return this.parseImport();
 
-    case tt._export:
+    case _.tokTypes._export:
       return this.parseExport();
 
     default:
       var expr = this.parseExpression();
-      if (isDummy(expr)) {
+      if (_parseutil.isDummy(expr)) {
         this.next();
-        if (this.tok.type === tt.eof) return this.finishNode(node, "EmptyStatement");
+        if (this.tok.type === _.tokTypes.eof) return this.finishNode(node, "EmptyStatement");
         return this.parseStatement();
-      } else if (starttype === tt.name && expr.type === "Identifier" && this.eat(tt.colon)) {
+      } else if (starttype === _.tokTypes.name && expr.type === "Identifier" && this.eat(_.tokTypes.colon)) {
         node.body = this.parseStatement();
         node.label = expr;
         return this.finishNode(node, "LabeledStatement");
@@ -5183,34 +4621,34 @@ lp.parseStatement = function () {
 lp.parseBlock = function () {
   var node = this.startNode();
   this.pushCx();
-  this.expect(tt.braceL);
+  this.expect(_.tokTypes.braceL);
   var blockIndent = this.curIndent,
       line = this.curLineStart;
   node.body = [];
-  while (!this.closes(tt.braceR, blockIndent, line, true)) node.body.push(this.parseStatement());
+  while (!this.closes(_.tokTypes.braceR, blockIndent, line, true)) node.body.push(this.parseStatement());
   this.popCx();
-  this.eat(tt.braceR);
+  this.eat(_.tokTypes.braceR);
   return this.finishNode(node, "BlockStatement");
 };
 
 lp.parseFor = function (node, init) {
   node.init = init;
   node.test = node.update = null;
-  if (this.eat(tt.semi) && this.tok.type !== tt.semi) node.test = this.parseExpression();
-  if (this.eat(tt.semi) && this.tok.type !== tt.parenR) node.update = this.parseExpression();
+  if (this.eat(_.tokTypes.semi) && this.tok.type !== _.tokTypes.semi) node.test = this.parseExpression();
+  if (this.eat(_.tokTypes.semi) && this.tok.type !== _.tokTypes.parenR) node.update = this.parseExpression();
   this.popCx();
-  this.expect(tt.parenR);
+  this.expect(_.tokTypes.parenR);
   node.body = this.parseStatement();
   return this.finishNode(node, "ForStatement");
 };
 
 lp.parseForIn = function (node, init) {
-  var type = this.tok.type === tt._in ? "ForInStatement" : "ForOfStatement";
+  var type = this.tok.type === _.tokTypes._in ? "ForInStatement" : "ForOfStatement";
   this.next();
   node.left = init;
   node.right = this.parseExpression();
   this.popCx();
-  this.expect(tt.parenR);
+  this.expect(_.tokTypes.parenR);
   node.body = this.parseStatement();
   return this.finishNode(node, type);
 };
@@ -5223,9 +4661,9 @@ lp.parseVar = function (noIn) {
   do {
     var decl = this.startNode();
     decl.id = this.options.ecmaVersion >= 6 ? this.toAssignable(this.parseExprAtom(), true) : this.parseIdent();
-    decl.init = this.eat(tt.eq) ? this.parseMaybeAssign(noIn) : null;
+    decl.init = this.eat(_.tokTypes.eq) ? this.parseMaybeAssign(noIn) : null;
     node.declarations.push(this.finishNode(decl, "VariableDeclarator"));
-  } while (this.eat(tt.comma));
+  } while (this.eat(_.tokTypes.comma));
   if (!node.declarations.length) {
     var decl = this.startNode();
     decl.id = this.dummyIdent();
@@ -5238,38 +4676,37 @@ lp.parseVar = function (noIn) {
 lp.parseClass = function (isStatement) {
   var node = this.startNode();
   this.next();
-  if (this.tok.type === tt.name) node.id = this.parseIdent();else if (isStatement) node.id = this.dummyIdent();else node.id = null;
-  node.superClass = this.eat(tt._extends) ? this.parseExpression() : null;
+  if (this.tok.type === _.tokTypes.name) node.id = this.parseIdent();else if (isStatement) node.id = this.dummyIdent();else node.id = null;
+  node.superClass = this.eat(_.tokTypes._extends) ? this.parseExpression() : null;
   node.body = this.startNode();
   node.body.body = [];
   this.pushCx();
   var indent = this.curIndent + 1,
       line = this.curLineStart;
-  this.eat(tt.braceL);
+  this.eat(_.tokTypes.braceL);
   if (this.curIndent + 1 < indent) {
     indent = this.curIndent;line = this.curLineStart;
   }
-  while (!this.closes(tt.braceR, indent, line)) {
+  while (!this.closes(_.tokTypes.braceR, indent, line)) {
     if (this.semicolon()) continue;
     var method = this.startNode(),
-        isGenerator = undefined,
-        start = undefined;
+        isGenerator = undefined;
     if (this.options.ecmaVersion >= 6) {
       method["static"] = false;
-      isGenerator = this.eat(tt.star);
+      isGenerator = this.eat(_.tokTypes.star);
     }
     this.parsePropertyName(method);
-    if (isDummy(method.key)) {
-      if (isDummy(this.parseMaybeAssign())) this.next();this.eat(tt.comma);continue;
+    if (_parseutil.isDummy(method.key)) {
+      if (_parseutil.isDummy(this.parseMaybeAssign())) this.next();this.eat(_.tokTypes.comma);continue;
     }
-    if (method.key.type === "Identifier" && !method.computed && method.key.name === "static" && (this.tok.type != tt.parenL && this.tok.type != tt.braceL)) {
+    if (method.key.type === "Identifier" && !method.computed && method.key.name === "static" && (this.tok.type != _.tokTypes.parenL && this.tok.type != _.tokTypes.braceL)) {
       method["static"] = true;
-      isGenerator = this.eat(tt.star);
+      isGenerator = this.eat(_.tokTypes.star);
       this.parsePropertyName(method);
     } else {
       method["static"] = false;
     }
-    if (this.options.ecmaVersion >= 5 && method.key.type === "Identifier" && !method.computed && (method.key.name === "get" || method.key.name === "set") && this.tok.type !== tt.parenL && this.tok.type !== tt.braceL) {
+    if (this.options.ecmaVersion >= 5 && method.key.type === "Identifier" && !method.computed && (method.key.name === "get" || method.key.name === "set") && this.tok.type !== _.tokTypes.parenL && this.tok.type !== _.tokTypes.braceL) {
       method.kind = method.key.name;
       this.parsePropertyName(method);
       method.value = this.parseMethod(false);
@@ -5284,7 +4721,7 @@ lp.parseClass = function (isStatement) {
     node.body.body.push(this.finishNode(method, "MethodDefinition"));
   }
   this.popCx();
-  if (!this.eat(tt.braceR)) {
+  if (!this.eat(_.tokTypes.braceR)) {
     // If there is no closing brace, make the node span to the start
     // of the next token (this is useful for Tern)
     this.last.end = this.tok.start;
@@ -5298,9 +4735,9 @@ lp.parseClass = function (isStatement) {
 lp.parseFunction = function (node, isStatement) {
   this.initFunction(node);
   if (this.options.ecmaVersion >= 6) {
-    node.generator = this.eat(tt.star);
+    node.generator = this.eat(_.tokTypes.star);
   }
-  if (this.tok.type === tt.name) node.id = this.parseIdent();else if (isStatement) node.id = this.dummyIdent();
+  if (this.tok.type === _.tokTypes.name) node.id = this.parseIdent();else if (isStatement) node.id = this.dummyIdent();
   node.params = this.parseFunctionParams();
   node.body = this.parseBlock();
   return this.finishNode(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
@@ -5309,11 +4746,11 @@ lp.parseFunction = function (node, isStatement) {
 lp.parseExport = function () {
   var node = this.startNode();
   this.next();
-  if (this.eat(tt.star)) {
+  if (this.eat(_.tokTypes.star)) {
     node.source = this.eatContextual("from") ? this.parseExprAtom() : null;
     return this.finishNode(node, "ExportAllDeclaration");
   }
-  if (this.eat(tt._default)) {
+  if (this.eat(_.tokTypes._default)) {
     var expr = this.parseMaybeAssign();
     if (expr.id) {
       switch (expr.type) {
@@ -5343,20 +4780,20 @@ lp.parseExport = function () {
 lp.parseImport = function () {
   var node = this.startNode();
   this.next();
-  if (this.tok.type === tt.string) {
+  if (this.tok.type === _.tokTypes.string) {
     node.specifiers = [];
     node.source = this.parseExprAtom();
     node.kind = "";
   } else {
     var elt = undefined;
-    if (this.tok.type === tt.name && this.tok.value !== "from") {
+    if (this.tok.type === _.tokTypes.name && this.tok.value !== "from") {
       elt = this.startNode();
       elt.local = this.parseIdent();
       this.finishNode(elt, "ImportDefaultSpecifier");
-      this.eat(tt.comma);
+      this.eat(_.tokTypes.comma);
     }
     node.specifiers = this.parseImportSpecifierList();
-    node.source = this.eatContextual("from") ? this.parseExprAtom() : null;
+    node.source = this.eatContextual("from") ? this.parseExprAtom() : this.dummyString();
     if (elt) node.specifiers.unshift(elt);
   }
   this.semicolon();
@@ -5365,7 +4802,7 @@ lp.parseImport = function () {
 
 lp.parseImportSpecifierList = function () {
   var elts = [];
-  if (this.tok.type === tt.star) {
+  if (this.tok.type === _.tokTypes.star) {
     var elt = this.startNode();
     this.next();
     if (this.eatContextual("as")) elt.local = this.parseIdent();
@@ -5375,23 +4812,24 @@ lp.parseImportSpecifierList = function () {
         line = this.curLineStart,
         continuedLine = this.nextLineStart;
     this.pushCx();
-    this.eat(tt.braceL);
+    this.eat(_.tokTypes.braceL);
     if (this.curLineStart > continuedLine) continuedLine = this.curLineStart;
-    while (!this.closes(tt.braceR, indent + (this.curLineStart <= continuedLine ? 1 : 0), line)) {
+    while (!this.closes(_.tokTypes.braceR, indent + (this.curLineStart <= continuedLine ? 1 : 0), line)) {
       var elt = this.startNode();
-      if (this.eat(tt.star)) {
+      if (this.eat(_.tokTypes.star)) {
         if (this.eatContextual("as")) elt.local = this.parseIdent();
         this.finishNode(elt, "ImportNamespaceSpecifier");
       } else {
         if (this.isContextual("from")) break;
         elt.imported = this.parseIdent();
+        if (_parseutil.isDummy(elt.imported)) break;
         elt.local = this.eatContextual("as") ? this.parseIdent() : elt.imported;
         this.finishNode(elt, "ImportSpecifier");
       }
       elts.push(elt);
-      this.eat(tt.comma);
+      this.eat(_.tokTypes.comma);
     }
-    this.eat(tt.braceR);
+    this.eat(_.tokTypes.braceR);
     this.popCx();
   }
   return elts;
@@ -5403,40 +4841,34 @@ lp.parseExportSpecifierList = function () {
       line = this.curLineStart,
       continuedLine = this.nextLineStart;
   this.pushCx();
-  this.eat(tt.braceL);
+  this.eat(_.tokTypes.braceL);
   if (this.curLineStart > continuedLine) continuedLine = this.curLineStart;
-  while (!this.closes(tt.braceR, indent + (this.curLineStart <= continuedLine ? 1 : 0), line)) {
+  while (!this.closes(_.tokTypes.braceR, indent + (this.curLineStart <= continuedLine ? 1 : 0), line)) {
     if (this.isContextual("from")) break;
     var elt = this.startNode();
     elt.local = this.parseIdent();
+    if (_parseutil.isDummy(elt.local)) break;
     elt.exported = this.eatContextual("as") ? this.parseIdent() : elt.local;
     this.finishNode(elt, "ExportSpecifier");
     elts.push(elt);
-    this.eat(tt.comma);
+    this.eat(_.tokTypes.comma);
   }
-  this.eat(tt.braceR);
+  this.eat(_.tokTypes.braceR);
   this.popCx();
   return elts;
 };
 
-},{"..":2,"./parseutil":4,"./state":5}],7:[function(_dereq_,module,exports){
+},{"..":1,"./parseutil":4,"./state":5}],7:[function(_dereq_,module,exports){
 "use strict";
 
 var _ = _dereq_("..");
 
-var tt = _.tokTypes;
-var Token = _.Token;
-var isNewLine = _.isNewLine;
-var SourceLocation = _.SourceLocation;
-var getLineInfo = _.getLineInfo;
-var lineBreakG = _.lineBreakG;
+var _state = _dereq_("./state");
 
-var LooseParser = _dereq_("./state").LooseParser;
-
-var lp = LooseParser.prototype;
+var lp = _state.LooseParser.prototype;
 
 function isSpace(ch) {
-  return ch < 14 && ch > 8 || ch === 32 || ch === 160 || isNewLine(ch);
+  return ch < 14 && ch > 8 || ch === 32 || ch === 160 || _.isNewLine(ch);
 }
 
 lp.next = function () {
@@ -5456,11 +4888,11 @@ lp.readToken = function () {
   for (;;) {
     try {
       this.toks.next();
-      if (this.toks.type === tt.dot && this.input.substr(this.toks.end, 1) === "." && this.options.ecmaVersion >= 6) {
+      if (this.toks.type === _.tokTypes.dot && this.input.substr(this.toks.end, 1) === "." && this.options.ecmaVersion >= 6) {
         this.toks.end++;
-        this.toks.type = tt.ellipsis;
+        this.toks.type = _.tokTypes.ellipsis;
       }
-      return new Token(this.toks);
+      return new _.Token(this.toks);
     } catch (e) {
       if (!(e instanceof SyntaxError)) throw e;
 
@@ -5471,26 +4903,26 @@ lp.readToken = function () {
       if (/unterminated/i.test(msg)) {
         pos = this.lineEnd(e.pos + 1);
         if (/string/.test(msg)) {
-          replace = { start: e.pos, end: pos, type: tt.string, value: this.input.slice(e.pos + 1, pos) };
+          replace = { start: e.pos, end: pos, type: _.tokTypes.string, value: this.input.slice(e.pos + 1, pos) };
         } else if (/regular expr/i.test(msg)) {
           var re = this.input.slice(e.pos, pos);
           try {
             re = new RegExp(re);
           } catch (e) {}
-          replace = { start: e.pos, end: pos, type: tt.regexp, value: re };
+          replace = { start: e.pos, end: pos, type: _.tokTypes.regexp, value: re };
         } else if (/template/.test(msg)) {
           replace = { start: e.pos, end: pos,
-            type: tt.template,
+            type: _.tokTypes.template,
             value: this.input.slice(e.pos, pos) };
         } else {
           replace = false;
         }
-      } else if (/invalid (unicode|regexp|number)|expecting unicode|octal literal|is reserved|directly after number/i.test(msg)) {
+      } else if (/invalid (unicode|regexp|number)|expecting unicode|octal literal|is reserved|directly after number|expected number in radix/i.test(msg)) {
         while (pos < this.input.length && !isSpace(this.input.charCodeAt(pos))) ++pos;
       } else if (/character escape|expected hexadecimal/i.test(msg)) {
         while (pos < this.input.length) {
           var ch = this.input.charCodeAt(pos++);
-          if (ch === 34 || ch === 39 || isNewLine(ch)) break;
+          if (ch === 34 || ch === 39 || _.isNewLine(ch)) break;
         }
       } else if (/unexpected character/i.test(msg)) {
         pos++;
@@ -5501,9 +4933,9 @@ lp.readToken = function () {
         throw e;
       }
       this.resetTo(pos);
-      if (replace === true) replace = { start: pos, end: pos, type: tt.name, value: "✖" };
+      if (replace === true) replace = { start: pos, end: pos, type: _.tokTypes.name, value: "✖" };
       if (replace) {
-        if (this.options.locations) replace.loc = new SourceLocation(this.toks, getLineInfo(this.input, replace.start), getLineInfo(this.input, replace.end));
+        if (this.options.locations) replace.loc = new _.SourceLocation(this.toks, _.getLineInfo(this.input, replace.start), _.getLineInfo(this.input, replace.end));
         return replace;
       }
     }
@@ -5517,9 +4949,9 @@ lp.resetTo = function (pos) {
 
   if (this.options.locations) {
     this.toks.curLine = 1;
-    this.toks.lineStart = lineBreakG.lastIndex = 0;
+    this.toks.lineStart = _.lineBreakG.lastIndex = 0;
     var match = undefined;
-    while ((match = lineBreakG.exec(this.input)) && match.index < pos) {
+    while ((match = _.lineBreakG.exec(this.input)) && match.index < pos) {
       ++this.toks.curLine;
       this.toks.lineStart = match.index + match[0].length;
     }
@@ -5531,7 +4963,7 @@ lp.lookAhead = function (n) {
   return this.ahead[n - 1];
 };
 
-},{"..":2,"./state":5}]},{},[1])(1)
+},{"..":1,"./state":5}]},{},[3])(3)
 });;
 var isCommonJS = typeof module !== "undefined" && module.require;
 var Global = typeof window !== "undefined" ? window : global;
@@ -5539,7 +4971,8 @@ var lang = typeof lively !== "undefined" ? lively.lang : isCommonJS && module.re
 var escodegen = isCommonJS ? require("escodegen") : escodegen;
 var acorn = !isCommonJS && Global.acorn;
 if (!acorn && isCommonJS) {
-    acorn = require("acorn-jsx");
+    // acorn = require("acorn-jsx");
+    acorn = require("acorn");
     acorn.walk = require("acorn/dist/walk");
     acorn.parse_dammit = require("acorn/dist/acorn_loose").parse_dammit;
     Global.acorn = acorn;
@@ -5574,6 +5007,7 @@ else env.lively['lively.lang_env'] = env;
     require("./lib/query");
     require("./lib/transform");
     require("./lib/comments");
+    require("./lib/code-categorizer");
     module.exports = env["lively.ast"];
   }
 
@@ -5602,8 +5036,9 @@ else env.lively['lively.lang_env'] = env;
 
     options = options || {};
     options.ecmaVersion = options.ecmaVersion || 6;
+    options.sourceType = options.sourceType || "module";
     options.plugins = options.plugins || {};
-    options.plugins.jsx = options.plugins.hasOwnProperty("jsx") ? options.plugins.jsx : true;
+    if (options.plugins.hasOwnProperty("jsx")) options.plugins.jsx = options.plugins.jsx;
     if (options.withComments) {
       // record comments
       delete options.withComments;
@@ -5695,8 +5130,9 @@ else env.lively['lively.lang_env'] = env;
   exports.parseFunction = function(source, options) {
     options = options || {};
     options.ecmaVersion = 6;
+    options.sourceType = options.sourceType || "module";
     options.plugins = options.plugins || {};
-    options.plugins.jsx = options.plugins.hasOwnProperty("jsx") ? options.plugins.jsx : true;
+    if (options.plugins.hasOwnProperty("jsx")) options.plugins.jsx = options.plugins.jsx;
 
     var src = '(' + source + ')',
       ast = acorn.parse(src);
@@ -5746,8 +5182,9 @@ else env.lively['lively.lang_env'] = env;
     // options: verbose, addSource, type
     options = options || {};
     options.ecmaVersion = options.ecmaVersion || 6;
+    options.sourceType = options.sourceType || "module";
     options.plugins = options.plugins || {};
-    options.plugins.jsx = options.plugins.hasOwnProperty("jsx") ? options.plugins.jsx : true;
+    if (options.plugins.hasOwnProperty("jsx")) options.plugins.jsx = options.plugins.jsx;
 
     var ast, safeSource, err;
     if (options.type === 'LabeledStatement') { safeSource = '$={' + source + '}'; }
@@ -5849,8 +5286,9 @@ acorn.walk.findNodesIncluding = function(ast, pos, test, base) {
 acorn.walk.addSource = function(ast, source, completeSrc, forceNewSource) {
   var options = options || {};
   options.ecmaVersion = options.ecmaVersion || 6;
+  options.sourceType = options.sourceType || "module";
   options.plugins = options.plugins || {};
-  options.plugins.jsx = options.plugins.hasOwnProperty("jsx") ? options.plugins.jsx : true;
+  if (options.plugins.hasOwnProperty("jsx")) options.plugins.jsx = options.plugins.jsx;
 
   source = typeof ast === 'string' ? ast : source;
   ast = typeof ast === 'string' ? acorn.parse(ast, options) : ast;
@@ -5865,8 +5303,9 @@ acorn.walk.addSource = function(ast, source, completeSrc, forceNewSource) {
 acorn.walk.inspect = function(ast, source) {
   var options = options || {};
   options.ecmaVersion = options.ecmaVersion || 6;
+  options.sourceType = options.sourceType || "module";
   options.plugins = options.plugins || {};
-  options.plugins.jsx = options.plugins.hasOwnProperty("jsx") ? options.plugins.jsx : true;
+  if (options.plugins.hasOwnProperty("jsx")) options.plugins.jsx = options.plugins.jsx;
 
   source = typeof ast === 'string' ? ast : null;
   ast = typeof ast === 'string' ? acorn.parse(ast) : ast;
@@ -5878,7 +5317,7 @@ acorn.walk.withParentInfo = function(ast, iterator, options) {
   // options = {visitAllNodes: BOOL}
   options = options || {};
   function makeScope(parentScope) {
-    var scope = {id: Strings.newUUID(), parentScope: parentScope, containingScopes: []};
+    var scope = {id: lang.string.newUUID(), parentScope: parentScope, containingScopes: []};
     parentScope && parentScope.containingScopes.push(scope);
     return scope;
   }
@@ -6258,7 +5697,7 @@ acorn.walk.toLKObjects = function(ast) {
 };
 
 acorn.walk.copy = function(ast, override) {
-  var visitors = Object.extend({
+  var visitors = lang.obj.extend({
     Program: function(n, c) {
       return {
         start: n.start, end: n.end, type: 'Program',
@@ -6606,20 +6045,30 @@ acorn.walk.visitors = {
     if (!target) { target = ast; ast = options; options = null }
     if (!options) options = {}
     if (!ast.astIndex) acorn.walk.addAstIndex(ast);
-    var found, targetReached = false, bodyNodes, lastStatement;
+    var found, targetReached = false;
+    var statements = [
+          // ES5
+          'EmptyStatement', 'BlockStatement', 'ExpressionStatement', 'IfStatement',
+          'LabeledStatement', 'BreakStatement', 'ContinueStatement', 'WithStatement', 'SwitchStatement',
+          'ReturnStatement', 'ThrowStatement', 'TryStatement', 'WhileStatement', 'DoWhileStatement',
+          'ForStatement', 'ForInStatement', 'DebuggerStatement', 'FunctionDeclaration',
+          'VariableDeclaration',
+          // ES2015:
+          'ClassDeclaration'
+        ];
     acorn.withMozillaAstDo(ast, {}, function(next, node, depth, state, path) {
       if (targetReached || node.astIndex < target.astIndex) return;
-      if (node.type === "Program" || node.type === "BlockStatement") {
-        bodyNodes = node.body;
-      } else if (node.type === "SwitchCase") {
-        bodyNodes = node.consequent;
-      }
-      if (bodyNodes) {
-        var nodeIdxInProgramNode = bodyNodes.indexOf(node);
-        if (nodeIdxInProgramNode > -1) lastStatement = node;
-      }
-      if (!targetReached && (node === target || node.astIndex === target.astIndex)) {
-        targetReached = true; found = options.asPath ? path : lastStatement;
+      if (node === target || node.astIndex === target.astIndex) {
+        targetReached = true;
+        if (options.asPath)
+          found = path;
+        else {
+          var p = lang.Path(path);
+          do {
+            found = p.get(ast);
+            p = p.slice(0, p.size() - 1);
+          } while ((statements.indexOf(found.type) == -1) && (p.size() > 0));
+        }
       }
       !targetReached && next();
     });
@@ -7539,6 +6988,37 @@ exports.MozillaAST.BaseVisitor = lang.class.create(Object, "lively.ast.MozillaAS
       retVal = this.accept(node.closingElement, depth, state, path.concat(["closingElement"]));
     }
     return retVal;
+  },
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // https://github.com/estree/estree
+  // rk 2015-10-31
+
+  visitTemplateLiteral: function(node, depth, state, path) {
+    var retVal;
+    node.quasis.forEach(function(ea, i) {
+      // ea is of type TemplateElement
+      retVal = this.accept(ea, depth, state, path.concat(["quasis", i]));
+    }, this);
+    node.expressions.forEach(function(ea, i) {
+      // ea is of type Expression
+      retVal = this.accept(ea, depth, state, path.concat(["expressions", i]));
+    }, this);
+    return retVal;
+  },
+
+  visitTaggedTemplateExpression: function(node, depth, state, path) {
+    var retVal;
+    // tag is of type Expression
+    retVal = this.accept(node.tag, depth, state, path.concat(["tag"]));
+    // quasi is of type TemplateLiteral
+    retVal = this.accept(node.quasi, depth, state, path.concat(["quasi"]));
+    return retVal;
+  },
+
+  visitTemplateElement: function(node, depth, state, path) {
+    // node.tail is of type boolean
+    // node.value is {cooked: string;raw: string;}
   }
 
 });
@@ -7752,10 +7232,8 @@ exports.MozillaAST.ScopeVisitor = lang.class.create(exports.MozillaAST.BaseVisit
 
   accept: function (node, depth, scope, path) {
     path = path || [];
-    try {
-      if (!this['visit' + node.type]) throw new Error("No AST visit handler for type " + node.type);
-      return this['visit' + node.type](node, depth, scope, path);
-    } catch (e) { console.error(e.stack) }
+    if (!this['visit' + node.type]) throw new Error("No AST visit handler for type " + node.type);
+    return this['visit' + node.type](node, depth, scope, path);
   },
 
   visitVariableDeclaration: function ($super, node, depth, scope, path) {
@@ -7940,7 +7418,10 @@ exports.MozillaAST.ScopeVisitor = lang.class.create(exports.MozillaAST.BaseVisit
     // value is a node of type FunctionExpression
     retVal = this.accept(node.value, depth, scope, path.concat(["value"]));
     return retVal;
-  }
+  },
+
+  visitBreakStatement: function(node, depth, scope, path) { return null; },
+  visitContinueStatement: function(node, depth, scope, path) { return null; }
 
 });
 
@@ -8003,7 +7484,7 @@ var methods = {
       return string;
     }
 
-    new exports.PrinterVisitor().accept(ast, {index: 0}, tree, []);
+    new exports.MozillaAST.PrinterVisitor().accept(ast, {index: 0}, tree, []);
     return Strings.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '  ');
   },
 
@@ -8096,11 +7577,36 @@ var helpers = {
         .flatten()
         .pluck('id')
         .value());
-  }
+  },
 
+  objPropertiesAsList: function objPropertiesAsList(objExpr, path, onlyLeafs) {
+    // takes an obj expr like {x: 23, y: [{z: 4}]} an returns the key and value
+    // nodes as a list
+    return arr.flatmap(objExpr.properties, function(prop) {
+      var key = prop.key.name
+      // var result = [{key: path.concat([key]), value: prop.value}];
+      var result = [];
+      var thisNode = {key: path.concat([key]), value: prop.value};
+      switch (prop.value.type) {
+        case "ArrayExpression": case "ArrayPattern":
+          if (!onlyLeafs) result.push(thisNode);
+          result = result.concat(arr.flatmap(prop.value.elements, function(el, i) {
+            return objPropertiesAsList(el, path.concat([key, i]), onlyLeafs); }));
+          break;
+        case "ObjectExpression": case "ObjectPattern":
+          if (!onlyLeafs) result.push(thisNode);
+          result = result.concat(objPropertiesAsList(prop.value, path.concat([key]), onlyLeafs));
+          break;
+        default: result.push(thisNode);
+      }
+      return result;
+    });
+  }
 }
 
 exports.query = {
+
+  helpers: helpers,
 
   knownGlobals: [
      "true", "false", "null", "undefined", "arguments",
@@ -8347,6 +7853,30 @@ exports.transform = {
       throw new Error('Comparing nodes');
     },
 
+    memberExpression: function(keys) {
+      // var keys = ["foo", "bar", [0], "baz"];
+      // escodegen.generate(this.ast.transform.helper.memberExpression(keys)); // => foo.bar[0].baz
+      var memberExpression = keys.slice(1).reduce(function(memberExpr, key) {
+        return {
+          computed: typeof key !== "string",
+          object: memberExpr,
+          property: nodeForKey(key),
+          type: "MemberExpression"
+        }
+      }, nodeForKey(keys[0]))
+      return memberExpression;
+      return {
+        type: "ExpressionStatement",
+        expression: memberExpression
+      };
+
+      function nodeForKey(key) {
+        return typeof key === "string" ?
+          {name: key, type: "Identifier"} :
+          {raw: String(key), type: "Literal", value: key}
+      }
+    },
+
     replaceNode: function(target, replacementFunc, sourceOrChanges) {
       // parameters:
       //   - target: ast node
@@ -8468,7 +7998,7 @@ exports.transform = {
     var forLoopDecls = scope.varDecls.filter(function(decl, i) {
       var path = lang.Path(scope.varDeclPaths[i]),
           parent = path.slice(0,-1).get(ast);
-      return parent.type === "ForStatement";
+      return parent.type === "ForStatement" || parent.type === "ForInStatement";
     });
     arr.pushAll(blacklist, chain(forLoopDecls).pluck("declarations").flatten().pluck("id").pluck("name").value());
 
@@ -8620,6 +8150,54 @@ exports.transform = {
     return exports.transform.helper.replaceNodes(targetsAndReplacements, source);
   },
 
+  oneDeclaratorForVarsInDestructoring: function(astOrSource) {
+    var ast = typeof astOrSource === 'object' ?
+        astOrSource : exports.parse(astOrSource),
+      source = typeof astOrSource === 'string' ?
+        astOrSource : (ast.source || exports.stringify(ast)),
+      scope = exports.query.scopes(ast),
+      varDecls = (function findVarDecls(scope) {
+        return arr.flatten(scope.varDecls
+          .concat(scope.subScopes.map(findVarDecls)));
+      })(scope);
+
+    var targetsAndReplacements = varDecls.map(function(decl) {
+      return {
+        target: decl,
+        replacementFunc: function(declNode, s, wasChanged) {
+          if (wasChanged) {
+            // reparse node if necessary, e.g. if init was changed before like in
+            // var x = (function() { var y = ... })();
+            declNode = exports.parse(s).body[0];
+          }
+
+          return arr.flatmap(declNode.declarations, function(declNode) {
+            var extractedId = {type: "Identifier", name: "__temp"},
+                extractedInit = {
+                  type: "VariableDeclaration", kind: "var",
+                  declarations: [{type: "VariableDeclarator", id: extractedId, init: declNode.init}]
+                }
+
+            var propDecls = arr.pluck(exports.query.helpers.objPropertiesAsList(declNode.id, [], false), "key")
+              .map(function(keyPath) {
+                return {
+                  type: "VariableDeclaration", kind: "var",
+                  declarations: [{
+                    type: "VariableDeclarator", kind: "var",
+                    id: {type: "Identifier", name: arr.last(keyPath)},
+                    init: exports.transform.helper.memberExpression([extractedId.name].concat(keyPath))}]
+                }
+              });
+
+            return [extractedInit].concat(propDecls);
+          });
+        }
+      }
+    });
+
+    return exports.transform.helper.replaceNodes(targetsAndReplacements, source);
+  },
+
   returnLastStatement: function(source, opts) {
     opts = opts || {};
     var parse = exports.parse,
@@ -8627,7 +8205,7 @@ exports.transform = {
       last = ast.body.pop(),
       newLastsource = 'return ' + source.slice(last.start, last.end);
     if (!opts.asAST) return source.slice(0, last.start) + newLastsource;
-    
+
     var newLast = parse(newLastsource, {allowReturnOutsideFunction: true, ecmaVersion: 6}).body.slice(-1)[0];
     ast.body.push(newLast);
     ast.end += 'return '.length;
@@ -8651,6 +8229,501 @@ exports.transform = {
   }
 
 };
+
+});
+;
+/*global window, process, global*/
+
+;(function(run) {
+  var env = typeof module !== "undefined" && module.require ? module.require("../env") : lively['lively.lang_env'];
+  run(env.acorn, env.lively, env['lively.lang'], env['lively.ast']);
+})(function(acorn, lively, lang, exports) {
+
+var arr = lang.arr, chain = lang.chain, obj = lang.obj,
+    path = lang.Path, str = lang.string;
+
+exports.comments = {
+  getCommentPrecedingNode: function(ast, node) {
+    var statementPath = acorn.walk.findStatementOfNode({asPath: true}, ast, node),
+        blockPath = statementPath.slice(0, -2),
+        block = path(blockPath).get(ast);
+    return !block.comments || !block.comments.length ? null :
+      chain(exports.comments.extractComments(ast))
+        .reversed()
+        .detect(function(ea) { return ea.followingNode === node; })
+        .value();
+  },
+
+  extractComments: function(astOrCode, optCode) {
+    var parsed = typeof astOrCode === "string" ?
+          exports.parse(astOrCode, {withComments: true}) : astOrCode,
+        code = optCode ? optCode : (typeof astOrCode === "string" ?
+          astOrCode : exports.stringify(astOrCode)),
+        parsedComments = arr.sortBy(
+          commentsWithPathsAndNodes(parsed),
+          function(c) { return c.comment.start; });
+
+    return parsedComments.map(function(c, i) {
+
+      // 1. a method comment like "x: function() {\n//foo\n ...}"?
+      if (isInObjectMethod(c)) {
+        return obj.merge([c, c.comment,
+          {type: 'method', comment: c.comment.text},
+          methodAttributesOf(c)]);
+      }
+
+      if (isInComputedMethod(c)) {
+        return obj.merge([c, c.comment,
+          {type: 'method', comment: c.comment.text},
+          computedMethodAttributesOf(c)]);
+      }
+
+      // 2. function statement comment like "function foo() {\n//foo\n ...}"?
+      if (isInFunctionStatement(c)) {
+        return obj.merge([c, c.comment,
+          {type: 'function', comment: c.comment.text},
+          functionAttributesOf(c)]);
+      }
+
+      // 3. assigned method like "foo.bar = function(x) {/*comment*/};"
+      if (isInAssignedMethod(c)) {
+        return obj.merge([c, c.comment,
+          {type: 'method', comment: c.comment.text},
+          methodAttributesOfAssignment(c)]);
+      }
+
+      // 4. comment preceding another node?
+      var followingNode = followingNodeOf(c);
+      if (!followingNode) return obj.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
+
+      // is there another comment in front of the node>
+      var followingComment = parsedComments[i+1];
+      if (followingComment && followingComment.comment.start <= followingNode.start)
+        return obj.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
+
+      // 3. an obj var comment like "// foo\nvar obj = {...}"?
+      if (isSingleObjVarDeclaration(followingNode)) {
+        return obj.merge([c, c.comment, {followingNode:followingNode},
+          {type: 'object',comment: c.comment.text},
+          objAttributesOf(followingNode)])
+      }
+
+      // 4. Is it a simple var declaration like "// foo\nvar obj = 23"?
+      if (isSingleVarDeclaration(followingNode)) {
+        return obj.merge([c, c.comment, {followingNode:followingNode},
+          {type: 'var',comment: c.comment.text},
+          objAttributesOf(followingNode)])
+      }
+
+      return obj.merge([c, c.comment, {followingNode:followingNode}, unknownComment(c)]);
+    });
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function commentsWithPathsAndNodes(ast) {
+      var comments = [];
+      lively.ast.acorn.withMozillaAstDo(ast, comments, function(next, node, comments, depth, path) {
+        if (node.comments) {
+          arr.pushAll(comments,
+            node.comments.map(function(comment) {
+              return {path: path, comment: comment, node: node}; }));
+        }
+        next();
+      });
+      return comments;
+    }
+
+    function followingNodeOf(comment) {
+      return arr.detect(comment.node.body, function(node) {
+        return node.start > comment.comment.end; });
+    }
+
+    function unknownComment(comment) {
+      return {type: "unknown", comment: comment.comment.text}
+    }
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function isInFunctionStatement(comment) {
+      var node = path(comment.path.slice(0,-1)).get(parsed);
+      return node && node.type === "FunctionDeclaration";
+    }
+
+    function functionAttributesOf(comment) {
+      var funcNode = path(comment.path.slice(0,-1)).get(parsed),
+        name = funcNode.id ? funcNode.id.name : "<error: no name for function>";
+      return {name: name, args: arr.pluck(funcNode.params, "name")};
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function isInObjectMethod(comment) {
+      return arr.equals(comment.path.slice(-2), ["value", "body"]) // obj expr
+    }
+
+    function isInAssignedMethod(comment) {
+      return arr.equals(comment.path.slice(-2), ["right", "body"]); // asignment
+    }
+
+    function methodAttributesOf(comment) {
+      var methodNode = path(comment.path.slice(0, -2)).get(parsed),
+        name = methodNode.key ? methodNode.key.name : "<error: no name for method>";
+
+      // if it's someting like "var obj = {foo: function() {...}};"
+      var p = comment.path.slice();
+      var objectName = "<error: no object found for method>";
+
+      while (p.length && arr.last(p) !== 'init') p.pop();
+      if (p.length) {
+        objectName = path(p.slice(0, -1).concat(["id", "name"])).get(parsed);
+      }
+
+      // if it's someting like "exports.obj = {foo: function() {...}};"
+      if (str.startsWith(objectName, "<error")) {
+        p = comment.path.slice();
+        while (p.length && arr.last(p) !== 'right') p.pop();
+        if (p.length) {
+          var assignNode = path(p.slice(0, -1).concat(["left"])).get(parsed);
+          objectName = code.slice(assignNode.start, assignNode.end);
+        }
+      }
+
+      // if it's someting like "Object.extend(Foo.prototype, {m: function() {/*some comment*/ return 23; }})"
+      if (str.startsWith(objectName, "<error")) {
+        p = comment.path.slice();
+        var callExpr = path(p.slice(0, -6)).get(parsed),
+          isCall = callExpr && callExpr.type === "CallExpression",
+          firstArg = isCall && callExpr.arguments[0];
+        if (firstArg) objectName = code.slice(firstArg.start, firstArg.end);
+      }
+
+      return {
+        name: name,
+        args: arr.pluck(methodNode.value.params, "name"),
+        objectName: objectName
+      }
+    }
+
+    function methodAttributesOfAssignment(comment) {
+      var node = path(comment.path.slice(0,-1)).get(parsed)
+      if (node.type !== "FunctionExpression"
+       && node.type !== "FunctionDeclaration") return {};
+
+      var statement = acorn.walk.findStatementOfNode(parsed, node);
+      if (statement.type !== "ExpressionStatement"
+       || statement.expression.type !== "AssignmentExpression") return {};
+
+      var objName = code.slice(
+        statement.expression.left.object.start,
+        statement.expression.left.object.end);
+
+      var methodName = code.slice(
+        statement.expression.left.property.start,
+        statement.expression.left.property.end);
+
+      return {
+        name: methodName,
+        objectName: objName,
+        args: arr.pluck(node.params, "name")
+      };
+    }
+
+    function isInComputedMethod(comment) {
+      var path = comment.path.slice(-5);
+      arr.removeAt(path, 1);
+      return arr.equals(path, ["properties","value","callee","body"]);
+    }
+
+    function computedMethodAttributesOf(comment) {
+      var name, args, pathToProp;
+
+      pathToProp = comment.path.slice(0, -3);
+      var propertyNode = path(pathToProp).get(parsed);
+      if (propertyNode && propertyNode.type === "Property") {
+        // if it is a function immediatelly called
+        args = arr.pluck(propertyNode.value.callee.params, "name");
+        name = propertyNode.key ? propertyNode.key.name : "<error: no name for method>";
+      }
+
+      if (!name) {
+        // if it is an object member function
+        pathToProp = comment.path.slice(0, -2);
+        propertyNode = path(pathToProp).get(parsed);
+        if (propertyNode && propertyNode.type === "Property") {
+        args = arr.pluck(propertyNode.value.params, "name");
+        name = propertyNode.key ? propertyNode.key.name : "<error: no name for method>";
+        }
+      }
+
+      if (!name) {
+        name = "<error: no name for method>";
+        args = [];
+        pathToProp = comment.path
+      }
+
+      // if it's someting like "var obj = {foo: function() {...}};"
+      var p = arr.clone(pathToProp);
+      var objectName = "<error: no object found for method>";
+
+      while (p.length && arr.last(p) !== 'init') p.pop();
+      if (p.length) {
+        objectName = path(p.slice(0, -1).concat(["id", "name"])).get(parsed);
+      }
+
+      // if it's someting like "exports.obj = {foo: function() {...}};"
+      if (str.startsWith(objectName, "<error")) {
+        var p = arr.clone(pathToProp);
+        while (p.length && arr.last(p) !== 'right') p.pop();
+        if (p.length) {
+          var assignNode = path(p.slice(0, -1).concat(["left"])).get(parsed);
+          objectName = code.slice(assignNode.start, assignNode.end);
+        }
+      }
+
+      // if it's someting like "Object.extend(Foo.prototype, {m: function() {/*some comment*/ return 23; }})"
+      if (str.startsWith(objectName, "<error")) {
+        var p = arr.clone(pathToProp);
+        var callExpr = path(p.slice(0, -4)).get(parsed),
+          isCall = callExpr && callExpr.type === "CallExpression",
+          firstArg = isCall && callExpr.arguments[0];
+        if (firstArg) objectName = code.slice(firstArg.start, firstArg.end);
+      }
+
+      return {name: name, args: args, objectName: objectName}
+    }
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    // like "var foo = {/*...*/}" or  "var foo = bar = {/*...*/};"
+    function isSingleObjVarDeclaration(node) {
+      // should be a var declaration with one declarator with a value
+      // being an JS object
+      return isSingleVarDeclaration(node)
+        && (node.declarations[0].init.type === "ObjectExpression"
+         || isObjectAssignment(node.declarations[0].init));
+    }
+
+    function isSingleVarDeclaration(node) {
+      return node && node.type === 'VariableDeclaration'
+        && node.declarations.length === 1;
+    }
+
+    function objAttributesOf(node) {
+      return {name: node.declarations[0].id.name};
+    };
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    // like "foo = {/*...*/}"
+    function isObjectAssignment(node) {
+      if (node.type !== "AssignmentExpression") return false;
+      if (node.right.type === "ObjectExpression") return true;
+      if (node.right.type === "AssignmentExpression") return isObjectAssignment(node.right);;
+      return false;
+    }
+  }
+
+}
+
+});;
+/*global window, process, global*/
+
+;(function(run) {
+  var env = typeof module !== "undefined" && module.require ? module.require("../env") : lively['lively.lang_env'];
+  run(env.acorn, env.lively, env['lively.lang'], env['lively.ast']);
+})(function(acorn, lively, lang, exports) {
+
+var arr = lang.arr, chain = lang.chain, obj = lang.obj,
+    p = lang.Path, str = lang.string;
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// helpers
+
+function objectKeyValsAsDefs(objectExpression) {
+  return objectExpression.properties.map(function(prop) {
+    return {
+      name: prop.key.name || prop.key.value,
+      type: prop.value.type === "FunctionExpression" ? "method" : "property",
+      node: prop
+    };
+  });
+}
+
+function classDef(node) {
+  if (p("expression.callee.property.name").get(node) !== "subclass") return null;
+  var def = {
+    type: "lively-class-definition",
+    name: p("expression.arguments.0.value").get(node),
+    node: node
+  };
+  var props = arr.flatmap(
+    node.expression.arguments,
+    function(argNode) {
+      if (argNode.type !== "ObjectExpression") return [];
+      return objectKeyValsAsDefs(argNode).map(function(ea) {
+        ea.type = "lively-class-instance-" + ea.type;
+        ea.parent = def;
+        return ea;
+      })
+    });
+  return [def].concat(props);
+}
+
+function extendDef(node) {
+  if (p("expression.callee.property.name").get(node) !== "extend"
+   || p("expression.arguments.0.type").get(node) !== "ObjectExpression") return null;
+  var name = p("expression.arguments.0.name").get(node);
+  if (!name) return null;
+  var def = {
+    name: name, node: node,
+    type: "lively-extend-definition"
+  };
+  var props = (objectKeyValsAsDefs(p("expression.arguments.1").get(node)) || [])
+    .map(function(d) { d.parent = def; return d; });
+  return [def].concat(props);
+}
+
+function varDefs(node) {
+  if (node.type !== "VariableDeclaration") return null;
+  return arr.flatmap(
+    withVarDeclIds(node),
+    function(ea) {
+      return arr.flatmap(
+        ea.ids,
+        function(id) {
+          var def = {name: id.name, node: ea.node, type: "var-decl"};
+          if (!def.node.init) return [def];
+          var node = def.node.init;
+          while (node.type === "AssignmentExpression") node = node.right;
+          if (node.type === "ObjectExpression") {
+            return [def].concat(objectKeyValsAsDefs(node).map(function(ea) {
+              ea.type = "object-" + ea.type; ea.parent = def; return ea; }));
+          }
+          var objDefs = someObjectExpressionCall(node);
+          if (objDefs) return [def].concat(objDefs.map(function(d) { d.parent = def; return d; }))
+          return [def];
+        });
+      });
+}
+
+function funcDef(node) {
+  if (node.type !== "FunctionStatement"
+   && node.type !== "FunctionDeclaration") return null;
+  return [{
+    name: node.id.name,
+    node: node,
+    type: "function-decl"
+  }];
+}
+
+function someObjectExpressionCall(node) {
+  if (node.type === "ExpressionStatement") node = node.expression;
+  if (node.type !== "CallExpression") return null;
+  var objArg = node.arguments.detect(function(a) { return a.type === "ObjectExpression"; });
+  if (!objArg) return null;
+  return objectKeyValsAsDefs(objArg);
+}
+
+function moduleDef(node, options) {
+  if (!isModuleDeclaration(node)) return null;
+  var decls = findDecls(p("expression.arguments.0").get(node), options),
+      parent = {node: node, name: p("expression.callee.object.callee.object.arguments.0.value").get(node)};
+  decls.forEach(function(decl) { return decl.parent = parent; });
+  return decls;
+}
+
+function functionWrapper(node, options) {
+  if (!isFunctionWrapper(node)) return null
+  var decls;
+  // Is it a function wrapper passed as arg?
+  // like ;(function(run) {... })(function(exports) {...})      
+  var argFunc = p("expression.arguments.0").get(node);
+  if (argFunc
+   && argFunc.type === "FunctionExpression"
+   && str.lines(argFunc.source || "").length > 5) {
+    // lively.debugNextMethodCall(lively.ast.CodeCategorizer, "findDecls");
+    decls = findDecls(argFunc, options);
+  } else {
+    decls = findDecls(p("expression.callee").get(node), options);
+  }
+  var parent = {node: node, name: p("expression.callee.id.name").get(node)};
+  decls.forEach(function(decl) { return decl.parent || (decl.parent = parent) });
+  return decls;
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+function isModuleDeclaration(node) {
+  return p("expression.callee.object.callee.object.callee.name").get(node) === "module"
+      && p("expression.callee.property.name").get(node) === "toRun";
+}
+
+function isFunctionWrapper(node) {
+  return p("expression.type").get(node) === "CallExpression"
+      && p("expression.callee.type").get(node) === "FunctionExpression";
+}
+
+function declIds(idNodes) {
+  return arr.flatmap(idNodes, function(ea) {
+    if (!ea) return [];
+    if (ea.type === "Identifier") return [ea];
+    if (ea.type === "RestElement") return [ea.argument];
+    if (ea.type === "ObjectPattern")
+      return declIds(arr.pluck(ea.properties, "value"));
+    if (ea.type === "ArrayPattern")
+      return declIds(ea.elements);
+    return [];
+  });
+}
+
+function withVarDeclIds(varNode) {
+  return varNode.declarations.map(function(declNode) {
+    if (!declNode.source && declNode.init)
+      declNode.source = declNode.id.name + " = " + declNode.init.source
+    return {node: declNode, ids: declIds([declNode.id])};
+  });
+}
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// main method
+function findDecls(ast, options) {
+  // lively.debugNextMethodCall(lively.ast.codeCategorizer, "findDecls")
+
+  options = options || obj.merge({hideOneLiners: false}, options);
+
+  if (typeof ast === "string")
+    ast = exports.parse(ast, {addSource: true});
+
+  var topLevelNodes = ast.type === "Program" ? ast.body : ast.body.body,
+      defs = arr.flatmap(topLevelNodes,
+        function(n) {
+          return moduleDef(n, options)
+              || functionWrapper(n, options)
+              || varDefs(n)
+              || funcDef(n)
+              || classDef(n)
+              || extendDef(n)
+              || someObjectExpressionCall(n);
+        });
+
+  if (options.hideOneLiners && ast.source) {
+    defs = defs.reduce(function(defs, def) {
+      if (def.parent && defs.indexOf(def.parent) > -1) defs.push(def)
+      else if ((def.node.source || "").indexOf("\n") > -1) defs.push(def)
+      return defs;
+    }, []);
+  }
+
+  if (options.hideOneLiners && ast.loc)
+    defs = defs.filter(function(def) {
+      return !def.node.loc || (def.node.loc.start.line !== def.node.loc.end.line);
+    });
+
+  return defs;
+}
+
+exports.codeCategorizer = {
+  findDecls: findDecls
+}
 
 });
 

@@ -1028,7 +1028,8 @@ lively.morphic.Shapes.Image.addMethods(
             ctx.shapeNode = document.createElement('div');
             ctx.imgNode = ctx.domInterface.htmlImg();
             ctx.shapeNode.appendChild(ctx.imgNode);
-            ctx.imgNode.crossOrigin = "anonymous";
+            if (!navigator.userAgent.match(/Safari\/|Firefox\//))
+              ctx.imgNode.crossOrigin = "anonymous";
             ctx.imgNode.draggable = false;
         }
 

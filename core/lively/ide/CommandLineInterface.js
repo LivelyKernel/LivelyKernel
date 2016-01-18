@@ -481,6 +481,18 @@ Object.extend(lively.ide.CommandLineInterface, {
         return cmd;
     },
 
+    runAndOpen: function(commandString, options, thenDo) {
+      var cmd = lively.ide.CommandLineInterface.run(commandString, options, thenDo);
+      var m = module("lively.ide.tools.ShellCommandRunner");
+      if (!m.isLoaded()) m.load();
+      m.runWhenLoaded(function() { 
+        var runner = m.forCommand(cmd, options);
+        runner.openInWorldCenter().comeForward();
+        thenDo && thenDo(null, runner);
+      });
+      return cmd;
+    },
+
     getOut: function(commandString, options, thenDo) {
       // lively lively.shell.run, except the command result will be tested for
       // successful exit and the resultString() will be passed as 2. parameter to

@@ -510,7 +510,13 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     find: function (itemOrValue) {
         if (!itemOrValue) return undefined;
         // if we hand in a itemListMorph:
-        if (itemOrValue.isMorph && itemOrValue.item) itemOrValue = itemOrValue.item;
+        if (itemOrValue.isMorph) {
+          if (itemOrValue.item) itemOrValue = itemOrValue.item;
+          else {
+            var index = this.itemMorphs.indexOf(itemOrValue);
+            itemOrValue = this.itemList[index];
+          }
+        }
         // returns the index in this.itemList
         for (var i = 0, len = this.itemList.length; i < len; i++) {
             var val = this.itemList[i];

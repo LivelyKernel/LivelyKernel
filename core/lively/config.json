@@ -118,6 +118,35 @@
     }
   ],
 
+  "lively.shell": [
+    {
+      "name":  "shellEnvVars",
+      "type":  "String",
+      "doc":  "Environment variables to be set whenever Lively runs a shell command on the OS the Lively server is running. Includes Config.shellUserEnvVars.",
+      "get":  {
+        "type":  "function",
+        "code":  "function()  { return lively.lang.obj.merge(lively.Config._shellEnvVars, lively.Config.get('shellUserEnvVars'));  }"
+      },
+      "set":  {
+        "type":  "function",
+        "code":  "function(val) { lively.Config._shellEnvVars = val || {};  }"
+      }
+    },
+    {
+      "name": "shellUserEnvVars",
+      "type": "String",
+      "doc":  "Custom environment variables that can be set by the user and will be remembered in localStorage.",
+      "get":  {
+        "type":  "function",
+        "code":  "function()  { var val = lively.LocalStorage.get('shellUserEnvVars');\nif (val && val !== 'undefined') try { return JSON.parse(val); } catch(e)  { console.warn(e); }\n return {}; }"
+      },
+      "set":  {
+        "type":  "function",
+        "code":  "function(val) { return lively.LocalStorage.set('shellUserEnvVars', val ? JSON.stringify(val) : '{}');  }"
+      }
+    }
+  ],
+
   "lively.Network": [
     {
       "name": "location",

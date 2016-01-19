@@ -650,6 +650,15 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RunServerShellProc
         var result = lively.ide.CommandLineInterface.exec('echo $FOO', {sync:true, env: {FOO: 'bar'}}).resultString();
         this.assertEquals('bar', result);
         this.done();
+    },
+
+    testEnvVarsFromConfigAreUsed: function() {
+        var origVars = lively.lang.obj.clone(lively.Config._shellEnvVars);
+        lively.Config.set("shellEnvVars", {foo: 23, BAR_BAZ: 23});
+        this.onTearDown(function() { lively.Config._shellEnvVars = origVars; })
+        var result = lively.ide.CommandLineInterface.exec('echo "$foo $BAR_BAZ $ZORK"', {sync:true, env: {foo: 25, ZORK: 'bar'}}).resultString();
+        this.assertEquals('25 23 bar', result);
+        this.done();
     }
 });
 
@@ -798,7 +807,7 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
 'testing', {
 
     testExecuteRemoteShellCommand: function() {
-        this.setMaxWaitDelay(2000);
+        this.setMaxWaitDelay(5000);
         var test = this, cmd, err;
 
         // 1. fake domain - ip mapping
@@ -823,7 +832,8 @@ AsyncTestCase.subclass('lively.ide.tests.CommandLineInterface.RemoteShellExecute
         };
 
         // Now run the actual test
-        lively.shell.run("ls -l", {server: "foo.bar.com"}, function(_err, _cmd) { err = _err; cmd = _cmd; });
+        lively.shell.run("ls -l", {server: "foo.bar.com"},
+          function(_err, _cmd) { err = _err; cmd = _cmd; });
         
         this.waitFor(function() { return !!err || !!cmd; }, 10, function() {
           err && this.assert(false, err.stack);

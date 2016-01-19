@@ -1892,7 +1892,7 @@ lively.morphic.World.addMethods(
         },
         function(n) {
           var targetM = w.morphsContainingPoint(evt.getPosition()).first();
-          if (targetM && targetM.onHTML5Drop) targetM.onHTML5Drop(evt);
+          if (targetM && targetM.onHTML5Drop && targetM !== w) targetM.onHTML5Drop(evt);
           else lively.data.FileUpload.handleImportEvent(evt);
           n();
         }
@@ -2157,7 +2157,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
     },
     
     moveOver: function(morph, time, thenDo) {
-      if (typeof time === "function") { thenDo = time; time === 1000; }
+      if (typeof time === "function") { thenDo = time; time = 1000; }
       this.setPositionAnimated(morph.globalBounds().center(), time, thenDo);
       return this;
     }

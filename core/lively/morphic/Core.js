@@ -808,6 +808,15 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         {rel: 'apple-touch-icon-precomposed', href: 'core/media/apple-touch-icon.png'}],
     isWorld: true
 },
+'accessing -- core', {
+
+  setExtent: function($super, ext) {
+    $super(ext);
+    this.onWindowResize();
+    return ext;
+  }
+
+},
 'accessing -- morphic relationship', {
     draggedMorphs: function() {
         return this.hands.map(function (hand) { return hand.draggedMorph }).filter(function (ea) { return ea });

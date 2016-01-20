@@ -24,7 +24,7 @@ Object.subclass("lively.users.User",
   name: "unknown_user",
   email: null,
   loggedIn: false,
-  group: [],
+  groups: [],
   authRules : []
 },
 "initialization", {
@@ -40,7 +40,7 @@ Object.subclass("lively.users.User",
 },
 "testing", {
   isUnknownUser: function() { return this.name === "unknown_user"; },
-  
+
   equals: function(other) {
     return other instanceof lively.users.User && other.name === this.name;
   }
@@ -76,7 +76,7 @@ Object.subclass("lively.users.User",
 
 },
 "authorization", {
-  
+
   addRule: function(rule) {
     var func = null;
 
@@ -93,7 +93,7 @@ Object.subclass("lively.users.User",
     if (func instanceof Error) console.error("%s>>addRule: Error " + func);
     else if (func) this.authRules.push(func);
     else console.warn("%s>>addRule: Unknown rule " + rule);
-    
+
   },
 
   canWriteWorld: function(worldPathOrURL, cb) {
@@ -149,6 +149,50 @@ Object.subclass("lively.users.User",
     return answer;
   },
 },
+"custom user attributes", {
+
+  reservedAttributes: ["name","email","loggedIn","groups","authRules"],
+
+  attributesStorageKey: function() { return "user-attributes-" + this.name; },
+
+  addAttributes: function(attributes) {
+    this.setAttributes(lively.lang.obj.merge(this.getAttributes(), attributes));
+    return this;
+  },
+
+  setAttributes: function(attributes, dontSave) {
+    var toDelete = Object.keys(this.getAttributes()).withoutAll(Object.keys(attributes));
+    toDelete.forEach(k => delete this[k]);
+    lively.lang.obj.extend(this, attributes);
+    !dontSave && this.saveAttributes();
+    return this;
+  },
+
+  getAttributes: function() {
+    return Object.keys(this).withoutAll(this.reservedAttributes).reduce((attrs, k) => {
+      attrs[k] = this[k];
+      return attrs;
+    }, {});
+  },
+
+  saveAttributes: function() {
+    var attributesJson = JSON.stringify(this.getAttributes());
+    lively.LocalStorage.set(this.attributesStorageKey(), attributesJson);
+  },
+
+  loadAttributes: function() {
+    var loaded = lively.LocalStorage.get(this.attributesStorageKey());
+    if (loaded) {
+      try { this.setAttributes(JSON.parse(loaded), true); } catch (e) {}
+    }
+  },
+
+  clearAttributes: function() {
+    this.setAttributes({});
+    lively.LocalStorage.remove("user-attributes-" + this.name);
+  }
+
+},
 "debugging", {
   toString: function() { return "<User " + this.name + ">"; }
 });
@@ -166,6 +210,7 @@ Object.extend(lively.users.User, {
         permissions = (lively.Config.userPermissions || {})[name] || []
           .concat(lively.users.User.defaultPermissions);
     permissions.forEach(function(rule) { user.addRule(rule); });
+    user.loadAttributes();
     return user;
   },
 

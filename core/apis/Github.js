@@ -1,5 +1,37 @@
 module('apis.Github').requires('lively.Network', 'lively.net.SessionTracker').toRun(function() {
 
+/*
+usage
+
+apis.Github.requestGithubAccess(['public_repo'], (err, token) => {
+  err && show(String(err))
+  show(token);
+})
+
+apis.Github.doRequest(
+  "/user",
+  {auth: token},
+  (err, answer) => { show(err ? String(err) : answer); })
+
+apis.Github.addCommentToIssue(
+  "LivelyKernel/LivelyKernel",
+  319,
+  "Issues can be created via `apis.Github.createIssue(repoName, title, body, options, thenDo)`",
+  (err, response) => { err && show(String(err)); show(response)})
+
+var issue = {
+  "title": "Create issues directly with the Github issue API",
+  "body": "apis.Github implements Github oauth, use it for our issue pages",
+  "assignee": "rksm",
+  "labels": ["Github"]
+}
+
+apis.Github.doRequest(
+  "/repos/LivelyKernel/LivelyKernel/issues",
+  {data: issue, method: "POST", auth: token},
+  (err, answer) => { err && show(String(err)); show(answer); })
+*/
+
 // apis.Github.doRequest("/", {auth: token}, (err, answer) => { show(answer); })
 // {
 //   authorizations_url: "https://api.github.com/authorizations",

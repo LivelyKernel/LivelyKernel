@@ -75,24 +75,56 @@ Object.extend(lively.net.SessionTracker.defaultActions, {
 
 Object.extend(apis.Github, {
 
-  createIssue: function(repoName, title, body, options, thenDo) {
-    if (typeof options === "function") {
-      thenDo = options;
-      options = null;
+  getCachedGithubAccess: function(scopes) {
+    var user = $world.getCurrentUser();
+    var auth = lively.lookup("github.auth", user);
+    if (auth && scopes) {
+      var userScopes = auth.scope.split(",");
+      if (scopes.withoutAll(userScopes).length === 0) return auth;
     }
+    return auth;
+  },
 
+  createIssue: function(repoName, title, body, options, thenDo) {
+    if (typeof options === "function") { thenDo = options; options = null; }
     options = options || {};
+
     var issue = {"title": title, "body": body};
     if (options.labels) issue.labels = options.labels
     if (options.assignee) issue.assignee = options.assignee
     
-    lively.lang.fun.composeAsync(
-      n => apis.Github.requestGithubAccess(['public_repo'], n),
-      (auth, n) =>
-        apis.Github.doRequest(
-          `/repos/${repoName}/issues`,
-          lively.lang.obj.merge(options, {data: issue, method: "POST", auth: auth}), n)
-    )(thenDo);
+    apis.Github.doAuthenticatedRequest(
+      `/repos/${repoName}/issues`,
+      lively.lang.obj.merge(options, {scopes: ["public_repo"], data: issue, method: "POST"}),
+      thenDo);
+  },
+
+  getIssue: function(repoName, issueNo, options, thenDo) {
+    if (typeof options === "function") { thenDo = options; options = null; }
+    apis.Github.doRequest(
+      `/repos/${repoName}/issues/${issueNo}`,
+      lively.lang.obj.merge(options, {auth: this.getCachedGithubAccess()}), thenDo);
+  },
+
+  editIssue: function(repoName, issueNo, payload, options, thenDo) {
+    // https://developer.github.com/v3/issues/#edit-an-issue
+    if (typeof options === "function") { thenDo = options; options = null; }
+    options = options || {};
+
+    apis.Github.doAuthenticatedRequest(
+      `/repos/${repoName}/issues/${issueNo}`,
+      lively.lang.obj.merge(options, {scopes: ["public_repo"], data: payload, method: "PATCH"}),
+      thenDo);
+  },
+
+  addCommentToIssue: function(repoName, issueNumber, comment, options, thenDo) {
+    if (typeof options === "function") { thenDo = options; options = null; }
+    options = options || {};
+
+    apis.Github.doAuthenticatedRequest(
+      `/repos/${repoName}/issues/${issueNumber}/comments`,
+      lively.lang.obj.merge(options, {scopes: ["public_repo"], data: {body: comment}, method: "POST"}),
+      thenDo);
   },
 
   getAllIssues: function(repoName, options, thenDo) {
@@ -114,7 +146,7 @@ Object.extend(apis.Github, {
     function getIssuePage(page, results, thenDo) {
       apis.Github.doRequest(
         url.pathname,
-        lively.lang.obj.merge(options, {page: page}),
+        lively.lang.obj.merge(options, {auth: this.getCachedGithubAccess(), page: page}),
         (err, result) => {
           if (err) return thenDo(err);
           if (page >= result.lastPage) return thenDo(null, results.concat(result.data), result.limit);
@@ -179,6 +211,17 @@ Object.extend(apis.Github, {
       });
     });
   },
+
+  doAuthenticatedRequest: function(urlOrPath, options, thenDo) {
+    var scopes = options.scopes || [];
+
+    lively.lang.fun.composeAsync(
+      n => apis.Github.requestGithubAccess(scopes, n),
+      (auth, n) => apis.Github.doRequest(
+        urlOrPath, lively.lang.obj.merge(options, {auth: auth}), n)
+    )(thenDo);
+  },
+  
   
   requestGithubAccess: function(scopes, thenDo) {
     if (typeof scopes === "function") {
@@ -186,12 +229,17 @@ Object.extend(apis.Github, {
       scopes = [];
     }
 
+    // are we logged in yet?
+    var auth = this.getCachedGithubAccess(scopes);
+    if (auth) return thenDo(null, auth);
+
     // Uses the OAuth webflow, see https://developer.github.com/v3/oauth/#web-application-flow
     lively.lang.fun.composeAsync(
       withGithubClientId,
       withGithubTempCodeDo,
-      requestGithubOAuthToken
-    )(thenDo)
+      requestGithubOAuthToken,
+      addAuthToUser
+    )(thenDo);
   
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-    
   
@@ -256,7 +304,14 @@ Object.extend(apis.Github, {
         thenDo && thenDo(err, data);
       });
     }
-  
+
+    function addAuthToUser(auth, n) {
+      var user = $world.getCurrentUser();
+      if (user) {
+        user.addAttributes({github: lively.lang.obj.merge(user.getAttributes().github, {auth: auth})});
+      }
+      n(null, auth);
+    }
   }
 });
 

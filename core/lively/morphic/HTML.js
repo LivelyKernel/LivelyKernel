@@ -832,8 +832,6 @@ lively.morphic.Shapes.Shape.addMethods(
         // The other border props are initialized there as well:
         this.setBorderWidthHTML(ctx, this.getBorderWidth());
         this.setBorderStyleHTML(ctx, this.getBorderStyle());
-        // also sets extent:
-        this.setPaddingHTML(ctx, this.getPadding());
         if (UserAgent.fireFoxVersion) {
             ctx.shapeNode['-moz-user-modify'] = 'read-only';
         }

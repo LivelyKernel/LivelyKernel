@@ -452,8 +452,13 @@ lively.morphic.Morph.addMethods(
 },
 'styling', {
 
-    // FIXME does not belong here
-    setPadding: function(padding) { this.padding = padding },
+    setPadding: function(padding) {
+      // FIXME does not belong here
+      // Please note: Morphs generally *do not* implement padding, this method
+      // is here for compat reasons only.  Certain types of Morph like texts
+      // implement it however,
+      console.warn("DEPRECATED: setPadding called on Morph that doesn't support padding");
+    },
 
     getStyleClass: function() { return this.styleClass || [] },
 

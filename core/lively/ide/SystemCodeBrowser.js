@@ -116,6 +116,10 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
         this.locationInput().setTextString(locationInputString);
     },
     setTargetUrlFromString: function(aString) {
+      if (aString.match(/\/[^\.]+$/)) {
+        // if it has no extension and doesn't end with / we still consider it to be a dir
+        aString += "/";
+      }
         var isCompleteUrlString = aString.startsWith('http://');
         if (isCompleteUrlString) {
             return this.setTargetURL(new URL(aString));

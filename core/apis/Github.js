@@ -103,7 +103,7 @@ Object.extend(apis.Github, {
     if (typeof options === "function") { thenDo = options; options = null; }
     apis.Github.doRequest(
       `/repos/${repoName}/issues/${issueNo}`,
-      lively.lang.obj.merge(options, {auth: this.getCachedGithubAccess()}), thenDo);
+      lively.lang.obj.merge(options, {auth: apis.Github.getCachedGithubAccess()}), thenDo);
   },
 
   editIssue: function(repoName, issueNo, payload, options, thenDo) {
@@ -146,7 +146,7 @@ Object.extend(apis.Github, {
     function getIssuePage(page, results, thenDo) {
       apis.Github.doRequest(
         url.pathname,
-        lively.lang.obj.merge(options, {auth: this.getCachedGithubAccess(), page: page}),
+        lively.lang.obj.merge(options, {auth: apis.Github.getCachedGithubAccess(), page: page}),
         (err, result) => {
           if (err) return thenDo(err);
           if (page >= result.lastPage) return thenDo(null, results.concat(result.data), result.limit);
@@ -230,7 +230,7 @@ Object.extend(apis.Github, {
     }
 
     // are we logged in yet?
-    var auth = this.getCachedGithubAccess(scopes);
+    var auth = apis.Github.getCachedGithubAccess(scopes);
     if (auth) return thenDo(null, auth);
 
     // Uses the OAuth webflow, see https://developer.github.com/v3/oauth/#web-application-flow

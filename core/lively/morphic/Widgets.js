@@ -3287,18 +3287,20 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
 
     buildTextInput: function(bounds) {
         var self = this;
-        lively.require('lively.ide.tools.CommandLine').toRun(function() {
-            var opt = self.options || {},
-                histId = opt.historyId,
-                input = lively.ide.tools.CommandLine.get(histId);
-            input.setBounds(self.label.bounds().insetByPt(pt(self.label.getPosition().x * 2, 0)));
-            input.align(input.getPosition(), self.label.bounds().bottomLeft().addPt(pt(0,5)));
-            lively.bindings.connect(input, 'savedTextString', self, 'result');
-            lively.bindings.connect(input, 'onEscPressed', self, 'result', {converter: function() { return null } });
-            lively.bindings.connect(self.panel, 'onEscPressed', self, 'result', {converter: function() { return null}});
-            input.applyStyle({resizeWidth: true, moveVertical: true});
-            self.inputText = self.panel.focusTarget = self.panel.addMorph(input);
-            input.textString = opt.input || '';
+        var m = module('lively.ide.tools.CommandLine');
+        if (!m.isLoaded()) m.load();
+        m.runWhenLoaded(function() {
+          var opt = self.options || {},
+              histId = opt.historyId,
+              input = m.get(histId);
+          input.align(input.getPosition(), self.label.bounds().bottomLeft().addPt(pt(0,5)));
+          input.setExtent(self.label.getExtent());
+          lively.bindings.connect(input, 'savedTextString', self, 'result');
+          lively.bindings.connect(input, 'onEscPressed', self, 'result', {converter: function() { return null } });
+          lively.bindings.connect(self.panel, 'onEscPressed', self, 'result', {converter: function() { return null}});
+          input.applyStyle({resizeWidth: true, moveVertical: true});
+          self.inputText = self.panel.focusTarget = self.panel.addMorph(input);
+          input.textString = opt.input || '';
         });
     },
 

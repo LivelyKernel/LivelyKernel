@@ -297,7 +297,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         selectable: true
     },
 
-    autoAdjustPadding: true,
     suppressDropping: true
 },
 'initializing', {
@@ -306,7 +305,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.textString = string || '';
         this.charsTyped = '';
         this.evalEnabled = false;
-        this.fit();
         if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();
     }
 },
@@ -337,6 +335,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     }
 },
 'accessing', {
+    innerBounds: function innerBounds($super) {
+      var needsComputation = !this.isClip() || !this.fixedWidth || !this.fixedHeight,
+          shapeBounds = $super();
+      if (!needsComputation) return shapeBounds;
+
+      var textExt = this.getTextExtent(),
+          padding = this.getPadding(),
+          w = this.fixedWidth ? shapeBounds.width : textExt.x + padding.left() + padding.right(),
+          h = this.fixedHeight ? shapeBounds.height : textExt.y + padding.top() + padding.bottom();
+      return new lively.Rectangle(shapeBounds.x, shapeBounds.y, w, h);
+    },
+
     setExtent: function($super, value) {
         var result = $super(value);
         if (this.owner && this.owner.isInLayoutCycle) return result;
@@ -345,7 +355,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
 
     getTextExtent: function() { return this.renderContextDispatch('getTextExtent') },
-    getTextBounds: function() { return pt(0,0).extent(this.getTextExtent()) },
+    getTextBounds: function() { return this.getPadding().topLeft().extent(this.getTextExtent()); },
     visibleTextBounds: function() {
         return this.innerBounds().insetByRect(this.getPadding());
     },
@@ -418,6 +428,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     setPadding: function(rect) {
         this.shape.setPadding(rect);
         this.fit();
+        this.fit();
     },
     getPadding: function() { return this.shape.getPadding() },
     setAlign: function(align) { return this.morphicSetter('Align', align) },
@@ -473,14 +484,20 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
       var subBounds = this.submorphBounds(new lively.morphic.Similitude()),
           l = this.getLayouter(),
           offset = l ? l.getBorderSize() : 0,
-          padding = this.getPadding();
-      this.setExtent(subBounds.bottomRight().addXY(offset, offset).addXY(padding.bottom(), padding.right()));
+          padding = this.getPadding(),
+          ext = subBounds.bottomRight()
+            .addXY(offset, offset)
+            .addXY(padding.bottom(), padding.right());
+      this.setExtent(ext);
     },
   
     growOrShrinkToFit: function() {
-        if (!this.getExtent().eqPt(this.getTextExtent())) {
-            this.setExtent(this.getTextExtent());
-        }
+        var padding = this.getPadding(),
+            fullExtent = this.getTextExtent().addXY(
+              padding.left() + padding.right(),
+              padding.top() + padding.bottom());
+        if (!this.getExtent().eqPt(fullExtent))
+          this.setExtent(fullExtent);
     },
 
     fit: function() {
@@ -549,25 +566,31 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             prefix = this.renderContext().domInterface.html5CssPrefix;
         }
 
-        if (fixedWidth) {
-            var paddingWidth = padding ? padding.left() + padding.right() : 0,
-                newWidth = prefix + 'calc(100% - ' + paddingWidth + 'px)';
-            style.minWidth = newWidth;
-        } else {
-            var minWidth = this.getMinTextWidth()
-            style.minWidth = minWidth ? minWidth + 'px' : null;
-        }
-        if (isMoz) style.width = style.minWidth;
-
         if (fixedHeight) {
             var paddingHeight = padding ? padding.top() + padding.bottom() : 0,
                 newHeight = prefix + 'calc(100% - ' + paddingHeight + 'px)';
             style.minHeight = newHeight;
+            style.maxHeight = newHeight;
         } else {
             var minHeight = this.getMinTextHeight();
             style.minHeight = minHeight ? minHeight + 'px' : null;
+            style.maxHeight = "";
+            style.height = "";
         }
         if (isMoz) style.height = style.minHeight;
+
+        if (fixedWidth) {
+            var paddingWidth = padding ? padding.left() + padding.right() : 0,
+                newWidth = prefix + 'calc(100% - ' + paddingWidth + 'px)';
+            style.minWidth = newWidth;
+            style.maxWidth = newWidth;
+        } else {
+            var minWidth = this.getMinTextWidth()
+            style.minWidth = minWidth ? minWidth + 'px' : null;
+            style.maxWidth = "";
+            style.width = "";
+        }
+        if (isMoz) style.width = style.minWidth;
     },
 
     computeRealTextBounds: function() {
@@ -752,7 +775,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.fixChunksDelayed();
     },
 
-    processCommandKeys: function(evt) {
+    processCommandKeys: function($super,evt) {
         var key = evt.getKeyChar();
         if (key) key = key.toLowerCase();
 
@@ -814,7 +837,16 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 return true;
             }
             case "x": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
-            case "c": { lively.morphic.Text.clipboardString = this.selectionString(); return false; }
+            case "c": { 
+                if(this.showsHalos){
+                  (function() {$super(evt);}).bind(this).delay(0);
+                  return false;
+                }
+                else{
+                  lively.morphic.Text.clipboardString = this.selectionString(); 
+                  return false; 
+                }
+              }
             case "v": { /*Just do the native paste*/ return false; }
             case "z": {
                 if (!this.undo) return false;
@@ -1935,7 +1967,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         return this.morphicGetter('WhiteSpaceHandling') || 'pre-wrap';
     },
     setWordBreak: function(modeString) {
-        // values supported: "normal", "break-all", "hyphenate"
+        // values supported: "normal", "break-all", "hyphenate", "break-word"
         return this.morphicSetter('WordBreak', modeString);
     },
     getWordBreak: function() {

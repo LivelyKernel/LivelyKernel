@@ -95,7 +95,8 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
     testForwardDownSexp: function() {
         var src = "var x = function() { return function(foo) {}; }";
         var nav = this.sut;
-        this.assertEquals(8, nav._forwardDownSexp(src, 0));
+        this.assertEquals(4, nav._forwardDownSexp(src, 0));
+        this.assertEquals(8, nav._forwardDownSexp(src, 4));
     },
 
     testContainingFunctionRange: function() {

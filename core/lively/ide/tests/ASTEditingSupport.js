@@ -15,7 +15,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
             ast = acorn.parse(src),
             nodes = acorn.walk.findNodesIncluding(ast, 10);
         this.assertEquals(
-            ["Program","VariableDeclaration","ObjectExpression","Property","Identifier"],
+            ["Program","VariableDeclaration", "VariableDeclarator", "ObjectExpression","Property","Identifier"],
             nodes.pluck("type"));
     },
 

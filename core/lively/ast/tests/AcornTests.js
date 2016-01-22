@@ -75,7 +75,7 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
         // also checks: Identifier
 
         // post op
-        var src = 'a++;';
+        var src = 'a++;',
             expected = {
                 isSequence: true,
                 children: [{
@@ -107,7 +107,7 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
 
     test05AssignmentExpression: function() {
         // set
-        var src = 'ten = 10;';
+        var src = 'ten = 10;',
             expected = {
                 isSequence: true,
                 children: [{
@@ -140,7 +140,7 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
 
     test06FunctionDeclaration: function() {
         // also checks: BlockStatement, ReturnStatement
-        var src = 'function fn(a) { return 23; }';
+        var src = 'function fn(a) { return 23; }',
             expected = {
                 isSequence: true,
                 children: [{
@@ -170,7 +170,7 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
 
     test07VariableDeclaration: function() {
         // also checks: Literal(string)
-        var src = 'var a = 23, b = "fortytwo", c;';
+        var src = 'var a = 23, b = "fortytwo", c;',
             expected = {
                 isSequence: true,
                 children: [{
@@ -189,7 +189,7 @@ TestCase.subclass('lively.ast.tests.AstTests.AcornToLKTest',
     },
 
     test08ObjectExpression: function() {
-        var src = '({ a: "b", 23: 42, "foo": "bar", get x() { return 3; }, set y(val) { bar = val; } });';
+        var src = '({ a: "b", 23: 42, "foo": "bar", get x() { return 3; }, set y(val) { bar = val; } });',
             expected = {
                 isSequence: true,
                 children: [{

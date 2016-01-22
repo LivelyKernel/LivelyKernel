@@ -1175,37 +1175,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return doFunc.call(this, reset);
     },
 
-    mergeUndosOf: function(doFunc) {
-        var ed, undoStackOld, wasMerged = false;
-
-        this.withAceDo(function(aceEd) {
-            ed = aceEd;
-            ed.session.markUndoGroup();
-            undoStackOld = ed.session.getUndoManager().$undoStack.clone();
-            try { doFunc.call(this, mergeUndos); } catch (e) {
-                if (!wasMerged) mergeUndos();
-                throw e;
-            }
-        });
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        function mergeUndos() {
-            wasMerged = true;
-            var undoStackNew = ed.session.getUndoManager().$undoStack.clone();
-            var deltas = undoStackNew.withoutAll(undoStackOld);
-            var undoStackMerged = deltas.length ? deltas.reduce(function(delta, ea) {
-                delta[0].deltas = delta[0].deltas.concat(ea[0].deltas);
-                return delta;
-            }) : [];
-            ed.session.getUndoManager().$undoStack = undoStackOld.concat([undoStackMerged]);
-        }
-    },
-
-    undo: function() { return this.withAceDo(function(ed) { return ed.undo(); }); },
-
-    redo: function() { return this.withAceDo(function(ed) { return ed.redo(); }); },
-
     getSelection: function() {
         return this.withAceDo(function(ed) { return ed.selection });
     },
@@ -1386,6 +1355,81 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         dir && sel.moveCursorToPosition(range[dir]);
         sel.clearSelection();
     }
+
+},
+'undo', {
+
+    mergeUndosOf: function(doFunc) {
+        var ed, undoStackOld, wasMerged = false;
+
+        this.withAceDo(function(aceEd) {
+            ed = aceEd;
+            ed.session.markUndoGroup();
+            undoStackOld = ed.session.getUndoManager().$undoStack.clone();
+            try { doFunc.call(this, mergeUndos); } catch (e) {
+                if (!wasMerged) mergeUndos();
+                throw e;
+            }
+        });
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function mergeUndos() {
+            wasMerged = true;
+            var undoStackNew = ed.session.getUndoManager().$undoStack.clone();
+            var deltas = undoStackNew.withoutAll(undoStackOld);
+            var undoStackMerged = deltas.length ? deltas.reduce(function(delta, ea) {
+                delta[0].deltas = delta[0].deltas.concat(ea[0].deltas);
+                return delta;
+            }) : [];
+            ed.session.getUndoManager().$undoStack = undoStackOld.concat([undoStackMerged]);
+        }
+    },
+
+    undo: function() { return this.withAceDo(function(ed) { return ed.undo(); }); },
+
+    redo: function() { return this.withAceDo(function(ed) { return ed.redo(); }); },
+
+},
+'changes', {
+
+   applyChanges: function(changes, cursorPos, mergeUndos) {
+    // stolen + modified from
+    //   https://github.com/rksm/paredit.js/blob/9f51bba662e133962e2d4e119461eb9cd8f45c27/examples/ace.ext.lang.paredit.js#L510
+    //
+    // changes:  alist of insert/remove instructions like
+    //   [["insert", {row: 2, column: 3}, "foo"], ["remove", {row: 4, column: 0}, {row: 4, column: 10}]]
+    // cursorPos: where to put the cursor after applying the changes
+
+    if (!changes || !changes.length) return;
+    var ed = this.aceEditor,
+        emacs = lively.ide.ace.require("ace/keyboard/emacs");
+
+    if (mergeUndos) this.mergeUndosOf(apply)
+    else {
+      apply();
+      ed.session.markUndoGroup();
+    }
+
+    cursorPos && ed.selection.moveToPosition(cursorPos);
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function apply() {
+      changes.forEach(function(ea) {
+        var type = ea[0];
+        if (type === 'insert') {
+          ed.session.insert(ea[1], ea[2]);
+        } else if (type === 'remove') {
+          var range = {start: ea[1], end: ea[2]},
+              killRingString = ed.session.getTextRange(range);
+          if (killRingString.length > 1 && emacs)
+            emacs.killRing.add(killRingString);
+          ed.session.remove(range);
+        }
+      });
+    }
+  }
 
 },
 'annotations and markers', {

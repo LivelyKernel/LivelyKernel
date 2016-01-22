@@ -32,7 +32,7 @@ apis.Github.doRequest(
   (err, answer) => { err && show(String(err)); show(answer); })
 */
 
-// apis.Github.doRequest("/", {auth: token}, (err, answer) => { show(answer); })
+// apis.Github.doAuthenticatedRequest("/", {}, (err, answer) => { show(answer); })
 // {
 //   authorizations_url: "https://api.github.com/authorizations",
 //   code_search_url: "https://api.github.com/search/code?q={query}{&page,per_page,sort,order}",
@@ -182,7 +182,12 @@ Object.extend(apis.Github, {
     }
 
     var method = (options.method || "GET").toLowerCase(),
-        args = [options.data].compact();
+        args = [];
+    if (options.data) {
+      var data = typeof options.data === "string" ?
+        options.data : JSON.stringify(options.data);
+      args = [data];
+    }
 
     req[method].apply(req, args).withJSONWhenDone((json, status) => {
       var links = (lively.PropertyPath("responseHeaders.link").get(req) || "").split(",")

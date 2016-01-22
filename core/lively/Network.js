@@ -693,6 +693,8 @@ View.subclass('NetRequest',
 
     post: function(url, content) { return this.request("POST", this.useProxy ? URL.makeProxied(url) : String(url), content) },
 
+    patch: function(url, content) { return this.request("PATCH", this.useProxy ? URL.makeProxied(url) : String(url), content) },
+
     propfind: function(url, depth, content) {
         this.setContentType("text/xml"); // complain if it's set to something else?
         if (depth != 0 && depth != 1)
@@ -1553,7 +1555,11 @@ Object.subclass('WebResource',
         this.content = this.convertContent(content || '');
         this.addHeaderForPutRequirements(options);
         if (contentType) this.addContentType(contentType)
-        this.addNoCacheHeader();
+        // rk 2016-01-22
+        // disabling the no cache header for now. It was added b/c Chrome
+        // cached PUTs at one point. Hopefully this is fixed now and we can remove
+        // this altogether
+        // this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');
         req.request(this.content);
         return this;
@@ -1575,12 +1581,22 @@ Object.subclass('WebResource',
     },
 
     post: function(content, contentType) {
-        this.content = content;
+        this.content = this.convertContent(content)
         var request = this.createNetRequest();
         if (contentType) {
             request.setContentType(contentType);
         }
-        request.post(this.getURL(), content);
+        request.post(this.getURL(), this.content);
+        return this;
+    },
+
+    patch: function(content, contentType) {
+        this.content = this.convertContent(content)
+        var request = this.createNetRequest();
+        if (contentType) {
+          request.setContentType(contentType);
+        }
+        request.patch(this.getURL(), this.content);
         return this;
     },
 
@@ -1793,6 +1809,14 @@ Object.subclass('WebResource',
     convertContent: function(content) {
         // if requiredRevision is set then put will only succeed if the resource has
         // the revision number requiredRevision
+        if ((Global.Document && content instanceof Document) ||
+                (Global.Node && content instanceof Node)) {
+            content = Exporter.stringify(content);
+        } else if (UserAgent.isIE && content.xml) {
+            // serialization FIX for IE9+
+            content = content.xml;
+        }
+
         if (this.isBinary()) {
             // from http://code.google.com/p/chromium/issues/detail?id=35705#c6
             var byteValue = function(x) { return x.charCodeAt(0) & 0xff },
@@ -1800,12 +1824,7 @@ Object.subclass('WebResource',
                 ui8a = new Uint8Array(ords);
             content = ui8a.buffer;
         }
-        if ((Global.Document && content instanceof Document) ||
-                (Global.Node && content instanceof Node)) {
-            content = Exporter.stringify(content);
-        } else if (content.xml) { // serialization FIX for IE9+
-            content = content.xml;
-        }
+
         return content;
     }
 },

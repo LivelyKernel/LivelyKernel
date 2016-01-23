@@ -1556,10 +1556,8 @@ Object.subclass('WebResource',
         this.addHeaderForPutRequirements(options);
         if (contentType) this.addContentType(contentType)
         // rk 2016-01-22
-        // disabling the no cache header for now. It was added b/c Chrome
-        // cached PUTs at one point. Hopefully this is fixed now and we can remove
-        // this altogether
-        // this.addNoCacheHeader();
+        // added b/c Chrome caches PUTs
+        this.addNoCacheHeader();
         var req = this.createXMLHTTPRequest('PUT');
         req.request(this.content);
         return this;

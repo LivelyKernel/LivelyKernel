@@ -103,14 +103,18 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
     var md = this,
         lines = Array.isArray(markdownSrcOrLines) ?
           markdownSrcOrLines : lively.lang.string.lines(markdownSrcOrLines),
-        start = headings.detect(ea => ea.line === heading.line),
+        start = headings.detect(ea => heading && ea.line === heading.line),
         startIndex = headings.indexOf(start),
         end = headings.slice(startIndex+1).detect(ea => ea.depth <= heading.depth),
-        subheadings = headings.slice(headings.indexOf(start), headings.indexOf(end));
+        subheadings = headings.slice(
+          headings.indexOf(start),
+          end ? headings.indexOf(end) : headings.length);
     return {
       range: {
         start: {row: start.line, column: 0},
-        end: {row: end.line-1, column: lines[end.line-1].length}
+        end: end ?
+          {row: end.line-1, column: lines[end.line-1].length} :
+          {row: lines.length-1, column: lines[lines.length-1].length}
       },
       subheadings: subheadings
     }

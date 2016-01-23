@@ -162,15 +162,18 @@ Object.subclass("lively.users.User",
 
   setAttributes: function(attributes, dontSave) {
     var toDelete = Object.keys(this.getAttributes()).withoutAll(Object.keys(attributes));
-    toDelete.forEach(k => delete this[k]);
+    // FIXME: Fat Arrow Expression not yet supported in Safari (MR)
+    toDelete.forEach(function(k) { delete this[k]; }, this);
     lively.lang.obj.extend(this, attributes);
     !dontSave && this.saveAttributes();
     return this;
   },
 
   getAttributes: function() {
-    return Object.keys(this).withoutAll(this.reservedAttributes).reduce((attrs, k) => {
-      attrs[k] = this[k];
+    // FIXME: Fat Arrow Expression not yet supported in Safari (MR)
+    var self = this;
+    return Object.keys(this).withoutAll(this.reservedAttributes).reduce(function(attrs, k) {
+      attrs[k] = self[k];
       return attrs;
     }, {});
   },

@@ -183,38 +183,77 @@ TestCase.subclass('lively.tests.PartsBinTests.OnlinePartsBinTest',
 	}
 });
 
-AsyncTestCase.subclass('lively.tests.PartsBinTests.AsyncOnlinePartsBinTest', {
-	testLoadPartVersions: function() {
-		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
-			item = partsSpace.getPartItemNamed('TestObject');
-		connect(item, "partVersions", {cb : function() {
-            this.assert(item.partVersions, 'partVetsions not loaded!')
-            this.assert(item.partVersions.length > 0, 'no partVersiosn');
-            this.done();
-		}.bind(this)}, "cb", {removeAfterUpdate: true})
-		item.loadPartVersions();
+AsyncTestCase.subclass('lively.tests.PartsBinTests.AsyncOnlinePartsBinTest',
+"running", {
+
+	setUp: function($super) {
+		$super();
+		lively.PartsBin.partsSpaceNamed('PartsBin').clearCache();
+		
+		var item = lively.PartsBin.partsSpaceNamed('PartsBin').getPartItemNamed("TestObject");
+		item.setPart(lively.morphic.Morph.makeRectangle(0,0, 100, 100));
+		item.uploadPart(false, true); // version 1
+		item.setPart(lively.morphic.Morph.makeRectangle(0,0, 70, 70));
+		item.uploadPart(false, true); // version 2
+
+    this.urlsForDeletion = [
+      item.getFileURL(),
+      item.getHTMLLogoURL(),
+      item.getMetaInfoURL()
+    ]
+    
+    lively.PartsBin.partsSpaceNamed('PartsBin').clearCache();
 	},
-	testLoadRevision: function() {
-		var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
-			item = partsSpace.getPartItemNamed('TestObject');
-		connect(item, "partVersions", {cb : function() {
-            var rev = item.partVersions.last().rev,
-                obj = item.loadRevision(rev);
-            this.assertEquals(obj.name , 'TestObject');
-            this.done();
-		}.bind(this)}, "cb", {removeAfterUpdate: true})
-		item.loadPartVersions();
-	},
-	deleteURLAfterTest: function(url) {
-		if (!this.urlsForDeletion) this.urlsForDeletion = [];
-		this.urlsForDeletion.push(url);
-	},
+
 	tearDown: function($super) {
 		$super();
 		lively.PartsBin.partsSpaceNamed('PartsBin').clearCache();
 		if (this.urlsForDeletion)
 			this.urlsForDeletion.forEach(function(url) { new WebResource(url).del() })
 	},
+
+},
+"testing", {
+
+	testLoadPartVersions: function() {
+    var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
+      	item = partsSpace.getPartItemNamed('TestObject'),
+      	partVersions;
+
+    lively.bindings.once(
+      item, "partVersions",
+      {cb : function() { partVersions = item.partVersions;}}, "cb");
+  
+    item.loadPartVersions();
+  
+  	this.waitFor(function() { return !!partVersions}, 10, function() {
+        this.assert(item.partVersions, 'partVersions not loaded!')
+        this.assert(item.partVersions.length > 0, 'no partVersiosn');
+        this.done();
+  	});
+	},
+
+  testLoadRevision: function() {
+    var partsSpace = lively.PartsBin.partsSpaceNamed('PartsBin'),
+        item = partsSpace.getPartItemNamed('TestObject'),
+        obj;
+
+    lively.bindings.once(
+      item, "partVersions",
+      {cb : function() { var rev = item.partVersions.last().rev; obj = item.loadRevision(rev); }}, "cb");
+
+    item.loadPartVersions(true);
+
+    this.waitFor(function() { return !!obj; }, 10, function() {
+      this.assertEquals(obj.name , 'TestObject');
+      this.done();
+    });
+  },
+
+	deleteURLAfterTest: function(url) {
+		if (!this.urlsForDeletion) this.urlsForDeletion = [];
+		this.urlsForDeletion.push(url);
+	}
 });
 
 lively.tests.PartsBinTests.OnlinePartsBinTest.subclass('lively.tests.PartsBinTests.DroppableBehaviorTest',

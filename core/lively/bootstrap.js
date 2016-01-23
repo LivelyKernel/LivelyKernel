@@ -210,14 +210,10 @@
     })();
 
     (function setupConsole() {
-        var platformConsole = Global.console
-                           || (Global.window
-                             && window.parent
-                             && window.parent.console)
-                           || {},
-            required = ['log', 'group', 'groupEnd', 'warn', 'assert',
-                        'error'];
-        function emptyFunc() { }
+        var platformConsole = (typeof window !== "undefined" ? window.console : Global.console) || {},
+            required = ['log', 'group', 'groupEnd', 'warn', 'assert', 'error'];
+
+
         for (var i = 0; i < required.length; i++) {
             if (!platformConsole[required[i]]) {
                 platformConsole[required[i]] = emptyFunc;
@@ -230,51 +226,11 @@
         var consumers = platformConsole.consumers = [];
         platformConsole.wasWrapped = false;
 
-        function addWrappers() {
-            if (platformConsole.wasWrapped) return;
-
-            var props = [];
-            for (var name in platformConsole) props.push(name);
-
-            for (var i = 0; i < props.length; i++) {
-                (function(name) {
-                    var func = platformConsole[name];
-                    platformConsole['$' + name] = func;
-                    if (typeof func !== 'function') return;
-                    platformConsole[name] = function(/*arguments*/) {
-                        func.apply(platformConsole, arguments);
-                        for (var i = 0; i < consumers.length; i++) {
-                            var consumerFunc = consumers[i][name];
-                            if (consumerFunc) {
-                                try {
-                                    consumerFunc.apply(consumers[i], arguments);
-                                } catch (e) {
-                                    (console.$error || console.error)(
-                                        "Platform consumer %s errored on %s\nOriginal message:\n",consumers[i], name);
-                                    if (console["$"+name]) console["$"+name].apply(console, arguments);
-                                }
-                            }
-                        }
-                    };
-                })(props[i]);
-            }
-            platformConsole.wasWrapped = true;
-        }
-
-        function removeWrappers() {
-            for (var name in platformConsole) {
-                if (name[0] !== '$') continue;
-                var realName = name.substring(1, name.length);
-                platformConsole[realName] = platformConsole[name];
-                delete platformConsole[name];
-            }
-        }
-
         platformConsole.removeWrappers = removeWrappers;
         platformConsole.addWrappers = addWrappers;
 
         platformConsole.addConsumer = function(c) {
-            if (consumers.indexOf(c === -1)) {
+            if (consumers.indexOf(c) === -1) {
                 addWrappers();
                 consumers.push(c);
             }
@@ -286,6 +242,50 @@
             if (consumers.length === 0) removeWrappers();
         };
 
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function emptyFunc() {}
+
+        function addWrappers() {
+          if (platformConsole.wasWrapped) return;
+  
+          var props = [];
+          for (var name in platformConsole) props.push(name);
+  
+          var exceptions = ["removeWrappers", "addWrappers", "addConsumer", "removeConsumer"];
+
+          for (var i = 0; i < props.length; i++) {
+              var name = props[i];
+              if (name[0] === "$"
+               || typeof platformConsole[name] !== "function"
+               || exceptions.indexOf(name) > -1) continue;
+
+              (function(name) {
+                  var func = platformConsole[name];
+                  platformConsole['$' + name] = func;
+                  platformConsole[name] = function(/*arguments*/) {
+                      func.apply(platformConsole, arguments);
+                      for (var i = 0; i < consumers.length; i++) {
+                          var consumerFunc = consumers[i][name];
+                          if (consumerFunc) {
+                              consumerFunc.apply(consumers[i], arguments);
+                          }
+                      }
+                  };
+              })(name);
+          }
+          platformConsole.wasWrapped = true;
+        }
+
+        function removeWrappers() {
+            for (var name in platformConsole) {
+                if (name[0] !== '$') continue;
+                var realName = name.substring(1, name.length);
+                platformConsole[realName] = platformConsole[name];
+                delete platformConsole[name];
+                platformConsole.wasWrapped = false;
+            }
+        }
     })();
 
     var LoadingScreen = {

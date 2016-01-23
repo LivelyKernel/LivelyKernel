@@ -30,12 +30,10 @@ function getURLParam(name) {
 }
 
 function serverLog(msg) {
-    URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post(msg).content;
+    lively.Server && lively.Server.log(msg, {sync: true});
 }
 
 // some preparation
-
-serverLog("Automatic test process started.");
 
 var testRunId = getURLParam("testRunId");
 
@@ -205,18 +203,16 @@ prepareConfig();
     lively.morphic.World.current().setCurrentUser("run_tests-" + testRunId);
 })();
 
-serverLog("Automatic test process configuration done.");
-
 if (lively.Config.get("serverTestDebug")) {
     // So we can connect to the test server via l2l
     function sendLogMessage() {
-        var code = "console.log('debugging the tests in progress');";
-        URL.nodejsBase.withFilename("NodeJSEvalServer/").asWebResource().post(code).content;
+        lively.Server && lively.Server.logThrottled('debugging the tests in progress');
     }
     Global.travisDebugLogInterval = setInterval(sendLogMessage, 10*1000);
 } else {
-    serverLog("Automatic test process will run " + testList.length + " tests.");
-    require(['lively.TestFramework'].concat(testList)).toRun(function() {
+    require(['lively.TestFramework', 'lively.Server'].concat(testList)).toRun(function() {
+        serverLog("Automatic test process will run " + testList.length + " tests.");
+        lively.Server.enableSendingConsoleLogsToServer();
         var suite = TestSuite.forAllAvailableTests(suiteFilter);
         suite.runFinished = function() {
             if (Global.testRun) {

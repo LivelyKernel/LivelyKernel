@@ -12,23 +12,11 @@ before_script:
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "npm start &"
   - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"
-  - echo "Arrrrrggh!!! Server needs more than a minute to startup :("; sleep 60;
+  - echo "Arrrrrggh!!! Server needs more than a minute to startup :("; sleep 50;
 
 script: "DISPLAY=:1 npm test"
 
 notifications:
   slack: cdglabs:E0fa310LnYWFdOLQ8IxQRZfX
   email:
-    - astrid.thomschke@gmail.com
-    - cschuster@ucdavis.edu
-    - danhhingalls@gmail.com
-    - fbornhofen@gmail.com
-    - jens.lincke@hpi.uni-potsdam.de
-    - lauritz.thamsen@gmail.com
-    - Marko.Roeder@student.hpi.uni-potsdam.de
     - robert.krahn@gmail.com
-    - yoshiki.ohshima@acm.org
-    - bert@freudenbergs.de
-    - aranlunzer@gmail.com
-    - robin.schreiber@student.hpi.uni-potsdam.de
-    - lars.wassermann@googlemail.com

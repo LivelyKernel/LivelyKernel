@@ -166,7 +166,8 @@ lively.morphic.Morph.addMethods(
         // in the CSS file are in a different directory than the CSS'.
         // (use "" to leave the urls untouched)
         var url = URL.ensureAbsoluteURL(file),
-            webR = url.asWebResource();
+            webR = url.withQuery({"no-cache": Date.now()}).asWebResource().beSync();
+
         if (!webR.get().status.isSuccess()) {
             console.error("Couldn't load stylesheet at %s --> %s", file, webR.status.toString());
         }

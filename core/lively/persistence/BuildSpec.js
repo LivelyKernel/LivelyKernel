@@ -50,7 +50,7 @@ Object.subclass('lively.persistence.SpecObject',
             // don't record values that are the same as their default
             if (attr.hasOwnProperty("defaultValue") && equal(attr.defaultValue, value)) { return; }
             if (Object.isFunction(value)) {
-                // pass
+                value = value.getOriginal(); // no wrappers
             } else if (value && Object.isFunction(value.serializeExpr)) {
                 // pass
             } else if (value && value.isMorph) {

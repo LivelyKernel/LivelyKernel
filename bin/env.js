@@ -97,7 +97,7 @@ set("LK_TEST_NOTIFIER",      ["growlnotify"], {notFs: true});
 /*
  * web-browser related
  */
-set("CHROME_BIN",            [which('chrome'), which('chromium-browser'), which('google-chrome'),
+set("CHROME_BIN",            [which('chrome'), which('google-chrome'), which('chromium-browser'),
                               "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
                               "/Applications/Chromium.app/Contents/MacOS/Chromium",
                               "/usr/bin/chromium-browser",

@@ -208,11 +208,11 @@ if (lively.Config.get("serverTestDebug")) {
     function sendLogMessage() {
         lively.Server && lively.Server.logThrottled('debugging the tests in progress');
     }
-    Global.travisDebugLogInterval = setInterval(sendLogMessage, 10*1000);
+    Global.travisDebugLogInterval = setInterval(sendLogMessage, 30*1000);
 } else {
     require(['lively.TestFramework', 'lively.Server'].concat(testList)).toRun(function() {
         serverLog("Automatic test process will run " + testList.length + " tests.");
-        lively.Server.enableSendingConsoleLogsToServer();
+        lively.Server.enableSendingConsoleLogsToServer({timeout: 1500});
         var suite = TestSuite.forAllAvailableTests(suiteFilter);
         suite.runFinished = function() {
             if (Global.testRun) {

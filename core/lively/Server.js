@@ -22,7 +22,7 @@ Object.extend(lively.Server, {
 
     lively.lang.fun.throttleNamed(
       "lively.Server.logThrottled",
-      lively.Server.logThrottleTimeout,
+      (options && options.timeout) || lively.Server.logThrottleTimeout,
       () => {
         var cbs = s.logThrottleCallbacks;
         s.log(s.logThrottleQueue, options, (err) =>
@@ -57,7 +57,9 @@ Object.extend(lively.Server, {
     return webR.post(code);
   },
 
-  enableSendingConsoleLogsToServer: function() {
+  enableSendingConsoleLogsToServer: function(opts) {
+    opts = lively.lang.obj.merge({timeout: this.logThrottleTimeout}, opts);
+
     if (lively.Server._consoleWrapper)
       return lively.Server._consoleWrapper;
 
@@ -68,7 +70,7 @@ Object.extend(lively.Server, {
           msg = "[BROWSER-" + type.toUpperCase() + "] "
               + lively.lang.string.format.apply(lively.lang.string, arguments);
         } catch (e) { msg = arguments[0]; }
-        lively.Server.logThrottled(msg, {});
+        lively.Server.logThrottled(msg, opts);
       }
     }
     

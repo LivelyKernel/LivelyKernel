@@ -7,7 +7,7 @@ var fs = require("fs");
 var lang = require("lively.lang");
 
 var found = child_process.execSync('find core \\( -iname ".svn" -o -iname ".git" -o -iname "node_modules" -o -iname "combined.js" -o -iname "BootstrapDebugger.js" \\) -prune -o -type f -iname "*.js" -print'),
-    files = lang.string.lines(found.toString()).compact();
+    files = lang.arr.compact(lang.string.lines(found.toString()));
 
 var visitor = {ArrowFunctionExpression: function (node, st) { st.es6 = true; }},
     es6Files = files.filter(f => {

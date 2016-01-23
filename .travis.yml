@@ -3,7 +3,7 @@ language: node_js
 sudo: false
 
 node_js:
-  - "4"
+  - "4.1"
 
 before_install:
   - "google-chrome --version"
@@ -18,7 +18,6 @@ addons:
 before_script:
   - "nvm use v4"
   - "Xvfb :1 -screen 0 800x600x24 &"
-  - "node bin/temp-es6-fix.js"
   - "npm start &"
   - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"
   - echo "Arrrrrggh!!! Server needs more than a minute to startup :("; sleep 50;

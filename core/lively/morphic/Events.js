@@ -2107,7 +2107,7 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
         var world = this.world(),
             menu = world.currentMenu;
         if (!menu && world.worldMenuOpened) world.worldMenuOpened = false;
-        if (menu && (!menu.bounds().containsPoint(evt.getPosition()) || !menu.world())) {
+        if (menu && (!evt || !menu.bounds().containsPoint(evt.getPosition()) || !menu.world())) {
             world.currentMenu.remove();
             // FIXME currentMenu does not have to be worldMenu...
             world.worldMenuOpened = false;

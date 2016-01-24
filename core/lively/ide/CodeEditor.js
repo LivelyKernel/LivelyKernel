@@ -78,7 +78,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
     doNotSerialize: ['_aceInitialized', 'aceEditor', 'aceEditorAfterSetupCallbacks', 'savedTextString', 'storedString', '_statusMorph'],
     _aceInitialized: false,
-    evalEnabled: false,
     isAceEditor: true,
     isCodeEditor: true,
     isText: true,
@@ -1571,8 +1570,9 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     doSave: function() {
         this.savedTextString = this.textString;
-        if (this.evalEnabled) {
-            this.tryBoundEval(this.savedTextString, {range: {start: {index: 0}, end: {index: this.textString.length}}});
+        if (this.getEvalOnSave()) {
+            var result = this.tryBoundEval(this.savedTextString, {range: {start: {index: 0}, end: {index: this.textString.length}}});
+            if (result instanceof Error) this.showError(result);
         }
     },
 
@@ -1760,6 +1760,15 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       return this.hasOwnProperty("_DraggableCodeEnabled") ?
         this._DraggableCodeEnabled :
         lively.Config.get("draggableCodeInCodeEditor");
+    },
+
+    // evalEnabled is deprecated!
+    get evalEnabled() { return this.getEvalOnSave(); },
+    set evalEnabled(v) { return this.setEvalOnSave(v); },
+
+    setEvalOnSave: function(bool) { return this._EvalOnSave = bool; },
+    getEvalOnSave: function() {
+        return this.hasOwnProperty("_EvalOnSave") ? this._EvalOnSave : false;
     },
 
     setPrintItAsComment: function(bool) { return this._PrintItAsComment = bool; },
@@ -1955,6 +1964,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         items.push([lively.lang.string.format('[%s] use emacs-like keys', lively.Config.get('useEmacsyKeys') ? "X" : " "), function() { lively.Config.set('useEmacsyKeys', !lively.Config.get('useEmacsyKeys')); }]);
         items.push(["modes", modeItems]);
         items.push(["themes", themeItems]);
+
         boolItem({name: "ShowGutter", menuString: "show line numbers"}, items);
         boolItem({name: "ShowInvisibles", menuString: "show whitespace"}, items);
         boolItem({name: "ShowPrintMargin", menuString: "show print margin"}, items);
@@ -1972,6 +1982,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         boolItem({name: "ShowErrors", menuString: "show Errors"}, items);
         boolItem({name: "AutocompletionEnabled", menuString: "use Autocompletion"}, items);
         if (isJs) {
+          boolItem({name: "EvalOnSave", menuString: "evaluate all code when saving"}, items);
           boolItem({name: "PrintItAsComment", menuString: "printIt as comment"}, items);
           boolItem({name: "AutoEvalPrintItComments", menuString: "re-evaluate printIt comments"}, items);
           boolItem({name: "ScrubbingEnabled", menuString: "scrubbing"}, items);

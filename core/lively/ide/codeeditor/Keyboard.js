@@ -199,6 +199,14 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
             {
+                name: 'toggleEvalOnSave',
+                exec: function(ed, args) {
+                  ed.$morph.setEvalOnSave(!ed.$morph.getEvalOnSave());
+                  ed.$morph.setStatusMessage("toggleEvalOnSave " + (ed.$morph.getEvalOnSave() ? "enabled" : "disabled"));
+                },
+                multiSelectAction: "single",
+                handlesCount: true
+            }, {
                 name: 'togglePrintitAsComment',
                 exec: function(ed, args) {
                   ed.$morph.setPrintItAsComment(!ed.$morph.getPrintItAsComment());

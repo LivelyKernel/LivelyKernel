@@ -49,6 +49,16 @@ Object.extend(lively.ide, {
                 if (!this.wasStored && !this.closeVetoed) whenEditDone(null, 'aborted');
             };
         });
+    },
+
+    withLoadingIndicatorDo:  function(label, doFunc) {
+      var m = module('lively.morphic.tools.LoadingIndicator');
+      if (!m.isLoaded()) m.load();
+      m.runWhenLoaded(function() {
+        var indicator = m.open(label, doFunc ? function(remove) {
+          setTimeout(function() { doFunc(null, indicator, remove) }, 0);
+        } : null);
+      });
     }
 
 });

@@ -21,19 +21,25 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
     return marked(src);
   },
 
-  compileToHTMLAndOpen: function(src) {
-    var html = this.compileToHTML(src), win;
-    if ($morph("MarkdownRendering")) {
-      $morph("MarkdownRendering").setHTML(html);
-      win = $morph("MarkdownRendering").getWindow();
+  compileToHTMLAndOpen: function(src, options) {
+    options = lively.lang.obj.merge({
+      extent: pt(500,800),
+      title: "markdown rendering",
+      name: "MarkdownRendering"
+    }, options);
+
+    var html = this.compileToHTML(src), exisiting = $morph(options.name), win;
+    if (exisiting) {
+      exisiting.setHTML(html);
+      win = exisiting.getWindow();
     } else {
-      var wrapper = lively.morphic.HtmlWrapperMorph.renderHTML(html, lively.rect(0,0,500,800));
+      var wrapper = lively.morphic.HtmlWrapperMorph.renderHTML(html, options.extent.extentAsRectangle());
       win = wrapper.getWindow();
-      win.setTitle("markdown rendering");
-      wrapper.setName("MarkdownRendering");
+      win.setTitle(options.title);
+      wrapper.setName(options.name);
     }
-    win.openInWorld().comeForward();
-    return win;
+    if (win) win.openInWorld().comeForward()
+    return (win || exisiting || wrapper);
   },
 
   changeHeadingDepthAt: function(editor, pos, delta) {

@@ -164,7 +164,7 @@ Object.extend(lively.ide.commands.byName, {
 	    //lively doesn't handle undo/redo for text editing, so pass the
 	    //event up to the browser to handle.
 	        if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
-	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){
 	                return false;
 	            }
 	        $world.undoLastAction(); return true;
@@ -176,7 +176,7 @@ Object.extend(lively.ide.commands.byName, {
         //lively doesn't handle undo/redo for text editing, so pass the
 	    //event up to the browser to handle.
             if(lively.morphic.Morph.focusedMorph() instanceof lively.morphic.Text ||
-	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){ 
+	           lively.morphic.Morph.focusedMorph() instanceof lively.morphic.CodeEditor){
 	                return false;
 	            }
             $world.redoNextAction(); return true;
@@ -1106,7 +1106,7 @@ Object.extend(lively.ide.commands.byName, {
                 "lively.ide.browseFiles.baseDir.NarrowingList",
                 [function(c) { n(null, c); }]);
             },
-            
+
             // ...and change the base dir for real
             function setBasePath(candidate, n) {
               if (!candidate) return n(new Error("No directory choosen"));
@@ -1147,7 +1147,7 @@ Object.extend(lively.ide.commands.byName, {
         description: 'Print directory hierarchy',
         exec: function(opts) {
             var dir = opts && opts.dir;
-            
+
             if (dir) printIt(dir);
             else {
               lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
@@ -1259,7 +1259,7 @@ Object.extend(lively.ide.commands.byName, {
                     msgMorph = ed.ensureStatusMessageMorph();
                     msgMorph.disableRemoveOnTargetMorphChange();
                     if (!msgMorph.owner) { ed.setStatusMessage(""); }
-  
+
                     var connectionSpec = {
                       updater: function($upd, newContent) {
                         if (this.targetObj.textString.length > 1000) {
@@ -1271,7 +1271,7 @@ Object.extend(lively.ide.commands.byName, {
                       },
                       varMapping: {ed: ed, connections: connections}
                     }
-  
+
                     connections.pushAll([
                       lively.bindings.connect(cmd, 'stdout', msgMorph, 'appendRichText', connectionSpec),
                       lively.bindings.connect(cmd, 'stderr', msgMorph, 'appendRichText', connectionSpec)]);
@@ -1663,6 +1663,14 @@ Object.extend(lively.ide.commands.byName, {
             apis.Github.Issues.ui.browseIssues(repoName, n);
           }
         )(function(err) { err && $world.inform("Error: " + err.stack || err); });
+        return true;
+      }
+    },
+
+    "lively.create-bug-report": {
+      description: 'report a bug in Lively or make a feature request',
+      exec: function(args) {
+        window.open(lively.Config.get('bugReportWorld'));
         return true;
       }
     },

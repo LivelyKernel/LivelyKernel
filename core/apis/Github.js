@@ -107,10 +107,24 @@ Object.extend(apis.Github, {
 
     var req = url.asWebResource().noProxy().beAsync();
 
+    var accessToken;
     if (options.auth && options.auth.access_token) {
-      req.setRequestHeaders({
-        "Authorization": "token " + options.auth.access_token
-      });
+      var accessToken = options.auth.access_token;
+      req.setRequestHeaders({"Authorization": "token " + accessToken});
+    }
+
+    var cacheKey = (accessToken || "notauthenticated") + "-" + url,
+        cached = options.cache && options.cache[cacheKey],
+        updateCache = options.cache
+          && (options.hasOwnProperty("updateCache") ? options.updateCache : true);
+
+    if (cached) {
+      cached = options.cache[cacheKey];
+      if (cached.responseHeaders && cached.responseHeaders.etag) {
+        req.setRequestHeaders({
+          "if-none-match": cached.responseHeaders.etag
+        });
+      }
     }
 
     var method = (options.method || "GET").toLowerCase(),
@@ -120,8 +134,19 @@ Object.extend(apis.Github, {
         options.data : JSON.stringify(options.data);
       args = [data];
     }
+    req[method].apply(req, args).whenDone((content, status) => {
+      if (status.code() >= 400) return thenDo(status, content);
 
-    req[method].apply(req, args).withJSONWhenDone((json, status) => {
+      // cached?
+      if (status.code() === 304) return thenDo(null, cached);
+
+      var json;
+      try {
+        json = JSON.parse(content)
+      } catch (e) {
+        return thenDo(new Error("Error parsing Github response:\n" + e + "\n" + content));
+      }
+
       var links = (lively.PropertyPath("responseHeaders.link").get(req) || "").split(",")
         .map(ea => {
           if (!ea) return null;
@@ -135,7 +160,7 @@ Object.extend(apis.Github, {
       var lastLink = links.detect(ea => ea.rel === "last"),
           lastPage = lastLink && Number(lastLink.url.getQuery().page);
 
-      thenDo(status.isSuccess() ? null : status, {
+      var payloadAndMetaData = {
         responseHeaders: req.responseHeaders,
         links: links,
         lastPage: lastPage || 1,
@@ -145,7 +170,11 @@ Object.extend(apis.Github, {
           reset: Number(req.responseHeaders["x-ratelimit-reset"])
         },
         data: json
-      });
+      };
+
+      if (updateCache) options.cache[cacheKey] = payloadAndMetaData;
+
+      thenDo(status.isSuccess() ? null : status, payloadAndMetaData);
     });
   },
 
@@ -254,6 +283,8 @@ Object.extend(apis.Github, {
 
 apis.Github.Issues = {
 
+  cachedIssueList: {},
+
   createIssue: function(repoName, title, body, options, thenDo) {
     if (typeof options === "function") { thenDo = options; options = null; }
     options = options || {};
@@ -270,9 +301,9 @@ apis.Github.Issues = {
 
   getIssue: function(repoName, issueNo, options, thenDo) {
     if (typeof options === "function") { thenDo = options; options = null; }
-    apis.Github.doRequest(
+    apis.Github.doAuthenticatedRequest(
       `/repos/${repoName}/issues/${issueNo}`,
-      lively.lang.obj.merge(options, {auth: apis.Github.getCachedGithubAccess()}),
+      lively.lang.obj.merge({cache: apis.Github.Issues.cachedIssueList}, options),
       (err, payload) => thenDo && thenDo(err, payload && payload.data));
   },
 
@@ -300,23 +331,22 @@ apis.Github.Issues = {
   getAllIssues: function(repoName, options, thenDo) {
     // Usage:
     // apis.Github.Issue.getAllIssues("LivelyKernel/LivelyKernel", (err, issues, limit) => { inspect(issues); })
-
     if (typeof options === "function") {
       thenDo = options;
       options = null;
     }
-
-    options = options || {};
-
-    var url = new URL(`https://api.github.com/repos/${repoName}/issues`);
+    options = lively.lang.obj.merge({
+      cache: apis.Github.Issues.cachedIssueList,
+      state: "open"
+    }, options);
     getIssuePage(1, [], thenDo);
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     function getIssuePage(page, results, thenDo) {
-      apis.Github.doRequest(
-        url.pathname,
-        lively.lang.obj.merge(options, {auth: apis.Github.getCachedGithubAccess(), page: page}),
+      apis.Github.doAuthenticatedRequest(
+        `/repos/${repoName}/issues?state=${options.state}`,
+        lively.lang.obj.merge(options, {page: page}),
         (err, result) => {
           if (err) return thenDo(err);
           if (page >= result.lastPage) return thenDo(null, results.concat(result.data), result.limit);
@@ -327,7 +357,7 @@ apis.Github.Issues = {
 
   getIssueComments: function(repoName, issueOrIssueNo, options, thenDo) {
     if (typeof options === "function") { thenDo = options; options = null; }
-    options = options || {};
+    lively.lang.obj.merge({cache: apis.Github.Issues.cachedIssueList}, options);
 
     var issue = typeof issueOrIssueNo === "number" ? null : issueOrIssueNo,
         no = issue ? issue.number : issueOrIssueNo,
@@ -341,8 +371,10 @@ apis.Github.Issues = {
 
   ui: {
 
+    cachedIssuesForUI: {},
+
     printIssueTitle: function(issue) {
-      return `#${issue.number} ${issue.title} (${issue.state}, ${new Date(issue.created_at).format("yy-mm-dd")}, ${issue.user.login})`;
+      return `#${issue.number} [${issue.state}] ${issue.title} (${new Date(issue.created_at).format("yy-mm-dd")}, ${issue.user.login})`;
     },
 
     printIssue: function(issue) {
@@ -472,9 +504,10 @@ ${comment.body}`;
       )(thenDo);
     },
 
-    showNarrower: function(issues, thenDo) {
+    showNarrower: function(issues, repoName, thenDo) {
+      var cache = apis.Github.Issues.ui.cachedIssuesForUI;
       var n = lively.ide.tools.SelectionNarrowing.getNarrower({
-          // name: "apis.Github.all-issues-list",
+          name: "apis.Github.all-issues-list-" + repoName,
           spec: {
               prompt: 'headings: ',
               candidates: issues.map(i => ({
@@ -482,10 +515,13 @@ ${comment.body}`;
                 string: apis.Github.Issues.ui.printIssueTitle(i),
                 value: i
               })),
-              // keepInputOnReactivate: true,
+              keepInputOnReactivate: true,
               actions: [{
                   name: 'show issue',
                   exec: issue => apis.Github.Issues.ui.openIssue(null, issue)
+              }, {
+                name: 'clear cache',
+                exec: () => cache[repoName] = null
               }]
           }
       });
@@ -493,9 +529,23 @@ ${comment.body}`;
     },
 
     browseIssues: function(repoName, thenDo) {
+      var cache = apis.Github.Issues.ui.cachedIssuesForUI;
+
+      // clean ui cache
+      setTimeout(() => cache[repoName] = null, 30*1000);
+
+      var removeLoadingIndicator;
       lively.lang.fun.composeAsync(
-        n => apis.Github.Issues.getAllIssues(repoName, {}, n),
-        (issues, quota, n) => apis.Github.Issues.ui.showNarrower(issues, n)
+        n => lively.ide.withLoadingIndicatorDo("loading...", (err, _, x) => (removeLoadingIndicator = x) && n(err)),
+        n => cache[repoName] ? n(null, cache[repoName], null) : apis.Github.Issues.getAllIssues(repoName, {state: "all"}, n),
+        (issues, _, n) => {
+          var grouped = issues.groupByKey("state"),
+              issueList = (grouped.open || []).concat(grouped.closed || []);
+          cache[repoName] = issueList;
+          n(null, issueList);
+        },
+        (issues, n) => apis.Github.Issues.ui.showNarrower(issues, repoName, n),
+        (narrower, n) => { removeLoadingIndicator(); n(null, narrower); }
       )(thenDo);
     }
 

@@ -1662,7 +1662,7 @@ Object.extend(lively.ide.commands.byName, {
           function(repoName, n) {
             apis.Github.Issues.ui.browseIssues(repoName, n);
           }
-        )(function(err) { $world.inform("Error: " + err.stack || err); });
+        )(function(err) { err && $world.inform("Error: " + err.stack || err); });
         return true;
       }
     },

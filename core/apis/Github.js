@@ -1054,6 +1054,9 @@ ${comment.body}
           ["browse issue on Github", () => this.browseIssueOnGithub()],
           ["add comment", () => this.interactivelyComment()],
           ["update", () => this.interactivelyUpdate()],
+          this.issue.state === "open" ?
+            ["close", () => this.interactivelyCloseIssue()] :
+            ["open", () => this.interactivelyOpenIssue()],
           {isMenuItem: true, isDivider: true}
         ].concat($super());
       });
@@ -1063,6 +1066,9 @@ ${comment.body}
           ["browse issue on Github", () => this.browseIssueOnGithub()],
           ["add comment", () => this.interactivelyComment()],
           ["update", () => this.interactivelyUpdate()],
+          this.issue.state === "open" ?
+            ["close", () => this.interactivelyCloseIssue()] :
+            ["open", () => this.interactivelyOpenIssue()],
           {isMenuItem: true, isDivider: true}
         ].concat($super());
       });
@@ -1087,6 +1093,22 @@ ${comment.body}
         this.setStatusMessage("Updating...");
         this.update(err => err ?
           this.showError(err) : this.setStatusMessage("Updated."));
+      });
+
+      morph.addScript(function interactivelyCloseIssue() {
+        var repo = apis.Github.Issues.ui.repoOfIssue(this.issue);
+        Global.apis.Github.Issues.editIssue(
+          repo,
+          this.issue.number, {state: "close"},
+          (err) => !err && this.update())
+      });
+
+      morph.addScript(function interactivelyOpenIssue() {
+        var repo = apis.Github.Issues.ui.repoOfIssue(this.issue);
+        Global.apis.Github.Issues.editIssue(
+          repo,
+          this.issue.number, {state: "open"},
+          (err) => !err && this.update())
       });
 
       morph.addScript(function onKeyDown(evt) {
@@ -1163,6 +1185,8 @@ ${comment.body}
           switch (id) {
             case 'comment': this.interactivelyComment(); break;
             case 'refresh': this.interactivelyUpdate(); break;
+            case 'close': this.interactivelyCloseIssue(); break;
+            case 'open': this.interactivelyOpenIssue(); break;
           }
       });
 
@@ -1171,7 +1195,10 @@ ${comment.body}
         this.issueComments = comments;
         var printed = Global.apis.Github.Issues.ui.printIssueAndComments(issue, comments),
             title = Global.apis.Github.Issues.ui.printIssueTitle(issue),
-            buttons = "<hr>\n\n" + ['comment', 'refresh'].map(this.renderButton).join(" ") + "<br><br>";
+            buttons = "<hr>\n\n"
+                    + ['refresh', 'comment', this.issue.state === "open" ? "close" : "open"]
+                      .map(this.renderButton).join(" ")
+                    + "<br><br>";
 
         var m = module('lively.ide.codeeditor.modes.Markdown');
         if (!m.isLoaded()) m.load();

@@ -1649,12 +1649,19 @@ Object.extend(lively.ide.commands.byName, {
       exec: function(args) {
         lively.lang.fun.composeAsync(
           function(n) {
+            var m = module('apis.Github');
+            if (!m.isLoaded()) m.load();
+            m.runWhenLoaded(function() { n(); })
+          },
+          function(n) {
             if (args && args.repo) return n(null, args.repo);
             $world.prompt("Browse issues of repository:",
               function(input) { n(null, input); },
               {input: "LivelyKernel/LivelyKernel", historyId: "apis.Github.Issues.browse-issues-repo"});
           },
-          apis.Github.Issues.ui.browseIssues
+          function(repoName, n) {
+            apis.Github.Issues.ui.browseIssues(repoName, n);
+          }
         )(function(err) { $world.inform("Error: " + err.stack || err); });
         return true;
       }

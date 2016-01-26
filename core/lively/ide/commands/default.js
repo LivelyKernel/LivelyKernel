@@ -1644,6 +1644,22 @@ Object.extend(lively.ide.commands.byName, {
       }
     },
 
+    'apis.Github.browse-issues': {
+      description: 'browse Github issues...',
+      exec: function(args) {
+        lively.lang.fun.composeAsync(
+          function(n) {
+            if (args && args.repo) return n(null, args.repo);
+            $world.prompt("Browse issues of repository:",
+              function(input) { n(null, input); },
+              {input: "LivelyKernel/LivelyKernel", historyId: "apis.Github.Issues.browse-issues-repo"});
+          },
+          apis.Github.Issues.ui.browseIssues
+        )(function(err) { $world.inform("Error: " + err.stack || err); });
+        return true;
+      }
+    },
+
     'lively.ide.openFileTree': {description: 'open file tree', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openFileTree(); return true; }},
 
     'lively.ide.openASTEditor': {

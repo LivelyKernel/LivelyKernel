@@ -999,8 +999,10 @@ Object.extend(lively.ide.commands.byName, {
         exec: function() {
 
             var lastSearchTime,
+                fileTypes = [],
                 greper = lively.lang.fun.debounce(500, function(t, input, callback) {
-                  lively.ide.CommandLineSearch.doGrep(input, null, function(lines, baseDir) {
+                  lively.ide.CommandLineSearch.doGrep(input, null, {fileTypes: fileTypes},
+                    function(lines, baseDir) {
                       if (t < lastSearchTime) return;
                       var candidates = lines.map(function(line) {
                           return line.trim() === '' ? null : {
@@ -1011,14 +1013,23 @@ Object.extend(lively.ide.commands.byName, {
                       }).compact();
                       if (candidates.length === 0) candidates = ['nothing found'];
                       callback(candidates);
-                  });
+                    });
               });
+
+            lively.lang.fun.composeAsync(
+              selectFileTypes,
+              openNarrower
+            )(function(err) { err && $world.inform(err.stack || err); })
+
+            return true;
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
             function candidateBuilder(input, callback) {
               lastSearchTime = Date.now();
               callback(['searching...']);
               greper(lastSearchTime, input, callback);
-            };
+            }
 
             function openInTextEditor(candidate) {
                 if (Object.isString(candidate)) return;
@@ -1033,42 +1044,56 @@ Object.extend(lively.ide.commands.byName, {
                 lively.ide.CommandLineSearch.doBrowseGrepString(candidate.match, candidate.baseDir);
             }
 
-            var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
-                name: 'lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
-                reactivateWithoutInit: true,
-                spec: {
-                    prompt: 'search for: ',
-                    candidatesUpdaterMinLength: 3,
-                    candidates: [],
-                    maxItems: 25,
-                    candidatesUpdater: candidateBuilder,
-                    keepInputOnReactivate: true,
-                    actions: [{
-                        name: 'open',
-                        exec: function(candidate) {
-                            if (Object.isString(candidate)) return;
-                            var isLively = candidate.match.match(/\.?\/?core\//) && candidate.baseDir.match(/\.?\/?/);
-                            if (isLively) openInSCB(candidate);
-                            else openInTextEditor(candidate);
-                        }
-                    }, {
-                        name: 'open in system browser',
-                        exec: openInSCB
-                    }, {
-                        name: 'open in text editor',
-                        exec: openInTextEditor
-                    }, {
-                        name: "open grep results in workspace",
-                        exec: function() {
-                            var state = narrower.state,
-                                content = narrower.getFilteredCandidates(state.originalState || state).pluck('match').join('\n'),
-                                title = 'search for: ' + narrower.getInput();
-                            $world.addCodeEditor({title: title, content: content, textMode: 'text'}).getWindow().comeForward();
-                        }
-                    }]
-                }
-            });
-            return true;
+            function selectFileTypes(thenDo) {
+              $world.prompt("What kinds of files to search (separate by space)?", function(input) {
+                fileTypes = (input || '').trim().split(" ").compact();
+                thenDo(null);
+              }, {
+                input: '*.js',
+                useLastInput: true,
+                historyId: 'lively.ide.CommandLineInterface.doGrepSearch.file-type-prompt'
+              });
+            }
+
+            function openNarrower(thenDo) {
+              var narrower = lively.ide.tools.SelectionNarrowing.getNarrower({
+                  name: 'lively.ide.CommandLineInterface.doGrepSearch.NarrowingList',
+                  reactivateWithoutInit: true,
+                  spec: {
+                      prompt: 'search for: ',
+                      candidatesUpdaterMinLength: 3,
+                      candidates: [],
+                      maxItems: 25,
+                      candidatesUpdater: candidateBuilder,
+                      keepInputOnReactivate: true,
+                      actions: [{
+                          name: 'open',
+                          exec: function(candidate) {
+                              if (Object.isString(candidate)) return;
+                              var isLively = candidate.match.match(/\.?\/?core\//) && candidate.baseDir.match(/\.?\/?/);
+                              if (isLively) openInSCB(candidate);
+                              else openInTextEditor(candidate);
+                          }
+                      }, {
+                          name: 'open in system browser',
+                          exec: openInSCB
+                      }, {
+                          name: 'open in text editor',
+                          exec: openInTextEditor
+                      }, {
+                          name: "open grep results in workspace",
+                          exec: function() {
+                              var state = narrower.state,
+                                  content = narrower.getFilteredCandidates(state.originalState || state).pluck('match').join('\n'),
+                                  title = 'search for: ' + narrower.getInput();
+                              $world.addCodeEditor({title: title, content: content, textMode: 'text'}).getWindow().comeForward();
+                          }
+                      }]
+                  }
+              });
+              (function() { narrower.focus(); }).delay(0);
+              thenDo(null, narrower);
+            }
         }
     },
     'lively.ide.CommandLineInterface.changeShellBaseDirectory': {

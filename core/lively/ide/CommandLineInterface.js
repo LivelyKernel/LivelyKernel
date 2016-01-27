@@ -840,7 +840,18 @@ Object.extend(lively.ide.CommandLineSearch, {
         });
     },
 
-    doGrep: function(string, path, thenDo) {
+    doGrep: function(string, path, options, thenDo) {
+        if (typeof options === "function") {
+          thenDo = options;
+          options = null
+        }
+
+        options = lively.lang.obj.merge({
+          exclusions: lively.Config.codeSearchGrepExclusions,
+          fileTypes: [], // allow all,
+          sizeLimit: "+1M"
+        }, options);
+
         var lastGrep = lively.ide.CommandLineSearch.lastGrep;
         if (lastGrep && lastGrep.isRunning() && !lastGrep.wasKilled()) {
           lastGrep.kill("KILL");
@@ -858,13 +869,20 @@ Object.extend(lively.ide.CommandLineSearch, {
             fullPath = rootDirectory ? rootDirectory + path : path;
         if (!fullPath.length) fullPath = './core/';
         if (fullPath.endsWith('/')) fullPath = fullPath.slice(0,-1);
-        var excludes = "-iname " + lively.Config.codeSearchGrepExclusions.map(Strings.print).join(' -o -iname '),
+
+        var excludes = options.exclusions.length ? "-iname " + options.exclusions.map(Strings.print).join(' -o -iname ') : '',
+            sizeExclude = options.sizeLimit ? '-size ' + options.sizeLimit : '',
+            prune = [excludes, sizeExclude].compact().join(" -o "),
+            prune = prune ? "\\( " + prune + " \\) -prune -o" : "",
+            allowedFileNames = options.fileTypes.length ? "-iname " + options.fileTypes.map(Strings.print).join(' -o -iname ') : '',
+            allowedFileNames = allowedFileNames ? "-a \\( " + allowedFileNames + " \\)" : "",
             // baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a \( -iname "*.js" -o -iname "*.jade" -o -iname "*.css" -o -iname "*.json" \) -print0 | xargs -0 grep -inH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
-            baseCmd = 'find %s \( %s -o -size +1M \) -prune -o -type f -a -print0 | xargs -0 grep -IinH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
-            platform = lively.ide.CommandLineInterface.getServerPlatform();
-        if (platform !== 'win32') baseCmd = baseCmd.replace(/([\(\);])/g, '\\$1');
-        var charsBefore = 80, charsAfter = 80,
-            cmd = Strings.format(baseCmd, fullPath, excludes, charsBefore, string, charsAfter);
+            baseCmd = 'find %s %s -type f %s -a -print0 | xargs -0 grep -IinH -o ".\\{0,%s\\}%s.\\{0,%s\\}" ',
+            platform = lively.ide.CommandLineInterface.getServerPlatform(),
+            baseCmd = platform !== 'win32' ? baseCmd.replace(/([\(\);])/g, '\\$1') : baseCmd,
+            charsBefore = 80, charsAfter = 80,
+            cmd = Strings.format(baseCmd, fullPath, prune, allowedFileNames, charsBefore, string, charsAfter);
+
         lively.ide.CommandLineSearch.lastGrep = lively.shell.run(cmd, function(err, r) {
             lively.ide.CommandLineSearch.lastGrep = null;
             if (r.wasKilled()) return;

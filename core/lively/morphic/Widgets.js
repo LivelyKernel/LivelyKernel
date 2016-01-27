@@ -1944,7 +1944,9 @@ lively.morphic.World.addMethods(
     },
 
     bugReport: function() {
-        window.open(lively.Config.get('bugReportWorld'));
+        require("lively.ide.commands.default").toRun(function() {
+          lively.ide.commands.exec("lively.createBugReport");
+        });
     },
 
     addCodeEditor: function(options) {

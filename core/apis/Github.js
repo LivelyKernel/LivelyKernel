@@ -78,13 +78,43 @@ Object.extend(apis.Github, {
   defaultScopes: ["public_repo"],
 
   getCachedGithubAccess: function(scopes) {
-    var user = $world.getCurrentUser();
-    var auth = lively.lookup("github.auth", user);
+    var user = $world.getCurrentUser(),
+        auth = lively.lookup("github.auth", user);
     if (auth && scopes) {
       var userScopes = auth.scope.split(",");
       if (scopes.withoutAll(userScopes).length === 0) return auth;
     }
     return auth;
+  },
+
+  getLimitInfoOfReq: function(req) {
+    // extract quota limit from req / webresource headers
+    return req.responseHeaders ? {
+      limit: Number(req.responseHeaders["x-ratelimit-limit"]),
+      remaining: Number(req.responseHeaders["x-ratelimit-remaining"]),
+      reset: Number(req.responseHeaders["x-ratelimit-reset"])
+    } : null;
+  },
+
+  getPageInfoOfReq: function(req) {
+    // extract header links from WebResource
+    var links = (lively.PropertyPath("responseHeaders.link").get(req) || "").split(",")
+      .map(ea => {
+        if (!ea) return null;
+        var linkParts = ea.split(";").invoke("trim");
+        return {
+          url: new URL(linkParts[0].replace(/^<|>$/g, "")),
+          rel: linkParts[1].match(/rel="([^"]+)"/)[1]
+        }
+      }).compact();
+
+    var lastLink = links.detect(ea => ea.rel === "last"),
+        lastPage = lastLink && Number(lastLink.url.getQuery().page);
+
+    return {
+      links: links,
+      lastPage: lastPage || 1
+    }
   },
 
   doRequest: function doRequest(urlOrPath, options, thenDo) {
@@ -107,26 +137,22 @@ Object.extend(apis.Github, {
 
     var req = url.asWebResource().noProxy().beAsync();
 
+    // auth
     var accessToken;
     if (options.auth && options.auth.access_token) {
       var accessToken = options.auth.access_token;
       req.setRequestHeaders({"Authorization": "token " + accessToken});
     }
 
+    // cache? set etag!
     var cacheKey = (accessToken || "notauthenticated") + "-" + url,
         cached = options.cache && options.cache[cacheKey],
+        etag = cached && cached.req && cached.req.responseHeaders.etag,
         updateCache = options.cache
           && (options.hasOwnProperty("updateCache") ? options.updateCache : true);
+    etag && req.setRequestHeaders({"if-none-match": etag});
 
-    if (cached) {
-      cached = options.cache[cacheKey];
-      if (cached.responseHeaders && cached.responseHeaders.etag) {
-        req.setRequestHeaders({
-          "if-none-match": cached.responseHeaders.etag
-        });
-      }
-    }
-
+    // send the request
     var method = (options.method || "GET").toLowerCase(),
         args = [];
     if (options.data) {
@@ -134,11 +160,15 @@ Object.extend(apis.Github, {
         options.data : JSON.stringify(options.data);
       args = [data];
     }
+
     req[method].apply(req, args).whenDone((content, status) => {
       if (status.code() >= 400) return thenDo(status, content);
 
       // cached?
-      if (status.code() === 304) return thenDo(null, cached);
+      if (status.code() === 304) {
+        cached.req = req;
+        return thenDo(null, cached);
+      }
 
       var json;
       try {
@@ -147,34 +177,16 @@ Object.extend(apis.Github, {
         return thenDo(new Error("Error parsing Github response:\n" + e + "\n" + content));
       }
 
-      var links = (lively.PropertyPath("responseHeaders.link").get(req) || "").split(",")
-        .map(ea => {
-          if (!ea) return null;
-          var linkParts = ea.split(";").invoke("trim");
-          return {
-            url: new URL(linkParts[0].replace(/^<|>$/g, "")),
-            rel: linkParts[1].match(/rel="([^"]+)"/)[1]
-          }
-        }).compact();
-
-      var lastLink = links.detect(ea => ea.rel === "last"),
-          lastPage = lastLink && Number(lastLink.url.getQuery().page);
-
       var payloadAndMetaData = {
-        responseHeaders: req.responseHeaders,
-        links: links,
-        lastPage: lastPage || 1,
-        limit: req.responseHeaders && {
-          limit: Number(req.responseHeaders["x-ratelimit-limit"]),
-          remaining: Number(req.responseHeaders["x-ratelimit-remaining"]),
-          reset: Number(req.responseHeaders["x-ratelimit-reset"])
-        },
-        data: json
+        req: req,
+        data: json,
+        cache: options.cache,
+        cacheKey: cacheKey
       };
 
       if (updateCache) options.cache[cacheKey] = payloadAndMetaData;
 
-      thenDo(status.isSuccess() ? null : status, payloadAndMetaData);
+      thenDo(null, payloadAndMetaData);
     });
   },
 
@@ -185,7 +197,15 @@ Object.extend(apis.Github, {
       n => apis.Github.requestGithubAccess(scopes, n),
       (auth, n) => apis.Github.doRequest(
         urlOrPath, lively.lang.obj.merge(options, {auth: auth}), n)
-    )(thenDo);
+    )((err, payload) => {
+      if (err && err.code && err.code() === 401) {
+        // reset access token cache
+        var user = $world.getCurrentUser();
+        user.setAttributes(lively.lang.obj.merge(user.github, {auth: null}));
+      }
+
+      thenDo && thenDo(err, payload)
+    });
   },
 
 
@@ -965,7 +985,7 @@ apis.Github.Issues = {
 
   getAllIssues: function(repoName, options, thenDo) {
     // Usage:
-    // apis.Github.Issue.getAllIssues("LivelyKernel/LivelyKernel", (err, issues, limit) => { inspect(issues); })
+    // apis.Github.Issue.getAllIssues("LivelyKernel/LivelyKernel", (err, issues) => inspect(issues))
     if (typeof options === "function") {
       thenDo = options;
       options = null;
@@ -983,10 +1003,25 @@ apis.Github.Issues = {
         `/repos/${repoName}/issues?state=${options.state}`,
         lively.lang.obj.merge(options, {page: page}),
         (err, result) => {
-          if (err) return thenDo(err);
-          if (page >= result.lastPage) return thenDo(null, results.concat(result.data), result.limit);
-          getIssuePage(page + 1, results.concat(result.data), thenDo);
-        })
+          // TO reduce the server load and makes things much more faster we
+          // don't just rely on etag based cache responses from Github but use our
+          // cache directly when the first page hasn't changed thus avoiding
+          // requests for subsequent pages
+
+          if (page === 1 && result.req.status.code() === 304 && options.cache) {
+            var keyPattern = result.cacheKey.replace(/page=1.*/, "page="),
+                cache = options.cache,
+                cachedResult = Object.keys(cache)
+                                .filter(k => k.startsWith(keyPattern))
+                                .reduce((cachedResult, cacheKey) => cachedResult.concat(cache[cacheKey].data), []);
+            return thenDo(null, cachedResult);
+          }
+
+          var pageInfo = apis.Github.getPageInfoOfReq(result.req)
+          if (err) thenDo(err);
+          else if (page >= pageInfo.lastPage) thenDo(null, results.concat(result.data));
+          else getIssuePage(page + 1, results.concat(result.data), thenDo);
+        });
     }
   },
 
@@ -1290,8 +1325,8 @@ ${comment.body}
       var removeLoadingIndicator;
       lively.lang.fun.composeAsync(
         n => lively.ide.withLoadingIndicatorDo("loading...", (err, _, x) => (removeLoadingIndicator = x) && n(err)),
-        n => cache[repoName] ? n(null, cache[repoName], null) : apis.Github.Issues.getAllIssues(repoName, {state: "all"}, n),
-        (issues, _, n) => {
+        n => cache[repoName] ? n(null, cache[repoName]) : apis.Github.Issues.getAllIssues(repoName, {state: "all"}, n),
+        (issues, n) => {
           var grouped = issues.groupByKey("state"),
               issueList = (grouped.open || []).concat(grouped.closed || []);
           cache[repoName] = issueList;
@@ -1299,7 +1334,10 @@ ${comment.body}
         },
         (issues, n) => apis.Github.Issues.ui.showNarrower(issues, repoName, n),
         (narrower, n) => { removeLoadingIndicator(); n(null, narrower); }
-      )(thenDo);
+      )((err, narrower) => {
+        removeLoadingIndicator();
+        thenDo && thenDo(err, narrower);
+      });
     }
 
   }

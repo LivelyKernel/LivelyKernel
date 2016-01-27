@@ -1687,7 +1687,7 @@ Object.extend(lively.ide.commands.byName, {
       }
     },
 
-    'apis.Github.browse-issues': {
+    'apis.Github.browseIssues': {
       description: 'browse Github issues...',
       exec: function(args) {
         lively.lang.fun.composeAsync(
@@ -1710,7 +1710,7 @@ Object.extend(lively.ide.commands.byName, {
       }
     },
 
-    "lively.create-bug-report": {
+    "lively.createBugReport": {
       description: 'report a bug in Lively or make a feature request',
       exec: function(args) {
         window.open(lively.Config.get('bugReportWorld'));

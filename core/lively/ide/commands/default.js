@@ -1242,11 +1242,29 @@ Object.extend(lively.ide.commands.byName, {
                 var ed = ensureCodeEditor(command),
                     mergeUndos, connections = [],
                     title = ed.getWindow().getTitle(),
+                    cmd = ed.currentShellCommand,
                     msgMorph;
+
+                if (cmd) {
+                  lively.bindings.once(cmd, 'end', lively.ide.commands, 'exec', {
+                    updater: function($upd) {
+                      (function() {
+                        $upd('lively.ide.execShellCommand', ed, args)
+                      }).delay(0);
+                    }, varMapping: {ed: ed, args: args}
+                  });
+
+                  return;
+                }
 
                 if (ed.getWindow()) ed.getWindow().setTitle("[running] " + title);
 
-                var cmd = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(err, cmd) {
+                ed.hasOwnProperty('doNotSerialize') ?
+                  ed.doNotSerialize.pushIfNotIncluded('currentShellCommand') :
+                  (ed.doNotSerialize = ['currentShellCommand']);
+
+                cmd = ed.currentShellCommand = lively.shell.run(command, {addToHistory: addToHistory, group: group}, function(err, cmd) {
+                  ed.currentShellCommand = null;
                   connections.invoke("disconnect");
                   var result = cmd.resultString(true);
 

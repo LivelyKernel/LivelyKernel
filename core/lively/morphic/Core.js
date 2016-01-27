@@ -812,7 +812,9 @@ lively.morphic.Morph.subclass('lively.morphic.World',
 
   setExtent: function($super, ext) {
     $super(ext);
-    this.onWindowResize();
+    lively.lang.fun.debounceNamed("setExtent->onWindowResize-"+this.id, 10, function() {
+      this.onWindowResize();
+    }.bind(this))();
     return ext;
   }
 

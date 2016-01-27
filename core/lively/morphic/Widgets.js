@@ -2231,10 +2231,10 @@ lively.morphic.World.addMethods(
         blockMorph.addMorph(transparentMorph);
         if (modalOwner.modalMorph) modalOwner.modalMorph.remove();
         blockMorph.addMorph(morph);
+        modalOwner.modalMorph = modalOwner.addMorph(blockMorph);
         var alignBounds = modalOwner.visibleBounds ?
             modalOwner.visibleBounds() : modalOwner.innerBounds();
         morph.align(morph.bounds().center(), alignBounds.center());
-        modalOwner.modalMorph = modalOwner.addMorph(blockMorph);
         blockMorph.modalTarget = morph;
         lively.bindings.connect(morph, 'remove', blockMorph, 'remove');
         morph.focus();
@@ -2749,7 +2749,7 @@ lively.morphic.Morph.subclass('lively.morphic.Window', Trait('lively.morphic.Dra
                 var publishItem = items.detect(function(item) { return item[0] === "Publish"; });
                 if (publishItem) publishItem[1] = function (evt) { self.copyToPartsBinWithUserRequest(); }
 
-                var toRemove = items.detect(function(ea) { return ea[0].match(/select all submorphs/i); });
+                var toRemove = items.detect(function(ea) { return ea[0] && ea[0].match && ea[0].match(/select all submorphs/i); });
                 items.removeAt(items.indexOf(toRemove));
 
                 items.splice(1, 0, ['Set window title', function(evt) {
@@ -3106,37 +3106,45 @@ lively.morphic.App.subclass('lively.morphic.AbstractDialog',
     },
 
     buildLabel: function() {
-        var bounds = new lively.Rectangle(
-            this.inset, this.inset, this.panel.getExtent().x - 2*this.inset, 18);
+        var p = this.panel,
+            bounds = new lively.Rectangle(
+              this.inset, this.inset, p.getExtent().x - 2*this.inset, 18);
         this.label = new lively.morphic.Text(bounds, this.message).beLabel({
             fill: Color.white,
             fixedHeight: false, fixedWidth: false,
             padding: Rectangle.inset(2,3),
             enableGrabbing: false, enableDragging: false});
-        this.panel.addMorph(this.label);
+        p.addMorph(this.label);
 
         // FIXME ugly hack for wide dialogs:
         // wait until dialog opens and text is rendered so that we can
         // determine its extent
         this.label.fit();
         (function fit() {
-            this.label.cachedBounds=null
+            var world = p.world();
+            if (!world)
+            this.label.cachedBounds = null
             var labelBoundsFit = this.label.bounds(),
-                origPanelExtent = this.panel.getExtent(),
+                origPanelExtent = p.getExtent(),
                 panelExtent = origPanelExtent;
             if (labelBoundsFit.width > panelExtent.x) {
                 panelExtent = panelExtent.withX(labelBoundsFit.width + 2*this.inset);
             }
             if (labelBoundsFit.height > bounds.height) {
-                var morphsBelowLabel = this.panel.submorphs
+                var morphsBelowLabel = p.submorphs
                       .without(this.label)
                       .select(function(ea) { return ea.bounds().top() <= labelBoundsFit.bottom(); }),
                     diff = labelBoundsFit.height - bounds.height;
                 // morphsBelowLabel.invoke('moveBy', panelExtent.subPt(origPanelExtent));
                 panelExtent = panelExtent.addXY(0, diff);
             }
-            this.panel.setExtent(panelExtent);
-            this.panel.moveBy(panelExtent.subPt(origPanelExtent).scaleBy(0.5).negated());
+            p.setExtent(panelExtent);
+            p.moveBy(panelExtent.subPt(origPanelExtent).scaleBy(0.5).negated());
+            var worldBounds = world.visibleBounds(), morphBounds = p.globalBounds();
+            if (p.owner && !worldBounds.containsRect(morphBounds)) {
+              morphBounds = worldBounds.translateForInclusion(morphBounds);
+              p.setPosition(p.owner.localize(morphBounds.topLeft()));
+            }
         }).bind(this).delay(0);
     },
 

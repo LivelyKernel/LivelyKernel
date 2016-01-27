@@ -2263,7 +2263,8 @@ lively.morphic.World.addMethods(
     prompt: function(message, callback, defaultInputOrOptions) {
         // options = {
         //   input: STRING, -- optional, prefilled input string
-        //   historyId: STRING -- id to identify the input history for this prompt
+        //   historyId: STRING, -- id to identify the input history for this prompt
+        //   useLastInput: BOOLEAN -- use history for default input?
         // }
         return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInputOrOptions))
     },
@@ -3286,12 +3287,13 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
     },
 
     buildTextInput: function(bounds) {
-        var self = this;
-        var m = module('lively.ide.tools.CommandLine');
+        var self = this, m = module('lively.ide.tools.CommandLine');
         if (!m.isLoaded()) m.load();
         m.runWhenLoaded(function() {
           var opt = self.options || {},
               histId = opt.historyId,
+              inputString = (opt.useLastInput && m.getLastHistoryItem(histId))
+                         || opt.input || '',
               input = m.get(histId);
           input.align(input.getPosition(), self.label.bounds().bottomLeft().addPt(pt(0,5)));
           input.setExtent(self.label.getExtent());
@@ -3300,7 +3302,7 @@ lively.morphic.AbstractDialog.subclass('lively.morphic.PromptDialog',
           lively.bindings.connect(self.panel, 'onEscPressed', self, 'result', {converter: function() { return null}});
           input.applyStyle({resizeWidth: true, moveVertical: true});
           self.inputText = self.panel.focusTarget = self.panel.addMorph(input);
-          input.textString = opt.input || '';
+          input.textString = inputString;
         });
     },
 

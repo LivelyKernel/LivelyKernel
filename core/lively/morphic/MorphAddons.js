@@ -1900,7 +1900,7 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
     this.fitThenDo(function() {
       this.setVisible(true);
       this.bringToFront();
-      this.setPosition(forMorph.owner.worldPoint(forMorph.bounds().bottomLeft()));
+      forMorph.world() && this.setPosition(forMorph.owner.worldPoint(forMorph.bounds().bottomLeft()));
       var visibleBounds = world.visibleBounds(),
           bounds = this.bounds(),
           height = Math.min(bounds.height+3, maxY),

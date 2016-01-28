@@ -362,9 +362,9 @@ this.addScript(function buildStashInfo(func) {
 
     function commitCmd(message, author, email) {
         var cmdString = "commit";
-        if (Global.Config.get('isPublicServer')) {
+        if (lively.Config.get('isPublicServer')) {
             author = author || $world.getUserName(true) || 'unknown-author';
-            email = email || author + '@' + Global.URL.root.hostname;
+            email = email || author + '@' + URL.root.hostname;
             cmdString += Strings.format(' --author=\'%s <%s>\'', author, email);
         }
         if (message) cmdString += ' -m "' + message.replace(/"/g, '\\"') + '"';
@@ -401,6 +401,10 @@ this.addScript(function buildStashInfo(func) {
     function checkForUserNameAndEmail(opts, thenDo) {
         if (opts.user && opts.email) {
           return thenDo(null, opts.user, opts.email);
+        }
+        var shellEnv = lively.Config.get("shellEnvVars");
+        if (shellEnv["GIT_AUTHOR_NAME"] && shellEnv["GIT_AUTHOR_EMAIL"]) {
+          return thenDo(null, shellEnv["GIT_AUTHOR_NAME"], shellEnv["GIT_AUTHOR_EMAIL"]);
         }
 
         var state = {user: null, email: null, error: null};

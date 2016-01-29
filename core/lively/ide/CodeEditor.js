@@ -503,6 +503,44 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return this.getTextMode().split(':')[0];
     },
 
+    guessTextMode: function(hint) {
+      var mode = hint || "text",
+          start = this.textString.slice(0, 2000);
+      // content tests
+      if (start.match(/^diff --.* a\//m)) mode = "diff";
+      else if (start.match(/#!\/bin\//m)) mode = "sh";
+      else {
+        // file-based tests
+        var file = this.getTargetFilePath(),
+            ext = file && file.split(".").last().toLowerCase();
+        switch(ext) {
+            case "r": mode = "r"; break;
+            case "css": mode = "css"; break;
+            case "h": case "c": case "cc": case "cpp": case "hpp": mode = "c_cpp"; break;
+            case "diff": mode = "diff"; break;
+            case "xhtml": case "html": mode = "html"; break;
+            case "js": mode = "javascript"; break;
+            case "json": mode = "json"; break;
+            case "jade": mode = "jade"; break;
+            case "ejs": mode = "ejs"; break;
+            case "markdown": case "md": mode = "markdown"; break;
+            case "sh": case "bashrc": case "bash_profile": case "profile": mode = "sh"; break;
+            case "dockerfile": mode = "dockerfile"; break;
+            case "xml": mode = "xml"; break;
+            case "svg": mode = "svg"; break;
+            case "lisp": case "el": mode = "lisp"; break;
+            case "clj": case "cljs": case "cljx": mode = "clojure"; break;
+            case "cabal": case "hs": mode = "haskell"; break;
+            case "py": mode = "python"; break;
+        }
+      }
+      return mode;
+    },
+
+    guessAndSetTextMode: function(hint) {
+      return this.setTextMode(this.guessTextMode(hint));
+    },
+
     showsCompleter: function() {
         return this.withAceDo(function(ed) {
             return ed.completer && ed.completer.activated; });
@@ -1689,6 +1727,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         this._TabSize = tabSize;
         return this.withAceDo(function(ed) { return ed.session.setTabSize(tabSize); });
     },
+
     guessTabSize: function() {
         return this.withAceDo(function(ed) {
             var tabSize = ed.session.getLines(0, 100)
@@ -1698,6 +1737,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             return tabSize;
         });
     },
+
     guessAndSetTabSize: function() {
         this.setTabSize(this.guessTabSize());
     },

@@ -151,33 +151,11 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
         lively.bindings.connect(this, 'contentLoaded', editor, 'textString');
         lively.bindings.connect(this, 'contentLoaded', this, 'gotoLocationLine');
         lively.bindings.connect(this, 'contentLoaded', this, 'updateWindowTitle');
-        lively.bindings.connect(this, 'contentLoaded', editor, 'setTabSize', {updater: function($upd) {
-            this.sourceObj.get('editor').guessAndSetTabSize();
-        }});
+        lively.bindings.connect(this, 'contentLoaded', editor, 'setTabSize',
+          {updater: function($upd) { this.sourceObj.get('editor').guessAndSetTabSize(); }});
 
-        lively.bindings.connect(this, 'contentLoaded', editor, 'setTextMode', {updater: function($upd) {
-            var ext = this.sourceObj.getFileExtension().toLowerCase();
-            switch(ext) {
-                case "r": $upd("r"); return;
-                case "css": $upd("css"); return;
-                case "h": case "c": case "cc": case "cpp": case "hpp": $upd("c_cpp"); return;
-                case "diff": $upd("diff"); return;
-                case "xhtml": case "html": $upd("html"); return;
-                case "js": $upd("javascript"); return;
-                case "json": $upd("json"); return;
-                case "jade": $upd("jade"); return;
-                case "ejs": $upd("ejs"); return;
-                case "markdown": case "md": $upd("markdown"); return;
-                case "sh": $upd("sh"); return;
-                case "xml": $upd("xml"); return;
-                case "svg": $upd("svg"); return;
-                case "lisp": case "el": $upd("lisp"); return;
-                case "clj": case "cljs": case "cljx": $upd("clojure"); return;
-                case "cabal": case "hs": $upd("haskell"); return;
-                case "py": $upd("python"); return;
-                default: $upd("text");
-            }
-        }});
+        lively.bindings.connect(this, 'contentLoaded', editor, 'guessAndSetTextMode',
+          {updater: function($upd) { $upd(this.sourceObj.get('editor').getTextMode()); }});
     },
     getLine: function getLine() {
         var string = this.get('urlText').textString,

@@ -1858,13 +1858,16 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
           ed.insert(content);
         });
       } else {
-        $world.addCodeEditor({
+        var ed = $world.addCodeEditor({
           title: content.slice(0,60).replace(/\n/g, " "),
           extent: pt(600, 300),
           content: content,
           textMode: textMode ? textMode : "text",
           lineWrapping: true
-        }).getWindow().comeForward();
+        });
+        ed.guessAndSetTabSize();
+        ed.guessAndSetTextMode(textMode);
+        ed.getWindow().comeForward();
       }
     }
 

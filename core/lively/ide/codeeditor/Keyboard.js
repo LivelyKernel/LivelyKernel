@@ -170,13 +170,15 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                     args = args || {};
                     var insert = args.insert; // either insert into current editor or open in window
                     var content = args.content;
-            
-                    lively.lang.fun.composeAsync(triggerExpand)(function(err) { err && console.error(err); })
-            
+
+                    lively.lang.fun.composeAsync(
+                      triggerExpand
+                    )(function(err) { err && console.error(err); })
+
                     return true;
-            
+
                     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            
+
                     function triggerExpand(next) {
                       var msgMorph = ed.$morph.ensureStatusMessageMorph();
                       msgMorph = msgMorph && msgMorph.world() ? msgMorph : null;
@@ -185,7 +187,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
                       msgMorph.expand(insert ? ed.$morph : null, ed.$morph.getTextMode());
                       next(null);
                     }
-            
+
                   }
             },
             {
@@ -193,7 +195,7 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
               bindKey: {win: "Alt-i", mac: "Alt-i"},
               multiSelectAction: "forEach",
               exec: function(ed) {
-                 ed.execCommand('openEvalResult', {insert: true}); 
+                 ed.execCommand('openEvalResult', {insert: true});
               },
             },
 

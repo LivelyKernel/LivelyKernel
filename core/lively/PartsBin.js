@@ -372,8 +372,9 @@ Object.subclass('lively.PartsBin.PartItem',
             serialized = this.serializePart(this.part);
 
         // 2. start the upload... but first make sure the directory exists
-        var webR = new WebResource(this.getFileURL().getDirectory())
-          .noProxy().ensureExistance()
+        this.getFileURL().getDirectory().asWebResource().noProxy()
+          [isSync ? 'beSync' : 'beAsync']().ensureExistance();
+        var webR = this.getFileURL().asWebResource().noProxy()
           [isSync ? 'beSync' : 'beAsync']()
           .createProgressBar('Uploading ' + name);
 

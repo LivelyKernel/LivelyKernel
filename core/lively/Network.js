@@ -1695,23 +1695,34 @@ Object.subclass('WebResource',
     ensureExistance: function(thenDo) {
         var url = this.getURL(),
             useProxy = !this._noProxy,
-            isSync = !this._isSync;
+            isSync = !!this._isSync;
 
-        lively.lang.arr.mapAsyncSeries(
-          url.getAllParentDirectories(),
-          function(url, _, n) {
-            lively.lang.fun.composeAsync(
-              function(n) { makeWebResource(url).whenDone(n).head(); },
-              function(status, n) {
-                if (status.isSuccess()) n(null, status);
-                else makeWebResource(url).whenDone(n).create();
-              },
+        if (isSync) {
+          var stati = lively.lang.arr.map(
+            url.getAllParentDirectories(),
+            function(url) {
+              var dir = makeWebResource(url);
+              if (!dir.exists()) dir.create();
+              return dir.status;
+            });
+            thenDo && thenDo(stati.detect(function(ea) { return !ea.isSuccess(); }));
+        } else {
+          lively.lang.arr.mapAsyncSeries(
+            url.getAllParentDirectories(),
+            function(url, _, n) {
+              lively.lang.fun.composeAsync(
+                function(n) { makeWebResource(url).whenDone(n).head(); },
+                function(status, n) {
+                  if (status.isSuccess()) n(null, status);
+                  else makeWebResource(url).whenDone(n).create();
+                },
 
-              function(status, n) {
-                n(status.isSuccess() ? null : status); }
-            )(n);
-          },
-          function(err) { thenDo && thenDo(err); })
+                function(status, n) {
+                  n(status.isSuccess() ? null : status); }
+              )(n);
+            },
+            function(err) { thenDo && thenDo(err); })
+        }
 
         return this;
 

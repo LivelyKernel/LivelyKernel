@@ -127,7 +127,7 @@ lively.BuildSpec('lively.ide.tools.BaseDirectoryChooser', {
         if (lively.shell.cwd() !== path) {
           $world.alertOK(path);
           lively.shell.setWorkingDirectory(path);
-          lively.require("lively.lang.Runtime").toRun(function() {
+          lively.Config.get("lively.lang.Runtime.active") && lively.require("lively.lang.Runtime").toRun(function() {
               lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
         }
     },

@@ -1139,7 +1139,7 @@ Object.extend(lively.ide.commands.byName, {
               if (path) $world.alertOK('base directory is now ' + path);
               else $world.alertOK('resetting base directory to default');
               lively.shell.setWorkingDirectory(path);
-              path && lively.require("lively.lang.Runtime").toRun(function() {
+              lively.Config.get("lively.lang.Runtime.active") && path && lively.require("lively.lang.Runtime").toRun(function() {
                   lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
               var menuBar = $morph('MenuBar');
               if (menuBar && menuBar.getMorphNamed("cwdLabel")) {

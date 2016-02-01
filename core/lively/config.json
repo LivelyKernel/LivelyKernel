@@ -525,5 +525,9 @@
     ["useJsx", true, "jsx is a JS language extension for the react framework. When enabled code editors will know how to parse jsx."],
     ["useBabelJsForEval", false, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."],
     ["useBabelJsForScriptLoad", false, "babel.js is an ES6 / JSX transformer. When enabled will be used to transform evaled code."]
+  ],
+
+  "lively.lang.Runtime": [
+    ["lively.lang.Runtime.active", true, "Should lively.lang.Runtime look for lively-runtime.js files in external projects and run those as well evaluate code in the external project's context when edited in Lively?"]
   ]
 }

@@ -124,7 +124,7 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
       var path = dir && dir.path ? dir.path : (dir ? String(dir) : null);
       // $world.alertOK(dir ? 'base directory is now ' + path : 'resetting base dir');
       lively.shell.setWorkingDirectory(path);
-      lively.require("lively.lang.Runtime").toRun(function() {
+      lively.Config.get("lively.lang.Runtime.active") && lively.require("lively.lang.Runtime").toRun(function() {
           lively.lang.Runtime.loadLivelyRuntimeInProjectDir(path) });
       this.update();
   },

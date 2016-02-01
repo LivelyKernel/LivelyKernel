@@ -5015,9 +5015,9 @@ lp.lookAhead = function (n) {
 
 },{"..":1,"./state":5}]},{},[3])(3)
 });;
-var isCommonJS = typeof module !== "undefined" && module.require;
+var isCommonJS = typeof module !== "undefined" && !!module.require;
 var Global = typeof window !== "undefined" ? window : global;
-var lang = typeof lively !== "undefined" ? lively.lang : isCommonJS && module.require("lively.lang");
+var lang = isCommonJS ? module.require("lively.lang") : (Global.lively && lively.lang);
 var escodegen = isCommonJS ? require("escodegen") : escodegen;
 var acorn = !isCommonJS && Global.acorn;
 if (!acorn && isCommonJS) {
@@ -6918,6 +6918,20 @@ exports.MozillaAST.BaseVisitor = lang.class.create(Object, "lively.ast.MozillaAS
     return retVal;
   },
 
+  visitClassExpression: function(node, depth, scope, path) {
+    scope.classDecls.push(node);
+
+    var retVal;
+
+    if (node.superClass) {
+      this.accept(node.superClass, depth, scope, path.concat(["superClass"]));
+    }
+
+    // body is a node of type ClassBody
+    retVal = this.accept(node.body, depth, scope, path.concat(["body"]));
+    return retVal;
+  },
+
   visitClassBody: function(node, depth, state, path) {
     var retVal;
     node.body.forEach(function(ea, i) {
@@ -6945,6 +6959,66 @@ exports.MozillaAST.BaseVisitor = lang.class.create(Object, "lively.ast.MozillaAS
     return retVal;
   },
 
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // es6 modules
+
+  visitImportDeclaration: function(node, depth, state, path) {
+    var retVal;
+
+    node.specifiers.forEach(function(ea, i) {
+      retVal = this.accept(ea, depth, state, path.concat(["specifiers", i]));
+    }, this);
+
+    if (node.source) retVal = this.accept(node.source, depth, state, path.concat(["source"]));
+
+    return retVal;
+  },
+
+  visitImportSpecifier: function(node, depth, state, path) {
+    var retVal;
+    retVal = this.accept(node.local, depth, state, path.concat(["local"]));
+    retVal = this.accept(node.imported, depth, state, path.concat(["imported"]));
+    var retVal;
+  },
+
+  visitImportDefaultSpecifier: function(node, depth, state, path) {
+    return this.accept(node.local, depth, state, path.concat(["local"]));
+  },
+
+  visitImportNamespaceSpecifier: function(node, depth, state, path) {
+    return this.accept(node.local, depth, state, path.concat(["local"]));
+  },
+
+  visitExportNamedDeclaration: function(node, depth, state, path) {
+    var retVal;
+    if (node.declaration) retVal = this.accept(node.declaration, depth, state, path.concat(["declaration"]));
+
+    node.specifiers.forEach(function(ea, i) {
+      retVal = this.accept(ea, depth, state, path.concat(["specifiers", i]));
+    }, this);
+
+    if (node.source) retVal = this.accept(node.source, depth, state, path.concat(["source"]));
+
+    return retVal;
+  },
+
+  visitExportSpecifier: function(node, depth, state, path) {
+    var retVal;
+    retVal = this.accept(node.local, depth, state, path.concat(["local"]));
+    retVal = this.accept(node.exported, depth, state, path.concat(["exported"]));
+    var retVal;
+  },
+
+  visitExportDefaultDeclaration: function(node, depth, state, path) {
+    return this.accept(node.declaration, depth, state, path.concat(["declaration"]));
+  },
+
+  visitExportAllDeclaration: function(node, depth, state, path) {
+    return this.accept(node.source, depth, state, path.concat(["source"]));
+  },
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // jsx
   visitJSXIdentifier: function(node, depth, state, path) {
     var retVal;
     return retVal;
@@ -7269,6 +7343,7 @@ exports.MozillaAST.ScopeVisitor = lang.class.create(exports.MozillaAST.BaseVisit
       funcDecls: [],
       classDecls: [],
       methodDecls: [],
+      importDecls: [],
       refs: [],
       params: [],
       catches: [],
@@ -7471,7 +7546,36 @@ exports.MozillaAST.ScopeVisitor = lang.class.create(exports.MozillaAST.BaseVisit
   },
 
   visitBreakStatement: function(node, depth, scope, path) { return null; },
-  visitContinueStatement: function(node, depth, scope, path) { return null; }
+  visitContinueStatement: function(node, depth, scope, path) { return null; },
+
+  // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  // es6 modules
+  visitImportSpecifier: function(node, depth, scope, path) {
+    scope.importDecls.push(node.local);
+    var retVal;
+    // retVal = this.accept(node.local, depth, scope, path.concat(["local"]));
+    retVal = this.accept(node.imported, depth, scope, path.concat(["imported"]));
+    var retVal;
+  },
+
+  visitImportDefaultSpecifier: function(node, depth, scope, path) {
+    scope.importDecls.push(node.local);
+    // return this.accept(node.local, depth, scope, path.concat(["local"]));
+    return undefined;
+  },
+
+  visitImportNamespaceSpecifier: function(node, depth, scope, path) {
+    scope.importDecls.push(node.local);
+    // return this.accept(node.local, depth, scope, path.concat(["local"]));
+    return undefined;
+  },
+
+  visitExportSpecifier: function(node, depth, state, path) {
+    var retVal;
+    retVal = this.accept(node.local, depth, state, path.concat(["local"]));
+    // retVal = this.accept(node.exported, depth, state, path.concat(["exported"]));
+    var retVal;
+  }
 
 });
 
@@ -7527,7 +7631,7 @@ var methods = {
       if (printPositions) { additional.push(ea.node.start + '-' + ea.node.end); }
       if (printSource) {
         var src = ea.node.source || source.slice(ea.node.start, ea.node.end),
-          printed = Strings.print(src.truncate(60).replace(/\n/g, '').replace(/\s+/g, ' '));
+          printed = lively.lang.string.print.print(src.truncate(60).replace(/\n/g, '').replace(/\s+/g, ' '));
         additional.push(printed);
       }
       if (additional.length) { string += '(' + additional.join(',') + ')'; }
@@ -7535,7 +7639,7 @@ var methods = {
     }
 
     new exports.MozillaAST.PrinterVisitor().accept(ast, {index: 0}, tree, []);
-    return Strings.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '  ');
+    return lively.lang.string.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '  ');
   },
 
   compareAst: function(node1, node2) {
@@ -7737,6 +7841,7 @@ exports.query = {
       .concat(arr.pluck(scope.catches, 'name'))
       .concat(arr.pluck(helpers.varDeclIds(scope), 'name'))
       .concat(chain(scope.classDecls).pluck('id').pluck('name').value())
+      .concat(arr.pluck(scope.importDecls, 'name'))
       .concat(!useComments ? [] :
         exports.query._findJsLintGlobalDeclarations(
           scope.node.type === 'Program' ?

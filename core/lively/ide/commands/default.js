@@ -1271,7 +1271,7 @@ Object.extend(lively.ide.commands.byName, {
                   if (!showProgress && insertResult) ed.printObject(null, result);
                   if (msgMorph) {
                     msgMorph.insertion = result;
-                    msgMorph.appendRichText("\nExited with " + cmd.getCode());
+                    msgMorph.appendRichText((msgMorph.textString.endsWith("\n") ? "" : "\n") + "Exited with " + cmd.getCode());
                     msgMorph.enableRemoveOnTargetMorphChange();
                     msgMorph.ensureOpenFor(ed);
                   }
@@ -1299,12 +1299,14 @@ Object.extend(lively.ide.commands.byName, {
                 } else {
                   if (showProgress) {
                     // show progress in status message morph, don't modify source text
-                    msgMorph = ed.ensureStatusMessageMorph();
+                    msgMorph = ed.ensureStatusMessageMorph({fontSize: 9});
                     msgMorph.disableRemoveOnTargetMorphChange();
-                    if (!msgMorph.owner) { ed.setStatusMessage(""); }
+                    if (!msgMorph.owner) ed.setStatusMessage("");
 
                     var connectionSpec = {
                       updater: function($upd, newContent) {
+                        if (!this.targetObj.textString.length)
+                          newContent = newContent.trimLeft();
                         if (this.targetObj.textString.length > 1000) {
                           newContent = "...";
                           connections.invoke("disconnect");

@@ -1778,12 +1778,13 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
 },
 "initializing", {
 
-  initialize: function($super, bounds) {
+  initialize: function($super, bounds, style) {
     $super(bounds, "");
     this.createCloseButton();
     // should "internal" changes in the morph we are showing the message for
     // (like cursor changes in a text morph) make this message morph disappear?
     this.enableRemoveOnTargetMorphChange();
+    style && this.applyStyle(style);
   },
 
   enableRemoveOnTargetMorphChange: function() {
@@ -1937,11 +1938,11 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
 
 Trait('lively.morphic.SetStatusMessageTrait', {
 
-  ensureStatusMessageMorph: function() {
+  ensureStatusMessageMorph: function(style) {
     return this._statusMorph ?
       this._statusMorph :
       this._statusMorph = new lively.morphic.StatusMessage(
-        this.getExtent().withY(80).extentAsRectangle());
+        this.getExtent().withY(80).extentAsRectangle(), style);
   },
 
   removeStatusMessage: function() {
@@ -1960,6 +1961,8 @@ Trait('lively.morphic.SetStatusMessageTrait', {
     if (!world) return;
     var self = this,
         sm = this._statusMorph || this.ensureStatusMessageMorph();
+
+    if (sm.insertion) sm.insertion = null;
 
     sm.setMessage(this, msg, color);
     sm.alignAtBottomOf(this);

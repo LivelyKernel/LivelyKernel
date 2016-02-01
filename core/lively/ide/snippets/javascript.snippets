@@ -170,21 +170,21 @@ regex /^\s*/TestCl?a?s?s?/
 # mocha / chai / expect
 snippet describe
 regex /^\s*/desc?r?i?b?e?/
-	describe("${1:test-subject}", function() {
+	describe("${1:test-subject}", () => {
 		${0}
 	});
 snippet it
-	it("${1:tested-action}", function() {
+	it("${1:tested-action}", () => {
 		${0}
 	});
 snippet beforeEach
 regex /^\s*/before?E?a?c?h?/
-	beforeEach(function(${1:done}) {
+	beforeEach(${1:done} => {
 		${0}
 	});
 snippet afterEach
 regex /^\s*/after?E?a?c?h?/
-	afterEach(function() {
+	afterEach(() => {
 		${0}
 	});
 # initialize methods
@@ -221,7 +221,7 @@ snippet Oe
 	Object.extend(${1:obj}, {$0});
 # collection iter
 regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect|map|filter))/
-	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(function(${3:ea}) {$0});
+	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(${3:ea} => {$0});
 # collection inject
 regex /(\.?[^\.\s]+|^\s*)/\.?inje?c?t?/
 	${M1?:${1:list}}.inject(${2:collector}, function($2, ea) { ${0:return $2;} });
@@ -290,12 +290,12 @@ snippet lreq
 # Functions.composeAsync
 snippet async
 	lively.lang.fun.composeAsync(
-		function(${1:n}) { ${0:$1(null);} }
+		${1:n} => ${0:$1(null);}
 	)(${2:thenDo});
 snippet mapasync
 	lively.lang.arr.mapAsyncSeries(
-		function(ea, _, n) { ${0:n(null);} },
-		function(err, results) {});
+		(ea, _, n) => { ${0:n(null);} },
+		(err, results) => {});
 # typeof tests
 snippet typef
 	typeof ${1:object} === "function"${0}
@@ -309,12 +309,12 @@ snippet typenu
 	typeof ${1:object} !== "undefined"${0}
 # $world snippets
 snippet prompt
-	\$world.prompt("${1:query text}", function(input) {
+	\$world.prompt("${1:query text}", input => {
 		if (!input) return;
 		${0}
-	}, {input: "${2:initial input}", historyId: "${3:prompt-id}"});
+	}, {useLastInput: true, input: "${2:initial input}", historyId: "${3:prompt-id}"});
 snippet confirm
-	\$world.confirm("${1:query text}", function(input) {
+	\$world.confirm("${1:query text}", (input) => {
 		if (!input) return;
 		${0}
 	});

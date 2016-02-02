@@ -28,9 +28,9 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
       clear: function() {
         var dir = lively.shell.WORKSPACE_LK;
         if (dir) {
-          $world.knownWorkingDirectories = self.dirs = [cmd.resultString().trim()];
+          $world.knownWorkingDirectories = self.dirs = [dir];
         } else {
-          var cmd = lively.shell.exec('echo $WORKSPACE_LK', {sync:true})
+          var cmd = lively.shell.exec('echo $WORKSPACE_LK', {sync: true})
           $world.knownWorkingDirectories = self.dirs = cmd.getCode() ? [] : [cmd.resultString().trim()];
         }
         self.update();

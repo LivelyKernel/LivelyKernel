@@ -1104,6 +1104,129 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             multiSelectAction: 'forEach',
             handlesCount: true
+        }, {
+          name: "changeStringInflection",
+          // multiSelectAction: 'forEach',
+          handlesCount: true,
+          exec: function(ed, args) {
+            if (ed.selection.isEmpty()) ed.selection.selectWord();
+            var ranges = ed.selection.getAllRanges();
+            lively.lang.fun.composeAsync(
+              function(n) {
+                var text = ed.session.getTextRange(ranges[0]);
+                if (!text) return n("Please select a piece of text or code");
+                var type = detectCamelCaseType(text),
+                    offers = ['uppercased','dashed','spaced'].without(type);
+                $world.listPrompt(
+                  "Convert " + type + " into?",
+                  function(input) { n(!input ? "change string inflection: canceled" : null, input); },
+                  offers, {});
+              },
+              function(intoType, n) {
+                ranges.forEach(function(ea,i) {
+                  var text = ed.session.getTextRange(ea),
+                      replacement = convertCamelCased(text, intoType);
+                  ed.session.replace(ea, replacement)
+                });
+                ed.$morph.focus();
+                n();
+              }
+            )(function(err) {
+              if (err) {
+                if (typeof err === "string") err = new Error(err);
+                ed.$morph.showError(err)
+              }
+            });
+
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+            // TODO move to lively.lang.string
+            function convertCamelCased(string, intoType) {
+              // intoType = 'uppercased'|'dashed'|'spaced'
+              // Example:
+              // convertCamelCased("fooBar", "dashed")      // => foo-bar
+              // convertCamelCased("fooBar", "spaced")      // => foo bar
+              // convertCamelCased("foo bar", "uppercased") // => fooBar
+              // convertCamelCased("foo-bar", "spaced")     // => foo bar
+              // convertCamelCased("foo-bar", "uppercased") // => fooBar
+              var match, replace, fromType = detectCamelCaseType(string).trim();
+
+              if (fromType === 'uppercased') match = /\s*[A-Z0-9]+/g;
+              else if (fromType === 'dashed') match = /-\w/g;
+              else if (fromType === 'spaced') match = /\s+.?/g;
+
+              if (intoType === 'uppercased') replace = function(m) { return m.trim().replace(/^-/, "").toUpperCase(); };
+              else if (intoType === 'dashed') replace = function(m) { return "-" + m.trim().replace(/^-/, "").toLowerCase(); };
+              else if (intoType === 'spaced') replace = function(m) { return " " + m.trim().replace(/^-/, "").toLowerCase(); };
+
+              return string.replace(match, replace);
+            }
+
+            function detectCamelCaseType(string) {
+              if (string.match(/[A-Z]/)) return 'uppercased';
+              if (string.match(/-/)) return 'dashed';
+              if (string.match(/\s/)) return 'spaced';
+              return 'unknown';
+            }
+          }
+        }, {
+          name: "convertBetweenArrowAndNonArrowFunctionJS",
+          multiSelectAction: 'forEach',
+          exec: function(ed) {
+            // var ed = that.aceEditor
+            var ast = ed.session.$ast, idx = ed.getCursorIndex(),
+                es5ToEs6 = findES5Function(ast, idx),
+                es6ToEs5 = findArrowFunction(ast, idx),
+                converter = [es6ToEs5, es5ToEs6].compact().min(function(ea) { return ea.depth; })
+                
+            converter && doAstReplace(converter);
+
+            function doAstReplace(converter) {
+              var n = converter.node,
+                  range = ed.$morph.createRange(ed.idxToPos(n.start), ed.idxToPos(n.end)),
+                  escodegenOpts = {sourceCode: ed.session.getTextRange(range), indent: ed.getOption("tabSize")},
+                  refactor = converter.refactorFunc(n, escodegenOpts);
+              ed.session.replace(range, refactor.source);
+              return true;
+            }
+
+            function findES5Function(ast, idx) {
+              var nodes = lively.ast.query.nodesAtIndex(ast, idx).reverse(),
+                  node = nodes.detect(function(n) { return n.type === 'FunctionDeclaration' || n.type === 'FunctionExpression'; });
+              return node && {refactorFunc: convertToArrowFunctionExpression, depth: nodes.indexOf(node), node: node};
+            }
+
+            function findArrowFunction(ast, idx) {
+              var nodes = lively.ast.query.nodesAtIndex(ast, idx).reverse(),
+                  node = nodes.detect(function(n) { return n.type === 'ArrowFunctionExpression'; });
+              return node && {refactorFunc: convertToFunctionExpression, depth: nodes.indexOf(node), node: node};
+            }
+
+            function convertToArrowFunctionExpression(node, escodegenOpts) {
+              var copied = lively.lang.obj.deepCopy(node);
+              if (copied.body.type === "BlockStatement"
+               && copied.body.body.length == 1
+               && copied.body.body[0].type === "ReturnStatement") {
+                copied.body = copied.body.body[0].argument;
+              }
+              copied.type = "ArrowFunctionExpression";
+              return {ast: copied, source: escodegen.generate(copied, escodegenOpts)};
+            }
+
+            function convertToFunctionExpression(node, escodegenOpts) {
+              var copied = lively.lang.obj.deepCopy(node);
+              if (copied.body.type !== "BlockStatement") {
+                copied.body = {body: [{type: "ReturnStatement", argument: copied.body}], type: "BlockStatement"};
+              }
+              copied.type = "FunctionExpression";
+              return {
+                ast: copied,
+                source: escodegen.generate(copied, escodegenOpts)
+                  .replace(/function\s+\(/, "function(")
+                  .replace(/(function\([^\)]*\)\s*)\(\{/, "$1{")
+                  .replace(/\}\)\s*$/, "}")}
+            }
+          }
         }]);
     },
 

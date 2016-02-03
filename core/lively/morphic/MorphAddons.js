@@ -143,6 +143,7 @@ Object.extend(lively.morphic, {
       function inspectPrinter(val, ignore) {
         if (!val) return ignore;
         if (val.isMorph) return String(val);
+        if (val instanceof Promise) return "Promise()";
         var length = val.length || val.byteLength;
         if (Global.ImageData && val instanceof Global.ImageData) return String(val);
         if (length !== undefined && length > maxColLength && val.slice) {

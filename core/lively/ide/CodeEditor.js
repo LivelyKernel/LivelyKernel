@@ -1178,7 +1178,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
               ed.execCommand('insertEvalResult');
             } else {
               var obj = this.evalSelection();
-              this.printObject(ed, Objects.inspect(obj, {maxDepth: options.depth || this.printInspectMaxDepth}));
+              this.printObject(ed, lively.morphic.printInspect(obj, options.depth || this.printInspectMaxDepth))
             }
         });
     },

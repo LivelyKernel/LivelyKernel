@@ -39,13 +39,17 @@ Object.subclass('lively.MochaTests.Reporter', {
   report: function(final, passes, failures) {
     if (!final) { console.log("tentative mocha report, passes: %s, failures: %s", passes.length, failures.length); return; }
     var name = "testLogger",
-        logger = $morph(name)
-              || $world.addCodeEditor({
-                name: name,
-                title: "mocha test result",
-                textMode: "text",
-                extent: pt(600,700)});
-    logger.getWindow().comeForward();
+        logger = $morph(name);
+    if (!logger) {
+      logger = $world.addCodeEditor({
+        name: name,
+        title: "mocha test result",
+        textMode: "text",
+        extent: pt(600,700)
+      });
+      logger.getWindow().comeForward();
+    }
+
     var report = Strings.format("failures:\n%s\n\npasses:\n%s\n",
         failures.join('\n'), passes.join('\n'));
     if (final) failures.length && typeof show !== "undefined" ?

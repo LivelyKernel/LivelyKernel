@@ -233,8 +233,9 @@ function getCompletions(evalFunc, string, thenDo) {
               var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
               ed.replace(range, '');
           }
-          var id = completion.match(/^[^\(]+/)[0];
-          var needsBrackets = !lively.Class.isValidIdentifier(id);
+          var id = completion.match(/^[^\(]+/)[0],
+              bracketExceptions = ["delete", "import", "export"],
+              needsBrackets = !bracketExceptions.include(id) && !lively.Class.isValidIdentifier(id);
           if (needsBrackets) {
             var pos = ed.getCursorPositionAce();
             var Range = lively.ide.ace.require("ace/range").Range;
@@ -242,6 +243,7 @@ function getCompletions(evalFunc, string, thenDo) {
             if (ed.getTextRange(beforeRange) === '.') ed.replace(beforeRange, '');
             if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
             completion = '[' +  completion + ']';
+            completion = completion.replace(/(\([^\)]*\))(.*)/, "$2$1");
           }
           ed.printObject(ed.aceEditor, completion, true);
         }

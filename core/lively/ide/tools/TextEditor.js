@@ -329,13 +329,13 @@ lively.BuildSpec('lively.ide.tools.TextEditor', {
 
     livelyRuntimeWithProjectDo: function livelyRuntimeWithProjectDo(doFunc) {
       var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
-      if (!rt || !lively.Config.get("lively.lang.Runtime.active")) return doFunc(null,null);
+      if (!rt || !lively.Config.get("lively.lang.Runtime.active")) return typeof doFunc === "function" && doFunc(null, null);
       return lively.lang.Runtime.findProjectForResource(this.getLocation(), doFunc);
     },
 
     livelyRuntimeSignalChange: function livelyRuntimeSignalChange(thenDo) {
       var rt = lively.lang.Path("lively.lang.Runtime").get(Global);
-      if (!rt || lively.Config.get("lively.lang.Runtime.active")) return thenDo(null, null);
+      if (!rt || lively.Config.get("lively.lang.Runtime.active")) return typeof thenDo === "function" && thenDo(null, null);
       var loc = this.getLocation(),
           self = this;;
       lively.lang.fun.composeAsync(

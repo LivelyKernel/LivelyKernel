@@ -143,8 +143,8 @@ lively.BuildSpec('lively.ide.tools.CurrentDirectoryMenuBarEntry', lively.BuildSp
     (function() { this.update(); }).bind(this).delay(0);
     this.startStepping(30*1000, "update");
     var dChooser = $world.get(/^BaseDirectoryChooser/)
-    if (dChooser)
-      this.dirs = this.dirs.concat(dChooser.get("DirList").getList().pluck("value").compact()).uniq();
+    if (dChooser && dChooser.getMorphNamed("DirList"))
+      this.dirs = this.dirs.concat(dChooser.getMorphNamed("DirList").getList().pluck("value").compact()).uniq();
     $world.knownWorkingDirectories = ($world.knownWorkingDirectories||[]).concat(this.dirs);
     $world.knownWorkingDirectories = this.knownDirectories();
     this.dirs = this.knownDirectories();

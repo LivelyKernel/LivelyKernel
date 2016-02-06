@@ -7614,7 +7614,7 @@ var methods = {
 
     if (typeof astOrSource === "string") {
       source = astOrSource;
-      ast = lively.ast.acorn.parse(astOrSource);
+      ast = acorn.parse(astOrSource);
     } else { ast = astOrSource; source = options.source || ast.source; }
 
     if (printSource && !ast.source) { // ensure that nodes have source attached
@@ -7631,7 +7631,7 @@ var methods = {
       if (printPositions) { additional.push(ea.node.start + '-' + ea.node.end); }
       if (printSource) {
         var src = ea.node.source || source.slice(ea.node.start, ea.node.end),
-          printed = lively.lang.string.print.print(src.truncate(60).replace(/\n/g, '').replace(/\s+/g, ' '));
+          printed = lang.string.print.print(src.truncate(60).replace(/\n/g, '').replace(/\s+/g, ' '));
         additional.push(printed);
       }
       if (additional.length) { string += '(' + additional.join(',') + ')'; }
@@ -7639,7 +7639,7 @@ var methods = {
     }
 
     new exports.MozillaAST.PrinterVisitor().accept(ast, {index: 0}, tree, []);
-    return lively.lang.string.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '  ');
+    return lang.string.printTree(tree[0], printFunc, function(ea) { return ea.children; }, '  ');
   },
 
   compareAst: function(node1, node2) {
@@ -7766,10 +7766,11 @@ exports.query = {
      "true", "false", "null", "undefined", "arguments",
      "Object", "Function", "String", "Array", "Date", "Boolean", "Number", "RegExp",
      "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError",
-     "Math", "NaN", "Infinity", "Intl", "JSON",
+     "Math", "NaN", "Infinity", "Intl", "JSON", "Promise",
      "parseFloat", "parseInt", "isNaN", "isFinite", "eval", "alert",
      "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
-     "window", "document", "console",
+     "navigator", "window", "document", "console",
+     "setTimeout", "clearTimeout", "setInterval", "clearInterval", "requestAnimationFrame", "cancelAnimationFrame",
      "Node", "HTMLCanvasElement", "Image", "Class",
      "Global", "Functions", "Objects", "Strings",
      "module", "lively", "pt", "rect", "rgb", "$super", "$morph", "$world", "show"],

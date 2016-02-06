@@ -216,6 +216,12 @@ snippet llo
 	lively.lang.obj.
 snippet llf
 	lively.lang.fun.
+name llp
+regex /.*/llp(\()?(\))?/(\))?/
+	lively.lang.promise${M1?($0${M2?${M2}:)}}
+name prom
+regex /.*/prom(\()?(\))?/(\))?/
+	lively.lang.promise${M1?${M1}:(}$0${M2?${M2}:)}
 # Object.extend
 snippet Oe
 	Object.extend(${1:obj}, {$0});

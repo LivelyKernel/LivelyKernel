@@ -216,6 +216,7 @@ Object.extend(apis.Github, {
     }
 
     // are we logged in yet?
+    var githubOAuthURL = new URL("http://lively-web.org/nodejs/GithubOAuth/");
     var auth = apis.Github.getCachedGithubAccess(scopes);
     if (auth) return thenDo(null, auth);
 
@@ -230,7 +231,7 @@ Object.extend(apis.Github, {
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     function withGithubClientId(thenDo) {
-      URL.nodejsBase.withFilename("GithubOAuth/clientId")
+      githubOAuthURL.withFilename("clientId")
         .asWebResource().beAsync().get().whenDone((id, status) =>
           thenDo(status.isSuccess() ? null: new Error(String(status) + "\n" + id), id));
     }
@@ -239,7 +240,7 @@ Object.extend(apis.Github, {
       var s = lively.net.SessionTracker.getSession();
       if (!s || !s.isConnected()) return thenDo(new Error("lively-2-lively connection required"));
 
-      var url = URL.nodejsBase.withFilename("GithubOAuth/oauth/access_token").withQuery({
+      var url = githubOAuthURL.withFilename("oauth/access_token").withQuery({
         code: tempCode,
         state: s ? s.sessionId : "no session"
       });
@@ -1003,6 +1004,8 @@ apis.Github.Issues = {
         `/repos/${repoName}/issues?state=${options.state}`,
         lively.lang.obj.merge(options, {page: page}),
         (err, result) => {
+          if (err) return thenDo(err);
+
           // TO reduce the server load and makes things much more faster we
           // don't just rely on etag based cache responses from Github but use our
           // cache directly when the first page hasn't changed thus avoiding

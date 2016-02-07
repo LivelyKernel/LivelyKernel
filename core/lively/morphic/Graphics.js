@@ -1367,7 +1367,7 @@ Object.extend(lively.Color, {
         // Sun palette
         blue:   lively.Color.rgb(0x53, 0x82, 0xA1),
         orange: lively.Color.rgb(0xef, 0x6f, 0x00),
-        green:  lively.Color.rgb(0xb2, 0xbc, 00),
+        green:  lively.Color.rgb(0xb2, 0xbc, 0x26),
         yellow: lively.Color.rgb(0xff, 0xc7, 0x26)
     },
     secondary: {

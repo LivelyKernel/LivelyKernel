@@ -745,7 +745,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         "47": {style: {backgroundColor: Color.white}}
     },
 
-    ansiAttributesRegexp: new RegExp('\033\[[0-9;]*m', 'g'),
+    ansiAttributesRegexp: new RegExp(String.fromCharCode(0o033) + '\[[0-9;]*m', 'g'),
 
     toStyleSpec: function(string) {
         /*

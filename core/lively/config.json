@@ -433,7 +433,7 @@
   ],
 
   "lively.ide.Search": [
-    ["codeSearchGrepExclusions", [".svn", ".git", "node_modules", "combined.js", "BootstrapDebugger.js"], "Patterns for files to exclude from grep code search."]
+    ["codeSearchGrepExclusions", [".svn", ".git", "node_modules", "combined.js", "BootstrapDebugger.js", ".optimized-loading-cache"], "Patterns for files to exclude from grep code search."]
   ],
 
   "lively.morphic.StyleSheets": [

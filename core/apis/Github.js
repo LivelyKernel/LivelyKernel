@@ -117,6 +117,46 @@ Object.extend(apis.Github, {
     }
   },
 
+  getPages: function(reqPath, options, thenDo) {
+    // options: {cache: OBJECT},
+    // see getAllIssues
+    if (typeof options === "function") {
+      thenDo = options;
+      options = null;
+    }
+    options = lively.lang.obj.merge({cache: {}}, options);
+    getPage(1, [], thenDo);
+  
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+    function getPage(page, results, thenDo) {
+      apis.Github.doAuthenticatedRequest(reqPath,
+        lively.lang.obj.merge(options, {page: page}),
+        (err, result) => {
+          if (err) return thenDo(err);
+  
+          // TO reduce the server load and makes things much more faster we
+          // don't just rely on etag based cache responses from Github but use our
+          // cache directly when the first page hasn't changed thus avoiding
+          // requests for subsequent pages
+  
+          if (page === 1 && result.req.status.code() === 304 && options.cache) {
+            var keyPattern = result.cacheKey.replace(/page=1.*/, "page="),
+                cache = options.cache,
+                cachedResult = Object.keys(cache)
+                                .filter(k => k.startsWith(keyPattern))
+                                .reduce((cachedResult, cacheKey) => cachedResult.concat(cache[cacheKey].data), []);
+            return thenDo(null, cachedResult);
+          }
+  
+          var pageInfo = apis.Github.getPageInfoOfReq(result.req)
+          if (err) thenDo(err);
+          else if (page >= pageInfo.lastPage) thenDo(null, results.concat(result.data));
+          else getPage(page + 1, results.concat(result.data), thenDo);
+        });
+    }
+  },
+
   doRequest: function doRequest(urlOrPath, options, thenDo) {
     // options = {auth: {access_token, scope, token_type}}
 
@@ -940,6 +980,7 @@ Object.extend(apis.Github, {
 apis.Github.Issues = {
 
   cachedIssueList: {},
+  cachedPullRequestList: {},
 
   createIssue: function(repoName, title, body, options, thenDo) {
     if (typeof options === "function") { thenDo = options; options = null; }
@@ -986,46 +1027,25 @@ apis.Github.Issues = {
 
   getAllIssues: function(repoName, options, thenDo) {
     // Usage:
-    // apis.Github.Issue.getAllIssues("LivelyKernel/LivelyKernel", (err, issues) => inspect(issues))
-    if (typeof options === "function") {
-      thenDo = options;
-      options = null;
-    }
+    // apis.Github.Issues.getAllIssues("LivelyKernel/LivelyKernel", (err, pulls) => inspect(pulls))
+    if (typeof options === "function") { thenDo = options; options = null; }
     options = lively.lang.obj.merge({
       cache: apis.Github.Issues.cachedIssueList,
       state: "open"
     }, options);
-    getIssuePage(1, [], thenDo);
+    apis.Github.getPages(`/repos/${repoName}/issues?state=${options.state}`, options, thenDo);
+  },
 
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  getAllPulls: function(repoName, options, thenDo) {
+    // Usage:
+    // apis.Github.Issues.getAllPulls("LivelyKernel/LivelyKernel", (err, pulls) => inspect(pulls))
+    if (typeof options === "function") { thenDo = options; options = null; }
+    options = lively.lang.obj.merge({
+      cache: apis.Github.Issues.cachedPullRequestList,
+      state: "open"
+    }, options);
 
-    function getIssuePage(page, results, thenDo) {
-      apis.Github.doAuthenticatedRequest(
-        `/repos/${repoName}/issues?state=${options.state}`,
-        lively.lang.obj.merge(options, {page: page}),
-        (err, result) => {
-          if (err) return thenDo(err);
-
-          // TO reduce the server load and makes things much more faster we
-          // don't just rely on etag based cache responses from Github but use our
-          // cache directly when the first page hasn't changed thus avoiding
-          // requests for subsequent pages
-
-          if (page === 1 && result.req.status.code() === 304 && options.cache) {
-            var keyPattern = result.cacheKey.replace(/page=1.*/, "page="),
-                cache = options.cache,
-                cachedResult = Object.keys(cache)
-                                .filter(k => k.startsWith(keyPattern))
-                                .reduce((cachedResult, cacheKey) => cachedResult.concat(cache[cacheKey].data), []);
-            return thenDo(null, cachedResult);
-          }
-
-          var pageInfo = apis.Github.getPageInfoOfReq(result.req)
-          if (err) thenDo(err);
-          else if (page >= pageInfo.lastPage) thenDo(null, results.concat(result.data));
-          else getIssuePage(page + 1, results.concat(result.data), thenDo);
-        });
-    }
+    apis.Github.getPages(`/repos/${repoName}/pulls?state=${options.state}`, options, thenDo);
   },
 
   getIssueComments: function(repoName, issueOrIssueNo, options, thenDo) {
@@ -1045,18 +1065,22 @@ apis.Github.Issues = {
   ui: {
 
     cachedIssuesForUI: {},
+    cachedPullsForUI: {},
 
     printIssueTitle: function(issue) {
-      return `#${issue.number} [${issue.state}] ${issue.title} (${new Date(issue.created_at).format("yyyy-mm-dd")}, ${issue.user.login})`;
+      var isPr = issue.isPullRequest;
+      return `#${issue.number} [${issue.state}${isPr ? " PR" : ""}] ${isPr ? "" : "   "}${issue.title} (${new Date(issue.created_at).format("yyyy-mm-dd")}, ${issue.user.login}${isPr ? ", " + issue.head.label : ""})`;
     },
 
     printIssue: function(issue) {
+      var isPr = issue.isPullRequest;
       return `# [${issue.number}] ${issue.title}
 
 - State: ${issue.state}
 - Created: ${new Date(issue.created_at).format("yyyy-mm-dd HH:MM")}
-- Reported by: ${issue.user.login}
+- ${isPr ? "Author" : "Reported by"}: ${issue.user.login}
 - URL: ${issue.html_url}
+- Merge: ${isPr ? "[" + issue.head.label + " => " + issue.base.label + "](" + issue.html_url + "/files)\n" : ""}
 
 ${issue.body}`;
     },
@@ -1149,6 +1173,16 @@ ${comment.body}
           (err) => !err && this.update())
       });
 
+      morph.addScript(function interactivelyOpenDiff() {
+        var diff = new WebResource(this.issue.diff_url).get().content;
+        $world.addCodeEditor({
+          title: "Diff of pull request [" + this.issue.number + "] " + this.issue.title,
+          textMode: "diff",
+          content: diff,
+          extent: pt(600,700)
+        }).getWindow().comeForward();
+      });
+
       morph.addScript(function onKeyDown(evt) {
         var keys = evt.getKeyString(), handled = true;
         switch (keys) {
@@ -1225,6 +1259,7 @@ ${comment.body}
             case 'refresh': this.interactivelyUpdate(); break;
             case 'close': this.interactivelyCloseIssue(); break;
             case 'open': this.interactivelyOpenIssue(); break;
+            case 'diff': this.interactivelyOpenDiff(); break;
           }
       });
 
@@ -1234,7 +1269,7 @@ ${comment.body}
         var printed = Global.apis.Github.Issues.ui.printIssueAndComments(issue, comments),
             title = Global.apis.Github.Issues.ui.printIssueTitle(issue),
             buttons = "<hr>\n\n"
-                    + ['refresh', 'comment', this.issue.state === "open" ? "close" : "open"]
+                    + ['refresh', 'comment', this.issue.state === "open" ? "close" : "open"].concat(this.issue.isPullRequest ? ["diff"] : [])
                       .map(this.renderButton).join(" ")
                     + "<br><br>";
 
@@ -1320,19 +1355,19 @@ ${comment.body}
     },
 
     browseIssues: function(repoName, thenDo) {
-      var cache = apis.Github.Issues.ui.cachedIssuesForUI;
+      var issueCache = apis.Github.Issues.ui.cachedIssuesForUI,
+          pullsCache = apis.Github.Issues.ui.cachedPullsForUI;
 
       // clean ui cache
-      setTimeout(() => cache[repoName] = null, 3*60*1000);
+      setTimeout(() => issueCache[repoName] = null, 3*60*1000);
 
       var removeLoadingIndicator;
       lively.lang.fun.composeAsync(
         n => lively.ide.withLoadingIndicatorDo("loading...", (err, _, x) => (removeLoadingIndicator = x) && n(err)),
-        n => cache[repoName] ? n(null, cache[repoName]) : apis.Github.Issues.getAllIssues(repoName, {state: "all"}, n),
+        issuesAndPullsP(),
         (issues, n) => {
-          var grouped = issues.groupByKey("state"),
+          var grouped = issues.sortByKey("number").reverse().groupByKey("state"),
               issueList = (grouped.open || []).concat(grouped.closed || []);
-          cache[repoName] = issueList;
           n(null, issueList);
         },
         (issues, n) => apis.Github.Issues.ui.showNarrower(issues, repoName, n),
@@ -1341,9 +1376,28 @@ ${comment.body}
         removeLoadingIndicator();
         thenDo && thenDo(err, narrower);
       });
+      
+      
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+      
+      function issuesAndPullsP() {
+        return Promise.all([
+          issueCache[repoName] ? issueCache[repoName] :
+            lively.lang.promise.convertCallbackFun(apis.Github.Issues.getAllIssues)(repoName, {state: "all"})
+              .then(issues => issueCache[repoName] = issues),
+          pullsCache[repoName] ? pullsCache[repoName] :
+            lively.lang.promise.convertCallbackFun(apis.Github.Issues.getAllPulls)(repoName, {state: "all"})
+              .then(pulls => pullsCache[repoName] = pulls.map(ea => (ea.isPullRequest = true) && ea))
+        ]).then(issuesAndPulls => {
+          const issues = issuesAndPulls[0],
+                pulls = issuesAndPulls[1],
+                issuesWithoutPulls = issues.filter(issue =>
+                  !pulls.some(pull => issue.number === pull.number));
+          return issuesWithoutPulls.concat(pulls);
+        })
+      }
     }
-
   }
-};
+}
 
 }) // end of module

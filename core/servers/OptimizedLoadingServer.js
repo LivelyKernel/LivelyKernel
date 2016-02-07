@@ -1,38 +1,50 @@
 /*global require, process, __dirname*/
 
-var path     = require("path"),
-    util     = require("util"),
-    fs       = require("fs"),
-    zlib         = require('zlib'),
-    url      = require("url"),
-    crypto   = require("crypto"),
-    concat = require("/home/lively/lively-web.org/data/LivelyKernel/node_modules/file-fuser/node_modules/source-map-concat"),
-    babel = require("babel-core"),
-    lang = require("lively.lang"),
-    rootDir = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..'),
-    relWorkDir = ".optimized-loading-cache",
-    workDir = path.join(rootDir, relWorkDir),
-    combinedFile = path.join(workDir, "combined.js"),
-    combinedHashFile = path.join(workDir, "combined.js.hash");
+var path             = require("path"),
+    util             = require("util"),
+    fs               = require("fs"),
+    zlib             = require('zlib'),
+    url              = require("url"),
+    crypto           = require("crypto"),
+    concat           = require("source-map-concat"),
+    babel            = require("babel-core"),
+    lang             = require("lively.lang"),
+    rootDir          = process.env.WORKSPACE_LK || path.resolve(__dirname, '../..'),
+    relWorkDir       = ".optimized-loading-cache",
+    workDir          = path.join(rootDir, relWorkDir),
+    combinedFile     = path.join(workDir, "combined.js"),
+    combinedHashFile = path.join(workDir, "combined.js.hash"),
+    _combinedFileAndHashCached = null,
+    _combinedFileAndHashCachedTimeout = 1000/*ms*/;
 
 
-var _combinedFileAndHashCached = null;
+(function onStartup() {
+  combinedFileAndHash()
+    .then(() => console.log("optimized-loading-cache initialized"))
+    .catch(err => console.error("optimized-loading-cache initialization errored", err))
+})();
+
 function combinedFileAndHashCached() {
+  // for fast subsequent requests cache the hash / combined result
   // combinedFileAndHashCached().then(x => console.log(x)).catch(err => console.error(err))
   return _combinedFileAndHashCached ?
     Promise.resolve(_combinedFileAndHashCached) : 
     combinedFileAndHash().then(result => {
       _combinedFileAndHashCached = result;
-      setTimeout(() => _combinedFileAndHashCached = null, 500);
+      setTimeout(() => _combinedFileAndHashCached = null, _combinedFileAndHashCachedTimeout);
       return result;
     });
 }
 
 function combinedFileAndHash() {
+  // The main function. Creates a cache directory, computes the "core files",
+  // processes them to be es5 compatible, concats them into one combined.js file,
+  // computes hash for that file (used as etag for HTTP requests)
+
   // require("child_process").exec("rm " + workDir + "/*")
-  // require("child_process").exec("rm -rf /home/lively/lively-web.org/data/LivelyKernel/.optimized-loading-cache/node_modules_lively.lang_lib_promise.js*")
-  // require("child_process").exec("rm -rf /home/lively/lively-web.org/data/LivelyKernel/.optimized-loading-cache/combined.js*")
-  // require("child_process").exec("rm -rf /home/lively/lively-web.org/data/LivelyKernel/.optimized-loading-cache/*")
+  // require("child_process").exec("rm -rf $WORKSPACE_LK/.optimized-loading-cache/node_modules_lively.lang_lib_promise.js*")
+  // require("child_process").exec("rm -rf $WORKSPACE_LK/.optimized-loading-cache/combined.js*")
+  // require("child_process").exec("rm -rf $WORKSPACE_LK/.optimized-loading-cache/*")
   // combinedFileAndHash().then(x => console.log(x)).catch(err => console.error(err))
   var files = coreFiles(process.env.WORKSPACE_LK);
   return lang.promise.chain([
@@ -47,19 +59,20 @@ function combinedFileAndHash() {
 
 
 function prepareFileForConcat(rootDir, cacheDir, file) {
+  // es5 translation of core files, stores into cache dir
+
   // var x = prepareFileForConcat(rootDir, workDir, files[1])
   // x.then((arg) => console.log(arg))
   
   return new Promise((resolve, reject) => {
-    var babelExceptions = ['core/lib/lively-libs-debug.js'];
-    var cacheFile = path.join(cacheDir, file.replace(/\//g, "_"));
-    var mtimeFile = cacheFile + ".mtime";
-    
-    var mtime = String(fs.statSync(file).mtime),
+    var babelExceptions = ['core/lib/lively-libs-debug.js'],
+        cacheFile = path.join(cacheDir, file.replace(/\//g, "_")),
+        mtimeFile = cacheFile + ".mtime",
+        mtime = String(fs.statSync(file).mtime),
         needsUpdate = !fs.existsSync(cacheFile)
                    || !fs.existsSync(mtimeFile)
-                   || mtime !== String(fs.readFileSync(mtimeFile));
-    var source;
+                   || mtime !== String(fs.readFileSync(mtimeFile)),
+        source;
 
     if (needsUpdate) {
       console.log(file + " needs update");
@@ -70,8 +83,12 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
       fs.writeFileSync(mtimeFile, mtime);
     }
     
-    // return Promise.resolve({file: file, cacheFile: cacheFile, mtime: mtime});
-    resolve({source: file, code: source && String(source), sourcesRelativeTo: rootDir.replace(/\/$/, "/"), cacheFile: cacheFile, wasChanged: !!source});
+    resolve({
+      source: file, code: source && String(source),
+      sourcesRelativeTo: rootDir.replace(/\/$/, "/"),
+      cacheFile: cacheFile,
+      wasChanged: !!source
+    });
   });
 }
 
@@ -106,6 +123,7 @@ function concatAndWrite(files, rootDir, workDir, targetFilePath, time) {
 }
 
 function createHeader(timestamp, files) {
+  // Note: JSLoader relies on JSLoader.expectToLoadModules to be initialized!
   return util.format('// This file was generated on %s\n\n'
                    + 'JSLoader.expectToLoadModules([%s]);\n\n',
                      timestamp.toGMTString(),
@@ -143,10 +161,9 @@ function coreFiles(baseDir) {
 
   function moduleToFile(module) {
     // TODO: Adapt module load logic
-    var relFile = 'core/' + module.replace(/\./g, '/') + '.js';
-    var absFile = path.join(baseDir, relFile);
-    if (fs.existsSync(absFile))
-        return absFile;
+    var relFile = 'core/' + module.replace(/\./g, '/') + '.js',
+        absFile = path.join(baseDir, relFile);
+    if (fs.existsSync(absFile)) return absFile;
     relFile = module.replace(/\./g, '/') + '.js';
     absFile = path.join(baseDir, relFile);
     return absFile;
@@ -154,8 +171,7 @@ function coreFiles(baseDir) {
 
   function spliceInDependencies(files) {
     // rk 2014-10-25: Uuhhh ha, this looks like an ad-hoc parsing adventure...
-    var i = 0;
-    var dependencies = {};
+    var i = 0, dependencies = {};
     while (i < files.length) {
         var filename = files[i];
         if (dependencies[filename]) {
@@ -216,31 +232,28 @@ module.exports = function(route, app) {
         .then(hashAndFile => {
 
           if (req.headers['if-none-match'] === hashAndFile.hash) {
-              res.status(304); res.end(); return;
+            res.status(304); res.end(); return;
           }
 
-          var stream = fs.createReadStream(hashAndFile.file);
-
-          var oneYear = 1000*60*60*24*30*12;
-          var acceptEncoding = req.headers['accept-encoding'] || '',
+          var stream = fs.createReadStream(hashAndFile.file),
+              oneYear = 1000*60*60*24*30*12,
+              acceptEncoding = req.headers['accept-encoding'] || '',
               header = {
                   'Content-Type': 'application/javascript',
                   'Expires': new Date(Date.now() + oneYear).toGMTString(),
                   "Cache-Control": "public",
                   'ETag': hashAndFile.hash
-              }
-              if (acceptEncoding.match(/\bdeflate\b/)) {
-                  header['content-encoding'] = 'deflate';
-                  stream = stream.pipe(zlib.createDeflate());
-              } else if (acceptEncoding.match(/\bgzip\b/)) {
-                  header['content-encoding'] = 'gzip';
-                  stream = stream.pipe(zlib.createGzip());
-              }
-              res.writeHead(200, header);
-              stream.pipe(res);
-          })
-          .catch(err => {
-            res.status(500).end(String('optimized loading error ' + err.stack || err));
-          });
+              };
+          if (acceptEncoding.match(/\bdeflate\b/)) {
+              header['content-encoding'] = 'deflate';
+              stream = stream.pipe(zlib.createDeflate());
+          } else if (acceptEncoding.match(/\bgzip\b/)) {
+              header['content-encoding'] = 'gzip';
+              stream = stream.pipe(zlib.createGzip());
+          }
+          res.writeHead(200, header);
+          stream.pipe(res);
+        })
+        .catch(err => res.status(500).end(String('optimized loading error ' + err.stack || err)));
     });
 }

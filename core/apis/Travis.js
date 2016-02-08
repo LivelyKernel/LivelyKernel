@@ -48,7 +48,7 @@ Object.extend(apis.Travis, {
 
   showTravisBuildReportForProjects: function(projects) {
     // lively.ide.withLoadingIndicatorDo(label, doFunc)
-    Promise.all(projects.map(apis.Travis.fetchTravisBuildReportFor))
+    return Promise.all(projects.map(apis.Travis.fetchTravisBuildReportFor))
       .then(projects => $world.addCodeEditor({
         title: "travis build results",
         content: projects.pluck("travisReport").join("\n\n"),

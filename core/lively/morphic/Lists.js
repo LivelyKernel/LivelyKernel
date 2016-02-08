@@ -1,6 +1,6 @@
 module('lively.morphic.Lists').requires('lively.morphic.Core', 'lively.morphic.Events', 'lively.morphic.TextCore', 'lively.morphic.Styles').toRun(function() {
 
-lively.morphic.Box.subclass('lively.morphic.OldList', 
+lively.morphic.Box.subclass('lively.morphic.OldList',
 'documentation', {
     connections: {
         selection: {},
@@ -529,7 +529,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
         this.selectListItemMorph(this.itemMorphs[idx]);
         this.updateSelectionAndLineNoProperties(idx);
     },
-    
+
     saveSelectAt: function(idx) {
         this.selectAt(Math.max(0, Math.min(this.itemList.length-1, idx)));
     },
@@ -652,7 +652,7 @@ lively.morphic.Box.subclass('lively.morphic.MorphList',
     },
 
     selectAllAt: function(indexes) {
-        indexes.forEach(function(i) { 
+        indexes.forEach(function(i) {
             this.selectListItemMorph(this.itemMorphs[i], true);
         }, this);
     },
@@ -1290,7 +1290,6 @@ lively.morphic.Box.subclass('lively.morphic.List',
         }
     },
 
-
     renderItems: function(items, from, to, selectedIndexes, renderBounds, layout) {
         this.ensureItemMorphs(to-from, layout).forEach(function(itemMorph, i) {
             var listIndex = from+i,
@@ -1317,6 +1316,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 lively.bindings.noUpdate(function() { itemMorph.selected = selected; });
             }
         }, this);
+        this.deactivateNotNeededListItemMorphs();
         lively.bindings.signal(this, "rendered");
     },
 
@@ -1348,7 +1348,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
                 scrollByY = evt.hand.eventStartPos.subPt(evt.getPosition()).y / 4
             list.setScroll(0, list.getScroll()[1]+scrollByY);
         })
-        
+
         text.addScript(this.textOnMouseDown);
         // text.disableEvents();
         text.unignoreEvents();
@@ -1370,15 +1370,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         requiredLength = Math.min(layout.noOfCandidatesShown, requiredLength);
         if (itemMorphs.length > requiredLength) {
             lively.bindings.noUpdate(function() {
-                itemMorphs.slice(requiredLength).forEach(function(text) {
-                    text.setPointerEvents('none');
-                    text.index = undefined;
-                    text.setTextString('');
-                    text.removeStyleClassName("selected");
-                    text.selected = false;
-                    text.setHandStyle("default");
-                    text.remove();
-                });
+                itemMorphs.slice(requiredLength).forEach(function(text) { text.index = undefined; });
                 itemMorphs = itemMorphs.slice(0,requiredLength);
             });
         } else if (itemMorphs.length < requiredLength) {
@@ -1388,6 +1380,18 @@ lively.morphic.Box.subclass('lively.morphic.List',
             itemMorphs = itemMorphs.concat(newItems);
         }
         return itemMorphs;
+    },
+
+    deactivateNotNeededListItemMorphs: function() {
+      this.listItemContainer.submorphs.forEach(function(text) {
+        if (text.index !== undefined) return;
+        text.setPointerEvents('none');
+        text.setTextString('');
+        text.removeStyleClassName("selected");
+        text.selected = false;
+        text.setHandStyle("default");
+        text.remove();
+      });
     },
 
     getVisibleIndexes: function() {

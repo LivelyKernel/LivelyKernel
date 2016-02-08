@@ -218,10 +218,18 @@ snippet llf
 	lively.lang.fun.
 name llp
 regex /.*/llp(\()?(\))?/(\))?/
-	lively.lang.promise${M1?($0${M2?${M2}:)}}
+	lively.lang.promise.${M1?($0${M2?${M2}:)}}
 name prom
 regex /.*/prom(\()?(\))?/(\))?/
 	lively.lang.promise${M1?${M1}:(}$0${M2?${M2}:)}
+snippet promcb
+	lively.lang.promise.convertCallbackFun(${0:func})
+snippet promch
+	lively.lang.promise.chain([
+		() => ${0}
+	])
+snippet Prom
+	new Promise((resolve, reject) => {$0})
 # Object.extend
 snippet Oe
 	Object.extend(${1:obj}, {$0});

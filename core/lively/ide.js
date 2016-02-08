@@ -52,13 +52,11 @@ Object.extend(lively.ide, {
     },
 
     withLoadingIndicatorDo:  function(label, doFunc) {
-      var m = module('lively.morphic.tools.LoadingIndicator');
-      if (!m.isLoaded()) m.load();
-      m.runWhenLoaded(function() {
-        var indicator = m.open(label, doFunc ? function(remove) {
-          setTimeout(function() { doFunc(null, indicator, remove) }, 0);
-        } : null);
-      });
+      return lively.module('lively.morphic.tools.LoadingIndicator').load()
+        .then(mod => mod.open(label))
+        .then(indicator => {
+          doFunc && doFunc(null, indicator, indicator.remove.bind(indicator));
+          return indicator; });
     }
 
 });

@@ -425,45 +425,50 @@ var Module = Object.subclass('lively.Module',
 },
 'loading', {
     load: function(loadSync) {
-        var prevWasSync = false;
+        var prevWasSync = false,
+            mod = this,
+            promise = new Promise(function(resolve) {
+              mod.runWhenLoaded(function() { resolve(mod); }); });
+
         if (loadSync) {
-            prevWasSync = this.constructor.loadSync;
-            this.constructor.loadSync = true;
+            prevWasSync = mod.constructor.loadSync;
+            mod.constructor.loadSync = true;
         }
-        if (this.isLoaded()) {
-            this.runOnloadCallbacks();
-            return;
+        if (mod.isLoaded()) {
+            mod.runOnloadCallbacks();
+            return promise;
         }
-        if (this.wasDefined && !this.hasPendingRequirements()) {
-            this.runOnloadCallbacks();
+        if (mod.wasDefined && !mod.hasPendingRequirements()) {
+            mod.runOnloadCallbacks();
             // time is not only the time needed for the request and code
             // evaluation but the complete time span from the creation of the
             // module (when the module is first encountered) to evaluation the
             // evaluation of its code, including load time of all requirements
-            var time = this.createTime ? new Date() - this.createTime : 'na';
-            if (this.hasErrored()) {
-                console.warn(this.uri() + ' encountered errors while loading, took ' + time + ' ms');
+            var time = mod.createTime ? new Date() - mod.createTime : 'na';
+            if (mod.hasErrored()) {
+                console.warn(mod.uri() + ' encountered errors while loading, took ' + time + ' ms');
             } else {
-                this.informDependendModules();
-                console.log(this.uri() + ' loaded in ' + time + ' ms');
+                mod.informDependendModules();
+                console.log(mod.uri() + ' loaded in ' + time + ' ms');
             }
-            return;
+            return promise;
         }
-        if (this.isLoading() || this.wasDefined) {
-            if (this.loadStartTime && (Date.now() - this.loadStartTime) > this.networkTimeout) {
-              this.timeoutLoad();
-              return;
+        if (mod.isLoading() || mod.wasDefined) {
+            if (mod.loadStartTime && (Date.now() - mod.loadStartTime) > mod.networkTimeout) {
+              mod.timeoutLoad();
+              return promise;
             }
-            this.loadRequirementsFirst();
-            return;
+            mod.loadRequirementsFirst();
+            return promise;
         }
-        this.loadAttempts++;
-        this.loadStartTime = Date.now();
-        this.timeoutProcess = setTimeout(
-            this.timeoutLoad.bind(this),
-            this.networkTimeout);
-        JSLoader.loadJs(this.uri(), null, this.constructor.loadSync);
-        if (loadSync) this.constructor.loadSync = prevWasSync;
+        mod.loadAttempts++;
+        mod.loadStartTime = Date.now();
+        mod.timeoutProcess = setTimeout(
+            mod.timeoutLoad.bind(this),
+            mod.networkTimeout);
+        JSLoader.loadJs(mod.uri(), null, mod.constructor.loadSync);
+        if (loadSync) mod.constructor.loadSync = prevWasSync;
+        return promise;
     },
 
     activate: function() {

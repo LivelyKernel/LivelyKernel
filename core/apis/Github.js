@@ -80,6 +80,9 @@ Object.extend(apis.Github, {
   getCachedGithubAccess: function(scopes) {
     var user = $world.getCurrentUser(),
         auth = lively.lookup("github.auth", user);
+    if (auth && auth.error) {
+      return new Error(auth.error_description || auth.error);
+    }
     if (auth && scopes) {
       var userScopes = auth.scope.split(",");
       if (scopes.withoutAll(userScopes).length === 0) return auth;
@@ -256,17 +259,36 @@ Object.extend(apis.Github, {
     }
 
     // are we logged in yet?
-    var githubOAuthURL = new URL("http://lively-web.org/nodejs/GithubOAuth/");
-    var auth = apis.Github.getCachedGithubAccess(scopes);
-    if (auth) return thenDo(null, auth);
+    var githubOAuthURL = new URL("http://lively-web.org/nodejs/GithubOAuth/"),
+        auth = apis.Github.getCachedGithubAccess(scopes);
+    if (auth && !(auth instanceof Error)) return thenDo(null, auth);
+
+    if (apis.Github.authRequestInProgress) {
+      return new Promise((resolve, reject) => {
+        lively.bindings.once(
+          apis.Github, 'authRequestDone',
+          {callback: result => {
+            var err = result && result instanceof Error ? result : null;
+            (typeof thenDo === "function") && thenDo(err, result);
+            err ? reject(err) : resolve(result);
+          }}, 'callback');
+      });
+      return;
+    }
+    
+    apis.Github.authRequestInProgress = true;
 
     // Uses the OAuth webflow, see https://developer.github.com/v3/oauth/#web-application-flow
-    lively.lang.fun.composeAsync(
+    return lively.lang.fun.composeAsync(
       withGithubClientId,
       withGithubTempCodeDo,
       requestGithubOAuthToken,
       addAuthToUser
-    )(thenDo);
+    )((err, auth) => {
+      apis.Github.authRequestInProgress = false;
+      lively.bindings.signal(apis.Github, 'authRequestDone', err || auth);
+      (typeof thenDo === "function") && thenDo(err, auth);
+    });
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -285,7 +307,12 @@ Object.extend(apis.Github, {
         state: s ? s.sessionId : "no session"
       });
       url.asWebResource().beAsync().post()
-        .withJSONWhenDone((json, status) => thenDo(status.isSuccess() ? null : status, json));
+        .withJSONWhenDone((json, status) => {
+          var err;
+          if (!status.isSuccess()) err = new Error(status);
+          if (json && json.error) err = new Error(json.error_description || json.error);
+          thenDo(err, json);
+        });
     }
 
     function withGithubTempCodeDo(clientId, thenDo) {

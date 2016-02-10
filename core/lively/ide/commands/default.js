@@ -1708,9 +1708,7 @@ Object.extend(lively.ide.commands.byName, {
               function(input) { n(null, input); },
               {input: "LivelyKernel/LivelyKernel", historyId: "apis.Github.Issues.browse-issues-repo"});
           },
-          function(repoName, n) {
-            apis.Github.Issues.ui.browseIssues(repoName, n);
-          }
+          function(repoName, n) { apis.Github.Issues.ui.browseIssues(repoName, n); }
         )(function(err) { err && $world.inform("Error: " + (err.stack || err)); });
         return true;
       }

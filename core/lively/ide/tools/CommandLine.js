@@ -176,6 +176,7 @@ lively.BuildSpec('lively.ide.tools.CommandLine', {
         ed.renderer.scrollBar.element.style.display = 'none';
         ed.renderer.scrollBar.width = 0;
         ed.resize(true);
+        this.setLabel(this.labelString);
     },
     reset: function reset() {
         this.commandHistory = {items: [], max: 30, index: 0};

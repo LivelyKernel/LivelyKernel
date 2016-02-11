@@ -68,39 +68,11 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             adjustForNewBounds: true,
             extent: lively.pt(701.6,431.5),
             padding: 0,
-            resizeHeight: true,
-            resizeWidth: true
+            resizeHeight: true, resizeWidth: true
         },
         name: "list",
         selectedIndexes: [],
         sourceModule: "lively.morphic.Lists",
-
-        ensureItemMorphs: function ensureItemMorphs(requiredLength, layout) {
-            var itemMorphs = this.getItemMorphs(true);
-            requiredLength = Math.min(layout.noOfCandidatesShown, requiredLength);
-            if (itemMorphs.length > requiredLength) {
-                lively.bindings.noUpdate(function() {
-                    itemMorphs.slice(requiredLength).forEach(function(text) {
-                        text.setPointerEvents('auto');
-                        text.index = undefined;
-                        text.setTextString('');
-                        text.removeStyleClassName("selected");
-                        text.selected = false;
-                        text.setHandStyle("default");
-                        var cssClasses = ["Morph","Text","list-item"];
-                        text.setStyleClassNames(cssClasses);
-    
-                    });
-                    itemMorphs = itemMorphs.slice(0,requiredLength);
-                });
-            } else if (itemMorphs.length < requiredLength) {
-                var c = this.listItemContainer,
-                    newItems = Array.range(itemMorphs.length, requiredLength-1).collect(function(i) {
-                        return c.addMorph(this.createListItemMorph('', i, layout)); }, this);
-                itemMorphs = itemMorphs.concat(newItems);
-            }
-            return itemMorphs;
-        },
 
         focus: function focus() {
             var win = this.getWindow();
@@ -110,25 +82,6 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
 
         getMenu: function getMenu() {
             return this.owner.getMenuItemsFor(this.getSelection());
-        },
-
-        renderItems: function renderItems(items, from, to, selectedIndexes, renderBounds, layout) {
-            this.ensureItemMorphs(to-from, layout).forEach(function(itemMorph, i) {
-                var listIndex = from+i,
-                    selected = selectedIndexes.include(listIndex);
-                itemMorph.setPointerEvents('auto');
-                itemMorph.setPosition(pt(0, listIndex*layout.listItemHeight));
-                itemMorph.index = listIndex;
-                itemMorph.name = String(itemMorph.index);
-                var cssClasses = ["Morph","Text","list-item"];
-                if (items[listIndex].cssClasses) cssClasses.pushAll(items[listIndex].cssClasses);
-                if (selected) cssClasses.push('selected');
-                itemMorph.setStyleClassNames(cssClasses);
-                itemMorph.textString = this.renderFunction(items[listIndex]);
-                if (selected !== itemMorph.selected) {
-                    itemMorph.setIsSelected(selected, true/*suppress update*/);
-                }
-            }, this);
         },
 
         reset: function reset() {

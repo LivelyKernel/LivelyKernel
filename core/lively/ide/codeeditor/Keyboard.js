@@ -750,6 +750,13 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             },
             readOnly: true
         }, {
+            name: "multiSelectRemoveCurrentRange",
+            bindKey: "Command-Shift-;",
+            exec: function(ed) {
+              ed.$morph.multiSelectRemoveCurrentRange();
+            },
+            readOnly: true
+        }, {
             name: "selectAllLikeThis",
             bindKey: "Ctrl-Shift-/",
             exec: function(ed) {

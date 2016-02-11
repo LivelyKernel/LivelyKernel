@@ -1386,6 +1386,26 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         });
     },
 
+    multiSelectRemoveCurrentRange: function() {
+        this.withAceDo(function(ed) {
+          var sel = ed.selection,
+              ranges = sel.getAllRanges(),
+              range = sel.getRange(),
+              multiRange = ranges.detect(function(r) { return r.isEqual(range); }),
+              i = ranges.indexOf(multiRange),
+              prevI = i === 0 ? ranges.length-1 : i-1,
+              newRange = ranges[prevI];
+          ed.exitMultiSelectMode();
+          sel.setRange(newRange);
+          ranges
+            .without(multiRange)
+            .without(newRange)
+            .forEach(function(ea) { sel.addRange(ea, true); });
+          ed.centerSelection();
+          ed.renderer.scrollCursorIntoView();
+        });
+    },
+
     collapseSelection: function(dir) {
         // dir = 'start' || 'end'
         var sel = this.getSelection(), range = sel.getRange();

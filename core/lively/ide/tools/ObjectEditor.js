@@ -49,7 +49,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
             _Extent: lively.pt(628.0,390.0),
-            _FontSize: 12,
+            _FontSize: lively.Config.get("defaultCodeFontSize"),
             _LineWrapping: true,
             _Position: lively.pt(184.0,40.0),
             _ShowActiveLine: false,

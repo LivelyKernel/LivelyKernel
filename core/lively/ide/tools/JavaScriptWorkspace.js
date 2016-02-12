@@ -108,7 +108,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         _AutocompletionEnabled: true,
         _BorderColor: Color.rgb(95,94,95),
         _Extent: lively.pt(729.0,333.0),
-        _FontSize: 12,
+        _FontSize: lively.Config.get("defaultCodeFontSize"),
         _LineWrapping: false,
         _Position: lively.pt(3.0,22.0),
         _ShowActiveLine: false,

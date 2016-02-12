@@ -142,6 +142,10 @@ Object.extend(lively.ide.commands.byName, {
             if (world.currentHaloTarget) { world.removeHalosOfCurrentHaloTarget(); return true; }
             var narrowers = world.submorphs.filter(function(m) { return m.isNarrowingList && m.isVisible(); })
             if (narrowers.length) { narrowers.invoke('deactivate'); return true; }
+            var focused = lively.morphic.Morph.focusedMorph();
+            if (focused && focused._statusMorph && focused._statusMorph.world()) { focused.removeStatusMessage(); return true; }
+            var statusMessages = lively.morphic.StatusMessage && $world.withAllSubmorphsSelect(function(ea) { return ea instanceof lively.morphic.StatusMessage });
+            if (statusMessages && statusMessages.length) { statusMessages.invoke("remove"); return true; }
             return false;
         }
     },

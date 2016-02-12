@@ -1,5 +1,16 @@
 module('apps.Graphviz').requires().toRun(function() {
 
+(function fixChrome_getTransformToElement_removal() {
+  // for more info see
+  // https://lists.w3.org/Archives/Public/www-svg/2015Aug/att-0009/SVGWG-F2F-minutes-20150824.html#item02
+  // https://github.com/huei90/snap.svg.zpd/issues/57
+  // delete SVGElement.prototype.getTransformToElement
+  SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+      // return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+      return elem.getCTM().inverse().multiply(this.getCTM());
+  };
+})();
+
 lively.BuildSpec('lively.morphic.SVGViewer', {
     _BorderColor: Color.rgb(95,94,95),
     _BorderWidth: 1,
@@ -159,6 +170,10 @@ lively.BuildSpec('lively.morphic.SVGViewer', {
     getSVGScale: function getSVGScale() {
     // this.getSVGScale();
     var m = this.get("clip").submorphs[0];
+    var svgNode = m.renderContext().shapeNode.querySelector("svg");
+    if (svgNode) {
+      return this.getTransform().preConcatenate(new lively.morphic.Similitude(svgNode.getCTM()).inverse()).getScale()
+    }
     return m.getScale();
     // var m = this.get("svgMorph"),
     //     match = m.renderContext().shapeNode.style.webkitTransform.match(/scale\(([^\)]+)\)/);
@@ -179,23 +194,38 @@ lively.BuildSpec('lively.morphic.SVGViewer', {
         // this.get('clip').addMorph(this.get('svgMorph'))
         // this._renderContext = null
         if (!this.get('svgMorph')) {
-          $world.inform("Found no svgMorph!\nMaybe it is already replaced with the graphvis morphic canvas? ")
-          return;
+          // $world.inform("Found no svgMorph!\nMaybe it is already replaced with the graphvis morphic canvas? ")
+          // return;
+          this.get("GraphvizMorphicCanvas") && this.get("GraphvizMorphicCanvas").remove();
+          this.get("clip").addMorph(lively.BuildSpec({
+              name: "svgMorph",
+              _ClipMode: "hidden",
+              _Extent: this.get("clip").getExtent(),
+              _Fill: null,
+              className: "lively.morphic.HtmlWrapperMorph",
+              doNotSerialize: ["rootElement"],
+              droppingEnabled: true,
+              layout: {resizeHeight: true,resizeWidth: true},
+          }).createMorph());
         }
         var el = this.get('svgMorph').renderContext().shapeNode;
         while (el.childNodes.length) el.removeChild(el.childNodes[0]);
         el.appendChild(new DOMParser().parseFromString(svgString, "text/xml").documentElement);
         // Exporter.stringify(el.childNodes[0])
+    
         var m = this.get('svgMorph');
-        m.addScript(function onOwnerChanged(owner) {
-            // scale to fit the svg drawing
-            $super(owner);
-            if (!owner || !owner.world()) return;
+        m.addScript(function scaleToFitSVG() {
             var el = this.renderContext().shapeNode.childNodes[0],
                 bnds = el.getBoundingClientRect(),
                 scale = this.get('SVGViewer').getSVGScale();
             this.applyStyle({clipMode: 'hidden', extent: pt(bnds.width/scale, bnds.height/scale)});
         });
+        m.addScript(function onOwnerChanged(owner) {
+            $super(owner);
+            if (!owner || !owner.world()) return;
+            this.scaleToFitSVG();
+        });
+        m.scaleToFitSVG();
     },
 
     reset: function reset() {
@@ -228,10 +258,13 @@ lively.BuildSpec('lively.morphic.SVGViewer', {
     convertSVGToMorphic: function convertSVGToMorphic() {
         var svgMorph = this.get("svgMorph"),
             svgNode = svgMorph.renderContext().shapeNode.getElementsByTagName("svg")[0],
-            morphicGraph = apps.Graphviz.Renderer.convertGraphvizSVGToMorphs(svgNode),
+            outerScale = this.getSVGScale(),
+            innerScale = new lively.morphic.Similitude(svgNode.getCTM()).getScale(),
+            morphicGraph = Global.apps.Graphviz.Renderer.convertGraphvizSVGToMorphs(svgNode),
             owner = svgMorph.owner;
         svgMorph.remove();
         owner.addMorph(morphicGraph);
+        morphicGraph.setScale(innerScale*outerScale);
         var btn = this.getMorphNamed("convertSVGToMorphicButton");
         btn && btn.remove();
     }
@@ -325,6 +358,7 @@ lively.BuildSpec("apps.Graphviz.MorphNodeOrEdge", {
 
       var offsetInGraphTfm = new lively.morphic.Similitude(svgNode.getTransformToElement(el))
         .preConcatenate(offsetTfm).inverse();
+
       this.setTransform(offsetInGraphTfm);
 
       // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -554,15 +588,16 @@ apps.Graphviz.Renderer = {
         // create a file like "users.robert.detecting-module-cycles.html.svg"
         var basename = URL.source.pathname.replace(/^\//, '').replace(/\//g, '.'),
             dotName = basename + '.dot',
-            graph = this.makeGraph(options),
+            graph = options.dotSource || this.makeGraph(options),
             dotURL = URL.root.withFilename(dotName),
             svgURL = this.changeExt(dotURL, '.svg');
         this.writeGraph(dotURL, graph);
         this.renderGraph(dotName);
         this.transformSVG(options.augmentSVG, svgURL);
-        if (options.asMorph || options.asWindow) {
+        if (options.asSVG || options.asMorph || options.asWindow) {
             var svg;
             this.transformSVG(function(svgString) { svg = svgString; }, svgURL);
+            if (options.asSVG) return svg;
             var morph = this.asMorph(svg);
             if (options.asWindow) morph = morph.openInWindow();
             if (options.convertNodesAndEdgesToMorphs)
@@ -606,7 +641,7 @@ apps.Graphviz.Renderer = {
 
     renderGraph: function(name) {
         var cmd = lively.shell.execSync(Strings.format('dot %s -Tsvg -o %s',
-            name, this.changeExt(name, '.svg'))),
+            name, this.changeExt(name, '.svg')), {cwd: lively.shell.WORKSPACE_LK}),
             outString = cmd.resultString(true).trim();
         outString.length && show(outString);
     },

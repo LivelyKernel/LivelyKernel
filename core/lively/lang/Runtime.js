@@ -112,7 +112,7 @@ Object.extend(lively.lang.Runtime, {
   },
 
   loadFiles: function(project, files, thenDo) {
-    lively.lang.fun.composeAsync(
+    return lively.lang.fun.composeAsync(
       lively.lang.Runtime.readFiles.curry(project, files),
       function(filesRead, next) {
         // filesRead = [{name: STRING, content: STRING}*]
@@ -124,7 +124,7 @@ Object.extend(lively.lang.Runtime, {
           },
           next);
       }
-    )(thenDo)
+    )(thenDo);
   },
 
   evalCode: function(project, code, state, resourceName, thenDo) {

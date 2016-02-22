@@ -9,9 +9,10 @@ var acornLibsLoaded = false,
         Global.escodegen = nodejs.require(process.cwd() + "/node_modules/escodegen");
         acornLibsLoaded = true;
     } else {
+        module("lively.ast"); // ensure module object
         acornLibs = [
             Config.codeBase + 'lib/escodegen.browser.js',
-            Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn, defines lively.ast
+            Config.rootPath + 'node_modules/lively.ast/dist/lively.ast.js', // pulls in acorn, defines lively.ast
             Config.codeBase + 'lib/babel-browser.js'
         ];
         dependencies = [

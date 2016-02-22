@@ -41,16 +41,18 @@ module('lively.Network').requires('lively.bindings', 'lively.Data', 'lively.net.
 Object.subclass('URL',
 "settings", {
     isURL: true,
-    splitter: new RegExp('^(http|https|file)://([^/:]*)(:([0-9]+))?(/.*)?$'),
+    splitter: new RegExp('^([^:]+:)?//([^/:]*)(:([0-9]+))?(/.*)?$'),
     pathSplitter: new RegExp("([^\\?#]*)(\\?[^#]*)?(#.*)?"),
 },
 'initializing', {
 
-    initialize: function(/*...*/) { // same field names as window.location
-        var firstArg = arguments[0];
-        if (!firstArg) throw new Error("URL constructor expecting string or URL parameter");
-        if (Object.isString(firstArg.valueOf())) {
-            var urlString = firstArg;
+    initialize: function(stringOrSpec, baseURI) { // same field names as window.location
+        if (!stringOrSpec) throw new Error("URL constructor expecting string or URL parameter");
+        if (typeof stringOrSpec === "string" && baseURI) {
+          stringOrSpec = new URL(baseURI).withFilename(stringOrSpec).withRelativePartsResolved().toString();
+        }
+        if (typeof stringOrSpec === "string") {
+            var urlString = stringOrSpec;
             var result = urlString.match(this.splitter);
             if (!result) throw new Error("malformed URL string '" + urlString + "'");
             this.protocol = result[1];
@@ -71,14 +73,15 @@ Object.subclass('URL',
                 this.hash = "";
             }
         } else { // spec is either an URL or window.location
-            var spec = firstArg;
-            this.protocol = spec.protocol || "http";
+            var spec = stringOrSpec;
+            this.protocol = spec.protocol || "http:";
             this.port = spec.port;
             this.hostname = spec.hostname;
             this.pathname = spec.pathname || "";
             if (spec.search !== undefined) this.search = spec.search;
             if (spec.hash !== undefined) this.hash = spec.hash;
         }
+        this.href = this.toString();
     },
 },
 "accessing", {
@@ -88,7 +91,7 @@ Object.subclass('URL',
     },
 
     toString: function() {
-        return this.protocol + "://" + this.hostname + (this.port ? ":" + this.port : "") + this.fullPath();
+        return this.protocol + "//" + this.hostname + (this.port ? ":" + this.port : "") + this.fullPath();
     },
 
     fullPath: function() {

@@ -1845,6 +1845,7 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
 
     ensureOpenFor: function(morph) {
       if (this.owner) return;
+      this.targetMorphId = morph.id;
       this.openInWorld();
       this.alignAtBottomOf(morph);
     },
@@ -1930,7 +1931,8 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
     if (self._removeTimer) clearTimeout(self._removeTimer);
     if (typeof delay === "number") {
       self._removeTimer = setTimeout(function() {
-        self.owner && self.owner.removeStatusMessage();
+        var target = $world.getMorphById(self.targetMorphId);
+        target && target.removeStatusMessage();
       }, 1000*delay);
     }
   }
@@ -1940,10 +1942,12 @@ lively.morphic.Text.subclass("lively.morphic.StatusMessage",
 Trait('lively.morphic.SetStatusMessageTrait', {
 
   ensureStatusMessageMorph: function(style) {
-    return this._statusMorph ?
+    var m = this._statusMorph ?
       this._statusMorph :
       this._statusMorph = new lively.morphic.StatusMessage(
         this.getExtent().withY(80).extentAsRectangle(), style);
+    m.targetMorphId = this.id;
+    return m;
   },
 
   removeStatusMessage: function() {

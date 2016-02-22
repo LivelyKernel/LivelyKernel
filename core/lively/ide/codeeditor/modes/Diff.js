@@ -259,7 +259,7 @@ Mode.addMethods({
                   var input = (hist & hist.items && hist.items[0]) || "git diff";
                   $world.prompt("git diff command", function(input) {
                     n(input ? null : new Error("command canceled"), input);
-                  }, {input: input, historyId: histId})
+                  }, {useLastInput: true, input: input, historyId: histId});
                 },
                 function(cmdString, n) {
                   lively.shell.run(cmdString, function(err, cmd) {

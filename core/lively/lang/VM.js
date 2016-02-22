@@ -11,9 +11,11 @@ Object.extend(lively.lang.VM, {
         blacklist = blacklist || [];
         try {
             var undeclaredToTransform = Object.keys(varRecorder).withoutAll(blacklist),
-                transformed = lively.ast.transform.replaceTopLevelVarDeclAndUsageForCapturing(
+                transformed = lively.ast.capturing.rewriteToCaptureTopLevelVariables(
                     code, {name: varRecorderName, type: "Identifier"},
-                    {ignoreUndeclaredExcept: undeclaredToTransform,
+                    {es6ExportFuncId: "_moduleExport",
+                     es6ImportFuncId: "_moduleImport",
+                     ignoreUndeclaredExcept: undeclaredToTransform,
                      exclude: blacklist, recordDefRanges: !!defRangeRecorder});
             code = transformed.source;
             if (defRangeRecorder) Object.extend(defRangeRecorder, transformed.defRanges);

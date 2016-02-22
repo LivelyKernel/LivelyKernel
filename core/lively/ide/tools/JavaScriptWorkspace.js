@@ -169,14 +169,13 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
           if (!this.state.defRanges) this.state.defRanges = {};
           var defRanges = {};
 
-          lively.lang.VM.runEval(__evalStatement,
+          var result = lively.lang.VM.syncEval(__evalStatement,
             lively.lang.obj.merge({
                 context: ctx,
                 topLevelVarRecorder: this.state.workspaceVars,
                 topLevelDefRangeRecorder: __evalOptions.range ? defRanges : null,
                 sourceURL: __evalOptions.sourceURL
-            }, __evalOptions),
-            function(err, _result) { result = err || _result; });
+            }, __evalOptions));
 
           __evalOptions.range && Object.keys(defRanges).forEach(function(key) {
               var defRangesForVar = defRanges[key];
@@ -188,7 +187,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
           this.state.defRanges = Object.merge([this.state.defRanges, defRanges]);
 
-          return result;
+          return result.value;
     },
         getVarValue: function getVarValue(varName) {
         return !this.state.workspaceVars ?

@@ -1,114 +1,37 @@
-module('lively.lang.VM').requires("lively.ast.acorn").toRun(function() {
+var libsLoaded = false,
+    libs = [], dependencies = [];
 
-Object.extend(lively.lang.VM, {
+(function initLoad() {
+  var write = document.write;
+  document.write = function(s) {
+    var scripts = document.getElementsByTagName('script');
+    var lastScript = scripts[scripts.length-1];
+    lastScript.insertAdjacentHTML("beforebegin", s);
+  }
+  libs = [
+      Config.rootPath + "node_modules/systemjs/dist/system.src.js",
+      Config.rootPath + "node_modules/lively.ast/dist/lively.ast.js",
+      Config.rootPath + "node_modules/lively.vm/dist/lively.vm.js"
+  ];
+  dependencies = [
+      {url: libs[0], loadTest: function() { return typeof System !== "undefined"; }},
+      {url: libs[1], loadTest: function() { return !!lively.ast; }},
+      {url: libs[2], loadTest: function() { return !!lively.vm; }},
+  ];
+  module('lively.lang.VM').requires().requiresLib({urls: libs, loadTest: function() { return !!libsLoaded; }})
+  dependencies.doAndContinue(function(next, lib) {
+      JSLoader.loadJs(lib.url);
+      var interval = Global.setInterval(function() {
+          if (!lib.loadTest()) return;
+          Global.clearInterval(interval);
+          next();
+      }, 50);
+  }, function() { document.write = write; libsLoaded = true; });
+})();
 
-    transformForVarRecord: function(code, varRecorder, varRecorderName, blacklist, defRangeRecorder) {
-        // variable declaration and references in the the source code get
-        // transformed so that they are bound to `varRecorderName` aren't local
-        // state. THis makes it possible to capture eval results, e.g. for
-        // inspection, watching and recording changes, workspace vars, and
-        // incrementally evaluating var declarations and having values bound later.
-        blacklist = blacklist || [];
-        try {
-            var undeclaredToTransform = Object.keys(varRecorder).withoutAll(blacklist),
-                transformed = lively.ast.capturing.rewriteToCaptureTopLevelVariables(
-                    code, {name: varRecorderName, type: "Identifier"},
-                    {es6ExportFuncId: "_moduleExport",
-                     es6ImportFuncId: "_moduleImport",
-                     ignoreUndeclaredExcept: undeclaredToTransform,
-                     exclude: blacklist, recordDefRanges: !!defRangeRecorder});
-            code = transformed.source;
-            if (defRangeRecorder) Object.extend(defRangeRecorder, transformed.defRanges);
-        } catch(e) {
-            if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
-            else console.error("Eval preprocess error: %s", e.stack || e);
-        }
-        return code;
-    },
 
-    transformSingleExpression: function(code) {
-        // evaling certain expressions such as single functions or object
-        // literals will fail or not work as intended. When the code being
-        // evaluated consists just out of a single expression we will wrap it in
-        // parens to allow for those cases
-        try {
-            var ast = lively.ast.fuzzyParse(code);
-            if (ast.body.length === 1 &&
-               (ast.body[0].type === 'FunctionDeclaration'
-             || ast.body[0].type === 'BlockStatement')) {
-                code = '(' + code.replace(/;\s*$/, '') + ')';
-            }
-        } catch(e) {
-            if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
-            else console.error("Eval preprocess error: %s", e.stack || e);
-        }
-        return code;
-    },
+module('lively.lang.VM').requires().toRun(function() {
 
-    evalCodeTransform: function(code, options) {
-        var vm = lively.lang.VM,
-            recorder = options.topLevelVarRecorder,
-            varRecorderName = options.varRecorderName || '__lvVarRecorder';
-
-        if (recorder) code = vm.transformForVarRecord(
-            code, recorder, varRecorderName,
-            options.dontTransform, options.topLevelDefRangeRecorder);
-        code = vm.transformSingleExpression(code);
-
-        if (options.sourceURL) code += "\n//# sourceURL=" + options.sourceURL.replace(/\s/g, "_");
-
-        // es6 / jsx transformer
-        var useBabeljs = typeof babel !== "undefined"
-                      && options.hasOwnProperty('useBabelJs') ?
-                          options.useBabelJs :
-                          Config.get("useBabelJsForEval");
-        if (useBabeljs) code = babel.transform(code, {blacklist: ["strict"]}).code;
-
-        return code;
-    },
-
-    getGlobal: function() {
-        return (function() { return this; })();
-    },
-
-    _eval: function(__lvEvalStatement, __lvVarRecorder/*needed as arg for capturing*/) {
-        return eval(__lvEvalStatement);
-    },
-
-    runEval: function (code, options, thenDo) {
-        // The main function where all eval options are configured.
-        // options can include {
-        //   varRecorderName: STRING, // default is '__lvVarRecorder'
-        //   topLevelVarRecorder: OBJECT,
-        //   context: OBJECT,
-        //   sourceURL: STRING
-        // }
-        if (typeof options === 'function' && arguments.length === 2) {
-            thenDo = options; options = {};
-        } else if (!options) options = {};
-
-        var vm = lively.lang.VM, result, err,
-            context = options.context || vm.getGlobal(),
-            recorder = options.topLevelVarRecorder;
-        code = vm.evalCodeTransform(code, options);
-
-        $morph('log') && ($morph('log').textString = code);
-
-        try {
-            result = vm._eval.call(context, code, recorder);
-        } catch (e) { err = e; } finally { thenDo(err, result); }
-    },
-
-    syncEval: function(string, options) {
-        // See #runEval for options.
-        // Although the defaul eval is synchronous we assume that the general
-        // evaluation might not return immediatelly. This makes is possible to
-        // change the evaluation backend, e.g. to be a remotely attached runtime
-        var result;
-        lively.lang.VM.runEval(string, options, function(e, r) { result = e || r; });
-        return result;
-    }
-
-});
+Object.extend(lively.lang.VM, lively.vm);
 
 }); // end of module

@@ -900,8 +900,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     boundEvalImproved: function (__evalStatement, __evalOptions) {
         try {
-            var result;
-            lively.lang.VM.runEval(
+            var result = lively.lang.VM.syncEval(
               __evalStatement,
               lively.lang.obj.merge({
                 context: this.getDoitContext() || this,
@@ -909,9 +908,8 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                 varRecorderName: 'Global',
                 dontTransform: lively.ast.query.knownGlobals,
                 sourceURL: undefined
-              }, __evalOptions),
-              function(err, _result) { result = err || _result; });
-            return result;
+              }, __evalOptions));
+            return result.value;
         } catch(e) {
             if (lively.Config.showImprovedJavaScriptEvalErrors) $world.logError(e)
             else console.error("Eval preprocess error: %s", e.stack || e);

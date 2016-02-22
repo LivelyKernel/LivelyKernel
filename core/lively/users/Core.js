@@ -81,7 +81,7 @@ Object.subclass("lively.users.User",
     var func = null;
 
     if (typeof rule === "function") func = rule;
-    else if (rule.type === "Function") func = lively.lang.VM.syncEval(rule.rule);
+    else if (rule.type === "Function") func = lively.lang.VM.syncEval(rule.rule).value;
     else if (rule.type === "RegExp") {
       var context = {user: this},
           // To replace something like ${user.name} with the actual value

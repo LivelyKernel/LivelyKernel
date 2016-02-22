@@ -132,7 +132,7 @@ lively.morphic.Morph.addMethods(
              exprList = [fmt('$morph("%s")', name)]
            } else {
              var exprsToCheck = makeReferenceExpressionListFor(morph.owner).concat([fmt('get("%s")', name)]);
-             if (vm.syncEval(exprsToCheck.join("."), {context: fromMorph}) === morph) { exprList = exprsToCheck; }
+             if (vm.syncEval(exprsToCheck.join("."), {context: fromMorph}).value === morph) { exprList = exprsToCheck; }
            }
         }
 

@@ -19,11 +19,13 @@
     "lively-loader": ">=0.2.5",
     "lively.ast": "^0.4.1",
     "lively.lang": "^0.5.8",
+    "lively.vm": "^0.4.3",
     "mysql": "^2.9.0",
     "optparse": "~1.0",
     "shelljs": "^0.5",
     "source-map-concat": "^1.0.0",
     "sqlite3": "^3.1",
+    "systemjs": "^0.19.22",
     "watch": "^0.17",
     "websocket": "1.0.22"
   },

@@ -27,6 +27,7 @@ var path             = require("path"),
 function combinedFileAndHashCached() {
   // for fast subsequent requests cache the hash / combined result
   // combinedFileAndHashCached().then(x => console.log(x)).catch(err => console.error(err))
+  if (!Config.optimizedLoading) return Promise.reject("Optimized loading not enabled");
   return _combinedFileAndHashCached ?
     Promise.resolve(_combinedFileAndHashCached) : 
     combinedFileAndHash().then(result => {

@@ -316,7 +316,7 @@ lively.BuildSpec("apps.Graphviz.GraphvizMorphicCanvas", {
     setNodesAndEdgeMorphs: function setNodesAndEdgeMorphs(morphs) {
       this.removeAllMorphs();
       morphs.forEach(function(ea) { this.addMorph(ea); }, this);
-      var fullBounds = morphs.invoke("bounds").reduce(function(fullBnds, bnds) { return fullBnds.union(bnds); })
+      var fullBounds = morphs.invoke("bounds").reduce(function(fullBnds, bnds) { return fullBnds.union(bnds); }, rect(0,0,0,0))
       this.setExtent(fullBounds.extent().addXY(20,20));
     },
 

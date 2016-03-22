@@ -6,7 +6,7 @@ Object.extend(lively.ast, {
         // lively.ast.visualize("obj = {Y: a};").openInWorldCenter()
 
         var source = Object.isString(astOrCode) ? astOrCode : optSource,
-            ast = Object.isString(astOrCode) ? acorn.parse_dammit(astOrCode) : astOrCode,
+            ast = Object.isString(astOrCode) ? lively.ast.fuzzyParse(astOrCode) : astOrCode,
             renderer = apps.Graphviz.Renderer;
 
         var subgraphAttrs = {}

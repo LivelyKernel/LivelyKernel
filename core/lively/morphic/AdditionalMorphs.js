@@ -343,7 +343,24 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
                 }
             });
         this.putImageData(imgData);
+    },
+    
+    mapImageData: function(mapFunc, optBounds) {
+      optBounds = optBounds || this.getCanvasBounds();
+      var ctx = this.getContext(),
+          w = ctx.canvas.width, h = ctx.canvas.height,
+          imgData = this.getImageData();
+      optBounds.allPoints().map(function(p) {
+        var i = 4 * (p.y * w + p.x),
+            col = Color.fromTuple8Bit([imgData.data[i], imgData.data[i+1], imgData.data[i+2], imgData.data[i+3]]),
+            mapped = mapFunc.call(this, p, col, i);
+        if (!mapped || !mapped.isColor) throw new Error("mapImageData map function returned invalid data value: " + mapped);
+        var mappedTuple = mapped.toTuple8Bit();
+        imgData.data[i] = mappedTuple[0]; imgData.data[i+1] = mappedTuple[1]; imgData.data[i+2] = mappedTuple[2]; imgData.data[i+3] = mappedTuple[3];
+      }, this)
+      this.putImageData(imgData);
     }
+
 },
 'HTML rendering', {
     htmlDispatchTable: {

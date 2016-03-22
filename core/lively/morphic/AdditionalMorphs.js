@@ -494,7 +494,7 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
 
 Object.extend(lively.morphic.CanvasMorph, {
     fromImageMorph: function(imgMorph) {
-        return (new this()).fromImageMorph(imgMorph);
+        return (new this()).fromImageMorph(imgMorph, {resize: true});
     }
 });
 

@@ -1,4 +1,4 @@
-module('apis.Github').requires('lively.Network', 'lively.net.SessionTracker').toRun(function() {
+module('apis.Github').requires('apis.OAuth', 'lively.Network', 'lively.net.SessionTracker').toRun(function() {
 
 /*
 usage
@@ -66,28 +66,23 @@ apis.Github.doRequest(
 //   user_url: "https://api.github.com/users/{user}"
 // }
 
-Object.extend(lively.net.SessionTracker.defaultActions, {
-
-  githubOauthResponse: function(msg, session) {
-    lively.bindings.signal(apis.Github, 'oauthResponse', msg.data);
-  }
-});
-
 Object.extend(apis.Github, {
 
-  defaultScopes: ["public_repo"],
+  oauth: {
+    providerName: "github",
+    providerLoginURL: "https://github.com/login/oauth/authorize",
+    scope: ["public_repo"],
+    subserverURL: "http://lively-web.org/nodejs/GithubOAuth/",
+    l2lCallbackServiceSelector: "githubOauthResponse"
+  },
 
-  getCachedGithubAccess: function(scopes) {
-    var user = $world.getCurrentUser(),
-        auth = lively.lookup("github.auth", user);
-    if (auth && auth.error) {
-      return new Error(auth.error_description || auth.error);
+  requestAccess: function(options, thenDo) {
+    if (typeof options === "function") {
+      thenDo = options;
+      options = null;
     }
-    if (auth && scopes) {
-      var userScopes = auth.scope.split(",");
-      if (scopes.withoutAll(userScopes).length === 0) return auth;
-    }
-    return auth;
+    return apis.OAuth.requestAccess(
+      lively.lang.obj.merge(apis.Github.oauth, options), thenDo);
   },
 
   getLimitInfoOfReq: function(req) {
@@ -237,7 +232,7 @@ Object.extend(apis.Github, {
     var scopes = options.scopes || [];
 
     lively.lang.fun.composeAsync(
-      n => apis.Github.requestGithubAccess(scopes, n),
+      n => apis.Github.requestAccess(scopes, n),
       (auth, n) => apis.Github.doRequest(
         urlOrPath, lively.lang.obj.merge(options, {auth: auth}), n)
     )((err, payload) => {
@@ -249,123 +244,6 @@ Object.extend(apis.Github, {
 
       thenDo && thenDo(err, payload)
     });
-  },
-
-
-  requestGithubAccess: function(scopes, thenDo) {
-    if (typeof scopes === "function") {
-      thenDo = scopes;
-      scopes = [];
-    }
-
-    // are we logged in yet?
-    var githubOAuthURL = new URL("http://lively-web.org/nodejs/GithubOAuth/"),
-        auth = apis.Github.getCachedGithubAccess(scopes);
-    if (auth && !(auth instanceof Error)) return thenDo(null, auth);
-
-    if (apis.Github.authRequestInProgress) {
-      return new Promise((resolve, reject) => {
-        lively.bindings.once(
-          apis.Github, 'authRequestDone',
-          {callback: result => {
-            var err = result && result instanceof Error ? result : null;
-            (typeof thenDo === "function") && thenDo(err, result);
-            err ? reject(err) : resolve(result);
-          }}, 'callback');
-      });
-      return;
-    }
-    
-    apis.Github.authRequestInProgress = true;
-
-    // Uses the OAuth webflow, see https://developer.github.com/v3/oauth/#web-application-flow
-    return lively.lang.fun.composeAsync(
-      withGithubClientId,
-      withGithubTempCodeDo,
-      requestGithubOAuthToken,
-      addAuthToUser
-    )((err, auth) => {
-      apis.Github.authRequestInProgress = false;
-      lively.bindings.signal(apis.Github, 'authRequestDone', err || auth);
-      (typeof thenDo === "function") && thenDo(err, auth);
-    });
-
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-    function withGithubClientId(thenDo) {
-      githubOAuthURL.withFilename("clientId")
-        .asWebResource().beAsync().get().whenDone((id, status) =>
-          thenDo(status.isSuccess() ? null: new Error(String(status) + "\n" + id), id));
-    }
-
-    function requestGithubOAuthToken(tempCode, thenDo) {
-      var s = lively.net.SessionTracker.getSession();
-      if (!s || !s.isConnected()) return thenDo(new Error("lively-2-lively connection required"));
-
-      var url = githubOAuthURL.withFilename("oauth/access_token").withQuery({
-        code: tempCode,
-        state: s ? s.sessionId : "no session"
-      });
-      url.asWebResource().beAsync().post()
-        .withJSONWhenDone((json, status) => {
-          var err;
-          if (!status.isSuccess()) err = new Error(status);
-          if (json && json.error) err = new Error(json.error_description || json.error);
-          thenDo(err, json);
-        });
-    }
-
-    function withGithubTempCodeDo(clientId, thenDo) {
-      // create popup for Github, this will trigger the Github login.  The url we
-      // pass to Github has the sessionid of our l2l connection asstate parameter.
-
-      var s = lively.net.SessionTracker.getSession();
-      if (!s || !s.isConnected()) return thenDo(new Error("lively-2-lively connection required"));
-
-      var url = new URL("https://github.com/login/oauth/authorize").withQuery({
-        client_id: clientId,
-        state: s ? s.sessionId : "no session",
-        scope: scopes.join(",")
-      });
-
-
-    var popupWidth = 500,
-        popupHeight = 650,
-        pos = $world.windowBounds().center(),
-        left = pos.x - popupWidth/2,
-        top = pos.y - popupHeight/2,
-        win = window.open(String(url), "_blank", `chrome=yes, modal=yes, toolbar=yes, scrollbars=yes, resizable=yes, centerscreen=yes, top=${top}, left=${left}, width=${popupWidth}, height=${popupHeight}`);
-
-
-      waitForGithubCall((err, data) => thenDo && thenDo(err, data && data.code));
-    }
-
-    function waitForGithubCall(thenDo) {
-      // Github will hit our subserver on /nodejs/GithubOAuth/oauth/callback with
-      // the access code and provided state (session id).  From the subserver
-      // handler we send the code to our Lively world via l2l using the state parameter
-      var timeout = 30 * 1000/*secs*/,
-          data = undefined;
-
-      var con = lively.bindings.once(apis.Github, 'oauthResponse', function() { data = this; }, "call");
-
-      lively.lang.fun.waitFor(timeout, () => !!data, function(err) {
-        con.disconnect();
-        if (err) {
-          if (err.message === "timeout") err = new Error("Timeout logging in to Github");
-        }
-        if (data && data.error) err = new Error(data.error);
-        thenDo && thenDo(err, data);
-      });
-    }
-
-    function addAuthToUser(auth, n) {
-      var user = $world.getCurrentUser();
-      if (user) {
-        user.addAttributes({github: lively.lang.obj.merge(user.getAttributes().github, {auth: auth})});
-      }
-      n(null, auth);
-    }
   },
 
   css: {

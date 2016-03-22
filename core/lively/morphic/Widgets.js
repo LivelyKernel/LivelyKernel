@@ -376,7 +376,8 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-        function onLoad(triedAgain) {
+        function onLoad(loadAttempts) {
+          loadAttempts = loadAttempts || 0;
           if (!options.useNativeExtent) {
             self.setExtent(self.getExtent());
           } else {
@@ -384,7 +385,7 @@ lively.morphic.Morph.subclass('lively.morphic.Image',
             // FIXME there is a bug in safari where the natural extent is not
             // available directly on load, fixes safari issue at
             //   http://lively-web.org/users/robertkrahn/2014-12-16_logo-voting.html
-            if ((!ext.x || !ext.y) && !triedAgain) return setTimeout(onLoad.curry(true), 0);
+            if ((!ext.x || !ext.y) && loadAttempts < 10) return setTimeout(onLoad.curry(loadAttempts+1), 0);
             var aspect = ext.x/ext.y;
             if (options.maxWidth && ext.x > options.maxWidth) {
               ext.x = options.maxWidth; ext.y = Math.round(ext.x/aspect);

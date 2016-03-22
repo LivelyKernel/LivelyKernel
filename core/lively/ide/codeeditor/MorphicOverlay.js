@@ -132,10 +132,15 @@ lively.morphic.Morph.subclass("lively.ide.CodeEditor.MorphicOverlay",
   },
 
   fitLabel: function(thenDo) {
-    this.label.applyStyle({extent: pt(10,10), fixedWidth: false, fixedHeight: false})
+    this.label.applyStyle({
+      extent: pt(10,10),
+      fixedWidth: false, fixedHeight: false,
+      clipMode: "visible",
+      whiteSpaceHandling: "nowrap"
+    });
     this.label.fit();
     this.label.fitThenDo(function() {
-      this.label.applyStyle({fixedWidth: true, fixedHeight: true});
+      this.label.applyStyle({fixedWidth: true, fixedHeight: true, clipMode: "hidden"});
       this.label.setExtent(this.label.getExtent().withY(this.getExtent().y));
       thenDo && thenDo();
     }.bind(this));

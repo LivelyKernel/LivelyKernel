@@ -41,7 +41,7 @@ Trait('TextChunkOwner',
     },
 
     getChunkStyles: function() {
-        return this.getTextChunks().collect(function(ea) { return ea.getStyle() });
+        return this.getTextChunks().map(function(ea) { return ea.getStyle() });
     },
 
     getChunkStyleAndRanges: function() {
@@ -2359,7 +2359,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     getRichTextMarkup: function() {
         var string = this.textString;
         return this.getChunkStyleAndRanges().reduce(function(result, ea) {
-            return result.concat([[string.slice(ea[0], ea[1]), ea[2]]]);
+            return result.concat([[string.slice(ea[0], ea[1]), ea[2].clone()]]);
         }, []);
     },
 

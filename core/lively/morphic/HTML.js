@@ -235,7 +235,12 @@ lively.morphic.Morph.addMethods(
     setHandStyleHTML: function(ctx, styleName) {
         if (!ctx.morphNode) return;
         if (!styleName || styleName == '') ctx.morphNode.style.cursor = null;
-        else ctx.morphNode.style.cursor = styleName;
+        else {
+          if (["zoom-in", "zoom-out", "grab", "grabbing"].include(styleName)) {
+            styleName = "-" + ctx.domInterface.browserPrefix + "-" + styleName;
+          }
+          ctx.morphNode.style.cursor = styleName;
+        }
     },
     setToolTipHTML: function(ctxt, string) {
         if (ctxt.morphNode)

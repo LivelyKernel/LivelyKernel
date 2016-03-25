@@ -525,7 +525,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
               }
             }
         },
-        
+
         {
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
@@ -1314,57 +1314,88 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
 
         saveSourceFromEditor: function saveSourceFromEditor(editor) {
-          var source = editor.getTextString(),
-              saved = editor.tryBoundEval(source),
-              self = this;
-      
-          if (!saved || saved instanceof Error) {
-              var msg = saved.message || "not saved";
-              editor.setStatusMessage(msg, Global.Color.red);
-              return;
-          }
-      
-          editor.lastSaveSource = source;
-          this.changeIndicator.indicateUnsavedChanges();
+            var source = editor.getTextString(),
+                parsed = lively.ast.parse(source),
+                saved = editor.tryBoundEval(source),
+                self = this;
 
-          this.update();
+            if (!saved || saved instanceof Error) {
+                var msg = saved.message || "not saved";
+                editor.setStatusMessage(msg, Global.Color.red);
+                return;
+            }
 
-          var prevScriptName = this.get("ObjectEditorScriptList").selection,
-              newScriptName;
-          if (prevScriptName === "-- ALL --") prevScriptName = null;
-          
-          var ast = this.get("ObjectEditorScriptPane").getSession().$ast;
-          if (ast && ast.body.length === 1) { // displaying just a single method
-            var p = lively.lang.Path,
-                call = ast.body[0].expression,
+            // parse the source code from each script and add it via a custom
+            // toString method to each script function. This allows us to rewrite
+            // code but still serialize + display what the user has actually
+            // entered
+
+            var scriptsAndSources = parsed.body
+              .map(function(node) {
+                node = node.expression;
+                if (!node) return null;
+                while (lively.lookup("callee.object.type", node) === "CallExpression") {
+                  node = lively.lookup("callee.object", node);
+                }
+                if (lively.lookup("callee.property.name", node) !== "addScript"
+                 || lively.lookup("callee.object.type", node) !== "ThisExpression") return null;
+                var func = lively.lookup("arguments.0", node),
+                    name = func && func.id && func.id.name;
+                return name && {name: name, source: source.slice(func.start, func.end)}
+              })
+              .compact();
+
+
+            scriptsAndSources.forEach(function(spec) {
+              // var spec = scriptsAndSources[0]
+              var func = this.target[spec.name];
+              if (func) func.toString = new Function("return " + lively.lang.string.print(spec.source.replace(/\\/g, "\\\\")) + ";")
+            }, this);
+
+            this.displaySourceForScript
+            this.generateSourceForScript
+
+            editor.lastSaveSource = source;
+            this.changeIndicator.indicateUnsavedChanges();
+
+            this.update();
+
+            var prevScriptName = this.get("ObjectEditorScriptList").selection,
+                newScriptName;
+            if (prevScriptName === "-- ALL --") prevScriptName = null;
+
+            var ast = this.get("ObjectEditorScriptPane").getSession().$ast;
+            if (ast && ast.body.length === 1) { // displaying just a single method
+              var p = lively.lang.Path,
+                  call = ast.body[0].expression,
+                  receiver = p("callee.object.type").get(call);
+              while (receiver === "CallExpression") {
+                call = p("callee.object").get(call);
                 receiver = p("callee.object.type").get(call);
-            while (receiver === "CallExpression") {
-              call = p("callee.object").get(call);
-              receiver = p("callee.object.type").get(call);
+              }
+              var selector = p("callee.property.name").get(call),
+                  isAddScript = receiver === "ThisExpression" && selector === "addScript";
+              if (isAddScript) {
+                newScriptName = p("arguments.0.id.name").get(call);
+              }
             }
-            var selector = p("callee.property.name").get(call),
-                isAddScript = receiver === "ThisExpression" && selector === "addScript";
-            if (isAddScript) {
-              newScriptName = p("arguments.0.id.name").get(call);
-            }
-          }
 
-          if (prevScriptName && newScriptName && newScriptName !== prevScriptName) {
-             $world.multipleChoicePrompt(
-               "Rename " + prevScriptName + " to " + " " + newScriptName + "\n or add as new script?",
-               ["Rename", "Add as new script", "Cancel"],
-               function(choice) {
-                 if (choice === "Cancel") return;
-                 if (choice === "Rename") { delete self.target[prevScriptName]; }
-                 self.get("ObjectEditorScriptList").selection = newScriptName;
-                 editor.setStatusMessage("saved source", Global.Color.green);
-               });
-           } else {
-             debugger;
-             self.get("ObjectEditorScriptList").selection = newScriptName || prevScriptName;
-             editor.setStatusMessage("saved source", Global.Color.green);
-           }
-      },
+            if (prevScriptName && newScriptName && newScriptName !== prevScriptName) {
+               $world.multipleChoicePrompt(
+                 "Rename " + prevScriptName + " to " + " " + newScriptName + "\nor add as new script?",
+                 ["Rename", "Add as new script", "Cancel"],
+                 function(choice) {
+                   if (choice === "Cancel") return;
+                   if (choice === "Rename") { delete self.target[prevScriptName]; }
+                   self.get("ObjectEditorScriptList").selection = newScriptName;
+                   editor.setStatusMessage("saved source", Global.Color.green);
+                 });
+             } else {
+               self.get("ObjectEditorScriptList").selection = newScriptName || prevScriptName;
+               editor.setStatusMessage("saved source", Global.Color.green);
+             }
+
+        },
 
         selectChangedContent: function selectChangedContent(source) {
 

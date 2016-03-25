@@ -34,7 +34,7 @@ snippet ife
 		${0}
 	}
 snippet err
-	if (${1:err}) { ${2:thenDo}(err, null); return; }
+	if (${1:err}) return ${2:thenDo}(err, null);
 snippet options
 	if (typeof ${1:options} === "function") {
 		${2:thenDo} = ${1};
@@ -89,7 +89,7 @@ regex /\b/int|setI?n?t?e?r?v?a?l?/
 # delay function
 snippet delay
 regex /\b/st|del(ay)?/
-	(function() {${0}})${2:.bind(this)}.delay(${1:0});
+	(() => {${0}}).delay(${1:0});
 # Get Elements
 snippet gett
 	getElementsBy${1:TagName}('${2}')${3}
@@ -98,7 +98,9 @@ snippet get
 	getElementBy${1:Id}('${2}')${3}
 # console.log (Firebug)
 snippet cl
-	console.log(${1});
+	console.log(${1})
+snippet ce
+	console.error(${1})
 # show (lively)
 snippet s
 	show("${1:%o}", ${2});
@@ -230,18 +232,32 @@ snippet promch
 	])
 snippet Prom
 	new Promise((resolve, reject) => {$0})
+snippet then
+regex /(\.)?/then|the|th/
+	${M1?:.}then(${1:arg} => $0)
+snippet thenp
+regex /(\.)?/thp|thenp/
+	${M1?:.}then(show.curry("%o"))
+snippet catchp
+regex /(\.)?/cap|catchp/
+	${M1?:.}catch(show.curry("%s"))
+snippet shows
+	show.curry("%s")
 # Object.extend
 snippet Oe
 	Object.extend(${1:obj}, {$0});
+snippet keys
+regex /\b/([^\s]*)keys/
+	Object.keys(${0:$M1})
 # collection iter
 regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect|map|filter))/
 	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(${3:ea} => {$0});
 # collection inject
 regex /(\.?[^\.\s]+|^\s*)/\.?inje?c?t?/
-	${M1?:${1:list}}.inject(${2:collector}, function($2, ea) { ${0:return $2;} });
+	${M1?:${1:list}}.inject(${2:collector}, ($2, ea) => { ${0:return $2;} });
 # collection withAllSubmorphsDo
 regex /(\.?[^\.\s]+|^\s*)/\.?withAl?l?S?u?b?m?o?r?p?h?s?D?o?/
-	${M1?:${1:owner}}.withAllSubmorphsDo(function(ea) { return ${0:ea}; });
+	${M1?:${1:owner}}.withAllSubmorphsDo(ea => { return ${0:ea}; });
 # addScript
 regex /(\.?[^\.\s]+|^\s*)/\.?addSc?r?i?p?t?/
 	${M1?:${1:morph}}.addScript(function ${2:scriptName}(${3}) {${0}});
@@ -255,7 +271,7 @@ snippet conC
 # lively.bindings.connect updater
 snippet conU
 	lively.bindings.connect(${1:source}, '${2:sourceAttr}', ${3:target}, '${4:targetAttr}', {
-		updater: function(\$upd, val) { ${0:\$upd(val);} }});
+		updater: (\$upd, val) => { ${0:\$upd(val);} }});
 # lively.bindings.signal
 snippet sig
 	lively.bindings.signal(${1:source}, '${2:sourceAttr}', ${3:value});
@@ -328,7 +344,7 @@ snippet prompt
 		${0}
 	}, {useLastInput: true, input: "${2:initial input}", historyId: "${3:prompt-id}"});
 snippet confirm
-	\$world.confirm("${1:query text}", (input) => {
+	\$world.confirm("${1:query text}", input => {
 		if (!input) return;
 		${0}
 	});
@@ -342,3 +358,7 @@ snippet fun*
 snippet fn*
 regex /((=)\s*|(:)\s*|(\()|\b)/fn\*/
 	function*($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}
+snippet import
+	import ${3:{ ${2:name} \}} from "${1:module}";$0
+snippet export
+	export { ${0:name} };

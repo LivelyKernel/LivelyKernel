@@ -208,6 +208,14 @@ Object.subclass('URL',
             hostname: this.hostname, pathname: dirPart + filename});
     },
 
+    join: function(path) {
+        var left = this.fullPath().replace(/\/+$/, ""),
+            right = path.replace(/^\/+/, ""),
+            both = lively.lang.string.joinPath(left, right);
+        return new URL({protocol: this.protocol, port: this.port,
+            hostname: this.hostname, pathname: both});
+    },
+
     withQuery: function(record) {
         return new URL({protocol: this.protocol, port: this.port, hostname: this.hostname, pathname: this.pathname,
             search: "?" + this.toQueryString(record), hash: this.hash});

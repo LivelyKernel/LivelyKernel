@@ -1,7 +1,6 @@
 var acornLibsLoaded = false,
     acornLibs = [], dependencies = [],
     isNodeJs = typeof process !== "undefined" && process.version;
-
 (function initLoad() {
     if (isNodeJs) {
         nodejs.require("util")._extend(Global.lively.ast, nodejs.require(process.cwd() + "/node_modules/lively.ast"));
@@ -9,7 +8,7 @@ var acornLibsLoaded = false,
         Global.escodegen = nodejs.require(process.cwd() + "/node_modules/escodegen");
         acornLibsLoaded = true;
     } else {
-        module("lively.ast"); // ensure module object
+        var m = module("lively.ast"); // ensure module object
         acornLibs = [
             Config.codeBase + 'lib/escodegen.browser.js',
             Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn, defines lively.ast
@@ -33,6 +32,13 @@ var acornLibsLoaded = false,
 })();
 
 module("lively.ast.acorn").requires().toRun(function() {
+
+// rk 2016-03-03
+// FIXME
+// Moving on to a fully contained es6 module implementation that makes acorn
+// not global anymore. Since we still have some code depending on window.acorn I
+// added this hack for now
+window.acorn = lively.ast.acorn;
 
 // This module is currently kept around while transitioning to the lively.ast lib integration.
 // It formerly contained lively's acorn extensions

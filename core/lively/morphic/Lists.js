@@ -1385,12 +1385,14 @@ lively.morphic.Box.subclass('lively.morphic.List',
     deactivateNotNeededListItemMorphs: function() {
       this.listItemContainer.submorphs.forEach(function(text) {
         if (text.index !== undefined) return;
-        text.setPointerEvents('none');
-        text.setTextString('');
-        text.removeStyleClassName("selected");
-        text.selected = false;
-        text.setHandStyle("default");
-        text.remove();
+        lively.bindings.noUpdate(function() {
+          text.setPointerEvents('none');
+          text.setTextString('');
+          text.removeStyleClassName("selected");
+          text.selected = false;
+          text.setHandStyle("default");
+          text.remove();
+        })
       });
     },
 

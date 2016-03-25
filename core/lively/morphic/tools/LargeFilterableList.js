@@ -48,6 +48,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     name: "NarrowList",
     showDelay: 700,
     state: null,
+
     activate: function activate() {
         this.state.focusedMorph = lively.morphic.Morph.focusedMorph();
         this.renderContainer(this.state.layout);
@@ -55,6 +56,7 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
         if (!this.state.keepInputOnReactivate) inputLine.clear();
         this.selectInput(); inputLine.focus();
     },
+
     candidateToString: function candidateToString(candidate) {
         var string;
         if (!candidate || Object.isString(candidate)) {
@@ -88,15 +90,19 @@ lively.BuildSpec("lively.morphic.tools.LargeFilterableList", {
     },
 
     deactivate: function deactivate() {
-    lively.ide.tools.SelectionNarrowing.lastActive = this;
-    $world.activateTopMostWindow();
-    var shouldRefocus = this.state
-                     && this.state.refocusOnClose
-                     && this.state.focusedMorph
-                     && lively.morphic.Morph.focusedMorph() === this.get('inputLine');
-    if (shouldRefocus) this.state.focusedMorph.focus();
-    this.setVisible(false);
-},
+      lively.ide.tools.SelectionNarrowing.lastActive = this;
+      var shouldRefocus = this.state
+                       && this.state.refocusOnClose
+                       && this.state.focusedMorph
+                       && lively.morphic.Morph.focusedMorph() === this.get('inputLine');
+      if (shouldRefocus) {
+        var inModal = this.state.focusedMorph.ownerChain().some(function(m) { return m.isModalMorph; })
+        if (!inModal) $world.activateTopMostWindow();
+        this.state.focusedMorph.focus();
+      }
+      this.setVisible(false);
+    },
+
     doFilter: function doFilter(candidates, input) {
         var container = this;
         // split input by spaces and turn each string ino a regexp

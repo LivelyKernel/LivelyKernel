@@ -31,7 +31,7 @@ Object.subclass('lively.data.FileUpload.Handler',
         this.evt = evt;
         if (fileOrItems instanceof File)
           this.file = fileOrItems;
-        else if (fileOrItems[0] instanceof DataTransferItem)
+        else if (fileOrItems && fileOrItems[0] instanceof DataTransferItem)
           this.items = fileOrItems;
     }
 },

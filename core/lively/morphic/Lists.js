@@ -1169,7 +1169,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         if (!evt.isRightMouseButtonDown()) return $super(evt);
         // delayed because when owner is a window and comes forward the window
         // would be also in front of the new menu
-        var items = this.getMenu();
+        var items = this.getMenu(evt);
         if (items.length > 0) lively.morphic.Menu.openAt.curry(
             evt.getPosition(), null, items).delay(0.1);
         evt.stop(); return true;

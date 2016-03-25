@@ -48,7 +48,7 @@ Object.subclass('URL',
 
     initialize: function(stringOrSpec, baseURI) { // same field names as window.location
         if (!stringOrSpec) throw new Error("URL constructor expecting string or URL parameter");
-        if (typeof stringOrSpec === "string" && baseURI) {
+        if (typeof stringOrSpec === "string" && baseURI && !stringOrSpec.match(/^[^:]+:\/\//)) {
           stringOrSpec = new URL(baseURI).withFilename(stringOrSpec).withRelativePartsResolved().toString();
         }
         if (typeof stringOrSpec === "string") {

@@ -784,34 +784,71 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
         });
       },
         fetchAndDisplayDirContent: function fetchAndDisplayDirContent(thenDo) {
-        // this.fetchAndDisplayDirContent();
-        var self = this;
-        this.get('filter').textString = ''
-        this.get('fileList').setList(['Loading...']);
-        var parentDir = {
-          fileName: "..",
-          group: null,
-          isDirectory: true,
-          isLink: false,
-          lastModified: null,
-          linkCount: 0,
-          mode: null,
-          path: "..",
-          rootDirectory: null,
-          size: null,
-          user: null
-        };
-        lively.ide.CommandLineSearch.findFiles('*',
-            {cwd: this.dirState.path, excludes: '-false', depth: 1},
-            function(err, files) {
-                self.dirState.files = [parentDir].concat(files);
+            // this.fetchAndDisplayDirContent();
+            var self = this;
+            this.get('filter').textString = ''
+            this.get('fileList').setList(['Loading...']);
+        
+            var parentDir = {
+              fileName: "..",
+              group: null,
+              isDirectory: true,
+              isLink: false,
+              lastModified: null,
+              linkCount: 0,
+              mode: null,
+              path: "..",
+              rootDirectory: null,
+              size: null,
+              user: null
+            };
+            
+            var type = this.dirState.path.match(/^https?:/) ? "http" : "fs";
+            
+            if (type === "fs") {
+              lively.ide.CommandLineSearch.findFiles('*',
+                  {cwd: this.dirState.path, excludes: '-false', depth: 1},
+                  function(err, files) {
+                      self.dirState.files = [parentDir].concat(files);
+                      lively.bindings.connect(
+                        self, 'dirContentUpdated',
+                        {thenDo: function() {thenDo && thenDo();}}, 'thenDo',
+                        {removeAfterUpdate: true});
+                      self.renderDebounced();
+                  });
+            } else if (type === "http") {
+              var webR = new URL(this.dirState.path).asWebResource().beAsync();
+              webR.getSubElements(1).whenDone((_, status) => {
+                self.dirState.files = [parentDir].concat((webR.subDocuments || []).concat(webR.subCollections || []).map(d => ({
+                  fileName: d.getURL().filename(),
+                  path: d.getURL().filename(),
+                  group: "",
+                  isDirectory: d.isCollection(),
+                  isLing: false,
+                  lastModified: lastModifiedDateOfWebResource(webR, d.getURL()),
+                  mode: "",
+                  size: null,
+                  user: ""
+                })))
                 lively.bindings.connect(
                   self, 'dirContentUpdated',
                   {thenDo: function() {thenDo && thenDo();}}, 'thenDo',
                   {removeAfterUpdate: true});
                 self.renderDebounced();
-            });
-    },
+              })
+            } else {
+              $world.inform("Cannot fetch directory content for " + this.dirState.path);
+            }
+        
+            function lastModifiedDateOfWebResource(webR, targetURL) {
+              var response = lively.lang.arr.from(webR.contentDocument.querySelectorAll("response"))
+                    .detect(res => res.querySelector("href").textContent === webR.subDocuments[0].getURL().fullPath().toString()),
+                  lastMod = response.querySelector("getlastmodified");
+              return lastMod ? new Date(lastMod.textContent) : null;
+            }
+        
+        },
+
         focusChanged: function focusChanged(newFocus) {
         if (newFocus === this.get('targetDir')) {
             this.get('fileList').deselectAll();

@@ -1,4 +1,4 @@
-module('lively.Sound').requires().requiresLib({url: Config.codeBase+'lib/xaudio/resampler.js', loadTest: function() {return typeof Resampler !== "undefined"}, sync: true}).requiresLib({url: Config.codeBase+'lib/xaudio/XAudioServer.js', loadTest: function() {return typeof XAudioServer !== "undefined"}, sync: true}).toRun(function() {
+module('lively.Sound').requires().toRun(function() {
 
 Object.subclass("lively.Sound.AbstractSound", {
     aboutMe: function() {
@@ -1838,7 +1838,7 @@ Object.subclass('lively.Sound.SoundPlayer',
         //  -- Lets Boogie! --
         // A piano keyboard and synthesizer by Dan Ingalls
         // The synthesizer methods manage requests to play sounds and musical notes
-        // The playerLoop keeps calling audioHandle.executeCallback which
+        // The playerLoop keeps calling playNextBuffer which
         // checks if it is running out of samples and, if so, calls back to
         // audioUnderRun which is expected to deliver a new set of samples. It does
         // so by iterating through all activeSounds asking each to mix its samples
@@ -1859,6 +1859,7 @@ Object.subclass('lively.Sound.SoundPlayer',
         this.sampRate = 44100;
         this.nChans = 2;
         this.bufferSecs = 0.2;
+        this.nBufs = 2;
     },
 },
 'playing', {
@@ -1871,40 +1872,95 @@ Object.subclass('lively.Sound.SoundPlayer',
     resumePlaying: function(snd) {
         // Start playing the given sound without resetting it.
         // It will resume playing from where it last stopped.
-        this.activeSounds.push(snd);
-        if (!this.audioHandle)
-            this.createAudioHandle();
-        // if this was the first sound, start player loop
-        if (this.activeSounds.length === 1)
-            this.playerLoop();
+        if (!this.audioContext)
+            this.createAudioContext();
+        if (this.audioContext) {
+            this.activeSounds.push(snd);
+            // if this was the first sound, start player loop
+            if (this.activeSounds.length === 1) {
+                this.nextBufferStart = 0;
+                this.playerLoop();
+            }
+        }
     }
 },
 'player process', {
 
     playerStop: function() {
+        if (this.audioContext)
+            this.audioContext.close();
         // playerLoop() checks this and stops
-        this.audioHandle = null;
+        this.audioContext = null;
         this.activeSounds = [];
+        this.outputBuffers = null;
     },
     playerLoop: function() {
-        if (this.audioHandle) {
+        if (this.audioContext) {
             // calls our audioUnderRun() if needed to refill buffer
-            this.audioHandle.executeCallback();
+            this.playNextBuffer();
             // keep "looping" as long as there are active sounds
             if (this.activeSounds.length > 0)
-                this.playerLoop.bind(this).delay(this.bufferSecs / 4);
+                this.playerLoop.bind(this).delay(this.bufferSecs / this.nBufs / 2);
             // for buffer size 200 ms underrun is triggered at 100 ms, so check every 50 ms
         }
     },
 },
 'audio player', {
-    createAudioHandle: function() {
-         // Set up the buffers and bind audioHandle
-        var buffSize = this.sampRate * this.nChans * this.bufferSecs;  // 0.2 sec worth of samples
-        this.audioHandle = new XAudioServer(this.nChans, this.sampRate,
-            buffSize/2, buffSize,
-            function (sampleCount) { return this.audioUnderRun(sampleCount); }.bind(this),
-            1);
+    createAudioContext: function() {
+         // Set up the buffers and bind audioContext
+        var theContext = window.AudioContext || window.webkitAudioContext;
+        if (!theContext) {
+            console.warn("Audio not supported");
+        } else {
+            this.audioContext = new theContext();
+            this.nextBufferStart = 0;
+            this.outputBuffers = [];
+            // we're buffering 0.2 sec worth of samples split into 2 buffers
+            // while one buffer is playing we fill the other
+            var sampleRate = this.sampRate;
+            var bufferSize = sampleRate * this.bufferSecs / this.nBufs | 0;
+            for (var i = 0; i < this.nBufs; i++) {
+                var buffer = this.audioContext.createBuffer(this.nChans, bufferSize, sampleRate);
+                this.outputBuffers.push(buffer);
+            }
+            console.log("sound: started");
+        }
+    },
+    playNextBuffer: function() {
+        var buffer = this.outputBuffers.shift();
+        if (!buffer) return;
+        // synthesis uses an interleaved buffer, web audio needs planar
+        var interleavedBuffer = this.audioUnderRun(buffer.length);
+        for (var channel = 0; channel < 2; channel++) {
+            var samples = buffer.getChannelData(channel);
+            for (var i = 0; i < buffer.length; i++) {
+                samples[i] = interleavedBuffer[2 * i + channel];
+            }
+        }
+        // create audio source node
+        var source = this.audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.audioContext.destination);
+        // check if we missed our timeslot
+        if (this.nextBufferStart < this.audioContext.currentTime) {
+            if (this.nextBufferStart > 0)
+                console.warn("sound " + this.audioContext.currentTime.toFixed(3) +
+                    ": buffer underrun by " + (this.audioContext.currentTime - this.nextBufferStart).toFixed(3) + " s");
+            this.nextBufferStart = this.audioContext.currentTime;
+        }
+        // schedule for playing at next time slot
+        source.start(this.nextBufferStart);
+        // console.log("sound " + this.audioContext.currentTime.toFixed(3) +
+        //     ": scheduling from " + this.nextBufferStart.toFixed(3) +
+        //     " to " + (this.nextBufferStart + source.buffer.duration).toFixed(3));
+        this.nextBufferStart += source.buffer.duration;
+        // source.onended is unreliable, using a timeout instead
+        window.setTimeout(function() {
+            if (!this.audioContext) return;
+            // console.log("sound " + this.audioContext.currentTime.toFixed(3) +
+            //     ": done, next time slot " + this.nextBufferStart.toFixed(3));
+            this.outputBuffers.push(source.buffer);
+        }.bind(this), (this.nextBufferStart - this.audioContext.currentTime) * 1000);
     },
     audioUnderRun: function(sampleCount) {
         // Refill the buffer from the latest generated samples
@@ -1915,19 +1971,13 @@ Object.subclass('lively.Sound.SoundPlayer',
         // into a buffer of the requested size
         // It is also here that we run the control code for each sound
         // to change such envelope parameters as volume, pitch, etc.
-        var buffer = this.clearSoundBuffer(sampleCount*2);
+        var buffer = new Float32Array(sampleCount * 2);
         this.activeSounds = this.activeSounds.select( function(snd) {
             return snd.samplesRemaining() > 0; });
         this.activeSounds.forEach( function(snd) { 
                 snd.mixSampleCountIntoBufferStartingAt(sampleCount, buffer, 0, this.sampRate);
             }, this);
         // if (this.reverbSound) this.reverbSound.mixSamplesToBuffer(sampleCount, buffer, 1); 
-        return buffer;
-    },
-    clearSoundBuffer: function(sizeUsed) {
-        // Note sizeUsed must be 2 * number of stereo samples
-        var buffer = new Array(sizeUsed);
-        for (var i=0; i<sizeUsed; i++) buffer[i] = 0;
         return buffer;
     },
 });
@@ -2147,7 +2197,7 @@ Object.extend(lively.Sound.SoundPlayer, {
     stop: function() {
         if (this.currentPlayer) {
             this.currentPlayer.playerStop();
-            this.currentPlayer = undefined;
+            this.currentPlayer = null;
         }
     }
 });

@@ -12,7 +12,7 @@ var acornLibsLoaded = false,
         module("lively.ast"); // ensure module object
         acornLibs = [
             Config.codeBase + 'lib/escodegen.browser.js',
-            Config.rootPath + 'node_modules/lively.ast/dist/lively.ast.js', // pulls in acorn, defines lively.ast
+            Config.codeBase + 'lib/lively.ast.dev.js', // pulls in acorn, defines lively.ast
             Config.codeBase + 'lib/babel-browser.js'
         ];
         dependencies = [

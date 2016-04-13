@@ -626,4 +626,36 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenModulePartCommand', {
     },
 });
 
+lively.ide.BrowserCommand.subclass('lively.ide.DebugNextMethodCallCommand', {
+
+    wantsMenu: Functions.True,
+
+    getSelectedNode: function() {
+        return this.browser.selectedNode();
+    },
+
+    isActive: function(pane) {
+        var node = this.getSelectedNode();
+        if (!node) return false;
+        if (node.isMemberNode) return true;
+        return false;
+    },
+
+    installDebugger: function() {
+      var node = this.getSelectedNode(),
+          methodName = node.target.getName(),
+          implementor = lively.lookup(node.parent.target.getName()),
+          ed = this.browser.getSourcePane();
+      if (!implementor) { ed.showError(new Error(`Cannot find implementor of ${methodName}`)); return; }
+      if (!node.target.isStatic()) implementor = implementor.prototype;
+      lively.debugNextMethodCall(implementor, methodName);
+      ed.setStatusMessage(`Next time ${methodName} is called a debugger will open.`)
+    },
+
+    trigger: function() {
+        return [['debug next method call', this.installDebugger.bind(this)]]
+    }
+
+});
+
 }) // end of module

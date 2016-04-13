@@ -1401,7 +1401,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
         requiredLength = Math.min(layout.noOfCandidatesShown, requiredLength);
         if (itemMorphs.length > requiredLength) {
             lively.bindings.noUpdate(function() {
-                itemMorphs.slice(requiredLength).forEach(function(text) { text.index = undefined; });
+                itemMorphs.slice(requiredLength).forEach(function(text) { text.selected = false; text.index = undefined; });
                 itemMorphs = itemMorphs.slice(0,requiredLength);
             });
         } else if (itemMorphs.length < requiredLength) {
@@ -1423,7 +1423,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
           text.selected = false;
           text.setHandStyle("default");
           text.remove();
-        })
+        });
       });
     },
 

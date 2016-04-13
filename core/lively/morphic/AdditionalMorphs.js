@@ -93,8 +93,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     onstore: function($super) {
         $super();
         if (this.preserveContents)
-            this._canvasSerializationDataURI = this.toDataURI();
-    },
+            this._canvasSerializationDataURI = !this.world() && this._canvasSerializationDataURI ?
+              this._canvasSerializationDataURI : this.toDataURI();
+    }
+,
 
     onrestore: function($super) {
         $super();

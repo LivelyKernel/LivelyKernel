@@ -67,23 +67,33 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
   },
 
   debugNextMethodCall: function(target, methodName, optEditor, thenDo) {
-    if (target[methodName].isRecordingDebugWrapper && target[methodName].noDebugFunc) {
-      target[methodName] = target[methodName].noDebugFunc;
+    if (target[methodName].isRecordingDebugWrapper && target[methodName].uninstallDebugger) {
+      target[methodName].uninstallDebugger();
     }
 
-    var orig = target[methodName];
+    var method = target[methodName],
+        methodOwner = target;
+    do {
+      if (methodOwner.hasOwnProperty(methodName)) break;
+      methodOwner = Object.getPrototypeOf(methodOwner);
+    } while (methodOwner);
+
     target[methodName] = target[methodName].wrap(function(/*proceed + args{*/) {
-      // FIXME don't install when not own prop
-      target[methodName] = orig;
+      uninstallDebugger();
       var args = Array.from(arguments); args.shift();
-      var source = String(orig).replace(/^\s*function\s*/, "function " + "foo");
       lively.ide.codeeditor.JavaScriptDebugging.debugCall(
-        orig, target, args, methodName, optEditor, thenDo);
+        method, this, args, methodName, optEditor, thenDo);
       // FIXME don't run twice....
-      return orig.apply(target, args);
+      return method.apply(this, args);
     });
     target[methodName].isRecordingDebugWrapper = true;
-    target[methodName].noDebugFunc = orig;
+    target[methodName].uninstallDebugger = uninstallDebugger;
+
+    function uninstallDebugger() {
+      delete target[methodName];
+      methodOwner[methodName] = method;
+    }
+
   },
 
   withRecordingWorkspaceDo: function(optEditor, doFunc) {

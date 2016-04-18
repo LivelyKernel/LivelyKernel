@@ -1859,7 +1859,7 @@ Object.subclass('lively.Sound.SoundPlayer',
         this.sampRate = 44100;
         this.nChans = 2;
         this.bufferSecs = 0.2;
-        this.nBufs = 2;
+        this.nBufs = 3;
     },
 },
 'playing', {
@@ -1923,12 +1923,12 @@ Object.subclass('lively.Sound.SoundPlayer',
                 var buffer = this.audioContext.createBuffer(this.nChans, bufferSize, sampleRate);
                 this.outputBuffers.push(buffer);
             }
-            console.log("sound: started");
         }
     },
     playNextBuffer: function() {
+        if (this.activeSounds.length == 0) return; // sound stopped
         var buffer = this.outputBuffers.shift();
-        if (!buffer) return;
+        if (!buffer) return;  // all buffers in use
         // synthesis uses an interleaved buffer, web audio needs planar
         var interleavedBuffer = this.audioUnderRun(buffer.length);
         for (var channel = 0; channel < 2; channel++) {
@@ -1954,13 +1954,23 @@ Object.subclass('lively.Sound.SoundPlayer',
         //     ": scheduling from " + this.nextBufferStart.toFixed(3) +
         //     " to " + (this.nextBufferStart + source.buffer.duration).toFixed(3));
         this.nextBufferStart += source.buffer.duration;
-        // source.onended is unreliable, using a timeout instead
-        window.setTimeout(function() {
-            if (!this.audioContext) return;
-            // console.log("sound " + this.audioContext.currentTime.toFixed(3) +
-            //     ": done, next time slot " + this.nextBufferStart.toFixed(3));
-            this.outputBuffers.push(source.buffer);
-        }.bind(this), (this.nextBufferStart - this.audioContext.currentTime) * 1000);
+        var self = this,
+            bufferEnd = this.nextBufferStart;
+        function bufferFinished() {
+            if (!self.audioContext) return;
+            var now = self.audioContext.currentTime;
+            // console.log("sound " + now.toFixed(3) + " waiting until " + bufferEnd.toFixed(1) + " ms");
+            if (now < bufferEnd) {
+                return requestAnimationFrame(bufferFinished);
+            }
+            // console.log("sound " + now.toFixed(3) +
+            //     ": done, next time slot " + self.nextBufferStart.toFixed(3));
+            self.outputBuffers.push(source.buffer);
+            self.playNextBuffer();
+        }
+        // source.onended is unreliable (at least in Safari)
+        requestAnimationFrame(bufferFinished);
+        this.playNextBuffer();
     },
     audioUnderRun: function(sampleCount) {
         // Refill the buffer from the latest generated samples

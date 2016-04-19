@@ -5,18 +5,9 @@ sudo: false
 node_js:
   - "4.1"
 
-before_install:
-  - "google-chrome --version"
-
-addons:
-  apt:
-    sources:
-      - google-chrome
-    packages:
-      - google-chrome-stable
-
 before_script:
   - "nvm use v4"
+  - export CHROME_BIN=chromium-browser
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "npm start &"
   - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"

@@ -123,12 +123,15 @@ Object.extend(apis.Github, {
       options = null;
     }
     options = lively.lang.obj.merge({cache: {}}, options);
+    var isLoggedIn = lively.lookup("github.oauth", $world.getCurrentUser().getAttributes()) || (options && options.auth),
+        method = isLoggedIn ? 'doAuthenticatedRequest' : 'doRequest';
+
     getPage(1, [], thenDo);
   
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
     function getPage(page, results, thenDo) {
-      apis.Github.doAuthenticatedRequest(reqPath,
+      apis.Github[method](reqPath,
         lively.lang.obj.merge(options, {page: page}),
         (err, result) => {
           if (err) return thenDo(err);
@@ -903,7 +906,9 @@ apis.Github.Issues = {
 
   getIssue: function(repoName, issueNo, options, thenDo) {
     if (typeof options === "function") { thenDo = options; options = null; }
-    apis.Github.doAuthenticatedRequest(
+    var isLoggedIn = lively.lookup("github.oauth", $world.getCurrentUser().getAttributes()) || (options && options.auth),
+        method = isLoggedIn ? 'doAuthenticatedRequest' : 'doRequest';
+    apis.Github[method](
       `/repos/${repoName}/issues/${issueNo}`,
       lively.lang.obj.merge({cache: apis.Github.Issues.cachedIssueList}, options),
       (err, payload) => thenDo && thenDo(err, payload && payload.data));
@@ -961,7 +966,10 @@ apis.Github.Issues = {
         no = issue ? issue.number : issueOrIssueNo,
         since = issue ? issue.created_at : new Date("01 October, 2007");
 
-    apis.Github.doAuthenticatedRequest(
+    var isLoggedIn = lively.lookup("github.oauth", $world.getCurrentUser().getAttributes()) || (options && options.auth),
+        method = isLoggedIn ? 'doAuthenticatedRequest' : 'doRequest';
+
+    apis.Github[method](
       `/repos/${repoName}/issues/${no}/comments?since=${since}`,
       lively.lang.obj.merge(options, {scopes: apis.Github.defaultScopes}),
       (err, result) => thenDo(err, result ? result.data : []));

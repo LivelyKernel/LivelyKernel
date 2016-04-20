@@ -230,20 +230,20 @@ Object.extend(apis.Github, {
 
   doAuthenticatedRequest: function(urlOrPath, options, thenDo) {
     var scopes = options.scopes || [];
-
-    lively.lang.fun.composeAsync(
-      n => apis.Github.requestAccess(scopes, n),
-      (auth, n) => apis.Github.doRequest(
-        urlOrPath, lively.lang.obj.merge(options, {auth: auth}), n)
-    )((err, payload) => {
-      if (err && err.code && err.code() === 401) {
-        // reset access token cache
-        var user = $world.getCurrentUser();
-        user.setAttributes(lively.lang.obj.merge(user.github, {auth: null}));
-      }
-
-      thenDo && thenDo(err, payload)
-    });
+    return apis.Github.requestAccess(scopes)
+      .then(auth => new Promise((resolve, reject) =>
+        apis.Github.doRequest(urlOrPath,
+          lively.lang.obj.merge(options, {auth: auth}),
+          (err, payload) => err ? reject(err) : resolve(payload))))
+      .then(payload => thenDo && thenDo(null, payload))
+      .catch(err => {
+        if (err.code && err.code() === 401) {
+          // reset access token cache
+          var user = $world.getCurrentUser();
+          user.setAttributes(lively.lang.obj.merge(user.github, {auth: null}));
+        }
+        thenDo && thenDo(err, null);
+      });
   },
 
   css: {

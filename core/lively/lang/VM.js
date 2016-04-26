@@ -5,11 +5,13 @@ var libsLoaded = false,
 (function initLoad() {
   libs = [
       Config.rootPath + "node_modules/systemjs/dist/system.src.js",
-      Config.rootPath + "node_modules/lively.vm/index-browser.js"
+      Config.rootPath + "node_modules/lively.modules/load-from-source.js",
+      Config.rootPath + "node_modules/lively.modules/bootstrap/browser.js"
   ];
   dependencies = [
       {url: libs[0], loadTest: function() { return typeof System !== "undefined"; }},
-      {url: libs[1], loadTest: function() { return !!lively.vm; }},
+      {url: libs[1], loadTest: function() { return true; }},
+      {url: libs[2], loadTest: function() { return !!lively.modules; }},
   ];
   module('lively.lang.VM').requires("lively.ast.acorn").requiresLib({urls: libs, loadTest: function() { return !!libsLoaded; }})
   dependencies.doAndContinue(function(next, lib) {
@@ -20,12 +22,11 @@ var libsLoaded = false,
           next();
       }, 50);
   }, function() {
-    lively.lang.fun.waitFor(3000,
-      function() { return !!lively.vm.load; },
-      function(err) {
-        if (err) console.error("Error loading lively.vm:", err);
-        lively.vm.load(vmDir).then(function() { libsLoaded = true; })
-    });
+    lively.modules.System.import("lively.vm")
+      .then(vm => {
+        lively.vm = vm;
+        libsLoaded = true;
+      });
   });
 })();
 

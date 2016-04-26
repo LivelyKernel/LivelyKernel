@@ -230,7 +230,7 @@ snippet Prom
 	new Promise((resolve, reject) => {$0})
 snippet then
 regex /(\.)?/then|the|th/
-	${M1?:.}then(${1:arg} => $0)
+	${M1?:.}then(${1:($2)} => $0)
 snippet thenp
 regex /(\.)?/thp|thenp/
 	${M1?:.}then(show.curry("%o"))

@@ -301,7 +301,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     registerDeclarations: function(ast, visitor) {
         if (!this.scopes.length) return;
         var scope = this.scopes.last(), that = this, decls = {};
-        acorn.walk.matchNodes(ast, {
+        lively.ast.acorn.walk.matchNodes(ast, {
             'VariableDeclaration': function(node, state, depth, type) {
                 if (node.type != type) return; // skip Expression, Statement, etc.
                 node.declarations.forEach(function(n) {
@@ -323,7 +323,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
                 if (scope.localVars.indexOf(node.id.name) == -1)
                     scope.localVars.push(node.id.name);
             }
-        }, decls, { visitors: acorn.walk.visitors.stopAtFunctions });
+        }, decls, { visitors: lively.ast.acorn.walk.visitors.stopAtFunctions });
 
         return Object.getOwnPropertyNames(decls).map(function(decl) {
             var node = decls[decl];
@@ -579,7 +579,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
 
     rewrite: function(node) {
         this.enterScope();
-        acorn.walk.addAstIndex(node);
+        lively.ast.acorn.walk.addAstIndex(node);
         // FIXME: make astRegistry automatically use right namespace
         node.registryId = this.astRegistry[this.namespace].push(node) - 1;
         if (node.type == 'FunctionDeclaration')
@@ -597,7 +597,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
             throw new Error('no a valid function expression/statement? ' + lively.ast.acorn.printAst(node));
         if (!node.id) node.id = this.newNode("Identifier", {name: ""});
 
-        acorn.walk.addAstIndex(node);
+        lively.ast.acorn.walk.addAstIndex(node);
         // FIXME: make astRegistry automatically use right namespace
         node.registryId = this.astRegistry[this.namespace].push(node) - 1;
         var rewriteVisitor = this.createVisitor(node.registryId),
@@ -612,7 +612,7 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
         node.registryId = this.astRegistry[this.namespace].push(node) - 1;
         node._parentEntry = originalRegistryIndex;
         if (node.id.name.substr(0, 12) == '_NO_REWRITE_') {
-            var astCopy = acorn.walk.copy(node);
+            var astCopy = lively.ast.acorn.walk.copy(node);
             astCopy.type = 'FunctionExpression';
             return astCopy;
         }
@@ -653,7 +653,7 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
     rewrite: function(node) {
         // show("%s %s %s", escodegen.generate(node), 0, (new Error()).stack);
         this.enterScope();
-        acorn.walk.addAstIndex(node);
+        lively.ast.acorn.walk.addAstIndex(node);
         // FIXME: make astRegistry automatically use right namespace
         node.registryId = this.astRegistry[this.namespace].push(node) - 1;
         if (node.type == 'FunctionDeclaration')
@@ -758,7 +758,7 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
         node.registryId = this.astRegistry[this.namespace].push(node) - 1;
         node._parentEntry = originalRegistryIndex;
         if (node.id.name.substr(0, 12) == '_NO_REWRITE_') {
-            var astCopy = acorn.walk.copy(node);
+            var astCopy = lively.ast.acorn.walk.copy(node);
             astCopy.type = 'FunctionExpression';
             return astCopy;
         }
@@ -2518,11 +2518,11 @@ lively.ast.Rewriting.RewriteVisitor.subclass("lively.ast.Rewriting.RecordingVisi
                 frame.setArguments(args);
             frame.setAlreadyComputed(alreadyComputed);
             if (!this.top) {
-                pc = this.error && acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
+                pc = this.error && lively.ast.acorn.walk.findNodeByAstIndex(frame.getOriginalAst(),
                     this.error.astIndex ? this.error.astIndex : lastNodeAstIndex);
             } else {
                 if (frame.isAlreadyComputed(lastNodeAstIndex)) lastNodeAstIndex++;
-                pc = acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
+                pc = lively.ast.acorn.walk.findNodeByAstIndex(frame.getOriginalAst(), lastNodeAstIndex);
             }
             frame.setPC(pc);
             frame.setScope(topScope);

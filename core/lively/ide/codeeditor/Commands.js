@@ -34,7 +34,10 @@ var JavaScriptCommands = {
           declIdNode = lively.ast.query.findDeclarationClosestToIndex(idInfo.ast, idInfo.name, cursorIndex);
       if (!declIdNode) return;
       ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
-      declIdNode && codeEditor.setSelectionRange(declIdNode.start, declIdNode.end);
+      if (declIdNode) {
+        codeEditor.setSelectionRange(declIdNode.start, declIdNode.end);
+        ed.renderer.scrollSelectionIntoView();
+      }
     }
   },
 

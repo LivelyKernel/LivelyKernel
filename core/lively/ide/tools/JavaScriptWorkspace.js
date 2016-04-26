@@ -187,7 +187,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
           this.state.defRanges = Object.merge([this.state.defRanges, defRanges]);
 
-          return result.value;
+          return result.hasOwnProperty("value") ? result.value : result.error;
     },
         getVarValue: function getVarValue(varName) {
         return !this.state.workspaceVars ?

@@ -31,7 +31,7 @@
   },
   "scripts": {
     "test": "$npm_node_execpath bin/lk-test.js",
-    "start": "$npm_node_execpath bin/lk-server.js"
+    "start": "$npm_node_execpath bin/lk-server.js --db-config '{\"enableRewriting\":false}'"
   },
   "config": {
     "testQuery": ""

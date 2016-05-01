@@ -41,9 +41,11 @@ var JavaScriptCommands = {
   selectSymbolReferenceOrDeclarationNext: {
     readOnly: true, exec: function(ed) { ed.execCommand('selectSymbolReferenceOrDeclaration', {args: 'next'}); }
   },
+
   selectSymbolReferenceOrDeclarationPrev: {
     readOnly: true, exec: function(ed) { ed.execCommand('selectSymbolReferenceOrDeclaration', {args: 'prev'}); }
   },
+
   selectSymbolReferenceOrDeclaration: {
     readOnly: true,
     exec: function(ed, options) {
@@ -94,7 +96,26 @@ var JavaScriptCommands = {
       ranges.forEach(sel.addRange.bind(sel));
     
     }
+  },
+
+  prettyPrintJS: {
+    readOnly: false,
+    exec: function(ed, options) {
+      var selectedCode = ed.$morph.getSelectionOrLineString();
+      module("lively.ide.CommandLineInterface").load()
+        .then(() =>
+          new Promise((resolve, reject) =>
+            lively.shell.run("js-beautify -f -", {stdin: selectedCode},
+              (err, cmd) => err ? reject(err) : resolve(cmd.getStdout()))))
+        .then(prettyPrinted => {
+          var range = ed.$morph.getSelectionRangeAce();
+          ed.$morph.replace(range, prettyPrinted)
+        })
+        .catch(err => ed.$morph.showError(err));
+      
+    }
   }
+
 };
 
 Object.extend(lively.ide.codeeditor.Commands, {

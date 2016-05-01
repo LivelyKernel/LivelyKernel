@@ -212,6 +212,8 @@ function setupEmacsSpecificCommands(kbd) {
   kbd.bindKeys({"CMD-i": "printInspect"}); // re-apply to be able to use count arg
   kbd.bindKeys({"CMD-g": "doAutoEvalPrintItComments"});
 
+  kbd.bindKeys({"C-c tab": "prettyPrintJS"});
+
   kbd.bindKeys({"C-h k": "describeKey"});
 
   kbd.bindKeys({"C-x h": "selectall"});

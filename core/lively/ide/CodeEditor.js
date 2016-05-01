@@ -1165,20 +1165,24 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     doInspect: function() {
-        lively.morphic.inspect(this.evalSelection());
+      return Promise.resolve(this.evalSelection())
+        .then(result => result && result.hasOwnProperty("value") ? result.value : result)
+        .then(val => lively.morphic.inspect(val))
     },
 
     printInspect: function(options) {
         options = options || {};
-        var msgMorph = this._statusMorph;
-        this.withAceDo(function(ed) {
-            if (msgMorph && msgMorph.world()) {
-              ed.execCommand('insertEvalResult');
-            } else {
-              var obj = this.evalSelection();
-              this.printObject(ed, lively.morphic.printInspect(obj, options.depth || this.printInspectMaxDepth))
-            }
-        });
+        var msgMorph = this._statusMorph,
+            edP = new Promise((resolve, reject) => this.withAceDo(resolve))
+
+        if (msgMorph && msgMorph.world())
+          return edP.then(ed => ed.execCommand('insertEvalResult'))
+
+        return edP.then(ed =>
+          Promise.resolve(this.evalSelection())
+            .then(result => result && result.hasOwnProperty("value") ? result.value : result)
+            .then(result => lively.morphic.printInspect(result, options.depth || this.printInspectMaxDepth))
+            .then(printed => this.printObject(ed, printed)))
     },
 
     getDoitContext: function() { return this.doitContext || this; }

@@ -140,6 +140,14 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       // }
     },
 
+    evalSelection: function evalSelection(printIt) {
+      return this.vmEval(this.getSelectionOrLineString(), {asString: false})
+        .then(result => {
+          if (printIt) this.insertAtCursor(String(result.value), true)
+          return result;
+        });
+    },
+
     doit: function doit(printResult, editor, options) {
       options = lively.lang.obj.merge({inspect: !printResult, printDepth: this.printInspectMaxDepth}, options);
       options.asString = !options.inspect;

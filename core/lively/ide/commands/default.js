@@ -470,7 +470,7 @@ Object.extend(lively.ide.commands.byName, {
 
             if (!win.normalBounds) win.normalBounds = winB;
 
-            var thirdWMin = Global.devicePixelRatio && Global.devicePixelRatio > 1 ? 550 : 750,
+            var thirdWMin = 650,
                 thirdW = Math.min(thirdWMin, Math.max(1000, bounds.width/3)),
                 thirdColBounds = bounds.withWidth(thirdW);
 

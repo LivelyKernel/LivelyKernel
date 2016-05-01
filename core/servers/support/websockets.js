@@ -123,6 +123,7 @@ util.inherits(WebSocketClient, EventEmitter);
 
     this.setupClient = function(options) {
         var self = this;
+        this.options = options || {};
         var c = this._client = new WebSocketClientImpl(options);
 
         c.on('connectFailed', function(e) { self.onConnectionFailed(e); });
@@ -177,7 +178,13 @@ util.inherits(WebSocketClient, EventEmitter);
     this.connect = function() {
         log(this.debugLevel, 'Connecting %s', this);
         try {
-            return this._client.connect(this.url, this.protocol);
+            // see https://github.com/theturtle32/WebSocket-Node/blob/master/docs/WebSocketClient.md
+            return this._client.connect(
+                this.url,
+                this.protocol,
+                null/*origin*/,
+                this.options.headers || null,
+                {}/*requestOptions*/);
         } catch(e) {
             console.error(e);
             this.onConnectionFailed(e);

@@ -26,7 +26,13 @@ function createWebSocketConnection(thenDo) {
         secure = url.match(/wss:/),
         options = {protocol: 'lively-json', sender: 'askpass', debugLevel: 10};
 
-    if (!secure) {
+    if (process.env.L2L_ASKPASS_AUTH_HEADER) {
+        options.headers = {
+            AUTHORIZATION: process.env.L2L_ASKPASS_AUTH_HEADER
+        }
+    }
+
+    if (!secure || !process.env.L2L_ASKPASS_SSL_KEY_FILE) {
         log("Creating websocket connection to %s", url);
         thenDo(null, new ws.WebSocketClient(url, options));
         return;

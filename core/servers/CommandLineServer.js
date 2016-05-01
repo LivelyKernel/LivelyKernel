@@ -227,6 +227,12 @@ var shellServices = {
                 inResponseTo: msg.messageId, data: data});
         }
         var cmdInstructions = msg.data;
+        var auth = lively.lookup("request.httpRequest.headers.authorization", connection);
+        if (auth) {
+          cmdInstructions.env = cmdInstructions.env || {};
+          cmdInstructions.env.L2L_ASKPASS_AUTH_HEADER = auth; // needed in bin/commandline2lively.js
+        }
+
         var cmd = runShellCommand(cmdInstructions);
         var pid = cmd.process.pid
         answer(true, {pid: pid});
@@ -306,7 +312,7 @@ module.exports = d.bind(function(route, app) {
         res.status(400).end("cannot read " + fn);
         return;
       }
-      
+
       res.contentType(mimeType);
       fs.createReadStream(fn).pipe(res);
     });
@@ -337,8 +343,16 @@ module.exports = d.bind(function(route, app) {
             stdin = req.body && req.body.stdin,
             env = req.body && req.body.env,
             dir = req.body && req.body.cwd,
-            isExec = req.body && req.body.isExec;
+            isExec = req.body && req.body.isExec,
+            auth = req.headers.authorization;
+
         if (!command) { res.status(400).end(); return; }
+
+        if (auth) {
+          env = env || {};
+          env.L2L_ASKPASS_AUTH_HEADER = auth; // needed in bin/commandline2lively.js
+        }
+
         var cmd, cmdInstructions = {
             command: command,
             cwd: dir,
@@ -346,6 +360,7 @@ module.exports = d.bind(function(route, app) {
             isExec: isExec,
             stdin: stdin
         };
+
         try {
             cmd = runShellCommand(cmdInstructions);
         } catch(e) {

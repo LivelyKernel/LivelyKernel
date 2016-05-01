@@ -364,8 +364,8 @@
   ],
 
   "lively.morphic.CodeEditor": [
-    ["defaultCodeFontSize", 12, "In which pt size code appears."],
-    ["defaultCodeFontFamily", "Monaco,monospace", "Code font"],
+    ["defaultCodeFontSize", 10, "In which pt size code appears."],
+    ["defaultCodeFontFamily", "Monaco, monospace", "Code font"],
     ["autoIndent", true, "Automatically indent new lines."],
     ["useAceEditor", true, "Whether to use the ace.ajax editor for code editing."],
     ["aceDefaultTheme", "chrome", "Ace theme to use"],

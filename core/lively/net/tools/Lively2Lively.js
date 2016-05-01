@@ -1033,90 +1033,101 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             sourceModule: "lively.ide.CodeEditor",
             textMode: "javascript",
             textString: '// code in here is evaluated in the context of the connected session\n',
-            doListProtocol: function doListProtocol() {
-            var string = this.getSelectionMaybeInComment(), self = this;
-            this.withCompletionsDo(string, function(err, result) {
-                if (err) { self.setStatusMessage(err, Global.Color.red); return; }
-                lively.require("lively.ide.codeeditor.Completions").toRun(function() {
-                    new lively.ide.codeeditor.Completions.ProtocolLister(self).openNarrower(result);
-                });
-            });
-        },
-            doSave: function doSave() {
-            this.savedTextString = this.textString;
-            if (this.evalEnabled) {
-              this.saveExcursion(function(done) {
-                this.selectAll();
-                this.doit(false, null, function(err, msg) { done(); });
-              });
-            }
-        },
-            doit: function doit(printResult, editor, thenDo) {
-            var self = this, text = this.getSelectionMaybeInComment();
-            function output(msg, isError) {
-                if (printResult) {
-                    // self.printObject(editor, msg, false);
-                    self.printObject(editor, "OK", false);
-                } else {
-                    self.setStatusMessage(msg, isError ? Global.Color.red : null);
-                    var sel = self.getSelection();
-                    if (sel && sel.isEmpty()) sel.selectLine();
-                }
-            }
-            try {
-                this.remoteEval(text, function(err, result) {
-                    output(String(result), err);
-                    thenDo && thenDo(err, result);
-                });
-            } catch (e) { output(e, true); }
-        },
-            printInspect: function printInspect(options) {
-            var self = this,
-                s = this.getSelectionMaybeInComment(),
-                code = Global.Strings.format(
-                  "var inspector, options, depth = %s, result;\n"
-                + "if (typeof lively !== 'undefined' && lively.lang) { inspector = lively.lang.obj; options = {maxDepth: depth}; }\n"
-                + "else if (typeof lv !== 'undefined') { inspector = lv; }\n"
-                + "else if (typeof process !== 'undefined' && typeof require !== 'undefined') { inspector = require('util'); options = {depth: depth-1}; }\n"
-                + "else throw new Error('no inspect available');\n"
-                + "try { result = (function() { return %s })(); } catch(e) { result = e; }\n"
-                + "inspector.inspect(result, options);\n", options.depth || 1, s);
-            this.collapseSelection('end');
-            this.remoteEval(code, function(err, result) {
-                self.insertAtCursor(String(err || result), true, false, true);
-            });
-        },
-            remoteEval: function remoteEval(code, doFunc) {
-            var localSess = lively.net.SessionTracker.getSession();
-            this.owner.withTargetSession(function(err, targetSess) {
-                if (err) { doFunc(new Error('cannot get target session: %s' + err), err); return; }
-                localSess.remoteEval(targetSess.id, processCode(code), function(msg) {
-                    var isError = true, result = 'something went wrong';
-                    if (!msg || !msg.data) { result = 'remote eval failed'; }
-                    else if (msg.data.error) { result = 'remote eval error: ' + msg.data.error; }
-                    else { result = msg.data.result; isError = false; }
-                    doFunc(isError, result);
-                });
-            });
 
-            function processCode(code) {
-              return lively.lang.VM.evalCodeTransform(code, {
-                topLevelVarRecorder: {},
-                varRecorderName: 'window',
-                sourceURL: "remote Lively2Lively workspace " + Date.now()
-              })
-            }
-        },
-            withCompletionsDo: function withCompletionsDo(code, doFunc) {
-            var localSess = lively.net.SessionTracker.getSession();
-            this.owner.withTargetSession(function(err, targetSess) {
-                if (err) { doFunc(new Error('cannot get target session: %s' + err), err); return; }
-                localSess.sendTo(targetSess.id, 'completions', {expr: code}, function(msg) {
-                    var err = msg.error || msg.data.error;
-                    doFunc(err ? err : null, msg.data);
+            doit: function doit(printResult, editor, thenDo) {
+                var code = this.getSelectionMaybeInComment();
+
+                return this.remoteEval(code)
+                  .then(result => {
+                    if (printResult) this.printObject(editor, result.value, false);
+                    else {
+                        this.setStatusMessage(result.value, result.isError ? Global.Color.red : null);
+                        var sel = this.getSelection();
+                        if (sel && sel.isEmpty()) sel.selectLine();
+                      }
+                      try { thenDo && thenDo(null, result); } catch (e) {}
+                      return result;
+                  })
+                  .catch(err => { this.showError(err); try { thenDo && thenDo(err); } catch (e) {}});
+            },
+
+            doListProtocol: function doListProtocol() {
+              var string = this.getSelectionMaybeInComment();
+              return module("lively.ide.codeeditor.Completions").load()
+                .then(() => this.getCompletions(string))
+                .then(result => new lively.ide.codeeditor.Completions.ProtocolLister(this).openNarrower(result))
+                .catch(err => this.setStatusMessage(err, Global.Color.red))
+            },
+
+            doSave: function doSave() {
+                this.savedTextString = this.textString;
+                if (this.evalEnabled) {
+                  this.saveExcursion(function(done) {
+                    this.selectAll();
+                    this.doit(false, null).then(() => done(), () => done())
+                  });
+                }
+            },
+
+            getCompletions: function getCompletions(code) {
+              return this.getTargetSession()
+                .then(targetSess =>
+                  new Promise((resolve, reject) =>
+                    lively.net.SessionTracker.getSession().sendTo(
+                      targetSess.id, 'completions', {expr: code}, resolve)))
+                .then(msg => {
+                  var err = msg.error || msg.data.error;
+                  if (err) throw err;
+                  return msg.data;
                 });
-            });
-        }
+            },
+
+            getTargetSession: function getTargetSession() {
+              return new Promise((resolve, reject) =>
+                this.owner.withTargetSession((err, sess) =>
+                  err ? reject(new Error('cannot get target session: %s' + err)) : resolve(sess)));
+            },
+
+            printInspect: function printInspect(options) {
+                var self = this,
+                    s = this.getSelectionMaybeInComment(),
+                    code = Global.Strings.format(
+                      "var inspector, options, depth = %s, result;\n"
+                    + "if (typeof lively !== 'undefined' && lively.lang) { inspector = lively.lang.obj; options = {maxDepth: depth}; }\n"
+                    + "else if (typeof lv !== 'undefined') { inspector = lv; }\n"
+                    + "else if (typeof process !== 'undefined' && typeof require !== 'undefined') { inspector = require('util'); options = {depth: depth-1}; }\n"
+                    + "else throw new Error('no inspect available');\n"
+                    + "try { result = (function() { return %s })(); } catch(e) { result = e; }\n"
+                    + "inspector.inspect(result, options);\n", options.depth || 1, s);
+                this.collapseSelection('end');
+                this.remoteEval(code)
+                  .then(result => self.insertAtCursor(result.value, true, false, true));
+            },
+
+            remoteEval: function remoteEval(code) {
+              return this.getTargetSession()
+                .then(targetSess =>
+                  new Promise((resolve, reject) =>
+                    lively.net.SessionTracker.getSession().remoteEval(
+                      targetSess.id, processCode(code), resolve)))
+                .then(msg => {
+                    var isError = true, result = 'something went wrong';
+                    if (!msg || !msg.data) result = 'remote eval failed';
+                    else if (msg.data.error) result = 'remote eval error: ' + msg.data.error;
+                    else { result = msg.data.result; isError = false; }
+                    return {value: result, isError: isError};
+                });
+
+              function processCode(code) {
+                return lively.vm.evalCodeTransform(code, {
+                  topLevelVarRecorder: {},
+                  recordGlobals: true,
+                  varRecorderName: 'global',
+                  sourceURL: "remote Lively2Lively workspace " + Date.now()
+                })
+              }
+          }
+
         }],
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "sessionChanged", this, "updateFromTargetSession", {});

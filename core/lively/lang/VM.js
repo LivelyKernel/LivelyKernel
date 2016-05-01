@@ -1,14 +1,12 @@
-var libsLoaded = false,
-    libs = [], dependencies = [],
-    vmDir = (Config.rootPath + "node_modules/lively.vm").replace(/^[^:]+:\/\/[^\/]+\//, "");
-
 (function initLoad() {
-  libs = [
+  var libsLoaded = false;
+
+  var libs = [
       Config.rootPath + "node_modules/systemjs/dist/system.src.js",
       Config.rootPath + "node_modules/lively.modules/load-from-source.js",
       Config.rootPath + "node_modules/lively.modules/bootstrap/browser.js"
   ];
-  dependencies = [
+  var dependencies = [
       {url: libs[0], loadTest: function() { return typeof System !== "undefined"; }},
       {url: libs[1], loadTest: function() { return true; }},
       {url: libs[2], loadTest: function() { return !!lively.modules; }},
@@ -26,6 +24,8 @@ var libsLoaded = false,
       .then(vm => {
         lively.vm = vm;
         libsLoaded = true;
+        // FIXME
+        delete lively.lang._prevLivelyGlobal; // se we don't run into problems traversing namespaces
       });
   });
 })();

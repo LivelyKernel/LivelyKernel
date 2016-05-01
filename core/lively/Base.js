@@ -29,6 +29,7 @@
     if (!global.lively) global.lively = {};
     global.lively.lang = livelyLang;
   }
+  delete lively.lang._prevLivelyGlobal; // se we don't run into problems traversing namespaces
   livelyLang.deprecatedLivelyPatches();
 })();
 

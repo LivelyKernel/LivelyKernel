@@ -164,21 +164,22 @@ var Module = Object.subclass('lively.Module',
     }
 },
 'accessing nested objects', {
-    gather: function(selector, condition, recursive) {
-        var result = [];
-        for (var key in this)
-            if (condition.call(this, this[key]))
-                result.push(this[key]);
-        if (!recursive) return result;
-        return this.subNamespaces().reduce(function(result, ns) {
-            return result.concat(ns[selector](true)) }, result);
-    },
 
+    gather: function(selector, condition, recursive) {
+      var result = Object.keys(this)
+        .map((key) => this[key])
+        .filter((val) => condition.call(this, val));
+      return recursive ?
+        this.subNamespaces().reduce((result, ns) =>
+        result.concat(ns[selector](true)), result) :
+        result;
+    },
+  
     subNamespaces: function(recursive) {
-        return lively.lang.arr.uniq(this.gather(
-            'subNamespaces',
-            function(ea) { return (ea instanceof lively.Module || ea === Global) && ea !== this },
-            recursive));
+      return lively.lang.arr.uniq(this.gather(
+        'subNamespaces',
+        ea => (ea instanceof lively.Module || ea === Global) && ea !== this,
+        recursive));
     },
 
     classes: function(recursive) {

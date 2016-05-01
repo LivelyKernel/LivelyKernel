@@ -107,7 +107,7 @@ Object.subclass('ObjectGraphLinearizer',
 
       function gatherReferences(obj, path) {
         if (!obj || typeof obj === "string" || typeof obj === "number" || typeof obj === "boolean") return [];
-        if (serializer.isReference(obj)) return {path: path, id: String(obj.id)};
+        if (serializer.isReference(obj)) return [{path: path, id: String(obj.id)}];
         else if (Array.isArray(obj)) return lively.lang.arr.flatmap(obj, function(ea, i) { return gatherReferences(ea, path.concat([i])); })
         else if (Object.isObject(obj)) return lively.lang.arr.flatmap(Object.keys(obj), function(key) { return gatherReferences(obj[key], path.concat([key])); })
         else return [];

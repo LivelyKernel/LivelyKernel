@@ -24,7 +24,7 @@ function setCookie(token, expiresInSeconds) {
   expiration.setTime(expiration.getTime() + expiresInSeconds * 1000);
   var cookie = "odauth=" + token +"; path=/; expires=" + expiration.toUTCString();
 
-  if (document.location.protocol.toLowerCase() == "https") {
+  if (document.location.protocol.toLowerCase() == "https:") {
     cookie = cookie + ";secure";
   }
 

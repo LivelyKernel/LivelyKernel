@@ -75,6 +75,10 @@ Object.extend(OMetaSupport, {
         var ometaSrc = OMetaSupport.matchAllWithGrammar(BSOMetaJSParser, "topLevel", src);
         if (!ometaSrc) throw new Error('Problem in translateToJs: Cannot create OMeta Ast from source');
         var jsSrc = OMetaSupport.matchWithGrammar(BSOMetaJSTranslator, "trans", ometaSrc);
+        if (/\"\\\\[rn]\"/.test(jsSrc)) {
+            jsSrc = jsSrc.replace(/\"\\\\n\"/g, '"\\n"').replace(/\"\\\\r\"/g, '"\\r"');
+            alertDbg("OMetaSupport.translate.js: Fixed doubly-escaped line end chars");
+        }
         return jsSrc;
     },
 

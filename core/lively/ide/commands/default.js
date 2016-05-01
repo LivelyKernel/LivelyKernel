@@ -470,11 +470,11 @@ Object.extend(lively.ide.commands.byName, {
 
             if (!win.normalBounds) win.normalBounds = winB;
 
-            var thirdW = Math.min(750, Math.max(1000, bounds.width/3)),
+            var thirdWMin = Global.devicePixelRatio && Global.devicePixelRatio > 1 ? 550 : 750,
+                thirdW = Math.min(thirdWMin, Math.max(1000, bounds.width/3)),
                 thirdColBounds = bounds.withWidth(thirdW);
 
-            if (!how) askForHow();
-            else doResize(how);
+            if (!how) askForHow(); else doResize(how);
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1708,9 +1708,7 @@ Object.extend(lively.ide.commands.byName, {
               function(input) { n(null, input); },
               {input: "LivelyKernel/LivelyKernel", historyId: "apis.Github.Issues.browse-issues-repo"});
           },
-          function(repoName, n) {
-            apis.Github.Issues.ui.browseIssues(repoName, n);
-          }
+          function(repoName, n) { apis.Github.Issues.ui.browseIssues(repoName, n); }
         )(function(err) { err && $world.inform("Error: " + (err.stack || err)); });
         return true;
       }

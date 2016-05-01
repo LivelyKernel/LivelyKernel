@@ -23,8 +23,8 @@ cop.create("CloudStorageWebRequestsLayer").refineClass(URL, {
 }).refineClass(WebResource, {
     initialize: function(url) {
         switch (new URL(url).protocol) {
-            case "dropbox":
-            case "onedrive":
+            case "dropbox:":
+            case "onedrive:":
                 this.setWithLayers([CloudStorageWebRequestCloudDriveLayer]);
                 break;
         }
@@ -32,7 +32,7 @@ cop.create("CloudStorageWebRequestsLayer").refineClass(URL, {
     }
 }).refineClass(AnotherSourceDatabase, {
     mapURLToRelativeModulePaths: function(url) {
-        if (url.protocol === "onedrive" || url.protocol === "dropbox") {
+        if (url.protocol === "onedrive:" || url.protocol === "dropbox:") {
             return url.protocol +
                     (decodeURIComponent(url.hostname) + url.pathname).replace("//", "/").replace(/\/$/, "");
         } else {
@@ -298,9 +298,9 @@ cop.create("CloudStorageWebRequestCloudDriveLayer").refineClass(WebResource, {
     request: function(method, optContent) {
         var object;
         switch(this.getURL().protocol) {
-            case "onedrive":
+            case "onedrive:":
                 object = lively.net.OneDrive; break;
-            case "dropbox":
+            case "dropbox:":
                 object = lively.net.Dropbox; break;
             default:
                 throw "shouldn't be here!"

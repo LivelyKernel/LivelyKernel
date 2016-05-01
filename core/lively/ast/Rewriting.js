@@ -651,6 +651,7 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
 "interface", {
 
     rewrite: function(node) {
+        // show("%s %s %s", escodegen.generate(node), 0, (new Error()).stack);
         this.enterScope();
         acorn.walk.addAstIndex(node);
         // FIXME: make astRegistry automatically use right namespace
@@ -701,11 +702,12 @@ lively.ast.Rewriting.Rewriter.subclass("lively.ast.Rewriting.RecordingRewriter",
   },
 
   storeComputationResult: function($super, node, start, end, astIndex, postfix) {
-    // show("%s %s %s", escodegen.generate(node), postfix, (new Error()).stack);
     if (node._isRecordedExpression) return node; // already recorded
     if (node.type === "Literal"
      || node.type === "ObjectExpression"
      || node.type === "ArrayExpression") return node;
+    // show("%s %s %s", escodegen.generate(node), postfix, (new Error()).stack);
+    // show("%s\n------\n%s", escodegen.generate(node), escodegen.generate(this.recordExpression($super(node, start, end, astIndex, postfix), null, astIndex)));
     return this.recordExpression($super(node, start, end, astIndex, postfix), null, astIndex);
   },
 
@@ -2388,6 +2390,7 @@ lively.ast.Rewriting.RewriteVisitor.subclass("lively.ast.Rewriting.RecordingVisi
 
     visitMemberExpression: function($super, n, rewriter) {
         var rewritten = $super(n, rewriter);
+        rewritten._isRecordedExpression = n._isRecordedExpression;
         return rewritten.computed ? 
           rewriter.storeComputationResult(
             rewritten, rewritten.start, rewritten.end, rewritten.astIndex, true) :
@@ -2406,6 +2409,30 @@ lively.ast.Rewriting.RewriteVisitor.subclass("lively.ast.Rewriting.RecordingVisi
         };
     },
 
+    visitAssignmentExpression: function(n, rewriter) {  // Set, ModifyingSet
+        // n.operator is an AssignmentOperator enum:
+        // "=" | "+=" | "-=" | "*=" | "/=" | "%=" | | "<<=" | ">>=" | ">>>=" | | "|=" | "^=" | "&="
+        // left is a node of type Expression
+        // right is a node of type Expression
+        var start = n.start, end = n.end, astIndex = n.astIndex;
+        var right = this.accept(n.right, rewriter);
+        if (right.type == 'ExpressionStatement')
+            right = right.expression; // unwrap
+        n.left._isRecordedExpression = true; // rk 2016-03-22, FIXME! add this to not produce illegal assignments
+        return {
+            start: start, end: end, astIndex: astIndex,
+            type: 'AssignmentExpression',
+            operator: n.operator,
+            left: this.accept(n.left, rewriter),
+            right: right
+        }
+        // return rewriter.storeComputationResult({
+        //     type: 'AssignmentExpression',
+        //     operator: n.operator,
+        //     left: left,
+        //     right: right
+        // }, start, end, astIndex);
+    }
 
     // visitReturnStatement: function($super, n, rewriter) {
     //     var rewritten = $super(n, rewriter);

@@ -916,7 +916,7 @@ lively.morphic.Text.subclass("lively.morphic.DraggableJavaScript.Tile",
     tile.setExtent(tile.getTextExtent().addXY(padding.left() + padding.right() + m.bounds().width, border + padding.bottom() + padding.top()))
     m.align(
       m.bounds().rightCenter(),
-      tile.innerBounds().rightCenter().addXY(-(padding.right() + border), 0));
+      tile.getExtent().scaleByPt(pt(1,.5)).addXY(-(padding.right() + border), 0));
   },
 
   fit: function() {

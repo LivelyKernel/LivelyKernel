@@ -157,6 +157,7 @@ Object.extend(lively.morphic, {
       return function(obj, maxDepth) {
         if (!obj) return String(obj);
         if (typeof obj === "string") return obj.length > maxColLength ? (obj.slice(0,maxColLength) + "...") : String(obj);
+        if (obj instanceof Error) return obj.stack || String(obj);
         if (!Object.isObject(obj)) return String(obj);
         return lively.lang.obj.inspect(obj, {
           customPrinter: inspectPrinter,

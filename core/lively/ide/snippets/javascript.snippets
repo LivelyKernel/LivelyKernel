@@ -71,9 +71,11 @@ snippet try
 snippet do
 	do {${2:/* code */}} while (${1:/* condition */});
 # Object Method
-snippet :f
-regex /([,{[])|^\s*/:f/
-	${1:methodName}: function(${2:attribute}) {${0}}${3:,}
+snippet :m
+regex /([,{[])|^\s*/:m/
+	${1:method}(${2:args}) {
+		${0}
+	}
 # Object Property
 snippet :p
 regex /([,{[])|^\s*/:p/
@@ -150,25 +152,19 @@ snippet sdf
 		$1 = function($2) {${4:// main code}};
 	}
 # class
-name subclass
-regex /^\s*([^\.]+)?/\.?(sub)?class/
-	${M1?:${1:Object}}.subclass("${2:Name}",
-	"initializing", {
-		initialize: function(${3})  {
+snippet class
+	class ${1:name} {
+		constructor(${2:args}) {
 			${0}
 		}
-	});
-# TestClass
-name TestClass
-regex /^\s*/TestCl?a?s?s?/
-	TestCase.subclass("${1:TestClass}",
-	"running", {
-		setUp: function($super)  {},
-		tearDown: function($super)  {}
-	},
-	'testing', {
-		${2:test1}: function() {${0}}
-	});
+	}
+snippet subclass
+	class ${1:name} extends ${2:base} {
+		constructor(${2:args}) {
+			super(${2:args})
+			${0}
+		}
+	}
 # mocha / chai / expect
 snippet describe
 regex /^\s*/desc?r?i?b?e?/
@@ -249,6 +245,9 @@ snippet Oe
 snippet keys
 regex /\b/([^\s]*)keys/
 	Object.keys(${0:$M1})
+snippet assign
+regex /\b/([^\s]*)assign/
+	Object.assign(${1:dest}, ${2:source})$0
 # collection iter
 regex /(\.?[^\.\s]+)/\.?((iter|forEa?c?h?)|(select|collect|reject|detect|map|filter))/
 	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(${3:ea} => {$0});

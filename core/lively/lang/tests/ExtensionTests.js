@@ -12,7 +12,7 @@ TestCase.subclass('lively.lang.tests.ExtensionTests.ObjectTest',
         var obj = {};
         Object.extend(obj, {foo: function myFoo() {return "bar"}})
         this.assertEquals(obj.foo.name, "myFoo", "name changed")
-        this.assert(!obj.foo.displayName, "displayName is set")
+        this.assertEquals(obj.foo.displayName, "foo")
     },
 
     testExtendDoesNotOverrideExistingDisplayName: function() {

@@ -912,8 +912,9 @@ lively.userData = (function setupUserDataExpt() {
             if (!data) { res.status(400).end('no data'); return; }
             if (!stored) { res.status(400).end('cannot access stored data'); return; }
             // only change credentials if there is no login system in place:
+            var authUser = req.auth && req.auth.username;
             if (!lively.Config || !lively.Config.get('userAuthEnabled')) {
-                stored.username = data.username || stored.username || 'unknown user';
+                stored.username = authUser || data.username || stored.username || 'unknown user';
                 stored.email = data.email || stored.email || null;
                 stored.group = data.group || stored.group || null;
             }

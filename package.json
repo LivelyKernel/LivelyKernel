@@ -17,6 +17,7 @@
     "escodegen": "^1.8.0",
     "life_star": ">=0.8.5",
     "lively-loader": ">=0.2.5",
+    "lively.modules": "https://github.com/LivelyKernel/lively.modules",
     "lively.ast": "*",
     "lively.lang": "^0.5.8",
     "lively.vm": "^0.4.3",

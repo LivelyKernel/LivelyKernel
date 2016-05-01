@@ -63,3 +63,7 @@ R-libraries/
 
 # Github API
 core/apis/github-api.json
+
+# HTTP / server #
+htpasswd
+.htpasswd

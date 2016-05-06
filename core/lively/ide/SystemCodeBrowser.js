@@ -93,7 +93,7 @@ lively.ide.BasicBrowser.subclass('lively.ide.SystemBrowser',
     switchToLocalCodebase: function() {
         this.setTargetURL(
             $world.getUserName() ?
-                $world.getUserDir() :
+                $world.ensureUserDir() :
                 URL.source.getDirectory());
     },
     start: function($super) {

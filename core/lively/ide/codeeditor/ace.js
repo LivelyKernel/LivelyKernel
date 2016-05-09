@@ -38,6 +38,7 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
     })(ace.require('ace/edit_session').EditSession.prototype);
     
     ace.require('ace/editor').Editor.prototype.focus = function () {
+        // disable scroll-jump when focused
         var _self = this, x = Global.scrollX, y = Global.scrollY;
         setTimeout(function() {
           _self.textInput.focus();
@@ -47,14 +48,13 @@ module('lively.ide.codeeditor.ace').requires('lively.Network'/*to setup lib*/).r
         window.scrollTo(x, y)
     };
     
-    
     ace.require("ace/virtual_renderer").VirtualRenderer.prototype.screenToTextCoordinates = function (x, y) {
-      var canvasPos = this.scroller.getBoundingClientRect();
-      var scale = lively.morphic.World.current().getScale()
+      var canvasPos = this.scroller.getBoundingClientRect(),
+          scale = lively.morphic.World.current().getScale();
       x = x / scale;
       y = y / scale;
-      var col = Math.round((x + this.scrollLeft - (canvasPos.left / scale) - this.$padding) / this.characterWidth);
-      var row = (y + this.scrollTop - (canvasPos.top / scale)) / this.lineHeight;
+      var col = Math.round((x + this.scrollLeft - (canvasPos.left / scale) - this.$padding) / this.characterWidth),
+          row = (y + this.scrollTop - (canvasPos.top / scale)) / this.lineHeight;
       return this.session.screenToDocumentPosition(row, Math.max(col, 0));
     }
 

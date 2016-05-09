@@ -100,7 +100,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       this.get("vdivider").fixed = [];
       this.get("vdivider").scalingLeft = [this];
       this.get("vdivider").scalingRight = [this.get("recorderList")];
-    
+
       lively.bindings.connect(this, 'textChange', this, 'uiUpdateDefList', {
         updater: ($upd) =>
           lively.lang.fun.debounceNamed(`${this.id}-uiUpdateDefList`, 400, $upd)()});
@@ -111,7 +111,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       this.getWindow().addMorphBack(this.get("recorderList"));
       this.reset();
     },
-  
+
     doListProtocol: function doListProtocol() {
       var listerModule = module("lively.ide.codeeditor.Completions");
       return listerModule.load()
@@ -176,7 +176,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     moduleId: function moduleId() {
       // lively.modules.moduleEnv(this.moduleId())
       var s = lively.net.SessionTracker.getSession();
-      return `lively://${s.sessionId}/lively-workspace-${this.id}`;
+      return lively.modules.System.normalizeSync(`lively://${s.sessionId}/lively-workspace-${this.id}`);
     },
 
     uiJumpToDef: function uiJumpToDef(recorded) {
@@ -255,12 +255,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         var moduleName = this.moduleId()
         if (!moduleName) throw new Error("No vm module selected for eval");
 
-        var defRanges = {};
+        lively.modules.System.config({meta: {[moduleName]: {format: "esm"}}});
 
         options = lively.lang.obj.merge({
           targetModule: moduleName,
           sourceURL: moduleName + "_doit_" + Date.now(),
-        topLevelDefRangeRecorder: defRanges,
         }, options);
 
         return lively.modules.runEval(source, options)

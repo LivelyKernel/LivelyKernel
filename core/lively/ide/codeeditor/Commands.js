@@ -32,7 +32,9 @@ var JavaScriptCommands = {
       var pos = codeEditor.getCursorPositionAce(),
           cursorIndex = codeEditor.positionToIndex(pos),
           declIdNode = lively.ast.query.findDeclarationClosestToIndex(idInfo.ast, idInfo.name, cursorIndex);
+
       if (!declIdNode) return;
+
       ed.pushEmacsMark && ed.pushEmacsMark(pos, false);
       declIdNode && codeEditor.setSelectionRange(declIdNode.start, declIdNode.end);
     }
@@ -56,9 +58,9 @@ var JavaScriptCommands = {
       var args = (options && options.args) || null,
           codeEditor = ed.$morph,
           idInfo = JavaScriptCommandHelper.withIdentifierAtPointOrSelection(codeEditor);
-    
+
       if (!idInfo.name) { show("No symbol identifier selected"); return; }
-    
+
       // 2. find reference and declaration nodes of the selected token / identifier
       var cursorPos = codeEditor.getCursorPositionAce(),
           cursorindex = codeEditor.positionToIndex(cursorPos),
@@ -77,10 +79,10 @@ var JavaScriptCommands = {
           // .filter(function(range) { // only those ranges currently NOT selected
           //   return selectionRanges.every(function(selRange) {
           //     return !selRange.isEqual(range); }); });
-    
+
       if (!ranges.length) return;
-    
-      // do we want to select all ranges or jsut the next/prev one? 
+
+      // do we want to select all ranges or jsut the next/prev one?
       if (args === 'next' || args === 'prev') {
         var currentRangeIdx = ranges.map(String).indexOf(String(sel.getRange()));
         if (currentRangeIdx === -1 && ranges.length) ranges = [ranges[0]];
@@ -91,28 +93,50 @@ var JavaScriptCommands = {
           ranges = [ranges[nextIdx]];
         }
       } /*else: select all ranges*/
-    
+
       // do the actual selection
       ranges.forEach(sel.addRange.bind(sel));
-    
+
     }
   },
 
   prettyPrintJS: {
     readOnly: false,
     exec: function(ed, options) {
-      var selectedCode = ed.$morph.getSelectionOrLineString();
-      module("lively.ide.CommandLineInterface").load()
-        .then(() =>
-          new Promise((resolve, reject) =>
-            lively.shell.run("js-beautify -f -", {stdin: selectedCode},
-              (err, cmd) => err ? reject(err) : resolve(cmd.getStdout()))))
-        .then(prettyPrinted => {
-          var range = ed.$morph.getSelectionRangeAce();
-          ed.$morph.replace(range, prettyPrinted)
-        })
+      var selectedCode = ed.$morph.getSelectionOrLineString(),
+          range = ed.$morph.getSelectionRangeAce(),
+          opts = {
+            "indent_size": 2,
+            "indent_char": " ",
+            "eol": "\n",
+            "indent_level": 0,
+            "indent_with_tabs": false,
+            "preserve_newlines": true,
+            "max_preserve_newlines": 10,
+            "jslint_happy": false,
+            "space_after_anon_function": false,
+            "brace_style": "collapse",
+            "keep_array_indentation": false,
+            "keep_function_indentation": false,
+            "space_before_conditional": true,
+            "break_chained_methods": false,
+            "eval_code": false,
+            "unescape_strings": false,
+            "wrap_line_length": 0,
+            "wrap_attributes": "auto",
+            "wrap_attributes_indent_size": 2,
+            "end_with_newline": false
+        };
+
+      Promise.resolve()
+        .then(() => typeof js_beautify !== "undefined" ?
+                     js_beautify : new Promise((resolve, reject) => {
+                      JSLoader.loadJs(URL.root.withFilename("node_modules/js-beautify/js/lib/beautify.js").toString())
+                      lively.lang.fun.waitFor(3000, () => typeof js_beautify !== "undefined",
+                        (err) => err ? reject(err) : resolve(js_beautify)); }))
+        .then(beautifier => js_beautify(selectedCode, opts))
+        .then(prettyPrinted => ed.$morph.replace(range, prettyPrinted))
         .catch(err => ed.$morph.showError(err));
-      
     }
   }
 
@@ -128,6 +152,12 @@ Object.extend(lively.ide.codeeditor.Commands, {
     var cmds = lively.ide.codeeditor.Commands.allCommands();
     codeEditorMorph.withAceDo(function(ed) {
       ed.commands.addCommands(cmds); });
+  },
+
+  updateAll: function() {
+    // lively.ide.codeeditor.Commands.updateAll();
+    lively.ide.allCodeEditors().forEach(ea =>
+      lively.ide.codeeditor.Commands.attach(ea));
   }
 
 });

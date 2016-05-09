@@ -38,7 +38,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ShowLineNumbersCommand', {
     },
 
     trigger: function() {
-        browser = this.browser;
+        var browser = this.browser;
         browser.ensureSourceNotAccidentlyDeleted(function() {
             browser.showLines = !browser.showLines;
             browser.allChanged();
@@ -228,23 +228,23 @@ lively.ide.BrowserCommand.subclass('lively.ide.ViewSourceCommand', {
     asString: function() { return 'View as...' },
 
     trigger: function() {
-    var browser = this.browser;
-    var world = lively.morphic.World.current();
-    var spec = [
-        {caption: 'default', value: undefined},
-        {caption: 'javascript', value: 'javascript'}
-    ];
-    var items = spec.collect(function(ea) {
-      return [ea.caption,function(evt) {
-            browser.ensureSourceNotAccidentlyDeleted(function() {
-                browser.viewAs = ea.value;
-                browser.selectedNode().signalTextChange()
+        var browser = this.browser,
+            world = lively.morphic.World.current(),
+            spec = [
+                {caption: 'default', value: undefined},
+                {caption: 'javascript', value: 'javascript'}
+            ],
+            items = spec.collect(function(ea) {
+              return [ea.caption,function(evt) {
+                    browser.ensureSourceNotAccidentlyDeleted(function() {
+                        browser.viewAs = ea.value;
+                        browser.selectedNode().signalTextChange()
+                    });
+                }];
             });
-        }];
-    });
-    var menu = new lively.morphic.Menu(this.asString(), items);
-    menu.openIn(world,world.firstHand().getPosition());
-}
+        var menu = new lively.morphic.Menu(this.asString(), items);
+        menu.openIn(world,world.firstHand().getPosition());
+    }
 
 });
 
@@ -292,7 +292,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
           // it is ensured that the klasses are sorted by a) subclass relationship and b) name (not type!)
           // func gets as parameters: 1) the class 2) index in list 3) level of inheritance
           // compared to klass (1 for direct subclasses and so on)
-      
+
           function createSortedSubclassList(klass, level) {
             var list = lively.lang.chain(directSubclasses(klass))
               .sortBy(function(ea) { return ea.name.charCodeAt(0) })
@@ -300,7 +300,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.ClassHierarchyViewCommand', {
               .flatten().value();
             return [{klass: klass, level: level}].concat(list)
           }
-      
+
           return createSortedSubclassList(rootKlass, 0)
             .map(function(spec, idx) { return doFunc(spec.klass, idx, spec.level) })
         }
@@ -391,7 +391,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand',
     trigger: function() {
         var siblingNode = this.findSiblingNode(), self = this;
         return [[this.menuName, function() {
-            console.log('Doing a ' + self.menuName + ' after ' + siblingNode.asString());
+            console.log('Doing a ' + self.menuName + (siblingNode ? ' after ' + siblingNode.asString() : ''));
             self.browser.ensureSourceNotAccidentlyDeleted(
                 function() { self.interactiveAddTo(siblingNode) });
         }]];
@@ -409,8 +409,17 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand',
         var args = Array.from(arguments),
             siblingNode = args.shift(),
             src = this.createSource.apply(this, args),
-            newTarget = siblingNode.target.addSibling(src);
+            sibling = siblingNode && siblingNode.target;
+
+        if (!sibling && this.browser.selectedNode() && this.browser.selectedNode().isModuleNode)
+          sibling = this.browser.selectedNode().target.subElements(1).first();
+
+        if (!sibling)
+          throw new Error("file fragment command cannot find sibling for createAndAddSource()!");
+
+        var newTarget = sibling.addSibling(src);
         this.browser.allChanged();
+
         if (newTarget) {
             this.browser.selectNodeMatching(function(node) {
                 return node && node.target === newTarget });
@@ -422,9 +431,14 @@ lively.ide.BrowserCommand.subclass('lively.ide.AddToFileFragmentCommand',
 });
 
 lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddClassToFileFragmentCommand', {
+
     menuName: 'add class',
     targetPane: 'Pane2',
     nodeType: 'isClassNode',
+
+    isActive: function(pane) {
+        return pane == this.targetPane;
+    },
 
     interactiveAddTo: function(siblingNode) {
         var w = this.world(), b = this.browser, self = this;
@@ -434,9 +448,9 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddClassToFileFragmentC
     },
 
     createSource: function(className, superClassName) {
-            return Strings.format('%s.subclass(\'%s\',\n\'default category\', {\n%sm1: function() {},\n});',
-                superClassName, className, this.tab);
-        },
+        return Strings.format('%s.subclass(\'%s\',\n\'default category\', {\n%sm1: function() {},\n});\n',
+            superClassName, className, this.tab);
+    }
 
 });
 
@@ -473,8 +487,8 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddLayerToFileFragmentC
     },
 
     createSource: function(layerName, className) {
-        return Strings.format('cop.create(%s).refineClass(%s, {\n%smethodName: function(arg1) {\n%s%svar result = cop.proceed(arg1);\n%s%sreturn result\n%s},\n});', layerName, className, this.tab,this.tab,this.tab,this.tab,this.tab);
-        },
+        return Strings.format('cop.create(%s).refineClass(%s, {\n%smethodName: function(arg1) {\n%s%svar result = cop.proceed(arg1);\n%s%sreturn result\n%s},\n});\n', layerName, className, this.tab,this.tab,this.tab,this.tab,this.tab);
+    },
 
 });
 
@@ -493,6 +507,7 @@ lively.ide.AddToFileFragmentCommand.subclass('lively.ide.AddMethodToFileFragment
         this.createAndAddSource(siblingNode, methodName);
         this.selectStringInSourcePane(methodName);
     },
+
     createSource: function(methodName) {
         var comment = this.tab + this.tab + '// enter comment here'
         return Strings.format(',\n%s: function() {\n%s\n%s}',
@@ -565,6 +580,7 @@ lively.ide.BrowserCommand.subclass('lively.ide.RunTestMethodCommand', {
     }
 
 });
+
 lively.ide.BrowserCommand.subclass('lively.ide.OpenInFileEditorCommand', {
 
     wantsMenu: Functions.True,
@@ -593,14 +609,16 @@ lively.ide.BrowserCommand.subclass('lively.ide.OpenVersionsOfFile', {
         var node = this.browser.selectedNode();
         return node && node.isModuleNode;
     },
+
     trigger: function() {
         return [['show versions', this.showVersions.bind(this)]]
     },
+
     showVersions: function() {
         var filename = this.browser.getPane1Selection().asString(),
             url = this.browser.getTargetURL().withFilename(filename),
             path = url.relativePathFrom(URL.root);
-        require('lively.net.tools.Wiki').toRun(function() {
+        lively.require('lively.net.tools.Wiki').toRun(function() {
             var versionViewer = lively.BuildSpec('lively.wiki.VersionViewer').createMorph().openInWorldCenter();
             versionViewer.setPath(path);
         });

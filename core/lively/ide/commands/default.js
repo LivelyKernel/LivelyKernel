@@ -609,6 +609,14 @@ Object.extend(lively.ide.commands.byName, {
         },
     },
 
+    'lively.ide.commands.interactivelyCreateShortCut': {
+        description: 'create a custom keyboard shortcut',
+        exec: function() {
+          lively.morphic.KeyboardDispatcher.global().interactivelyCreateShortCut()
+          return true;
+        }
+    },
+
     'lively.ide.codeditor.installCompletions': {
         description: 'install code editor completions',
         exec: function() {

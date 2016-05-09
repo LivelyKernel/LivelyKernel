@@ -918,6 +918,29 @@ lively.BuildSpec('apps.Graphviz.Canvas', {
       var s = clip.getScroll();
       clip.setScroll(s[0]+delta.x, s[1]+delta.y);
     }
+  },
+
+  onDrag: function onDrag(evt) {
+    this.setHandStyle("grabbing");
+    var delta = this._dragStartPos.subPt(evt.getPosition()),
+        scroll = this.owner.getScroll();
+    this.owner.setScroll(scroll[0] + delta.x, scroll[1] + delta.y);
+    this._dragStartPos = evt.getPosition();
+  },
+
+  onDragEnd: function onDragEnd(evt) {
+    this.setHandStyle("grab");
+    delete this._dragStartPos;
+  },
+
+  onDragStart: function onDragStart(evt) {
+    this._dragStartPos = evt.getPosition();
+  },
+
+  onMouseDown: function onMouseDown(evt) {
+    if (evt.getTargetMorph() === this) {
+      evt.stop(); return true; // to not auto scroll when hand outside of scroll area
+    }
   }
 
 });

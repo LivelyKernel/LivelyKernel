@@ -2497,6 +2497,76 @@ Object.subclass('lively.morphic.KeyboardDispatcher',
             return keysAndCommands;
         });
     }
+},
+"interactive shortcuts", {
+
+  installInteractiveShortcut: function(keys, name, codeOrExecFunc) {
+    var dispatcher = this;
+    installCommand();
+    installShortcut();
+    saveInLocalStorage();
+  
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // helper
+  
+    function ensureExec() {
+      if (Object.isFunction(codeOrExecFunc)) return {exec: codeOrExecFunc};
+      if (Object.isObject(codeOrExecFunc) && Object.isFunction(codeOrExecFunc.exec)) return codeOrExecFunc;
+      if (Object.isString(codeOrExecFunc)) {
+        var exec = eval('(' + codeOrExecFunc + ')');
+        if (!exec || !Object.isFunction(exec))
+          throw new Error('not a function: ' + exec);
+        return {exec: exec};
+      }
+      throw new Error('Cannot deal with exec: ' + codeOrExecFunc);
+    }
+  
+    function installShortcut() {
+      dispatcher.addTempKeyCombo(keys, name, 'interactive-shortcuts');
+    }
+  
+    function installCommand() {
+      lively.ide.commands.addCommand(name, ensureExec());
+    }
+  
+    function saveInLocalStorage() {
+      var serialized = JSON.stringify({
+        code: String(ensureExec().exec), key: keys, name: name})
+      lively.LocalStorage.set(name, serialized);
+    }
+  },
+
+  interactivelyCreateShortCut: function() {
+    var dispatcher = this;
+    var key;
+  
+    [
+  
+      function(next) {
+        $world.prompt('What key to assign?', function(input) {
+          if (!input) { show('canceled'); return; }
+          key = input; next();
+        }, {historyId: "lively.ide.custom-key-combo", useLastInput: true});
+      },
+  
+      function(next) {
+        var cmdName = dispatcher.lookupAll(key.split(' ')) || 'interactive-shortcut-' + key,
+            cmd = lively.ide.commands.byName[cmdName],
+            code = cmd && cmd.exec ?
+            String(cmd.exec) :
+            Strings.format('function exec() { show("%s pressed"); }', key);
+        $world.editPrompt('Code to run when ' + key + ' is pressed:', function(input) {
+          if (!input) { show('canceled'); return; }
+          try {
+            dispatcher.installInteractiveShortcut(key, cmdName, input);
+          } catch (e) { show("invalid: " + e); return; }
+          next();
+        }, code);
+      }
+  
+    ].doAndContinue(null, function() { $world.alertOK('done'); })
+  }
+
 });
 
 Object.extend(lively.morphic.KeyboardDispatcher, {

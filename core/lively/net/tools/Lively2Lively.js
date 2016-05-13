@@ -1035,28 +1035,35 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             textString: '// code in here is evaluated in the context of the connected session\n',
 
             doit: function doit(printResult, editor, thenDo) {
-                var code = this.getSelectionMaybeInComment();
+                var code = this.getSelectionMaybeInComment(), self = this;
 
                 return this.remoteEval(code)
-                  .then(result => {
-                    if (printResult) this.printObject(editor, result.value, false);
-                    else {
-                        this.setStatusMessage(result.value, result.isError ? Global.Color.red : null);
-                        var sel = this.getSelection();
-                        if (sel && sel.isEmpty()) sel.selectLine();
+                  .then(function(result) {
+                      if (printResult)
+                          self.printObject(editor, result.value, false);
+                      else {
+                          self.setStatusMessage(result.value, result.isError ? Global.Color.red : null);
+                          var sel = self.getSelection();
+                          if (sel && sel.isEmpty())
+                              sel.selectLine();
                       }
-                      try { thenDo && thenDo(null, result); } catch (e) {}
+                      try {
+                          thenDo && thenDo(null, result);
+                      } catch (e) {}
                       return result;
                   })
-                  .catch(err => { this.showError(err); try { thenDo && thenDo(err); } catch (e) {}});
+                  .catch(function(err) {
+                    self.showError(err);
+                    try { thenDo && thenDo(err); } catch (e) {}
+                  });
             },
 
             doListProtocol: function doListProtocol() {
-              var string = this.getSelectionMaybeInComment();
+              var string = this.getSelectionMaybeInComment(), self = this;
               return module("lively.ide.codeeditor.Completions").load()
-                .then(() => this.getCompletions(string))
-                .then(result => new lively.ide.codeeditor.Completions.ProtocolLister(this).openNarrower(result))
-                .catch(err => this.setStatusMessage(err, Global.Color.red))
+                .then(function() { return self.getCompletions(string); })
+                .then(function(result) { return new lively.ide.codeeditor.Completions.ProtocolLister(self).openNarrower(result); })
+                .catch(function(err) { return self.setStatusMessage(err, Global.Color.red); });
             },
 
             doSave: function doSave() {
@@ -1064,18 +1071,20 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                 if (this.evalEnabled) {
                   this.saveExcursion(function(done) {
                     this.selectAll();
-                    this.doit(false, null).then(() => done(), () => done())
+                    this.doit(false, null).then(function() { done(); }, function() { done(); })
                   });
                 }
             },
 
             getCompletions: function getCompletions(code) {
               return this.getTargetSession()
-                .then(targetSess =>
-                  new Promise((resolve, reject) =>
-                    lively.net.SessionTracker.getSession().sendTo(
-                      targetSess.id, 'completions', {expr: code}, resolve)))
-                .then(msg => {
+                .then(function(targetSess) {
+                  return new Promise(function(resolve, reject) {
+                    return lively.net.SessionTracker.getSession()
+                      .sendTo(targetSess.id, 'completions', {expr: code}, resolve);
+                  });
+                })
+                .then(function(msg) {
                   var err = msg.error || msg.data.error;
                   if (err) throw err;
                   return msg.data;
@@ -1083,9 +1092,14 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             },
 
             getTargetSession: function getTargetSession() {
-              return new Promise((resolve, reject) =>
-                this.owner.withTargetSession((err, sess) =>
-                  err ? reject(new Error('cannot get target session: %s' + err)) : resolve(sess)));
+              var self = this;
+              return new Promise(function(resolve, reject) {
+                return self.owner.withTargetSession(function(err, sess) {
+                  return err ?
+                    reject(new Error('cannot get target session: %s' + err)) :
+                    resolve(sess);
+                });
+              });
             },
 
             printInspect: function printInspect(options) {
@@ -1101,20 +1115,27 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                     + "inspector.inspect(result, options);\n", options.depth || 1, s);
                 this.collapseSelection('end');
                 this.remoteEval(code)
-                  .then(result => self.insertAtCursor(result.value, true, false, true));
+                  .then(function(result) { return self.insertAtCursor(result.value, true, false, true); });
             },
 
             remoteEval: function remoteEval(code) {
               return this.getTargetSession()
-                .then(targetSess =>
-                  new Promise((resolve, reject) =>
-                    lively.net.SessionTracker.getSession().remoteEval(
-                      targetSess.id, processCode(code), resolve)))
-                .then(msg => {
+                .then(function(targetSess) {
+                    return new Promise(function(resolve, reject) {
+                      return lively.net.SessionTracker.getSession()
+                        .remoteEval(targetSess.id, processCode(code), resolve);
+                    });
+                })
+                .then(function(msg) {
                     var isError = true, result = 'something went wrong';
-                    if (!msg || !msg.data) result = 'remote eval failed';
-                    else if (msg.data.error) result = 'remote eval error: ' + msg.data.error;
-                    else { result = msg.data.result; isError = false; }
+                    if (!msg || !msg.data)
+                        result = 'remote eval failed';
+                    else if (msg.data.error)
+                        result = 'remote eval error: ' + msg.data.error;
+                    else {
+                        result = msg.data.result;
+                        isError = false;
+                    }
                     return {value: result, isError: isError};
                 });
 

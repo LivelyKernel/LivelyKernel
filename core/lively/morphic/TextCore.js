@@ -493,7 +493,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
   
     growOrShrinkToFit: function() {
         var padding = this.getPadding(),
-            fullExtent = this.getTextExtent().addXY(
+            fullExtent = (this.getTextString() == "" ? lively.pt(0,0) : this.getTextExtent()).addXY(
               padding.left() + padding.right(),
               padding.top() + padding.bottom());
         if (!this.getExtent().eqPt(fullExtent))

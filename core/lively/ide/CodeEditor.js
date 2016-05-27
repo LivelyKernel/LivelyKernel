@@ -529,7 +529,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             case "xml": mode = "xml"; break;
             case "svg": mode = "svg"; break;
             case "lisp": case "el": mode = "lisp"; break;
-            case "clj": case "cljs": case "cljx": mode = "clojure"; break;
+            case "clj": case "cljs": case "cljx": case "cljc": mode = "clojure"; break;
             case "cabal": case "hs": mode = "haskell"; break;
             case "py": mode = "python"; break;
         }

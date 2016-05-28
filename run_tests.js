@@ -89,7 +89,6 @@ var browserTests = [
 
     // lang support
     "lively.lang.tests.ExtensionTests",
-    "lively.lang.tests.VM",
     
     // 2014-11-01 rk: the worker interface has changed since switching to
     // lively.lang, so these tests are more or less not needed anymore. I wanna

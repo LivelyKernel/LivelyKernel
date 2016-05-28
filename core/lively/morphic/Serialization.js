@@ -229,8 +229,13 @@ lively.morphic.World.addMethods(
             var msg = answer.redirect ?
               "Cannot save as " + url + "\n Save as " + answer.value + " instead?" :
               "You are not allowed to save this world as \n" + url;
-            thenDo && thenDo(new Error(msg));
-            return msg;
+            $world.confirm(msg, function (input) {
+              if (!input)
+                thenDo && thenDo(new Error(msg));
+              else
+                $world.saveWorldAs(answer.value, checkForOverwrites, bootstrapModuleURL, thenDo);
+              });
+            return;
           }
         }
 

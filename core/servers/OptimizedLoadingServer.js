@@ -66,7 +66,13 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
   // x.then((arg) => console.log(arg))
   
   return new Promise((resolve, reject) => {
-    var babelExceptions = ['core/lib/lively-libs-debug.js'],
+    var babelExceptions = ['core/lib/lively-libs-debug.js']
+          .concat(lively.Config.get("bootstrapBrowserFiles"))
+          .concat([
+      	    "node_modules/lively.lang/dist/lively.lang.dev.js",
+      	    "node_modules/lively.ast/dist/lively.ast_no-deps.js",
+      	    "node_modules/lively.modules/dist/lively.modules_no-deps.js",
+      	    "node_modules/lively.vm/dist/lively.vm_no-deps.js"]),
         cacheFile = path.join(cacheDir, file.replace(/\//g, "_")),
         mtimeFile = cacheFile + ".mtime",
         mtime = String(fs.statSync(file).mtime),
@@ -76,7 +82,7 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
         source;
 
     if (needsUpdate) {
-      console.log(file + " needs update");
+      console.log(`[optimized loading] ${file} needs update`);
       source = babelExceptions.indexOf(file) > -1 ?
         fs.readFileSync(file) :
         babel.transformFileSync(file, {"presets": ["es2015"]}).code;
@@ -149,7 +155,7 @@ function computeHash(combinedFile) {
 function coreFiles(baseDir) {
   var cfg = lively.Config,
       libsFile = 'core/lib/lively-libs-debug.js',
-      bootstrapFiles = cfg.get("bootstrapFiles"),
+      bootstrapFiles = cfg.get("bootstrapBrowserFiles").concat(cfg.get("bootstrapFiles")),
       modulesToInclude = cfg.get("bootstrapModules")
         .concat(cfg.get("modulesBeforeWorldLoad"))
         .concat(cfg.get("modulesOnWorldLoad"));
@@ -162,6 +168,7 @@ function coreFiles(baseDir) {
 
   function moduleToFile(module) {
     // TODO: Adapt module load logic
+    if (module.match(/\.js$/)) return module;
     var relFile = 'core/' + module.replace(/\./g, '/') + '.js',
         absFile = path.join(baseDir, relFile);
     if (fs.existsSync(absFile)) return absFile;

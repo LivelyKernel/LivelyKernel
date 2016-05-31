@@ -2,16 +2,21 @@ module('lively.ide.CommandLineInterface').requires('lively.Network', 'lively.net
 
 Object.subclass('lively.ide.CommandLineInterface.Command',
 "initializing", {
+
     isShellCommand: true,
     _options: {},
     _commandString: null,
     _stdout: '',
     _stderr: '',
     _code: '',
+    _pid: null,
+    _started: false,
     _done: false,
     _killed: false,
     interval: null,
     streamPos: 0,
+    _resolveFuncs: null,
+    _rejectFuncs: null,
 
     initialize: function(commandString, options) {
         this._commandString = commandString;
@@ -20,6 +25,8 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         options.commandLineServerURL = options.commandLineServerURL || lively.ide.CommandLineInterface.commandLineServerURL;
         options.ansiAttributesRegexp = options.hasOwnProperty("ansiAttributeEscape") ? options.ansiAttributeEscape : lively.ide.CommandLineInterface.ansiAttributesRegexp;
         this._options = options;
+        this._resolveFuncs = [];
+        this._rejectFuncs = [];
     }
 
 },
@@ -30,11 +37,26 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
 },
 "accessing", {
 
+    get stdout() { return this.getStdout(); },
+    get stderr() { return this.getStderr(); },
+    get code() { return this.getCode(); },
+    get group() { return this.getGroup(); },
+    get output() { return this.resultString(true); },
+    get command() { return this.getCommand(); },
+    get done() { return this.isDone(); },
+    get started() { return this._started; },
+    get options() { return this._options; },
+    get startTime() { return this._startTime; },
+    get endTime() { return this._endTime; },
+    get pid() { return this.getPid(); },
+
     getStdout: function() { return this._stdout || ''; },
 
     getStderr: function() { return this._stderr || ''; },
 
     getCode: function() { return Number(this._code); },
+
+    getPid: function() { return this._pid; },
 
     getGroup: function() { return this._options.group || null; },
 
@@ -113,6 +135,7 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     startRequest: function() {
         var webR = this.getWebResource();
         this._startTime = Date.now();
+	this._started = true;
         if (this._options.sync) webR.beSync(); else webR.beAsync();
         lively.bindings.connect(webR, 'status', this, 'endRequest', {
             updater: function($upd, status) {
@@ -139,7 +162,8 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         this.endInterval();
         this.read(status.transport.responseText);
         lively.bindings.signal(this, 'end', this);
-        if (Object.isFunction(this._options.whenDone)) this._options.whenDone.call(null,null,this);
+        if (Object.isFunction(this._options.whenDone))
+          this._options.whenDone.call(null,null,this);
     }
 },
 'internal', {
@@ -147,7 +171,55 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
         return this._options.exec ? this._commandString : lively.ide.CommandLineInterface.parseCommandIntoCommandAndArgs(this._commandString);
     }
 },
-'debugging', {
+'promise interface', {
+
+  then: function(resolveFunc, rejectFunc) {
+    var self = this;
+    var p = new Promise(function(resolve, reject) {
+  	  resolveFunc && self._resolveFuncs.push(resolve);
+  	  rejectFunc && self._rejectFuncs.push(reject);
+    }).then(resolveFunc, rejectFunc);
+    if (!this.isDone()) lively.bindings.connect(this, 'end', this, 'invokeThens');
+    else this.invokeThens();
+    return p;
+  },
+
+  catch: function(rejectFunc) { return this.then(null, rejectFunc); },
+
+  invokeThens: function() {
+    lively.bindings.disconnect(this, 'end', this, 'invokeThensWithTimeout');
+    var toCall = this._resolveFuncs,
+        arg = this.toJSON();
+    // var toCall = this.code ? this._rejectFuncs : this._resolveFuncs,
+    //     arg = this.code ? new Error(this.output) : this.toJSON();
+    this._resolveFuncs = [];
+    this._rejectFuncs = [];
+    toCall.forEach(function(func) { func(arg); });
+  }
+
+},
+'printing and serialization', {
+
+  toJSON: function() {
+    return {
+      type:      this.constructor.type,
+      stdout:    this.stdout,
+      stderr:    this.stderr,
+      code:      this.code,
+      group:     this.group,
+      output:    this.output,
+      command:   this.command,
+      done:      this.done,
+      started:   this.started,
+      options:   this.options,
+      startTime: this.startTime,
+      endTime:   this.endTime,
+      pid:       this.pid,
+      cwd:       this._options.cwd,
+      stdin:     this._options.stdin
+    };
+  },
+
     printState: function() {
         var cmdString = this.getCommand();
         var string = Object.isArray(cmdString) ? cmdString.join(' ') : cmdString;
@@ -159,16 +231,13 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
             this.getPid ? 'pid ' + this.getPid() : 'no pid'].join(',');
         return '[' + statusString + '] ' + string;
     },
+
     toString: function() {
         return 'ShellCommand(' + this.printState() + ')';
     }
 });
 
 lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterface.PersistentCommand',
-"initializing", {
-    _pid: null,
-    _started: false
-},
 'testing', {
     isRunning: function() { return !this.isDone() && (this._started || !!this.getPid()); }
 },
@@ -272,8 +341,6 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
         return lively.net.SessionTracker
             && lively.net.SessionTracker.getSession();
     },
-
-    getPid: function() { return this._pid; },
 
     kill: function(signal, thenDo) {
         thenDo = Functions.once(thenDo);
@@ -669,7 +736,7 @@ Object.extend(lively.ide.CommandLineInterface, {
         options = options || {};
         options.content = options.content || '';
         if (this.PLATFORM !== 'win32') path = '"' + path + '"';
-        var cmd = this.run('tee ' + path, {stdin: options.content});
+        var cmd = this.run('tee ' + path, {stdin: options.content, cwd: options.cwd});
         if (options.onEnd) lively.bindings.connect(cmd, 'end', options, 'onEnd');
         if (thenDo) lively.bindings.connect(cmd, 'end', {thenDo: thenDo}, 'thenDo');
         return cmd;
@@ -685,14 +752,23 @@ Object.extend(lively.ide.CommandLineInterface, {
             });
     },
 
-    rm: function(path, thenDo) {
-      return lively.ide.CommandLineInterface.run("rm -rf " + path, {}, function(err, cmd) {
-        thenDo && thenDo(cmd.getCode() ? cmd.resultString(true) : null); });
+    rm: function(path, options, thenDo) {
+      if (typeof options === "function") { thenDo = options; options = null; }
+      options = options || {};
+      return lively.ide.CommandLineInterface.run("rm -rf " + path, options, function(err, cmd) {
+        (typeof thenDo === "function") && thenDo(cmd.getCode() ? cmd.resultString(true) : null); });
     },
 
     ls: function(path, thenDo) {
-      return lively.ide.CommandLineSearch.findFiles("*", {rootDirectory: path, cwd: path, depth: 1}, function(err, result) {
-        thenDo && thenDo(null, result); });
+      return new Promise(function(resolve, reject) {
+        lively.ide.CommandLineSearch.findFiles(
+          "*",
+          {rootDirectory: path, cwd: path, depth: 1},
+          function(err, result) {
+            err ? reject(err) : resolve(result);
+            thenDo && thenDo(null, result);
+          });
+      })
     },
 
     diffIgnoringWhiteSpace: function(string1, string2, thenDo) {
@@ -810,7 +886,10 @@ Object.extend(lively.ide.CommandLineInterface, {
     },
 
     runInWindow: function(cmd, options) {
-        return lively.ide.tools.ShellCommandRunner.run(cmd, options);
+      var m = lively.module("lively.ide.tools.ShellCommandRunner");
+      return m.isLoaded() ?
+        lively.ide.tools.ShellCommandRunner.run(cmd, options) :
+        m.load().then(() => lively.ide.CommandLineInterface.runInWindow(cmd, options));
     }
 });
 

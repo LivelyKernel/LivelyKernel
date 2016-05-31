@@ -1559,6 +1559,20 @@ Trait('lively.morphic.SetStatusMessageTrait'),
         return;
     }
 },
+'flashing', {
+  
+  flash: function(from, to, time) {
+    if (!from) from = 0;
+    if (!to) to = this.textString.length + 1;
+    if (!time) time = 1000;/*ms*/
+    var self = this;
+    this.addMarker(from, to, "ace-flash", undefined, true, function(marker) {
+      setTimeout(function() {
+        self.removeMarker(marker);
+      }, time);
+    });
+  },
+},
 'text morph syntax highlighter interface', {
     enableSyntaxHighlighting: function() { this.setTextMode('javascript'); },
     disableSyntaxHighlighting: function() { this.setTextMode('text'); }

@@ -730,26 +730,51 @@ lively.BuildSpec('apps.Graphviz.Display', {
     name: "clip"
   }],
 
+  connections: {
+    svgScaleChanged: {}
+  },
+
+  getCanvas: function getCanvas() {
+    var clip = this.get('clip');
+    return clip.submorphs[0];
+  },
+
+  zoomOutToSeeEverything: function zoomOutToSeeEverything() {
+    var canvas = this.getCanvas();
+    if (!canvas) return;
+    if (!canvas.submorphs.length) {
+      var svgEl = this.renderContext().shapeNode.querySelector("svg"),
+          clientRect = svgEl.getBoundingClientRect(),
+          bounds = new Rectangle(0,  0, clientRect.width, clientRect.height);
+      if (bounds.width === 0 && bounds.height === 0) {
+        this.whenOpenedInWorld(function() { this.zoomOutToSeeEverything(); });
+        return;
+      }
+    } else {
+      var bounds = canvas.submorphBounds();
+    }
+    var wRatio = bounds.width / this.width(),
+        hRatio = bounds.height / this.height(),
+        ratio = Math.max(Math.max(wRatio, 1), Math.max(hRatio, 1));
+    this.setSVGScale(this.getSVGScale() / ratio);
+    this.get("clip").setScroll(0,0);
+  },
+
   doZoomBy: function doZoomBy(scaleDelta, zoomPoint) {
     // zoomPoint is global
     var oldScale = this.getSVGScale();
-
     var minScale = 0.1, maxScale = 2;
     if (oldScale <= minScale && scaleDelta < 1) return false;
     if (oldScale >= maxScale && scaleDelta > 1) return false;
-
     var newScale = lively.lang.num.roundTo(oldScale * scaleDelta, 0.0001);
-    
     if (newScale !== oldScale) {
-        var clip = this.get('clip');
-        var canvas = clip.submorphs[0];
-        var scrollPos = clip.getScrollBounds().topLeft();
-        var oldPos = canvas.localize(zoomPoint);
-
+        var clip = this.get('clip'),
+            canvas = this.getCanvas(),
+            scrollPos = clip.getScrollBounds().topLeft(),
+            oldPos = canvas.localize(zoomPoint);
         this.setSVGScale(newScale);
-
-        var newPos = canvas.localize(zoomPoint)
-        var newScrollPos = scrollPos.addPt(oldPos.subPt(newPos).scaleBy(this.getSVGScale()));
+        var newPos = canvas.localize(zoomPoint),
+            newScrollPos = scrollPos.addPt(oldPos.subPt(newPos).scaleBy(this.getSVGScale()));
         clip.setScroll(newScrollPos.x, newScrollPos.y);
     }
   },
@@ -764,8 +789,12 @@ lively.BuildSpec('apps.Graphviz.Display', {
       canvas && canvas.setScale(val);
     },
 
+    onSVGScaleChanged: function onSVGScaleChanged(val) {
+      lively.bindings.signal(this, 'svgScaleChanged', val);
+    },
+
     onMouseWheel: function onMouseWheel(evt) {
-        if (!evt.isAltDown()) return $super(evt);
+        if (evt.isAltDown()) return $super(evt);
         var scaleDelta = 1 + (evt.wheelDelta / 2800);
         this.doZoomBy(scaleDelta, evt.getPosition(), true);
         evt.stop(); return true;
@@ -779,6 +808,7 @@ lively.BuildSpec('apps.Graphviz.Display', {
                 || clip.addMorph(lively.BuildSpec('apps.Graphviz.Canvas').createMorph());
       canvas.renderSVGString(svgString);
       this.setSVGScale(scale);
+      lively.bindings.connect(canvas, 'scale', this, 'onSVGScaleChanged');
     },
 
     getNodes: function getNodes() {
@@ -847,7 +877,13 @@ lively.BuildSpec('apps.Graphviz.Display', {
 
     onFromBuildSpecCreated: function onFromBuildSpecCreated(dotSource, options) {
       this.getPartsBinMetaInfo().addRequiredModule("apps.Graphviz");
+    },
+
+
+    morphMenuItemsFor: function morphMenuItemsFor(selectedElement) {
+      return [];
     }
+
 });
 
 lively.BuildSpec('apps.Graphviz.Canvas', {
@@ -860,6 +896,10 @@ lively.BuildSpec('apps.Graphviz.Canvas', {
   _StyleClassNames: ["Morph", "HtmlWrapperMorph", "graphviz-canvas"],
   doNotSerialize: ["rootElement"],
   layout: {resizeHeight: true,resizeWidth: true},
+
+  myDisplay: function myDisplay() {
+    return this.owner.name === "clip" ? this.owner.owner : this.owner;
+  },
 
   renderSVGString: function renderSVGString(svgString) {
     this.removeAllMorphs();
@@ -921,6 +961,8 @@ lively.BuildSpec('apps.Graphviz.Canvas', {
       
     if (this.shouldScrollSelectionIntoView && selectedMorph)
       this.scrollIntoView(selectedMorph);
+    
+    lively.bindings.signal(this, 'selection', selectedMorph);
   },
   
   scrollIntoView: function scrollIntoView(morph) {
@@ -959,8 +1001,11 @@ lively.BuildSpec('apps.Graphviz.Canvas', {
     if (evt.getTargetMorph() === this) {
       evt.stop(); return true; // to not auto scroll when hand outside of scroll area
     }
-  }
+  },
 
+  morphMenuItemsFor: function morphMenuItemsFor(selectedElement) {
+    return this.myDisplay().morphMenuItemsFor(selectedElement);
+  }
 });
 
 lively.BuildSpec("apps.Graphviz.Element", {
@@ -968,6 +1013,7 @@ lively.BuildSpec("apps.Graphviz.Element", {
     _BorderColor: null, _Extent: lively.pt(10,10),
     draggingEnabled: false, grabbingEnabled: false, droppingEnabled: false,
     _StyleClassNames: ["Morph", "HtmlWrapperMorph", "graphviz-element"],
+    showsMorphMenu: true,
 
     initFromSVGElement: function initFromSVGElement(element) {
       var el = typeof element === "string" ? document.getElementById(element) : element;
@@ -1017,6 +1063,10 @@ lively.BuildSpec("apps.Graphviz.Element", {
       lively.bindings.signal(this.owner, 'selection', this);
       evt.stop(); return true;
     },
+
+    morphMenuItems: function morphMenuItems() {
+      return this.owner.morphMenuItemsFor(this);
+    }
 });
 
 

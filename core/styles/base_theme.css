@@ -297,17 +297,24 @@
 	cursor: pointer;
 }
 
+.ace-flash {
+  background-color: rgba(80,130,240,.2);
+  position: absolute;
+  z-index: 999;
+  border-radius: 2px;
+}
+
 .text-overlay {
-    z-index: 999;
-    font-family: Monaco, monospace;
-    font-size: inherit;
-    position: absolute;
-    color: white;
-    padding: 1px;
-    border-radius: 4px;
+  z-index: 999;
+  font-family: Monaco, monospace;
+  font-size: inherit;
+  position: absolute;
+  color: white;
+  padding: 1px;
+  border-radius: 4px;
 	border: 1px #666 solid;
-    cursor: pointer;
-    white-space: pre;
+  cursor: pointer;
+  white-space: pre;
 	pointer-events: auto;
 	background: #666;
 	box-shadow: none;

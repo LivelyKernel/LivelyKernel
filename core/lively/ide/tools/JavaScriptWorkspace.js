@@ -6,6 +6,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
   draggingEnabled: true,
   droppingEnabled: false,
   layout: {adjustForNewBounds: true},
+  contentOffset: lively.pt(3.0,24.0),
   titleBar: "es6 workspace",
   submorphs: [
 
@@ -62,6 +63,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     className: "lively.morphic.VerticalDivider",
     draggingEnabled: true,
     droppingEnabled: false,
+    minWidth: 20,
     layout: {adjustForNewBounds: true, moveHorizontal: true, resizeHeight: true, resizeWidth: false},
     name: "vdivider",
     pointerConnection: null,
@@ -176,7 +178,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     moduleId: function moduleId() {
       // lively.modules.moduleEnv(this.moduleId())
       var s = lively.net.SessionTracker.getSession();
-      return lively.modules.System.normalizeSync(`lively://${s.sessionId}/lively-workspace-${this.id}`);
+      return lively.modules.System.normalizeSync(`lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`);
     },
 
     uiJumpToDef: function uiJumpToDef(recorded) {
@@ -185,15 +187,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       var ast = this.withASTDo();
       if (!ast) return;
 
-      var scope = lively.ast.query.topLevelDeclsAndRefs(ast);
-
-      var decl;
-      if (recorded.isImport) {
-      decl = scope.scope.importDecls.detect(decl => decl.name === recorded.name);
-      } else {
-      decl = scope.funcDecls.detect(decl => decl.id.name === recorded.name)
-        || scope.varDecls.pluck("declarations").flatten().detect(decl => decl.id.name === recorded.name);
-      }
+      var decl = recorded.node;
 
       if (decl) {
         this.setSelectionRange(decl.start, decl.end, true);
@@ -214,31 +208,35 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
           scope = lively.modules.moduleEnv(id).recorder,
           rec = lively.modules.moduleRecordFor(id),
           toplevel = lively.ast.query.topLevelDeclsAndRefs(ast),
+          decls = lively.ast.query.declarationsOfScope(toplevel.scope, true).sortByKey("start"),
           imports = ast ? toplevel.scope.importDecls.pluck("name") : [],
           col1Width = 0,
-          items = toplevel.declaredNames
-          .filter(ea => !ea.match("__lively.modules__")) // filter getters / setters of attributes
-          .map(v => {
-            var nameLength = v.length,
-                isExport = rec && rec.exports && v in rec.exports,
-                isImport = imports.include(v);
-            if (isExport) nameLength += " [export]".length
-            // if (isExport) nameLength += " [export]".length
-            col1Width = Math.max(col1Width, nameLength);
-            return {
-              isExport: isExport,
-              isImport: isImport,
-              name: v,
-              value: scope[v],
-              printedName: v + (isExport ? " [export]" : "") + (isImport ? " [import]" : ""),
-              printedValue: lively.lang.obj.inspect(scope[v], {maxDepth: 1}).replace(/\n/g, "")
-            }
-          })
-          .map(val => ({
-            isListItem: true,
-            value: val,
-            string: val.printedName + lively.lang.string.indent(" = " + val.printedValue, " ", col1Width-val.printedName.length)
-          }))
+
+          items = decls
+            // .filter(ea => !ea.match("__lively.modules__")) // filter getters / setters of attributes
+            .map(v => {
+              var nameLength = v.name.length,
+                  isExport = rec && rec.exports && v.name in rec.exports,
+                  isImport = imports.include(v.name);
+              if (isExport) nameLength += " [export]".length;
+              if (isImport) nameLength += " [import]".length;
+              col1Width = Math.max(col1Width, nameLength);
+
+              return {
+                isExport: isExport,
+                isImport: isImport,
+                name: v.name,
+                value: scope[v.name],
+                node: v,
+                printedName: v.name + (isExport ? " [export]" : "") + (isImport ? " [import]" : ""),
+                printedValue: lively.lang.obj.inspect(scope[v.name], {maxDepth: 1}).replace(/\n/g, "")
+              }
+            })
+            .map(val => ({
+              isListItem: true,
+              value: val,
+              string: val.printedName + lively.lang.string.indent(" = " + val.printedValue, " ", col1Width-val.printedName.length)
+            }));
 
       this.get("recorderList").setList(items);
       return items;
@@ -246,7 +244,8 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
     vmCompletions: function vmCompletions(prefix, options) {
       options = lively.lang.obj.merge({targetModule: this.moduleId()}, options);
-      return lively.vm.completions.getCompletions(code => lively.modules.runEval(code, options), prefix)
+      return lively.vm.completions.getCompletions(code =>
+        lively.vm.runEval(code, options), prefix)
       .then(result => ({completions: result.completions, prefix: result.startLetters}))
     },
 
@@ -262,7 +261,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
           sourceURL: moduleName + "_doit_" + Date.now(),
         }, options);
 
-        return lively.modules.runEval(source, options)
+        return lively.vm.runEval(source, options)
           .then(result => { this.uiUpdateDefList(); return result; })
           .catch(err => { this.setShowErrors(err); throw err; });
         });

@@ -139,31 +139,62 @@ Object.extend(lively.morphic, {
     },
 
     printInspect: (function() {
-      var maxColLength = 300;
+      var maxColLength = 300,
+          itSym = typeof Symbol !== "undefined" && Symbol.iterator;
+      return printInspect;
+
+      function printIterable(val, ignore) {
+        var isIterable = typeof val !== "string"
+                      && !Array.isArray(val)
+                      && itSym && typeof val[itSym] === "function";
+        if (!isIterable) return ignore;
+        var hasEntries = typeof val.entries === "function",
+            it = hasEntries ? val.entries() : val[itSym](),
+            values = [],
+            open = hasEntries ? "{" : "[", close = hasEntries ? "}" : "]",
+            name = val.constructor && val.constructor.name || "Iterable";
+        for (var i = 0, next; i < maxColLength; i++) {
+          next = it.next();
+          if (next.done) break;
+          values.push(next.value);
+        }
+        var printed = values.map(ea => hasEntries ?
+            `${printInspect(ea[0], 1)}: ${printInspect(ea[1], 1)}` :
+            printInspect(ea, 2)).join(", ");
+        return `${name}(${open}${printed}${close})`;
+      }
+
       function inspectPrinter(val, ignore) {
         if (!val) return ignore;
         if (val.isMorph) return String(val);
         if (val instanceof Promise) return "Promise()";
         if (val instanceof Node) return String(val);
-        var length = val.length || val.byteLength;
         if (Global.ImageData && val instanceof Global.ImageData) return String(val);
+        var length = val.length || val.byteLength;
         if (length !== undefined && length > maxColLength && val.slice) {
           var printed = typeof val === "string" || val.byteLength ? String(val.slice(0, maxColLength)) : val.slice(0,maxColLength).map(lively.lang.string.print);
           return "[" + printed + ",...]";
         }
+        var iterablePrinted = printIterable(val, ignore);
+        if (iterablePrinted !== ignore) return iterablePrinted;
         return ignore;
       }
 
-      return function(obj, maxDepth) {
+      function printInspect(obj, maxDepth) {
+        if (typeof maxDepth === "object") {
+          maxDepth = maxDepth.maxDepth || 2;
+        }
         if (!obj) return String(obj);
-        if (typeof obj === "string") return obj.length > maxColLength ? (obj.slice(0,maxColLength) + "...") : String(obj);
+        if (typeof obj === "string") return '"' + (obj.length > maxColLength ? (obj.slice(0,maxColLength) + "...") : String(obj)) + '"';
         if (obj instanceof Error) return obj.stack || String(obj);
         if (!Object.isObject(obj)) return String(obj);
-        return lively.lang.obj.inspect(obj, {
+        var inspected = lively.lang.obj.inspect(obj, {
           customPrinter: inspectPrinter,
           maxDepth: maxDepth,
           printFunctionSource: true
         });
+        // return inspected;
+        return inspected === "{}" ? String(obj) : inspected;
       }
     })(),
 

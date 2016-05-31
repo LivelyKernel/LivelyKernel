@@ -101,6 +101,8 @@ snippet get
 # console.log (Firebug)
 snippet cl
 	console.log(${1})
+snippet cw
+	console.warn(${1})
 snippet ce
 	console.error(${1})
 # show (lively)
@@ -109,6 +111,8 @@ snippet s
 # session snippet
 snippet getS
 	var s = lively.net.SessionTracker.getSession();
+snippet shell
+	var {code, output} = await lively.shell.run("${1:command}");
 # return
 snippet ret
 	return ${1:result};
@@ -116,6 +120,10 @@ snippet ret
 snippet fori
 	for (var ${1:prop} in ${2:Things}) {
 		${0:$2[$1]}
+	}
+snippet foro
+	for (let ${1:value} of ${2:iterable}) {
+		${0:value}
 	}
 # hasOwnProperty
 snippet has
@@ -352,6 +360,14 @@ snippet f
 	${1:(${2:arg})} => ${0}
 snippet f1
 	${1:arg} => ${0}
+snippet aw
+	await ${0:code}
+snippet afun
+	async function ${1?:functionName}(${2}) {${0}}
+snippet afn
+	async function(${1}) {${0}}
+snippet af
+	async ${1:(${2:arg})} => ${0}
 snippet fun*
 	function* ${1?:functionName}(${2}) {${0}}
 snippet fn*

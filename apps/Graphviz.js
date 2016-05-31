@@ -662,6 +662,24 @@ apps.Graphviz.Simple = {
   
   renderDotToSVG: function(dotSource, options) {
     // apps.Graphviz.Simple.renderDotToSVG("digraph { a -> b; b -> a; }").then(svg => show(svg))
+    if (!dotSource || !dotSource.trim())
+      return Promise.reject(new Error("Invalid dot source: " + dotSource))
+    return apps.Graphviz.Simple.renderDotToSVGViaVizjs(dotSource, options);
+  },
+
+  renderDotToSVGViaVizjs: function(dotSource, options) {
+    return Promise.resolve()
+      .then(function() {
+        if (window.Viz) return window.Viz;
+        // FIXME host ourselves? add to libs?
+        JSLoader.loadJs("http://mdaines.github.io/viz.js/bower_components/viz.js/viz.js");
+        return lively.lang.promise.waitFor(10000, function() { return window.Viz; });
+      })
+      .then(function(viz) { return viz(dotSource); })
+  },
+
+  renderDotToSVGViaServerImageMagick: function(dotSource, options) {
+    // uses the commandline dot program that is part of imagemagick
     return new Promise((resolve, reject) => {
       if (!dotSource || !dotSource.trim()) return reject("Invalid dot source: " + dotSource)
       var cmd = "dot -Tsvg";

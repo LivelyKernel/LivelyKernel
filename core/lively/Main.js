@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-module('lively.Main').requires("lively.persistence.Serializer").toRun(function() {
+module('lively.Main').requires("lively.persistence.Serializer", "lively.bindings").toRun(function() {
 
 // The WorldDataAccessor reads data in some form (e.g. JSON) from some source
 // e.g. meta nodes in a DOM and creates and initializes lively.morphic.Worlds

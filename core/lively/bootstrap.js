@@ -119,7 +119,7 @@
             return (typeof process !== 'undefined') && !!process.versions.node;
         };
 
-	that.isIE = function() {
+    	that.isIE = function() {
             return navigator.userAgent.match(/(MSIE|Trident)/);
         };
 
@@ -248,10 +248,10 @@
 
         function addWrappers() {
           if (platformConsole.wasWrapped) return;
-  
+
           var props = [];
           for (var name in platformConsole) props.push(name);
-  
+
           var exceptions = ["removeWrappers", "addWrappers", "addConsumer", "removeConsumer"];
 
           for (var i = 0; i < props.length; i++) {
@@ -714,6 +714,7 @@
                     // modules like lively.Text
                     this.expectedModules = new Array(len);
                     for (i = 0; i < len; i++) {
+                        if (relativePaths[i].startsWith("node_modules")) continue;
                         var moduleName = relativePaths[i]
                                          .replace(/\//g, '.')
                                          .replace(/\.js$/g, '');
@@ -759,7 +760,7 @@
                 // FIXME: cleanup "waitForModules" computation
                 var waitForModules = combinedLoader.expectedModules.withoutAll(
                     LivelyLoader.bootstrapFiles.map(function(fn) {
-                        return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.')
+                        return fn.replace(/^core\//, '').replace(/\.js$/, '').replace(/\//g, '.');
                 }).concat(['lib.lively-libs-debug']));
 
                 lively.require(waitForModules).toRun(function() {
@@ -1185,9 +1186,19 @@
                 var combinedModulesUrl = base + 'generated/' + combinedModulesHash + '/combinedModules.js';
                 loader.loadCombinedModules(combinedModulesUrl, thenDoFunc);
             } else {
-                loader.resolveAndLoadAll(
-                    base, this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles),
-                    thenDoFunc);
+        		var bootstrapFiles = this.libsFiles.concat(Global.LivelyLoader.bootstrapFiles);
+        		if (browserDetector.isNodejs()) {
+                    var path = require("path");
+    		        var paths = module.paths.concat([
+        		            path.join(process.env.WORKSPACE_LK, "node_modules"),
+        		            path.join(process.env.WORKSPACE_LK, "node_modules/lively.modules/node_modules")]);
+        		    Config.bootstrapNodejsModules.forEach(function(ea) {
+                        require(module.constructor._resolveFilename(ea, {paths: paths}));
+        		    });
+        		} else {
+        		    bootstrapFiles = Config.bootstrapBrowserFiles.concat(bootstrapFiles);
+        		}
+                loader.resolveAndLoadAll(base, bootstrapFiles, thenDoFunc);
             }
         }
 

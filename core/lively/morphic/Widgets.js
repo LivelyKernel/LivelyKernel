@@ -2256,11 +2256,27 @@ lively.morphic.World.addMethods(
     },
 
     confirm: function (message, callback, buttons) {
-        return this.openDialog(new lively.morphic.ConfirmDialog(message, callback, buttons));
+      // $world.confirm("foo?", ["yes", "no"]).then(alert);
+      if (typeof buttons === "undefined" && typeof callback !== "function") {
+        buttons = callback;
+      }
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.openDialog(
+          new lively.morphic.ConfirmDialog(
+            message,
+            function(input) { resolve(input); (typeof callback === "function") && callback(input); },
+            buttons));
+      });
     },
 
     inform: function(message, callback) {
-        return this.openDialog(new lively.morphic.InformDialog(message, callback));
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.openDialog(
+          new lively.morphic.InformDialog(message,
+            function(input) { resolve(input); (typeof callback === "function") && callback(input); }));
+      });
     },
 
     prompt: function(message, callback, defaultInputOrOptions) {
@@ -2269,28 +2285,60 @@ lively.morphic.World.addMethods(
         //   historyId: STRING, -- id to identify the input history for this prompt
         //   useLastInput: BOOLEAN -- use history for default input?
         // }
-        return this.openDialog(new lively.morphic.PromptDialog(message, callback, defaultInputOrOptions))
+        if (typeof defaultInputOrOptions === "undefined" && typeof callback !== "function") {
+          defaultInputOrOptions = callback;
+        }
+        var self = this;
+        return new Promise(function(resolve, reject) {
+          self.openDialog(
+            new lively.morphic.PromptDialog(
+              message,
+              function(input) { resolve(input); (typeof callback === "function") && callback(input); },
+              defaultInputOrOptions));
+        });
     },
 
     multipleChoicePrompt: function(message, choices, callback) {
-        return this.openDialog(new lively.morphic.MultipleChoiceDialog(message, choices, callback));
+      // $world.multipleChoicePrompt("???", ["a","b","c"]).then(alert)
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.openDialog(
+          new lively.morphic.MultipleChoiceDialog(message, choices,
+            function(input) { resolve(input); (typeof callback === "function") && callback(input); }));
+      });
     },
 
     passwordPrompt: function(message, callback, options) {
-        return this.openDialog(new lively.morphic.PasswordPromptDialog(message, callback, options));
+      if (typeof options === "undefined" && typeof callback !== "function") {
+        options = callback;
+      }
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.openDialog(
+          new lively.morphic.PasswordPromptDialog(message,
+            function(input) { resolve(input); (typeof callback === "function") && callback(input); },
+            options));
+      });
     },
 
     listPrompt: function(message, callback, list, optionsOrDefaultInput, optExtent) {
         // defaultInput, optExtent
         // message, callback, list, defaultInput, optExtent
-        // $world.listPrompt('test', alert, [1,2,3,4], 3, pt(400,300));
-        var defaultInput = typeof optionsOrDefaultInput === "number" || Array.isArray(optionsOrDefaultInput) ?
-          optionsOrDefaultInput : null;
-        var options = !defaultInput && optionsOrDefaultInput && typeof optionsOrDefaultInput === "object" ? optionsOrDefaultInput : {};
-        options.defaultInput = defaultInput || options.defaultInput;
-        if (typeof options.defaultInput === "number") options.defaultInput = [options.defaultInput];
-        options.extent = optExtent || options.extent;
-        var self = this;
+        // $world.listPrompt('test', [1,2,3,4], 3, pt(400,300)).then(alert)
+      if (Array.isArray(callback)) {
+        optExtent = optionsOrDefaultInput
+        optionsOrDefaultInput = list
+        list = callback
+      }
+
+      var defaultInput = typeof optionsOrDefaultInput === "number" || Array.isArray(optionsOrDefaultInput) ?
+        optionsOrDefaultInput : null;
+      var options = !defaultInput && optionsOrDefaultInput && typeof optionsOrDefaultInput === "object" ? optionsOrDefaultInput : {};
+      options.defaultInput = defaultInput || options.defaultInput;
+      if (typeof options.defaultInput === "number") options.defaultInput = [options.defaultInput];
+      options.extent = optExtent || options.extent;
+      var self = this;
+      return new Promise(function(resolve, reject) {
         lively.require('lively.morphic.tools.ConfirmList').toRun(function() {
             var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
             listPrompt.promptFor({
@@ -2301,13 +2349,24 @@ lively.morphic.World.addMethods(
                 multiselect: options.multiselect
             });
             (function() { listPrompt.get('target').focus(); }).delay(0);
-            lively.bindings.connect(listPrompt, 'result', {cb: callback}, 'cb');
+            var cb = function(input) { resolve(input); (typeof callback === "function") && callback(input); }
+            lively.bindings.connect(listPrompt, 'result', {cb: cb}, 'cb');
             return self.addModal(listPrompt);
         });
+      });
     },
 
     editPrompt: function(message, callback, defaultInputOrOptions) {
-        return this.openDialog(new lively.morphic.EditDialog(message, callback, defaultInputOrOptions))
+      if (typeof defaultInputOrOptions === "undefined" && typeof callback !== "function") {
+        defaultInputOrOptions = callback;
+      }
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.openDialog(
+          new lively.morphic.EditDialog(message,
+            function(input) { resolve(input); (typeof callback === "function") && callback(input); },
+            defaultInputOrOptions));
+      });
     },
 
     selectMorphWithNextClick: function(options, thenDo) {

@@ -2033,7 +2033,23 @@ lively.morphic.World.addMethods(
                         title: 'Objects in this world'});
                     text.setFontFamily('Monaco,monospace');
                     text.setFontSize(9);
-                })}]];
+                })}],
+            ['World serialization graph', function() {
+                require('lively.persistence.Debugging').toRun(function() {
+                  $world.multipleChoicePrompt(
+                    "Use saved version of " + URL.source + " or use the runtime state?",
+                    ["saved", "runtime", "cancel"],
+                    function(input) {
+                      if (!input || input === "cancel") return;
+                      else if (input === "saved") {
+                        lively.persistence.Debugging.svgGraphForSerializedObjectGraph(URL.source);
+                      } else {
+                        var json = lively.persistence.Serializer.serialize($world);
+                        lively.persistence.Debugging.svgGraphForSerializedObjectGraph(JSON.parse(json));
+                      }
+                    })
+                })}]
+        ];
 
         items.push(["Show connectors", function() {
             world.submorphs.forEach(function(ea) {

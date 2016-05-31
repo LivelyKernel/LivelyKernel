@@ -1091,14 +1091,15 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
             printInspect: function printInspect(options) {
                 var self = this,
                     s = this.getSelectionMaybeInComment(),
-                    code = Global.Strings.format(
+                    code = Strings.format(
                       "var inspector, options, depth = %s, result;\n"
                     + "if (typeof lively !== 'undefined' && lively.lang) { inspector = lively.lang.obj; options = {maxDepth: depth}; }\n"
-                    + "else if (typeof lv !== 'undefined') { inspector = lv; }\n"
+                    + "else if (typeof lv !== 'undefined') { inspector = lv; options = {maxDepth: depth}; }\n"
                     + "else if (typeof process !== 'undefined' && typeof require !== 'undefined') { inspector = require('util'); options = {depth: depth-1}; }\n"
                     + "else throw new Error('no inspect available');\n"
                     + "try { result = (function() { return %s })(); } catch(e) { result = e; }\n"
                     + "inspector.inspect(result, options);\n", options.depth || 1, s);
+            
                 this.collapseSelection('end');
                 this.remoteEval(code)
                   .then(result => self.insertAtCursor(result.value, true, false, true));
@@ -1118,17 +1119,29 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
                     return {value: result, isError: isError};
                 });
 
+              // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
               function processCode(code) {
-                return lively.vm.evalCodeTransform(code, {
+                var rewritten = lively.ast.evalSupport.evalCodeTransform(code, {
                   topLevelVarRecorder: {},
                   recordGlobals: true,
-                  varRecorderName: 'global',
+                  varRecorderName: 'GLOBAL',
                   sourceURL: "remote Lively2Lively workspace " + Date.now()
-                })
+                });
+                return `var GLOBAL = (${getGlobal})();\n${rewritten}`;
               }
-          }
+
+              function getGlobal() {
+                if (typeof window !== 'undefined') return window;
+                if (typeof global !== 'undefined') return global;
+                if (typeof Global !== 'undefined') return Global;
+                if (typeof self !== 'undefined') return self;
+                return (function () { return this; })();
+              }
+            }
 
         }],
+
         connectionRebuilder: function connectionRebuilder() {
         lively.bindings.connect(this, "sessionChanged", this, "updateFromTargetSession", {});
     },

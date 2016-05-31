@@ -35,11 +35,12 @@ Object.extend(lively.persistence.Debugging, {
   svgGrawGraph: function(graphMap, snapshot, options) {
     options = lively.lang.obj.merge({
       asWindow: true,
-      idsToHighlight: [],
       inverse: true,
-      convertNodesAndEdgesToMorphs: false,
       graphSettings: [],
-      labelWithReferencePaths: true
+      labelWithReferencePaths: true,
+
+      convertToMorphs: false,
+      scrollSelectionIntoView: false
     }, options);
 
     if (!module("apps.Graphviz").isLoaded()) module("apps.Graphviz").load(true);
@@ -48,7 +49,7 @@ Object.extend(lively.persistence.Debugging, {
       createDotLinesForEachRefPath(graphMap, snapshot) :
       createDotLinesSimple(graphMap, snapshot);
 
-    return drawGraph(lines, options.idsToHighlight);
+    return drawGraph(lines);
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -85,25 +86,44 @@ Object.extend(lively.persistence.Debugging, {
     }
 
     function drawGraph(dotLines) {
-      
+      // options = lively.lang.obj.merge(options, {createNodesAndEdges: function() { return dotLines; }});
+      // return apps.Graphviz.Renderer.render(options).openInWorld().comeForward();
 
-      options = lively.lang.obj.merge(options, {createNodesAndEdges: function() { return dotLines; }});
-      var svgGraph = apps.Graphviz.Renderer.render(options).openInWorld().comeForward();
+      var source = "digraph G {\n" + dotLines.join("\n") + "\n}"
+      return apps.Graphviz.Simple.renderDotToDisplay(source, options)
+        .then(function(display) {
+          display.setExtent(pt(500, 400));
+          display.zoomOutToSeeEverything();
+          var slider = new lively.morphic.Slider(lively.rect(0, 0, 300, 30));
+          var win = display.openInWindow().comeForward();
+          win.addMorph(slider);
+          slider.align(slider.bounds().bottomLeft(), display.bounds().bottomLeft().addXY(5, -5));
+          slider.name = 'the-slider';
+          lively.bindings.connect(display, 'svgScaleChanged', slider, 'setValue');
+          slider.setValue(display.getSVGScale());
+          lively.bindings.connect(slider, 'value', display, 'doZoomBy', {
+              updater: function($upd, newV, oldV) {
+                  var clip = this.targetObj.get('clip');
+                  var zoomPos = clip.worldPoint(clip.getScrollBounds().center());
+                  $upd(1 + (newV - oldV), zoomPos);
+                  this.sourceObj.value = this.targetObj.getSVGScale();
+                  this.sourceObj.adjustSliderParts();
+              }
+          });
+          slider.applyStyle({moveVertical: true, moveHorizontal: false});
 
-      return svgGraph;
-    }
+          return win;
+      })
+      .then(function(graphWindow) {
+        graphWindow.setTitle(options.title || "serialization graph");
+        var display = graphWindow.targetMorph;
+        display.addScript(function morphMenuItemsFor(selectedElement) {
+          show(selectedElement.name);
+          return [];
+        });
 
-    function createDotFile(dotLines) {
-      var dotContent = "digraph G {\n" + dotLines.join("\n") + "}\n";
-
-      lively.lang.fun.composeAsync(
-        function(n) {
-          lively.shell.writeFile("/Users/robert/Lively/LivelyKernel/test.dot", dotContent, function(err, cmd) { n(); });
-        }
-        // function(n) {
-        //   lively.shell.run("dot test.dot -Tpng -o test.png;", n);
-        // }
-      )(function(err) { show(err ? String(err) : "done"); });
+      })
+      .catch(function(err) { return $world.logError(err); })
     }
 
     function graphName(id, snapshot) {

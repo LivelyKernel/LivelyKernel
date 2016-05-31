@@ -25,6 +25,13 @@ module('lively.persistence.Debugging').requires().toRun(function() {
 
 Object.extend(lively.persistence.Debugging, {
 
+  jsonOfWorld: function(url) {
+    var html = new URL(url).asWebResource().forceUncached().get().content,
+        roughly = html.slice(html.indexOf('"text/x-lively-world"')+6, html.lastIndexOf("</script>")),
+        json = roughly.slice(roughly.indexOf('{'));
+    return JSON.parse(json);
+  },
+
   svgGrawGraph: function(graphMap, snapshot, options) {
     options = lively.lang.obj.merge({
       asWindow: true,
@@ -127,11 +134,8 @@ Object.extend(lively.persistence.Debugging, {
   },
 
   svgGraphForWorld: function(url, options) {
-    var html = new URL(url).asWebResource().forceUncached().get().content;
-    var roughly = html.slice(html.indexOf('"text/x-lively-world"')+6, html.lastIndexOf("</script>"))
-    var json = roughly.slice(roughly.indexOf('{'))
-    var jso = JSON.parse(json);
-    return this.svgGraphForSerializedObjectGraph(jso, options);
+    // lively.persistence.Debugging.svgGraphForWorld(URL.root)
+    return this.svgGraphForSerializedObjectGraph(this.jsonOfWorld(url), options);
   },
 
   svgGraphForPart: function(partName, partCategory, options) {

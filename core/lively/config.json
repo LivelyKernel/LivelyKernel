@@ -4,24 +4,23 @@
     ["loadUserConfig", true, "For sth like jens/config.js, used in lively.bootstrap."],
     ["libsFile", "core/lib/lively-libs-debug.js", "Library code."],
 
+    ["bootstrapNodejsModules", [
+      "babel-core", "babel-regenerator-runtime", "systemjs"
+    ], "Base requirements for loading inside a nodejs environment, precedes bootstrapFiles."],
+
+    ["bootstrapBrowserFiles", [
+			"node_modules/lively.modules/node_modules/babel-core/browser.js",
+			"node_modules/lively.modules/node_modules/babel-regenerator-runtime/runtime.js",
+			"node_modules/lively.modules/node_modules/systemjs/dist/system.src.js"
+    ], "Base requirements for loading inside a browser environment, precedes bootstrapFiles."],
+
     ["bootstrapFiles", [
+	    "node_modules/lively.lang/dist/lively.lang.dev.js",
+	    "node_modules/lively.ast/dist/lively.ast_no-deps.js",
+	    "node_modules/lively.modules/dist/lively.modules_no-deps.js",
+	    "node_modules/lively.vm/dist/lively.vm_no-deps.js",
       "core/lively/Migration.js",
       "core/lively/JSON.js",
-      "node_modules/lively.lang/lib/base.js",
-      "node_modules/lively.lang/lib/events.js",
-      "node_modules/lively.lang/lib/object.js",
-      "node_modules/lively.lang/lib/collection.js",
-      "node_modules/lively.lang/lib/sequence.js",
-      "node_modules/lively.lang/lib/tree.js",
-      "node_modules/lively.lang/lib/graph.js",
-      "node_modules/lively.lang/lib/function.js",
-      "node_modules/lively.lang/lib/string.js",
-      "node_modules/lively.lang/lib/number.js",
-      "node_modules/lively.lang/lib/date.js",
-      "node_modules/lively.lang/lib/class.js",
-      "node_modules/lively.lang/lib/messenger.js",
-      "node_modules/lively.lang/lib/worker.js",
-      "node_modules/lively.lang/lib/promise.js",
       "core/lively/lang/LocalStorage.js",
       "core/lively/Base.js",
       "core/lively/ModuleSystem.js"

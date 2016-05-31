@@ -89,6 +89,10 @@ Object.extend(lively, {
                 requiredModules = [];
 
             preReqModuleNames
+                .filter(function(ea) {
+                  var m = lively.lookup(ea, Global);
+                  return m && !m.isLivelyModule ? false : true
+                })
                 .map(LivelyMigrationSupport.fixModuleName)
                 .map(createNamespaceModule)
                 .forEach(function(reqModule) {

@@ -1560,7 +1560,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     }
 },
 'flashing', {
-  
+
   flash: function(from, to, time) {
     if (!from) from = 0;
     if (!to) to = this.textString.length + 1;
@@ -1629,17 +1629,15 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     append: function(string) {
         this.withAceDo(function(ed) {
-            var doc = ed.session.doc;
-            var lastRow = doc.getLength() - 1;
-            var col = doc.getLine(lastRow).length;
+            var doc = ed.session.doc,
+                lastRow = doc.getLength() - 1,
+                col = doc.getLine(lastRow).length;
             ed.session.insert({row: lastRow, column: col}, String(string));
         });
     },
 
     replace: function(range, text) {
-        return this.withAceDo(function(ed) {
-            return ed.session.replace(range, text);
-        });
+        return this.withAceDo(function(ed) { return ed.session.replace(range, text); });
     },
 
     doSave: function() {
@@ -1658,9 +1656,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     getFontSize: function() {
-        if (this._FontSize) return this._FontSize;
-        return this.withAceDo(function(ed) { return ed.getOption("fontSize"); })
-            || Config.get("defaultCodeFontSize");
+        return this._FontSize ?
+          this._FontSize :
+          this.withAceDo(function(ed) { return ed.getOption("fontSize"); })
+            || lively.Config.get("defaultCodeFontSize");
     },
 
     setFontFamily: function(fontName) {
@@ -1986,8 +1985,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     codeEditorMenuItems: function() {
         var editor = this, items = [],
-            mode = this.getTextMode(),
-            isJs = mode.match(/javascript/),
             cmds = lively.ide.commands.getCommands({editor: this});
 
         items.push(this.menuItemForCommand('save', cmds['doSave']));
@@ -2010,7 +2007,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
     },
 
     codeEditorSettingsMenuItems: function() {
-
         var editor = this, items = [], world = this.world(),
             mode = this.getTextMode(),
             isJs = mode.match(/javascript/);

@@ -374,8 +374,13 @@ snippet fn*
 regex /((=)\s*|(:)\s*|(\()|\b)/fn\*/
 	function*($2) {${0:$TM_SELECTED_TEXT}}${M2?;}${M3?,}
 snippet import
+regex /\b/impo?r?t?/
 	import ${3:{ ${2:name} \}} from "${1:module}";$0
+snippet import*
+regex /\b/impo?r?t?\*/
+	import * as ${2:name} from "${1:module}";$0
 snippet export
+regex /\b/expo?r?t?/
 	export { ${0:name} };
 # strings
 snippet $

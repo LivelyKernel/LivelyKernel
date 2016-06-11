@@ -470,7 +470,7 @@ Object.extend(lively.ide.commands.byName, {
 
             if (!win.normalBounds) win.normalBounds = winB;
 
-            var thirdWMin = 650,
+            var thirdWMin = 750,
                 thirdW = Math.min(thirdWMin, Math.max(1000, bounds.width/3)),
                 thirdColBounds = bounds.withWidth(thirdW);
 

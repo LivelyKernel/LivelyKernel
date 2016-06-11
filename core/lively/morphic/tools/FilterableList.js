@@ -7,7 +7,7 @@ module('lively.morphic.tools.FilterableList').requires("lively.ide.tools.Command
  * #parseInput
  *
  */
- 
+
 lively.BuildSpec('lively.morphic.tools.FilterableList', {
     _BorderColor: Color.rgb(95,94,95),
     _Extent: lively.pt(709.0,478.0),
@@ -241,14 +241,14 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             filterFocused   = filter.isFocused(),
             keys            = evt.getKeyString(),
             wasHandled      = true;
-    
+
         function ensureSelectionIsInView(topOrBottom) {
             var visible = fl.getVisibleIndexes();
             // if (visible.include(fl.selectedLineNo)) return;
             var newIdx = topOrBottom === 'top' ? visible.first() : visible.last()-1;
             fl.selectAt(newIdx);
         }
-    
+
         switch (keys) {
             case 'Enter':
                 var sel = fl.getSelection();
@@ -256,8 +256,24 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
                 if (sel) this.execItemAction(sel, 0);
                 else wasHandled = false;
                 break;
-            case 'Control-N': case 'Down': fl.selectNext(); break;
-            case 'Control-P': case 'Up': fl.selectPrev(); break;
+
+            case 'Control-N': case 'Down':
+              if (fl.isMultipleSelectionList) {
+                fl.selectNext(); fl.deselectAt(fl.selectedLineNo - 1);
+              } else { fl.selectNext(); }
+              break;
+    
+            case 'Control-P': case 'Up':
+              if (fl.isMultipleSelectionList) {
+                fl.selectPrev(); fl.deselectAt(fl.selectedLineNo + 1);
+              } else { fl.selectPrev(); }
+              break;
+
+            case 'Control-Shift-N': case 'Shift-Down': fl.selectNext(); break;
+
+            case 'Control-Shift-P': case 'Shift-Up': fl.selectPrev(); break;
+                
+            case 'Control-A': case 'Command-A': fl.selectAll(); break;
             case "Alt-V": case "PageUp": fl.scrollPage('up'); ensureSelectionIsInView('top'); break;
             case "Control-V": case "PageDown": fl.scrollPage('down'); ensureSelectionIsInView('bottom'); break;
             case "Alt-Shift->": case "End": fl.scrollToBottom(); ensureSelectionIsInView('bottom'); break;
@@ -269,13 +285,13 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             case 'Alt-5': this.execItemAction(fl.selection, 4); break;
             default: wasHandled = false;
         }
-    
+
         return wasHandled;
     },
 
     onMouseUp: function onMouseUp(evt) {
         var tgt = evt.getTargetMorph();
-    
+
         if (tgt && tgt.isListItemMorph) {
             if (this.prevClicked === tgt) {
                 this.prevClicked = null;
@@ -314,7 +330,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
                 sortKey ? this.itemsSort.curry(sortKey) : lively.lang.fun.K,
                 this.itemsForList.bind(this)),
             processedItems = processItems(items);
-    
+
             // dirsAndFiles = items.groupBy(function(item) {
             //     return item.isDirectory ? 'directory' : 'file'}),
             // dirsAndFilesSorted = dirsAndFiles.mapGroups(function(_, group) {
@@ -359,7 +375,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
     getSelection: function getSelection () {
         return this.get('list').getSelection();
     },
-    
+
     getSelectedItem: function() {
         return this.get('list').getSelectedItem();
     },
@@ -371,7 +387,7 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
             self.applySort();
         })
     },
-    
+
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
       this.filterState = {
         filterTimeout: 100,
@@ -380,6 +396,122 @@ lively.BuildSpec('lively.morphic.tools.FilterableList', {
         filters: []
       }
     },
-})
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    resolveDialog: function resolveDialog(status) {
+      var sel = this.get("list").isMultipleSelectionList ?
+        this.get("list").getSelections().compact() : this.get("list").getSelection();
+      var filtered = this.get("list").getValues();
+      lively.bindings.signal(this, 'result', {selected: sel, filtered: filtered, status: status});
+    },
+
+    asFilterableListPromptFor: function asFilterableListPromptFor(options) {
+      // var list = lively.morphic.tools.FilterableList.create().openInWorld();
+      var list = this;
+
+      list.applyStyle({fill: Color.white})
+      list.get('list').applyStyle({fill: Color.white})
+
+      if (options.filterLabel) list.get("filter").setLabel(options.filterLabel);
+
+      if (options.extent) { list.setExtent(options.extent); }
+
+      if (options.multiselect) {
+        list.get("list").enableMultipleSelections("multiSelectWithShift")
+        list.get("list").allowDeselectClick = true;
+      }
+
+      if (options.selection) list.get('list').setSelection(options.selection);
+      else if (options.selections) list.get('list').selectAllAt(options.selections);
+
+      if (options.list) list.setList(options.list);
+
+      // 1. move filter to bottom
+      list.get("list").moveBy(pt(0, -this.get("filter").height()));
+      this.get("filter").align(this.get("filter").bounds().topLeft(), list.get('list').bounds().bottomLeft())
+
+      // 2. add query text
+      list.get("list").moveBy(pt(0, 20)); list.get("list").resizeBy(pt(0, -20));
+
+      var title = lively.morphic.newMorph({klass: lively.morphic.Text, extent: pt(list.width(), 20)})
+      list.addMorph(title)
+      title.applyStyle({allowInput: false, fill: Color.white, borderWidth: 0});
+      title.textString = options.prompt || "????"
+
+      // 3. add buttons
+      list.get("list").resizeBy(pt(0, -20));
+      list.get("filter").moveBy(pt(0, -20));
+      // var known = list.submorphs.slice()
+      // list.submorphs.withoutAll(known).invoke("remove")
+
+      var b = lively.morphic.newMorph({klass: lively.morphic.Button, extent: pt(100,20), name: "cancelButton"})
+      list.addMorph(b);
+      b.align(b.bounds().bottomRight(), list.innerBounds().bottomRight().addXY(0, -3))
+      b.setLabel("cancel");
+
+      var b = lively.morphic.newMorph({klass: lively.morphic.Button, extent: pt(100,20), name: "acceptButton"})
+      list.addMorph(b);
+      b.align(b.bounds().bottomRight(), list.innerBounds().bottomRight().addXY(-100, -3))
+      b.setLabel("accept");
+
+      var b = lively.morphic.newMorph({klass: lively.morphic.Button, extent: pt(100,20), name: "selectNoneButton"})
+      list.addMorph(b);
+      b.align(b.bounds().bottomRight(), list.innerBounds().bottomRight().addXY(-200 - 20, -3))
+      b.setLabel("select none");
+
+      var b = lively.morphic.newMorph({klass: lively.morphic.Button, extent: pt(100,20), name: "selectAllButton"})
+      list.addMorph(b);
+      b.align(b.bounds().bottomRight(), list.innerBounds().bottomRight().addXY(-300 - 20, -3))
+      b.setLabel("select all");
+
+      // 4. connect the buttons and input
+      lively.bindings.connect(list.get("acceptButton"), 'fire', list, 'resolveDialog', {converter: function() { return "accepted"; }});
+      lively.bindings.connect(list.get("cancelButton"), 'fire', list, 'resolveDialog', {converter: function() { return "canceled"; }});
+      lively.bindings.connect(list.get("filter"), 'input', list, 'resolveDialog', {converter: function() { return "accepted"; }});
+
+      list.addScript(function getItemActionsFor(item) {
+        var self = this;
+        return [{exec: function() { self.resolveDialog("accepted"); }}];
+      });
+
+      list.get("filter").addScript(function clear() {
+        // FIXME for Escape action
+        this.owner.resolveDialog("canceled");
+      });
+
+      return list;
+    }
+
+});
+
+Object.extend(lively.morphic.tools.FilterableList, {
+
+  create: function() {
+    // lively.morphic.tools.FilterableList.create().openInWorld();
+    return lively.BuildSpec('lively.morphic.tools.FilterableList').createMorph()
+  },
+
+  forDialog: function(options) {
+    /*
+    var dialog = lively.morphic.tools.FilterableList.forDialog({
+      filterLabel: "filter: ",
+      multiselect: true,
+      list: [1,2,3,4,5].map(ea => ({
+        isListItem: true,
+        value: ea,
+        string: lively.lang.string.times(ea, 5)
+      }))
+    })
+    lively.bindings.connect(dialog, 'result', Global, 'show');
+    lively.bindings.connect(dialog, 'result', dialog, 'remove');
+    */;
+    var dialog = this.create().asFilterableListPromptFor(options);
+    dialog.get("filter").focus();
+    lively.bindings.connect(dialog, 'result', dialog, 'remove');
+    return dialog;
+  }
+
+});
 
 }) // end of module

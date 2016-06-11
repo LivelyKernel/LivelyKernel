@@ -2338,20 +2338,47 @@ lively.morphic.World.addMethods(
       if (typeof options.defaultInput === "number") options.defaultInput = [options.defaultInput];
       options.extent = optExtent || options.extent;
       var self = this;
-      return new Promise(function(resolve, reject) {
-        lively.require('lively.morphic.tools.ConfirmList').toRun(function() {
-            var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
-            listPrompt.promptFor({
-                prompt: message,
-                list: list,
-                selections: options.defaultInput,
-                extent: options.extent,
-                multiselect: options.multiselect
-            });
-            (function() { listPrompt.get('target').focus(); }).delay(0);
-            var cb = function(input) { resolve(input); (typeof callback === "function") && callback(input); }
-            lively.bindings.connect(listPrompt, 'result', {cb: cb}, 'cb');
-            return self.addModal(listPrompt);
+      return lively.module('lively.morphic.tools.ConfirmList').load().then(function() {
+        var listPrompt = lively.BuildSpec('lively.morphic.tools.ConfirmList').createMorph();
+        listPrompt.promptFor({
+          prompt: message,
+          list: list,
+          selections: options.defaultInput,
+          extent: options.extent,
+          multiselect: options.multiselect
+        });
+        (function() { listPrompt.get('target').focus(); }).delay(0);
+        return new Promise(function(resolve, reject) {
+          var cb = function(input) { resolve(input); (typeof callback === "function") && callback(input); }
+          lively.bindings.connect(listPrompt, 'result', {cb: cb}, 'cb');
+          return self.addModal(listPrompt);
+        });
+      });
+    },
+
+    filterableListPrompt: function(message, callback, options) {
+      // $world.filterableListPrompt('test', [1,2,3,4], {filterLabel: "bar: ", list: ["111", "22211", "23213"].asListItemArray(), multiselect: true}).then(show)
+      if (typeof callback !== "function") {
+        options = callback;
+        callback = null;
+      };
+      options = options || {};
+
+      var self = this;
+      return lively.module('lively.morphic.tools.FilterableList').load().then(function() {
+        var listPrompt = lively.morphic.tools.FilterableList.forDialog({
+          filterLabel: options.filterLabel,
+          prompt: message,
+          list: options.list,
+          selections: options.defaultInput,
+          extent: options.extent,
+          multiselect: options.multiselect
+        })
+        // (function() { listPrompt.get('filter').focus(); }).delay(0);
+        return new Promise(function(resolve, reject) {
+          var cb = function(input) { resolve(input); (typeof callback === "function") && callback(input); }
+          lively.bindings.connect(listPrompt, 'result', {cb: cb}, 'cb');
+          return self.addModal(listPrompt);
         });
       });
     },

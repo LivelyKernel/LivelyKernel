@@ -95,100 +95,55 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     name: "workspace-editor",
     sourceModule: "lively.ide.CodeEditor",
 
-
-    reset: function reset() {
-      this.owner.targetMorph = this;
-
-      this.get("vdivider").fixed = [];
-      this.get("vdivider").scalingLeft = [this];
-      this.get("vdivider").scalingRight = [this.get("recorderList")];
-
-      lively.bindings.connect(this, 'textChange', this, 'uiUpdateDefList', {
-        updater: ($upd) =>
-          lively.lang.fun.debounceNamed(`${this.id}-uiUpdateDefList`, 400, $upd)()});
+    moduleId: function moduleId() {
+        // lively.modules.moduleEnv(this.moduleId())
+        var s = lively.net.SessionTracker.getSession();
+        return lively.modules.System.normalizeSync(`lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`);
+      },
+  
+    onCodeSaved: function onCodeSaved(code) {
+      this.uiUpdateDefList();
     },
-
+  
+    onDoitDone: function onDoitDone(result) {
+      this.uiUpdateDefList();
+    },
+  
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
       $super();
       this.getWindow().addMorphBack(this.get("recorderList"));
       this.reset();
     },
-
-    doListProtocol: function doListProtocol() {
-      var listerModule = module("lively.ide.codeeditor.Completions");
-      return listerModule.load()
-      .then(() =>
-        this.saveExcursion(reset => {
-        var prefix = this.getSelectionOrLineString();
-        reset(); return prefix; }))
-      .then((prefix) => this.vmCompletions(prefix, {}))
-      .then((completions) => {
-        var lister = new lively.ide.codeeditor.Completions.ProtocolLister(this);
-        return lister.openNarrower(completions);
-      })
-      .catch(err => err && this.showError(err))
+  
+    onLoad: function onLoad() {
+      $super();
+      this.reset();
     },
-
-    doSave: function doSave() {
-      var code = this.textString;
-      this.savedTextString = code;
-
-      this.vmSave(code, this.getTargetFilePath(), {doEval: this.getEvalOnSave()})
-      .then(x => { this.uiUpdateDefList(); return x; });
-
-      // if (this.getEvalOnSave()) {
-      //   var result = this.tryBoundEval(this.savedTextString, { range: { start: { index: 0 }, end: { index: this.textString.length } } });
-      //   if (result instanceof Error) this.showError(result);
-      // }
+  
+    reset: function reset() {
+      this.owner.targetMorph = this;
+      
+      this.get("vdivider").fixed = [];
+      this.get("vdivider").scalingLeft = [this];
+      this.get("vdivider").scalingRight = [this.get("recorderList")];
+      
+      lively.bindings.connect(this, 'textChange', this, 'uiUpdateDefList', {
+        updater: ($upd) =>
+          lively.lang.fun.debounceNamed(`${this.id}-uiUpdateDefList`, 400, $upd)()});
+    
+      delete this.state;
+      lively.vm.evalStrategies.EvalableTextMorphTrait.applyTo(
+        this, ['doit', 'doSave', 'evalSelection', 'doListProtocol']);
     },
-
-    evalSelection: function evalSelection(printIt) {
-      return this.vmEval(this.getSelectionOrLineString(), {asString: false})
-        .then(result => {
-          if (printIt) this.insertAtCursor(String(result.value), true)
-          return result;
-        });
-    },
-
-    doit: function doit(printResult, editor, options) {
-      options = lively.lang.obj.merge({inspect: !printResult, printDepth: this.printInspectMaxDepth}, options);
-      options.asString = !options.inspect;
-      options.asString = true;
-
-      var text = this.getSelectionMaybeInComment(),
-        range = this.getSelectionRange();
-
-      return this.vmEval(text, options)
-      .then(result => {
-        if (printResult) {
-          this.printObject(editor, result.value, false, this.getPrintItAsComment());
-        } else {
-          this.setStatusMessage(result.value);
-        }
-        return result;
-        })
-        .catch(err => { this.showError(err); throw err; })
-    },
-
-    hasUnsavedCodeChanges: function hasUnsavedCodeChanges() {
-      return lively.lang.string.hashCode(this.textString)
-      !== this.state.moduleContentHash;
-    },
-
-    moduleId: function moduleId() {
-      // lively.modules.moduleEnv(this.moduleId())
-      var s = lively.net.SessionTracker.getSession();
-      return lively.modules.System.normalizeSync(`lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`);
-    },
-
+  
     uiJumpToDef: function uiJumpToDef(recorded) {
       if (!recorded) return;
-
+  
       var ast = this.withASTDo();
       if (!ast) return;
-
+  
       var decl = recorded.node;
-
+  
       if (decl) {
         this.setSelectionRange(decl.start, decl.end, true);
         var s = this.getSelection()
@@ -199,11 +154,12 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         // e.aceEditor.renderer.scrollCursorIntoView(cursor, offset, $viewMargin)
       }
     },
-
+  
+  
     uiUpdateDefList: function uiUpdateDefList() {
       var ast = this.withASTDo();
       if (!ast) return;
-
+  
       var id = this.moduleId(),
           scope = lively.modules.moduleEnv(id).recorder,
           rec = lively.modules.moduleRecordFor(id),
@@ -211,7 +167,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
           decls = lively.ast.query.declarationsOfScope(toplevel.scope, true).sortByKey("start"),
           imports = ast ? toplevel.scope.importDecls.pluck("name") : [],
           col1Width = 0,
-
+  
           items = decls
             // .filter(ea => !ea.match("__lively.modules__")) // filter getters / setters of attributes
             .map(v => {
@@ -221,7 +177,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
               if (isExport) nameLength += " [export]".length;
               if (isImport) nameLength += " [import]".length;
               col1Width = Math.max(col1Width, nameLength);
-
+  
               return {
                 isExport: isExport,
                 isImport: isImport,
@@ -237,37 +193,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
               value: val,
               string: val.printedName + lively.lang.string.indent(" = " + val.printedValue, " ", col1Width-val.printedName.length)
             }));
-
+  
       this.get("recorderList").setList(items);
       return items;
-    },
-
-    vmCompletions: function vmCompletions(prefix, options) {
-      options = lively.lang.obj.merge({targetModule: this.moduleId()}, options);
-      return lively.vm.completions.getCompletions(code =>
-        lively.vm.runEval(code, options), prefix)
-      .then(result => ({completions: result.completions, prefix: result.startLetters}))
-    },
-
-    vmEval: function vmEval(source, options) {
-      return Promise.resolve().then(() => {
-        var moduleName = this.moduleId()
-        if (!moduleName) throw new Error("No vm module selected for eval");
-
-        lively.modules.System.config({meta: {[moduleName]: {format: "esm"}}});
-
-        options = lively.lang.obj.merge({
-          targetModule: moduleName,
-          sourceURL: moduleName + "_doit_" + Date.now(),
-        }, options);
-
-        return lively.vm.runEval(source, options)
-          .then(result => { this.uiUpdateDefList(); return result; })
-          .catch(err => { this.setShowErrors(err); throw err; });
-        });
-
     }
-
+  
   }
 
   ]
@@ -275,6 +205,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
 Object.extend(lively.ide.tools.JavaScriptWorkspace, {
     open: function() {
+      // lively.ide.tools.JavaScriptWorkspace.open()
         return lively.BuildSpec('lively.ide.tools.JavaScriptWorkspace')
             .createMorph().openInWorld($world.positionForNewMorph()).comeForward();
     }

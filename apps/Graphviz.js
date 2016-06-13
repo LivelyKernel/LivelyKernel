@@ -1,4 +1,4 @@
-module('apps.Graphviz').requires().toRun(function() {
+module('apps.Graphviz').requires("lively.morphic.Complete", "lively.persistence.BuildSpec").toRun(function() {
 
 (function fixChrome_getTransformToElement_removal() {
   // for more info see

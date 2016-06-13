@@ -6464,7 +6464,6 @@ this.submorphs.reject(function(ea) { return ea === this.get('selectedTextName') 
 },
     selectTextMorph: function selectTextMorph(morph) {
     if (!morph || !morph.isText) { delete this.targetMorph; return; }
-debugger;
     lively.bindings.noUpdate(function() {
         var spec = {
             fixedWidth: !!morph.fixedWidth,

@@ -529,7 +529,7 @@ Trait('lively.morphic.SetStatusMessageTrait'),
             case "xml": mode = "xml"; break;
             case "svg": mode = "svg"; break;
             case "lisp": case "el": mode = "lisp"; break;
-            case "clj": case "cljs": case "cljx": mode = "clojure"; break;
+            case "clj": case "cljs": case "cljx": case "cljc": mode = "clojure"; break;
             case "cabal": case "hs": mode = "haskell"; break;
             case "py": mode = "python"; break;
         }
@@ -1988,6 +1988,11 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
         items.push(this.menuItemForCommand('save', cmds['doSave']));
 
+        if (lively.Config.get("codeEditorMenuShowsSettings")) {
+          items.push({isMenuItem: true, isDivider: true});
+          items.push(['settings', this.codeEditorSettingsMenuItems()]);
+        }
+
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         // modes
         this.withAceDo(function(ed) {
@@ -1996,11 +2001,6 @@ Trait('lively.morphic.SetStatusMessageTrait'),
                 items = mode.morphMenuItems(items, this);
             }
         });
-
-        if (lively.Config.get("codeEditorMenuShowsSettings")) {
-          items.push({isMenuItem: true, isDivider: true});
-          items.push(['settings', this.codeEditorSettingsMenuItems()]);
-        }
 
         return items;
     },

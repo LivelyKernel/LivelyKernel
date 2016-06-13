@@ -1430,7 +1430,7 @@ lively.morphic.Script.subclass('lively.morphic.TargetScript',
 },
 'ticking', {
     execute: function() {
-        this.target[this.selector].apply(this.target, this.args);
+        typeof this.target[this.selector] === 'function' && this.target[this.selector].apply(this.target, this.args);
     }
 },
 'testing', {

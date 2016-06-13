@@ -100,50 +100,50 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         var s = lively.net.SessionTracker.getSession();
         return lively.modules.System.normalizeSync(`lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`);
       },
-  
+
     onCodeSaved: function onCodeSaved(code) {
       this.uiUpdateDefList();
     },
-  
+
     onDoitDone: function onDoitDone(result) {
       this.uiUpdateDefList();
     },
-  
+
     onFromBuildSpecCreated: function onFromBuildSpecCreated() {
       $super();
       this.getWindow().addMorphBack(this.get("recorderList"));
       this.reset();
     },
-  
+
     onLoad: function onLoad() {
       $super();
       this.reset();
     },
-  
+
     reset: function reset() {
       this.owner.targetMorph = this;
-      
+
       this.get("vdivider").fixed = [];
       this.get("vdivider").scalingLeft = [this];
       this.get("vdivider").scalingRight = [this.get("recorderList")];
-      
+
       lively.bindings.connect(this, 'textChange', this, 'uiUpdateDefList', {
         updater: ($upd) =>
           lively.lang.fun.debounceNamed(`${this.id}-uiUpdateDefList`, 400, $upd)()});
-    
+
       delete this.state;
       lively.vm.evalStrategies.EvalableTextMorphTrait.applyTo(
         this, ['doit', 'doSave', 'evalSelection', 'doListProtocol']);
     },
-  
+
     uiJumpToDef: function uiJumpToDef(recorded) {
       if (!recorded) return;
-  
+
       var ast = this.withASTDo();
       if (!ast) return;
-  
+
       var decl = recorded.node;
-  
+
       if (decl) {
         this.setSelectionRange(decl.start, decl.end, true);
         var s = this.getSelection()
@@ -154,12 +154,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
         // e.aceEditor.renderer.scrollCursorIntoView(cursor, offset, $viewMargin)
       }
     },
-  
-  
+
     uiUpdateDefList: function uiUpdateDefList() {
       var ast = this.withASTDo();
       if (!ast) return;
-  
+
       var id = this.moduleId(),
           scope = lively.modules.moduleEnv(id).recorder,
           rec = lively.modules.moduleRecordFor(id),
@@ -167,7 +166,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
           decls = lively.ast.query.declarationsOfScope(toplevel.scope, true).sortByKey("start"),
           imports = ast ? toplevel.scope.importDecls.pluck("name") : [],
           col1Width = 0,
-  
+
           items = decls
             // .filter(ea => !ea.match("__lively.modules__")) // filter getters / setters of attributes
             .map(v => {
@@ -177,7 +176,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
               if (isExport) nameLength += " [export]".length;
               if (isImport) nameLength += " [import]".length;
               col1Width = Math.max(col1Width, nameLength);
-  
+
               return {
                 isExport: isExport,
                 isImport: isImport,
@@ -193,11 +192,11 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
               value: val,
               string: val.printedName + lively.lang.string.indent(" = " + val.printedValue, " ", col1Width-val.printedName.length)
             }));
-  
+
       this.get("recorderList").setList(items);
       return items;
     }
-  
+
   }
 
   ]

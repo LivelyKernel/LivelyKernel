@@ -659,12 +659,25 @@ apps.Graphviz.Renderer = {
 // cleanup
 
 apps.Graphviz.Simple = {
-  
+
+  initialized: false,
+
   renderDotToSVG: function(dotSource, options) {
     // apps.Graphviz.Simple.renderDotToSVG("digraph { a -> b; b -> a; }").then(svg => show(svg))
     if (!dotSource || !dotSource.trim())
       return Promise.reject(new Error("Invalid dot source: " + dotSource))
-    return apps.Graphviz.Simple.renderDotToSVGViaVizjs(dotSource, options);
+
+    var self = apps.Graphviz.Simple;
+    var initP = self.initialized ?
+      Promise.resolve() :
+      new Promise((resolve, reject) =>
+        lively.shell.run('which dot', function (err, cmd) {
+          self.initialized = cmd.code === 0 ? 'viz-server' : 'viz-browser';
+          resolve();
+        }));
+    return initP.then(() => self.initialized === "viz-browser" ?
+        self.renderDotToSVGViaVizjs(dotSource, options) :
+        self.renderDotToSVGViaServerImageMagick(dotSource, options));
   },
 
   renderDotToSVGViaVizjs: function(dotSource, options) {

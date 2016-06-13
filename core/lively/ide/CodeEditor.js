@@ -1054,11 +1054,10 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
     },
 
-    evalSelection: function(printIt) {
+    evalSelection: function(options) {
         var str = this.getSelectionOrLineString(),
             range = this.getSelectionRange(),
             result = this.tryBoundEval(str, {range: {start: {index: range[0]}, end: {index: range[1]}}});
-        if (printIt) this.insertAtCursor(String(result), true);
         return result;
     },
 
@@ -2135,6 +2134,25 @@ Trait('lively.morphic.SetStatusMessageTrait'),
 
         return null;
     }
+},
+'lively.vm hooks', {
+
+  getAllCode: function getAllCode() { return this.textString; },
+
+  getCodeForCompletions: function getCodeForCompletions() {
+    return this.saveExcursion(reset => {
+      var prefix = this.getSelectionOrLineString();
+      reset(); return prefix; })
+  },
+
+  getCodeForEval: function getCodeForEval() { return this.getSelectionMaybeInComment(); },
+
+  moduleId: function moduleId() { return this.getTargetFilePath(); },
+
+  onCodeSaved: function onCodeSaved(code) { this.savedTextString = code; },
+
+  onDoitDone: function onDoitDone(result) { }
+
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -115,9 +115,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     toDataURI: function() { return this.getContext().canvas.toDataURL(); },
 
     fromDataURI: function(uri) {
-        var ctx = this.getContext();
-        var img = new Image();
-        img.onload = function() { ctx.drawImage(img,0,0); };
+        var img = new Image(), self = this;
+        img.onload = function() {
+          var ctx = self.getContext();
+          ctx.drawImage(img,0,0); };
         img.src = uri;
     },
 

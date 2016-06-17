@@ -34,7 +34,7 @@ lively.BuildSpec('lively.ide.tools.ServerWorkspace', {
         }, __evalOptions || {});
       
       
-        var __evalStatement = lively.ast.evalSupport.evalCodeTransform(__evalStatement, __evalOptions);
+        var __evalStatement = lively.vm.evalCodeTransform(__evalStatement, __evalOptions);
         var nodejsServer = this.serverURL.asWebResource();
         return nodejsServer.post(__evalStatement).content;
     },

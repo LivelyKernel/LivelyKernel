@@ -490,7 +490,7 @@ Object.extend(lively.morphic.World, {
             editor.iframe = this;
             editor.addScript(function boundEval(__evalStatement) {
                 var ctx = this.getDoitContext() || this;
-                __evalStatement = lively.ast.evalSupport.evalCodeTransform(__evalStatement, {
+                __evalStatement = lively.vm.evalCodeTransform(__evalStatement, {
                   context: ctx,
                   topLevelVarRecorder: Global,
                   varRecorderName: "window"

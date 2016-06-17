@@ -1122,7 +1122,7 @@ lively.BuildSpec("lively.net.tools.Lively2LivelyWorkspace", {
               // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
               function processCode(code) {
-                var rewritten = lively.ast.evalSupport.evalCodeTransform(code, {
+                var rewritten = lively.vm.evalCodeTransform(code, {
                   topLevelVarRecorder: {},
                   recordGlobals: true,
                   varRecorderName: 'GLOBAL',

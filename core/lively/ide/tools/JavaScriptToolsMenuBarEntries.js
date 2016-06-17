@@ -42,11 +42,25 @@ lively.BuildSpec('lively.ide.tools.LivelySearchMenuBarEntry', lively.BuildSpec("
 
   morphMenuItems: function morphMenuItems() {
     function cmd(name) { return function() { lively.ide.commands.exec(name); }; }
+    var modules = lively.modules.loadedModules();
     return [
       ['Code search', cmd('lively.ide.codeSearch')],
       ['Search for worlds, modules, parts', cmd('lively.ide.resourceSearch')],
       ['Search for files', cmd('lively.ide.browseFiles')],
-      ['Search in files', cmd('lively.ide.CommandLineInterface.doGrepSearch')]
+      ['Search in files', cmd('lively.ide.CommandLineInterface.doGrepSearch')],
+      ['Search in module...', modules.map(m => [m, () => {
+        $world.prompt("Enter search term", function(input) {
+          lively.modules.module(m).search(input || '').then(res => {;
+            if (res.length > 0) {
+              lively.ide.CommandLineSearch.doBrowseGrepString(new URL(res[0]).fullPath());
+            }
+          });
+        }, {
+          input: '',
+          useLastInput: true,
+          historyId: 'lively.ide.CommandLineInterface.doModuleSearch.prompt'
+        });
+      }])]
     ]
   },
 

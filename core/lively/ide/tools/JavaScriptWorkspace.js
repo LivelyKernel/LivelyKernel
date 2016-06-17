@@ -95,10 +95,10 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     name: "workspace-editor",
     sourceModule: "lively.ide.CodeEditor",
 
-    moduleId: function moduleId() {
-        // lively.modules.moduleEnv(this.moduleId())
-        var s = lively.net.SessionTracker.getSession();
-        return lively.modules.System.normalizeSync(`lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`);
+    module: function module() {
+        var s = lively.net.SessionTracker.getSession(),
+            url = `lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`;
+        return lively.modules.module(url);
       },
 
     onCodeSaved: function onCodeSaved(code) {
@@ -159,9 +159,9 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       var ast = this.withASTDo();
       if (!ast) return;
 
-      var id = this.moduleId(),
-          scope = lively.modules.module(id).env().recorder,
-          rec = lively.modules.module(id).record(),
+      var mod = this.module(),
+          scope = mod.env().recorder,
+          rec = mod.record(),
           toplevel = lively.ast.query.topLevelDeclsAndRefs(ast),
           decls = lively.ast.query.declarationsOfScope(toplevel.scope, true).sortByKey("start"),
           imports = ast ? toplevel.scope.importDecls.pluck("name") : [],

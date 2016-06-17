@@ -160,8 +160,8 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       if (!ast) return;
 
       var id = this.moduleId(),
-          scope = lively.modules.moduleEnv(id).recorder,
-          rec = lively.modules.moduleRecordFor(id),
+          scope = lively.modules.module(id).env().recorder,
+          rec = lively.modules.module(id).record(),
           toplevel = lively.ast.query.topLevelDeclsAndRefs(ast),
           decls = lively.ast.query.declarationsOfScope(toplevel.scope, true).sortByKey("start"),
           imports = ast ? toplevel.scope.importDecls.pluck("name") : [],

@@ -96,10 +96,12 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
     sourceModule: "lively.ide.CodeEditor",
 
     module: function module() {
-        var s = lively.net.SessionTracker.getSession(),
-            url = `lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`;
-        return lively.modules.module(url);
-      },
+      var s = lively.net.SessionTracker.getSession(),
+          url = `lively://${s.sessionId.replace(/:/g, "_COLON_")}/lively-workspace-${this.id}`;
+      return lively.modules.module(url);
+    },
+
+    moduleId: function module() { return this.module().id; },
 
     onCodeSaved: function onCodeSaved(code) {
       this.uiUpdateDefList();

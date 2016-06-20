@@ -6,7 +6,8 @@ var JavaScriptCommandHelper = {
       var ast = codeEditorMorph.withASTDo(function(ast) { return ast; })
              || lively.ast.parse(codeEditorMorph.textString, {}),
           token = codeEditorMorph.tokenAfterPoint();
-      var identfierTypes = ["identifier", "entity.name.function", "variable.parameter"];
+
+      var identfierTypes = ["identifier", "entity.name.function", "variable.parameter", "variable.language"];
       if (token && !identfierTypes.include(token.type)) token = codeEditorMorph.tokenAtPoint();
       if (token && !identfierTypes.include(token.type)) token = null;
 

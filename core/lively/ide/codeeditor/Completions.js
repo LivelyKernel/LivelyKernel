@@ -199,7 +199,8 @@ function getCompletions(evalFunc, string, thenDo) {
         var ed = this.textMorph;
 
         var candidates = completions.reduce(function(candidates, protoGroup) {
-            var protoName = protoGroup[0], completions = protoGroup[1];
+            var protoName = protoGroup[0],
+                completions = protoGroup[1];
             return candidates.concat(completions.map(function(completion) {
                 return {
                     isListItem: true,
@@ -233,19 +234,36 @@ function getCompletions(evalFunc, string, thenDo) {
               var range = ed.aceEditor.find({needle: prefix, backwards: true, preventScroll: true})
               ed.replace(range, '');
           }
-          var id = completion.match(/^[^\(]+/)[0],
-              bracketExceptions = ["delete", "import", "export"],
-              needsBrackets = !bracketExceptions.include(id) && !lively.Class.isValidIdentifier(id);
-          if (needsBrackets) {
-            var pos = ed.getCursorPositionAce();
-            var Range = lively.ide.ace.require("ace/range").Range;
-            var beforeRange = Range.fromPoints(lively.lang.obj.merge(pos, {column:pos.column-1}), pos);
-            if (ed.getTextRange(beforeRange) === '.') ed.replace(beforeRange, '');
-            if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
-            completion = '[' +  completion + ']';
-            completion = completion.replace(/(\([^\)]*\))(.*)/, "$2$1");
+
+          var symMatch = completion.match(/Symbol\((.+)\)$|Symbol\.([^\(]+)$|Symbol\.for\((.*)\)$/);
+
+          if (symMatch) {
+            if (symMatch[1])
+              completion = `[Symbol(${symMatch[1]})]`
+            if (symMatch[2])
+              completion = `[Symbol.${symMatch[2]}]`;
+            else if (symMatch[3])
+              completion = `[Symbol.for(${symMatch[3]})]`
+            removeDot();
+          } else {
+            var id = completion.match(/^[^\(]+/)[0],
+                bracketExceptions = ["delete", "import", "export"],
+                needsBrackets = !bracketExceptions.include(id) && !lively.Class.isValidIdentifier(id);
+            if (needsBrackets) {
+              removeDot();
+              if (!completion.match(/^[0-9]+$/)) completion = Strings.print(completion);
+              completion = '[' +  completion + ']';
+              completion = completion.replace(/(\([^\)]*\))(.*)/, "$2$1");
+            }
           }
           ed.printObject(ed.aceEditor, completion, true);
+        }
+
+        function removeDot() {
+          var pos = ed.getCursorPositionAce();
+          var Range = lively.ide.ace.require("ace/range").Range;
+          var beforeRange = Range.fromPoints(lively.lang.obj.merge(pos, {column:pos.column-1}), pos);
+          if (ed.getTextRange(beforeRange) === '.') ed.replace(beforeRange, '');
         }
     },
 

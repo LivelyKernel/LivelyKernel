@@ -106,14 +106,15 @@ var JavaScriptCommands = {
     exec: function(ed, options) {
       var selectedCode = ed.$morph.getSelectionOrLineString(),
           range = ed.$morph.getSelectionRangeAce(),
+          startIndent = ed.$morph.getLine(ed.$morph.getCursorPositionAce().row, true).match(/^\s*/)[0].length,
           opts = {
             "indent_size": 2,
             "indent_char": " ",
             "eol": "\n",
-            "indent_level": 0,
+            "indent_level": startIndent,
             "indent_with_tabs": false,
             "preserve_newlines": true,
-            "max_preserve_newlines": 10,
+            "max_preserve_newlines": 100,
             "jslint_happy": false,
             "space_after_anon_function": false,
             "brace_style": "collapse",

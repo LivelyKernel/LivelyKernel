@@ -145,18 +145,24 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
         var hasSelection = expandState.range[0] !== expandState.range[1],
             p = ed.session.doc.indexToPosition(expandState.range[0]),
             token = ed.session.getTokenAt(p.row, p.column);
+
         if (token.type === "text") {
-          token = ed.session.getTokenAt(p.row, p.column+1);
+          var nextToken = ed.session.getTokenAt(p.row, p.column+1);
+          if (!hasSelection && nextToken && (nextToken.type === "comment" || nextToken.type === "string")) {
+            token = nextToken;
+            return expandOnToken();
+          }
         }
+
         var doWordSelection = !hasSelection && token && (token.type === "comment" || token.type === "string");
         if (doWordSelection) {
           // select word
-          var w = ed.$morph.wordAtPoint();
-          if (!w.match(/^\s|\s$/)) {
-            var wordRange = ed.$morph.wordRangeAtPoint();
+          var wRange = ed.session.getWordRange(p.row, p.column);
+          var w = ed.session.getTextRange(wRange);
+          if (w.length && ['`', '"', "'", ",", ".", " "].every(function(ex) { return ex !== w; })) {
             return {
-                range: [ed.session.doc.positionToIndex(wordRange.start),
-                        ed.session.doc.positionToIndex(wordRange.end)],
+                range: [ed.session.doc.positionToIndex(wRange.start),
+                        ed.session.doc.positionToIndex(wRange.end)],
                 prev: expandState
             }
           }
@@ -173,14 +179,16 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
         if (token && token.type === "string") {
           var expanded = expandOnToken(),
               innerRange = [expanded.range[0]+1, expanded.range[1]-1];
-
-          if (expandState.range[0] > innerRange[0]
-           || expandState.range[1] < innerRange[1]) {
-             return Object.assign(expanded, {range: innerRange});
-           } else if (expandState.range[0] > expanded.range[0]
-                   && expandState.range[1] < expanded.range[0]) {
-             return expanded;
-           }
+          var between = lively.lang.num.between
+          if (between(expandState.range[0], innerRange[0], innerRange[1])
+           && between(expandState.range[1], innerRange[0], innerRange[1])
+           && (expandState.range[0] > innerRange[0]
+            || expandState.range[1] < innerRange[1])) {
+               return Object.assign(expanded, {range: innerRange});
+             } else if (expandState.range[0] > expanded.range[0]
+                     && expandState.range[1] < expanded.range[0]) {
+               return expanded;
+             }
         }
 
         if (token && !hasSelection) {
@@ -205,11 +213,18 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
         }
 
         function expandOnToken() {
+          var tokenPos = tokenPosition();
+          return {
+              range: [tokenPos.tokenStart, tokenPos.tokenEnd],
+              prev: expandState
+          }
+        }
+
+        function tokenPosition() {
           var offset = ed.session.doc.positionToIndex({column: 0, row: p.row});
           return {
-              range: [offset + token.start,
-                      offset + token.start + token.value.length],
-              prev: expandState
+            tokenStart: offset + token.start,
+            tokenEnd: offset + token.start + token.value.length
           }
         }
     },

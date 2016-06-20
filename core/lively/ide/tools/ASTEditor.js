@@ -275,7 +275,6 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
         ensureLibs: function ensureLibs(thenDo) {
         // this.ensureLibs(function() { alertOK('ok'); });
         Functions.composeAsync(
-            function(next) { lively.require('lively.ast.acorn').toRun(function() { next(); }); },
             function(next) { JSLoader.loadJs(lively.module("lib.jsdiff.jsdiff").uri().toString()); Functions.waitFor(2000, function() { return typeof JsDiff !== 'undefined'; }, next); },
             function(next) {
                 JSLoader.loadJs(URL.codeBase.withFilename('lib/grasp.js').toString()); Functions.waitFor(2000, function() { return typeof grasp !== 'undefined'; }, next); 
@@ -511,12 +510,9 @@ lively.BuildSpec('lively.ide.tools.ASTEditor', {
     
         function printASTTree() {
             self.get('output').setTextMode("text");
-    
             self.get('output').textString = Strings.format("// Found %s matches\n%s",
-                nodes.length,
                 nodes.map(function(n, i) {
-                    acorn.walk.addSource(n, code.slice(n.start, n.end), false, true);
-                    return "// match " + i + ':\n' + lively.ast.acorn.printAst(n, {printSource: true, printPositions: true});
+                    return "// match " + i + ':\n' + lively.ast.printAst(n, {printSource: true, printPositions: true});
                 }).join('\n\n'));
         }    
     

@@ -761,7 +761,12 @@ Object.subclass('lively.ide.CodeEditor.KeyboardShortcuts',
             bindKey: "Ctrl-Shift-/",
             exec: function(ed) {
                 ed.pushEmacsMark && ed.pushEmacsMark(ed.getCursorPosition());
-                ed.findAll(ed.$morph.getTextRange()); },
+                // remember first selection...
+                var range = ed.selection.getRange();
+                ed.findAll(ed.$morph.getTextRange());
+                // ... and make it the current of the many
+                ed.selection.addRange(range);
+            },
             readOnly: true
         }, {
             name: "multiSelectCounter",

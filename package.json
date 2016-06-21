@@ -37,7 +37,5 @@
   },
   "config": {
     "testQuery": ""
-  },
-  "devDependencies": {},
-  "optionalDependencies": {}
+  }
 }

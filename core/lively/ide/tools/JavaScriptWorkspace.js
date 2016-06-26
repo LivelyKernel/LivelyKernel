@@ -135,7 +135,7 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
       delete this.state;
       lively.vm.evalStrategies.EvalableTextMorphTrait.applyTo(
-        this, ['doit', 'doSave', 'evalSelection', 'doListProtocol']);
+        this, ['doit', 'doSave', 'evalSelection', 'doListProtocol', 'printInspect']);
     },
 
     uiJumpToDef: function uiJumpToDef(recorded) {

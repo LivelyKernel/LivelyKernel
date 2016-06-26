@@ -13,6 +13,7 @@
     "async": "~0.9",
     "babel-core": "^6.4.5",
     "babel-preset-es2015": "^6.3.13",
+    "babel-regenerator-runtime": "^6.5.0",
     "colorize": "~0.1",
     "escodegen": "^1.8.0",
     "life_star": ">=0.8.5",

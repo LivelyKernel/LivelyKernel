@@ -5,11 +5,10 @@
     ["libsFile", "core/lib/lively-libs-debug.js", "Library code."],
 
     ["bootstrapNodejsModules", [
-      "babel-core", "babel-regenerator-runtime", "systemjs"
+      "babel-regenerator-runtime", "systemjs"
     ], "Base requirements for loading inside a nodejs environment, precedes bootstrapFiles."],
 
     ["bootstrapBrowserFiles", [
-			"node_modules/lively.modules/node_modules/babel-core/browser.js",
 			"node_modules/lively.modules/node_modules/babel-regenerator-runtime/runtime.js",
 			"node_modules/lively.modules/node_modules/systemjs/dist/system.src.js"
     ], "Base requirements for loading inside a browser environment, precedes bootstrapFiles."],

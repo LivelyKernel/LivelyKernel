@@ -458,7 +458,7 @@
 
   "lively.PartsBin": [
     ["PartCachingEnabled", true, "Whether parts are cached after they are loaded the first time"],
-    ["partsbinURLs", ["http://lively-web.org/PartsBin/"], "What PartsBins to offer for upload and download except for the local"]
+    ["partsbinURLs", ["http://lively-web.org/PartsBin/", "https://dev.lively-web.org/PartsBin/"], "What PartsBins to offer for upload and download except for the local"]
   ],
 
   "lively.morphic.Windows": [

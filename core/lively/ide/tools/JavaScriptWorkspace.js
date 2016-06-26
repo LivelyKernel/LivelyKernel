@@ -197,6 +197,38 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
 
       this.get("recorderList").setList(items);
       return items;
+    },
+
+    codeEditorMenuItems: function codeEditorMenuItems() {
+      var items = $super(), self = this;
+
+      var index = items.indexOf(items.find(ea => ea[0] === "settings")) - 1;
+      if (index < 0) index = 0;
+
+      items.splice(index, 0, ["eval backend", [
+        ["local eval (default)", () => setEvalStrategy(new lively.vm.evalStrategies.LivelyVmEvalStrategy())],
+
+        ["server eval via HTTP", () => $world.prompt("Enter the URL for HTTP evals", (input) => {
+          if (!input) return $world.inform("Canceled");
+          if (!URL.isURL(input)) return $world.inform(`${input} is not a url!`);
+          setEvalStrategy(new lively.vm.evalStrategies.HttpEvalStrategy(input));
+        }, {
+          input: lively.vm.evalStrategies.HttpEvalStrategy.defaultURL,
+          historyId: "lively.ide.codeeditor.httpEvalStrategyURL",
+          useLastInput: true
+        })],
+
+        ["simple eval (no capturing)", () => setEvalStrategy(new lively.vm.evalStrategies.SimpleEvalStrategy())]
+      ]])
+
+      return items;
+
+      // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+      function setEvalStrategy( strategy) {
+        lively.lang.Path("state.evalStrategy").set(self, strategy, true);
+      }
+
     }
 
   }

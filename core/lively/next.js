@@ -34,6 +34,7 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       }],
       {isMenuItem: true, isDivider: true},
       ["Show package summary", printPackageSummary],
+      ["Show PartsBin summary", printPartsBinSummary],
       ["Update lively.next packages and objects", updateLivelyNext],
       ["Reload all lively.next packages", reloadLivelyNext],
     ]
@@ -63,6 +64,13 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       askForBaseDir().then(baseDir => lively.modules.registerPackage("node_modules/lively.installer")
         .then(() => System.import("lively.installer/status.js"))
         .then(status => status.openPackageSummary(baseDir)))
+        .catch(err => err !== "Canceled" && $world.logError(err));
+    }
+
+    function printPartsBinSummary() {
+      lively.modules.registerPackage("node_modules/lively.installer")
+        .then(() => System.import("lively.installer/status.js"))
+        .then(status => status.openPartsBinSummary("PartsBin/lively.modules", "https://dev.lively-web.org/", URL.root))
         .catch(err => err !== "Canceled" && $world.logError(err));
     }
 

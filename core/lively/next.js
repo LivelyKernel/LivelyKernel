@@ -46,6 +46,13 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       }).then(baseDir => baseDir ? baseDir : Promise.reject("Canceled"));
     }
 
+    function askForToServURL() {
+      return $world.prompt("Where is the destination server for lively.modules parts?", {
+        input: Config.rootPath,
+        historyId: "lively.next-update-to-serv-chooser"
+      }).then(toURL => toURL ? toURL : Promise.reject("Canceled"));
+    }
+
     function reloadLivelyNext() {
       lively.modules.registerPackage("node_modules/lively-system-interface")
         .then(() => System.import("lively-system-interface/lively-kernel-extensions.js"))
@@ -68,9 +75,9 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
     }
 
     function printPartsBinSummary() {
-      lively.modules.registerPackage("node_modules/lively.installer")
+      askForToServURL().then(toURL => lively.modules.registerPackage("node_modules/lively.installer")
         .then(() => System.import("lively.installer/status.js"))
-        .then(status => status.openPartsBinSummary("PartsBin/lively.modules", "https://dev.lively-web.org/", URL.root))
+        .then(status => status.openPartsBinSummary("PartsBin/lively.modules", "https://dev.lively-web.org/", toURL)))
         .catch(err => err !== "Canceled" && $world.logError(err));
     }
 

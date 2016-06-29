@@ -32,6 +32,10 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         win.openInWorldCenter().comeForward();
         win.targetMorph.update().then(() => win.targetMorph.packageCollapseAll());
       }],
+      ["Open module editor", function() {
+        var win = lively.PartsBin.getPart("ModuleEditor", "PartsBin/lively.modules");
+        win.openInWorldCenter().comeForward();
+      }],
       {isMenuItem: true, isDivider: true},
       ["Show package summary", printPackageSummary],
       ["Show PartsBin summary", printPartsBinSummary],

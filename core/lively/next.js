@@ -61,9 +61,10 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
     }
 
     function updateLivelyNext() {
-      askForBaseDir().then(baseDir => lively.modules.registerPackage("node_modules/lively.installer")
+      askForBaseDir().then(baseDir => askForToServURL()
+        .then(toURL => lively.modules.registerPackage("node_modules/lively.installer")
         .then(() => System.import("lively.installer/install.js"))
-        .then(installer => installer.install(baseDir)))
+        .then(installer => installer.install(baseDir, toURL))))
         .catch(err => err !== "Canceled" && $world.inform("Error updating:\n" + err.stack || err));
     }
 

@@ -37,7 +37,7 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         win.openInWorldCenter().comeForward();
       }],
       {isMenuItem: true, isDivider: true},
-      ["Show package summary", printPackageSummary],
+      ["Show package updates and status", showPackageUpdatesAndStatus],
       ["Show PartsBin summary", printPartsBinSummary],
       ["Update lively.next packages and objects", updateLivelyNext],
       ["Reload all lively.next packages", reloadLivelyNext],
@@ -72,10 +72,10 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         .catch(err => err !== "Canceled" && $world.inform("Error updating:\n" + err.stack || err));
     }
 
-    function printPackageSummary() {
+    function showPackageUpdatesAndStatus() {
       askForBaseDir().then(baseDir => lively.modules.registerPackage("node_modules/lively.installer")
-        .then(() => System.import("lively.installer/status.js"))
-        .then(status => status.openPackageSummary(baseDir)))
+        .then(() => System.import("lively.installer/package-status.js"))
+        .then(status => new status.ReporterWidget(baseDir).morphicSummaryAsMorph()))
         .catch(err => err !== "Canceled" && $world.logError(err));
     }
 

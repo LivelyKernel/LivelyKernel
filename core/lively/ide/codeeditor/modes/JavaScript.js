@@ -139,94 +139,55 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
     }
 },
 'expansion', {
-    
+
     expandRegion: function(ed, src, ast, expandState) {
         // use token if no selection
         var hasSelection = expandState.range[0] !== expandState.range[1],
             p = ed.session.doc.indexToPosition(expandState.range[0]),
             token = ed.session.getTokenAt(p.row, p.column);
 
-        if (token.type === "text") {
-          var nextToken = ed.session.getTokenAt(p.row, p.column+1);
-          if (!hasSelection && nextToken && (nextToken.type === "comment" || nextToken.type === "string")) {
-            token = nextToken;
-            return expandOnToken();
-          }
+        if (!hasSelection && token && ["keyword", "identifier"].include(token.type)) {
+          return expandOnToken(token)
         }
 
-        var doWordSelection = !hasSelection && token && (token.type === "comment" || token.type === "string");
-        if (doWordSelection) {
-          // select word
-          var wRange = ed.session.getWordRange(p.row, p.column);
-          var w = ed.session.getTextRange(wRange);
-          if (w.length && ['`', '"', "'", ",", ".", " "].every(function(ex) { return ex !== w; })) {
-            return {
-                range: [ed.session.doc.positionToIndex(wRange.start),
-                        ed.session.doc.positionToIndex(wRange.end)],
-                prev: expandState
-            }
-          }
-        }
-
-        if (token && token.type === "comment") {
-          // select whole comment if not selected already
-          var expanded = expandOnToken();
-          if (expandState.range[0] > expanded.range[0]
-           || expandState.range[1] < expanded.range[1])
-             return expanded;
-        }
-
-        if (token && token.type === "string") {
-          var expanded = expandOnToken(),
-              innerRange = [expanded.range[0]+1, expanded.range[1]-1];
-          var between = lively.lang.num.between
-          if (between(expandState.range[0], innerRange[0], innerRange[1])
-           && between(expandState.range[1], innerRange[0], innerRange[1])
-           && (expandState.range[0] > innerRange[0]
-            || expandState.range[1] < innerRange[1])) {
-               return Object.assign(expanded, {range: innerRange});
-             } else if (expandState.range[0] > expanded.range[0]
-                     && expandState.range[1] < expanded.range[0]) {
-               return expanded;
-             }
-        }
-
-        if (token && !hasSelection) {
-            p.column++;
-            if (token && !token.type.match(/^(paren|punctuation)/) && token.value !== ",")
-              return expandOnToken();
-        }
-
-        // if selection or no token at point use AST
         ast = ast || (new lively.ide.codeeditor.modes.JavaScript.Navigator()).ensureAST(src);
         var pos = expandState.range[0],
-            nodes = acorn.walk.findNodesIncluding(ast, pos),
-            containingNode = nodes.reverse().detect(function(node) {
+            nodes = lively.ast.query.nodesAtIndex(ast, pos),
+            containingNode = nodes.reverse().find(function(node) {
                 return node.start < expandState.range[0]
                     || node.end > expandState.range[1]; });
 
         if (!containingNode) return expandState;
 
-        return {
-            range: [containingNode.start, containingNode.end],
-            prev: expandState
+        var start = containingNode.start,
+            end = containingNode.end;
+
+        if (containingNode.type === "Literal" && (containingNode.raw || "").match(/^['"`]/)
+         && (expandState.range[0] !== containingNode.start && expandState.range[1] !== containingNode.end)
+         && (containingNode.start+1 < expandState.range[0]
+          || containingNode.end-1 > expandState.range[1])) {
+          return {range: [start+1, end-1],prev: expandState}
         }
 
-        function expandOnToken() {
-          var tokenPos = tokenPosition();
-          return {
-              range: [tokenPos.tokenStart, tokenPos.tokenEnd],
-              prev: expandState
-          }
+        return {range: [start, end],prev: expandState}
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        function expandOnToken(t) {
+          var tokenPos = tokenPosition(t || token);
+          return {range: [tokenPos.tokenStart, tokenPos.tokenEnd], prev: expandState}
         }
 
         function tokenPosition() {
-          var offset = ed.session.doc.positionToIndex({column: 0, row: p.row});
+          var offset = posToIdx({column: 0, row: p.row});
           return {
             tokenStart: offset + token.start,
             tokenEnd: offset + token.start + token.value.length
           }
         }
+
+        function posToIdx(pos) { return ed.session.doc.positionToIndex(pos); }
+        function idxToPos(idx) { return ed.session.doc.indexToPosition(idx); }
     },
 
     contractRegion: function(ed, src, ast, expandState) {

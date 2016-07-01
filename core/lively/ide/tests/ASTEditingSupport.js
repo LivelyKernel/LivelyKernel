@@ -118,32 +118,62 @@ AsyncTestCase.subclass('lively.ide.tests.ASTEditingSupport.ExpandingRanges',
         var inited = false;
         this.editor.withAceDo(function() { inited = true; });
         this.waitFor(function() { return !!inited }, 10, run);
+    },
+    
+    assertExpansionOrContraction: function(method, cursorIndexOrRangeOrState, expectedSelectedString) {
+      var e = this.editor, expander = this.sut,
+          state = Array.isArray(cursorIndexOrRangeOrState) ?
+            {range: cursorIndexOrRangeOrState} :
+              typeof cursorIndexOrRangeOrState === "object" ?
+                cursorIndexOrRangeOrState :
+                {range: [cursorIndexOrRangeOrState, cursorIndexOrRangeOrState]},
+          expanded = expander[method](e.aceEditor, e.textString, null, state),
+          text = e.getTextRange(
+            e.createRange(e.indexToPosition(expanded.range[0]),
+            e.indexToPosition(expanded.range[1])))
+      this.assertEquals(expectedSelectedString, text);
+    },
+
+    assertExpansion: function(cursorIndexOrRange, expectedSelectedString) {
+      this.assertExpansionOrContraction("expandRegion", cursorIndexOrRange, expectedSelectedString);
+    },
+
+    assertContraction: function(cursorIndexOrRange, expectedSelectedString) {
+      this.assertExpansionOrContraction("contractRegion", cursorIndexOrRange, expectedSelectedString);
     }
+
 },
 'testing', {
 
     testExpandRegion: function() {
         var src = this.editor.textString = "a + 'foo bar'";
-        this.assertMatches({range: [9, 12]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [10,10]}));
-        this.assertMatches({range: [0, 13]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [4, 13]}));
-        this.assertMatches({range: [4, 13]}, this.sut.contractRegion(this.editor.aceEditor, src, null, {range: [9, 13], prev: {range: [4,13]}}));
+        
+        this.assertMatches(
+          {prev: {range: [10, 10]}, range: [5, 12]},
+          this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [10,10]}));
+        this.assertExpansion([4, 13], "a + 'foo bar'");
+        this.assertContraction({range: [9, 13], prev: {range: [4,13]}}, "'foo bar'");
 
         // src = this.editor.textString = "a.b.c";
-        this.assertMatches({range: [4, 13]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [4,4]}));
-        this.assertMatches({range: [4, 13]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [4,5]}));
+        this.assertExpansion(4, "'foo bar'");
+        this.assertExpansion([4, 5], "'foo bar'");
         this.done();
     },
 
     testExpandOnKeyStringLiteral: function() {
         var src = this.editor.textString = "var x = {foo: 234}";
-        this.assertMatches({range: [9, 12]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [10,10]})); // first "o"
+        this.assertExpansion(9, "foo");
+        this.assertExpansion(10, "foo");
+        this.assertExpansion(8, "{foo: 234}");
         this.done();
     },
 
     testExpandOnString: function() {
         var src = this.editor.textString = "var x = 'hello world'";
         this.sut = new lively.ide.codeeditor.modes.JavaScript.Navigator();
-        this.assertMatches({range: [9,14]}, this.sut.expandRegion(this.editor.aceEditor, src, null, {range: [12,12]})); // sec "l"
+        this.assertExpansion(12, "hello world")
+        this.assertExpansion(8, "'hello world'")
+        this.assertExpansion(21, "'hello world'")
         this.done();
     }
 

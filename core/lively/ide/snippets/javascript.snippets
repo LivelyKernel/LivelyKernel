@@ -236,6 +236,8 @@ snippet promch
 	])
 snippet Prom
 	new Promise((resolve, reject) => {$0})
+	${M1?:${1:list}}.${M4?${M4}:${2:forEach}}(${3:ea} => {$0});
+# collection inject
 snippet then
 regex /(\.)?/then|the|th/
 	${M1?:.}then(${1:($2)} => $0)
@@ -385,3 +387,6 @@ regex /\b/expo?r?t?/
 # strings
 snippet $
 	\${${0:code}}
+snippet destr_assign
+regex /(var|let|const)(\s+)?/{\s*/}?/
+	${M1?:var}${M2?: }{${1:prop}} = ${0:expr}

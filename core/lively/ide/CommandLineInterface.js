@@ -65,17 +65,21 @@ Object.subclass('lively.ide.CommandLineInterface.Command',
     getEndTime: function() { return this._endTime ? new Date(this._endTime) : null; },
 
     kill: function(signal, thenDo) {
-      var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
-      if (this._done) {
-          thenDo && thenDo();
-      } else if (lively.ide.CommandLineInterface.isScheduled(this, group)) {
-          this._killed = true;
-          lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
-          thenDo && thenDo();
-      } else {
-          this._killed = true;
-          lively.ide.CommandLineInterface.kill(this, thenDo);
-      }
+      return new Promise((resolve, reject) => {
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
+        if (this._done) {
+            thenDo && thenDo();
+            resolve();
+        } else if (lively.ide.CommandLineInterface.isScheduled(this, group)) {
+            this._killed = true;
+            lively.ide.CommandLineInterface.unscheduleCommand(this, this.getGroup());
+            thenDo && thenDo();
+            resolve();
+        } else {
+            this._killed = true;
+            lively.ide.CommandLineInterface.kill(this, thenDo).then(resolve, reject);
+        }
+      })
     },
 
     resultString: function(bothErrAndOut) {
@@ -343,19 +347,23 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
     },
 
     kill: function(signal, thenDo) {
-        thenDo = Functions.once(thenDo);
-        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup;
-        var isScheduled = lively.ide.CommandLineInterface.isScheduled(this, group);
+      thenDo = thenDo && lively.lang.fun.once(thenDo);
+      return new Promise((resolve, reject) => {
+        var group = this.getGroup() || lively.ide.CommandLineInterface.defaultGroup,
+            isScheduled = lively.ide.CommandLineInterface.isScheduled(this, group);
+
         if (this._done) {
             isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
+            resolve();
         } else if (!this._started && lively.ide.CommandLineInterface.isScheduled(this, this.getGroup())) {
             this._killed = true;
             isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(this, group);
             thenDo && thenDo();
+            resolve();
         } else {
             var pid = this.getPid();
-            if (!pid) { thenDo && thenDo(new Error('Command has no pid!'), null); }
+            if (!pid) { var err = new Error('Command has no pid!'); thenDo && thenDo(err, null); reject(err); }
             var self = this;
             signal = signal || "SIGKILL";
             this.send('stopShellCommand', {signal: signal, pid:pid} , function(err, answer) {
@@ -365,8 +373,10 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
                 self._killed = !running; // hmmmmm
                 isScheduled && lively.ide.CommandLineInterface.unscheduleCommand(self, group);
                 thenDo && thenDo(err, answer);
+                err ? reject(err) : resolve(answer);
             });
         }
+      });
     }
 },
 'internal', {
@@ -650,8 +660,10 @@ Object.extend(lively.ide.CommandLineInterface, {
         /*
         lively.ide.CommandLineInterface.kill();
         */
-        this.commandLineServerURL.asWebResource().beAsync().withJSONWhenDone(function(json) {
-            thenDo && thenDo(json.message ? json.message : json); }).del();
+        new Promise((resolve, reject) => {
+          this.commandLineServerURL.asWebResource().beAsync().withJSONWhenDone(function(json) {
+              thenDo && thenDo(json.message ? json.message : json); resolve(); }).del();
+        })
     },
 
     getWorkingDirectory: function(thenDo) {

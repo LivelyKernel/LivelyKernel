@@ -38,7 +38,7 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       }],
       {isMenuItem: true, isDivider: true},
       ["Show package updates and status", showPackageUpdatesAndStatus],
-      ["Show PartsBin summary", printPartsBinSummary],
+      ["Show PartsBin updates and status", showPartsBinUpdatesAndStatus],
       ["Update lively.next packages and objects", updateLivelyNext],
       ["Reload all lively.next packages", reloadLivelyNext],
     ]
@@ -76,6 +76,16 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       askForBaseDir().then(baseDir => lively.modules.registerPackage("node_modules/lively.installer")
         .then(() => System.import("lively.installer/package-status.js"))
         .then(status => new status.ReporterWidget(baseDir).morphicSummaryAsMorph()))
+        .catch(err => err !== "Canceled" && $world.logError(err));
+    }
+    
+    function showPartsBinUpdatesAndStatus() {
+      askForBaseDir().then(baseDir => askForToServURL()
+        .then(toURL => lively.modules.registerPackage("node_modules/lively.installer")
+          .then(() => System.import("lively.installer/partsbin-status.js")
+            .then(status =>
+          new status.ReporterWidget(baseDir, "PartsBin/lively.modules", "https://dev.lively-web.org/", toURL)
+            .morphicSummaryAsMorph()))))
         .catch(err => err !== "Canceled" && $world.logError(err));
     }
 

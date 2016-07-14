@@ -74,7 +74,13 @@ lively.BuildSpec('lively.morphic.LoadingIndicator', {
             this.setPositionCentered(this.world().visibleBounds().extent().scaleBy(0.5));
         });
     },
-    setLabel: function setLabel(text) { this.get('Text').textString = text; }
+    setLabel: function setLabel(text) {
+        var t = this.get('Text'), self = this;
+        t.textString = text;
+        t.growOrShrinkToFit();
+        t.setPositionCentered(this.innerBounds().center());
+        (function() { t.setPositionCentered(self.innerBounds().center()); }).delay(0);
+    }
 });
 
 Object.extend(lively.morphic.tools.LoadingIndicator, {

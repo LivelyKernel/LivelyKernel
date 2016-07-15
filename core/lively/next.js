@@ -36,6 +36,12 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         var win = lively.PartsBin.getPart("ModuleEditor", "PartsBin/lively.modules");
         win.openInWorldCenter().comeForward();
       }],
+      ["Open change sorter", function() {
+        lively.modules.registerPackage("node_modules/lively.changesets").then(() => {
+          const win = lively.PartsBin.getPart("ChangeSorter", "PartsBin/lively.modules");
+          win.openInWorldCenter().comeForward();
+        });
+      }],
       {isMenuItem: true, isDivider: true},
       ["Show package updates and status", showPackageUpdatesAndStatus],
       ["Show PartsBin updates and status", showPartsBinUpdatesAndStatus],

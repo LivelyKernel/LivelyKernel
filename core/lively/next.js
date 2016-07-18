@@ -3,11 +3,14 @@ module('lively.next').requires("lively.morphic.tools.MenuBar").toRun(function() 
 // from here we just trigger a hook to load lively.system / lively.next
 // including the new module system on world load
 
+var bootstrapped = lively.lang.promise.deferred();
+
 lively.whenLoaded(function() {
   lively.modules.registerPackage("node_modules/lively-system-interface")
     .then(() => System.import("lively-system-interface/lively-kernel-extensions.js"))
     .then(ext => ext.bootstrapLivelySystem())
-    .catch(show.curry("%s"));
+    .then(() => bootstrapped.resolve())
+    .catch(err => { bootstrapped.reject(err); $world.logError(err)})
 });
 
 
@@ -43,9 +46,12 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         });
       }],
       {isMenuItem: true, isDivider: true},
+      ["create a new morphic world", function() { lively.next.createNewMorphicWorld(); }],
+      
+      {isMenuItem: true, isDivider: true},
       ["Show package updates and status", showPackageUpdatesAndStatus],
       ["Show PartsBin updates and status", showPartsBinUpdatesAndStatus],
-      ["Update lively.next packages and objects", updateLivelyNext],
+      // ["Update lively.next packages and objects", updateLivelyNext],
       ["Reload all lively.next packages", reloadLivelyNext],
     ]
 
@@ -111,6 +117,16 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
 // lively.morphic.tools.MenuBar.openOnWorldLoad()
 
 Object.extend(lively.next, {
+
+  bootstrapped: bootstrapped.promise,
+
+  createNewMorphicWorld: function() {
+    lively.next.bootstrapped
+      .then(() => window.lively.modules.importPackage("node_modules/lively.morphic"))
+      .then(() => window.System.import("lively.morphic/old-lively-helpers.js"))
+      .then(helpers => helpers.createWorld())
+      .catch(err => window.$world.logError(err))
+  },
 
   getMenuBarEntries: function() {
     return [lively.BuildSpec('lively.next.MenuBarEntry').createMorph()]

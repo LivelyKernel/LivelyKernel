@@ -2684,15 +2684,13 @@ lively.morphic.Box.subclass("lively.morphic.TitleBar",
     onMouseDown: function (evt) {
         //Functions.False,
         // TODO: refactor to evt.hand.clickedOnMorph when everything else is ready for it
-        evt.hand.clickedOnMorph = this.windowMorph;
-        evt.world.clickedOnMorph = this.windowMorph;
-    },
-    onMouseUp: function(evt) {
-      if (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown())) {
-        this.showResizeMenu();
-        evt.stop(); return;
-      }
-      return false;
+        if (evt.isRightMouseButtonDown() || (UserAgent.isMacOS && evt.isCtrlDown())) {
+          this.showResizeMenu();
+          evt.stop(); return;
+        } else {
+          evt.hand.clickedOnMorph = this.windowMorph;
+          evt.world.clickedOnMorph = this.windowMorph;
+        }
     }
 });
 

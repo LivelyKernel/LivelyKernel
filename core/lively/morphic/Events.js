@@ -1669,6 +1669,10 @@ lively.morphic.World.addMethods(
          if (this.selectionMorph
           && this.selectionMorph.owner
           && evt.getTargetMorph() === this) { this.resetSelection(); }
+
+      if (this.currentMenu && !evt.isRightMouseButtonDown() && !evt.getTargetMorph().isMenuItemMorph)
+          evt.hand.removeOpenMenu(evt);
+
         return false;
     },
     onMouseUp: function (evt) {
@@ -1690,9 +1694,6 @@ lively.morphic.World.addMethods(
             Global.that.show && Global.that.show();
             return true;
         }
-
-        if (this.currentMenu && !evt.isRightMouseButtonDown() && !evt.getTargetMorph().isMenuItemMorph)
-            evt.hand.removeOpenMenu(evt);
 
         if (!evt.isCommandKey() && (!evtTarget || !evtTarget.isHalo) && !this.ignoreHalos) {
             this.removeHalosOfCurrentHaloTarget();

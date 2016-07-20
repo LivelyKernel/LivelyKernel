@@ -811,9 +811,7 @@ lively.morphic.Text.subclass('lively.morphic.AccordionSection',
 },
 'events', {
     onMouseUp: function(evt) {
-        if (evt.isLeftMouseButtonDown()) {
-            this.owner.activateSection(this);
-        }
+      this.owner.activateSection(this);
     },
     open: function() {
         this.textString = "▼ " + this.textString.substring(2);

@@ -163,7 +163,7 @@ lively.morphic.Morph.subclass('lively.morphic.Button',
 
     isValidEvent: function(evt) {
         if (!this.isActive) return false;
-        if (evt.isLeftMouseButtonDown() && !evt.isCommandKey()) return true;
+        if ((evt.type.match(/up$/i) || evt.isLeftMouseButtonDown()) && !evt.isCommandKey()) return true;
         if (evt.isKeyboardEvent && evt.keyCode === Event.KEY_RETURN) return true;
         return false;
     },
@@ -307,9 +307,7 @@ lively.morphic.ImageButton.subclass('lively.morphic.ImageOptionButton',
     },
 
     onMouseUp: function(evt) {
-        if (this.isActive && evt.isLeftMouseButtonDown()
-                && !evt.isCommandKey() && !this.value && this.otherButtons) {
-
+        if (this.isActive && !evt.isCommandKey() && !this.value && this.otherButtons) {
             this.setValue(true);
             this.otherButtons.each(function(btn){btn.setValue(false);});
             return false;

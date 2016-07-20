@@ -218,7 +218,7 @@ lively.morphic.Box.subclass('lively.morphic.OldList',
         return false;
     },
     onMouseUp: function (evt) {
-        if (evt.isLeftMouseButtonDown()) {
+        if (!evt.isCommandKey()) {
             var idx = this.renderContextDispatch('getItemIndexFromEvent', evt);
             // don't update when selection can't be found
             // this happens e.g. when clicked on a scrollbar

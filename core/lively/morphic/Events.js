@@ -1,4 +1,4 @@
-module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib(Config.usePointerevents && {url: Config.codeBase + 'lib/pointerevents/pointerevents.dev.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
+module('lively.morphic.Events').requires('lively.morphic.Core', 'lively.morphic.TextCore', 'lively.morphic.Clipboard', 'lively.Traits', 'lively.ide.commands.default').requiresLib(Config.usePointerevents && {url: Config.codeBase + 'lib/pointerevents/pep-0.4.1.js', loadTest: function() { return !!window.PointerEvent;}}).toRun(function() {
 
 lively.morphic.EventSimulator = {
     createKeyboardEvent: function(spec) {
@@ -998,7 +998,7 @@ handleOnCapture);
             completeClick = evt.getTargetMorph() === this,
             internalCompleteClick = evt.hand.internalClickedOnMorph === this,
             invokeHalos = (evt.hand.haloTarget === this) && (
-                            (evt.isLeftMouseButtonDown() && evt.isCommandKey())
+                            evt.isCommandKey()
                          || (this.showsHalosOnRightClick && evt.isRightMouseButtonDown()));
 
         // delayed so that the event onMouseUp event handlers that
@@ -1029,7 +1029,7 @@ handleOnCapture);
         // From this point, events can be ignored (grab, onClick, ...)
         if (this.eventsAreIgnored && !this.isHalo) return false;
 
-        if (completeClick && evt.isLeftMouseButtonDown() && this.grabMe(evt)) return true;
+        if (completeClick && this.grabMe(evt)) return true;
 
         return this.onMouseUp(evt);
     },

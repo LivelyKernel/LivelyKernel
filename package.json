@@ -29,6 +29,7 @@
     "lively.resources": "*",
     "lively.serializer": "*",
     "lively.vm": "*",
+    "mocha-es6": "*",
     "mysql": "^2.9.0",
     "optparse": "~1.0",
     "shelljs": "^0.5",

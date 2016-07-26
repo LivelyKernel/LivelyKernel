@@ -47,12 +47,12 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       }],
       {isMenuItem: true, isDivider: true},
       ["create a new morphic world", function() { lively.next.createNewMorphicWorld(); }],
-      
-      {isMenuItem: true, isDivider: true},
-      ["Show package updates and status", showPackageUpdatesAndStatus],
-      ["Show PartsBin updates and status", showPartsBinUpdatesAndStatus],
-      // ["Update lively.next packages and objects", updateLivelyNext],
       ["Reload all lively.next packages", reloadLivelyNext],
+
+      {isMenuItem: true, isDivider: true},
+      ["Update lively.next...", updateLivelyNext],
+      ["Show package updates and status...", showPackageUpdatesAndStatus],
+      ["Show PartsBin updates and status...", showPartsBinUpdatesAndStatus],
     ]
 
     function askForBaseDir() {
@@ -90,7 +90,7 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
         .then(status => new status.ReporterWidget(baseDir).morphicSummaryAsMorph()))
         .catch(err => err !== "Canceled" && $world.logError(err));
     }
-    
+
     function showPartsBinUpdatesAndStatus() {
       askForBaseDir().then(baseDir => askForToServURL()
         .then(toURL => lively.modules.registerPackage("node_modules/lively.installer")

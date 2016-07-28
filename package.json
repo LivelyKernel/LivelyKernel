@@ -27,6 +27,7 @@
     "lively.modules": "*",
     "lively.morphic": "*",
     "lively.sync": "*",
+    "lively.notifications": "*",
     "lively.resources": "*",
     "lively.serializer": "*",
     "lively.serializer2": "*",

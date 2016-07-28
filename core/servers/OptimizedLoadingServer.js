@@ -71,6 +71,7 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
           .concat([
       	    "node_modules/lively.lang/dist/lively.lang.dev.js",
       	    "node_modules/lively.ast/dist/lively.ast_no-deps.js",
+      	    "node_modules/lively.notifications/dist/lively.notifications_no-deps.js",
       	    "node_modules/lively.modules/dist/lively.modules_no-deps.js",
       	    "node_modules/lively.vm/dist/lively.vm_no-deps.js"]),
         cacheFile = path.join(cacheDir, file.replace(/\//g, "_")),

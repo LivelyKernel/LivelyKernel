@@ -1048,6 +1048,7 @@
 
     // ------- generic load support ----------
     Global.LivelyLoader = {
+        LoadingScreen: LoadingScreen,
         libsFile: libsFile,
         libsFiles: libsFiles,
         codeBase: codeBase,

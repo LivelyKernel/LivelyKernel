@@ -265,7 +265,6 @@ Trait('TextChunkOwner',
         return domChanged;
     }
 },
-
 'debugging', {
     isInChunkDebugMode: function() {
         return !!this.chunkDebugMode;
@@ -306,6 +305,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         this.charsTyped = '';
         this.evalEnabled = false;
         if (this.prepareForTextMutationRecording) this.prepareForTextMutationRecording();
+        this.undoRedoMarkup = null;  // save getRichTextMarkup here between changes
     }
 },
 'styling', {
@@ -671,7 +671,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
 
     onKeyDown: function(evt) {
         this.cachedTextString = null;
-
         var shortCutResults = this.shortcutHandlers.invoke('invoke', evt, this);
         if (shortCutResults.include(true)) {
             evt.stop();
@@ -698,10 +697,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         if (c === Event.KEY_RIGHT) return this.onRightPressed(evt);
         if (c === Event.KEY_UP) return this.onUpPressed(evt);
         if (c === Event.KEY_DOWN) return this.onDownPressed(evt);
-
         return true;
     },
     onKeyUp: function(evt) {
+
         // actually it should only be necessary to null the text cache here, it should
         // be possible to remove cachedTextString = null from onKeyPress and onKeyDown
         this.cachedTextString = null
@@ -711,22 +710,20 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         if (this.attributeConnections) {
             lively.bindings.signal(this, 'textString', this.textString);
         }
-
         this.fit();
-
         if (evt.isShiftDown()) {
             this.priorSelectionRange = this.getSelectionRange();
         }
-        
         if (UserAgent.isChrome && UserAgent.isMobile) {
             this.onKeyPress(evt);
         }
-
         evt.stop();
+
         return true;
     },
 
     onKeyPress: function(evt) {
+    
         this.cachedTextString = null;
 
         // save info for 'More' command
@@ -735,12 +732,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var key = evt.getKeyChar();
         if (key && key.toLowerCase() == "v" && evt.isCommandKey()) {
             this.charsTyped += lively.morphic.Text.clipboardString;
+            this.logChangeForUndo();
         } else {
             this.charsTyped += key;
         }
-
-        // if (this.textString.length == 0) this.textString += key;
-
         this.fixChunksDelayed();
         evt.stopPropagation()
         return true;
@@ -772,13 +767,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
 
     onCut: function(evt) {
+        this.logChangeForUndo();  // save any preceding changes separately
         this.fixChunksDelayed();
     },
 
     processCommandKeys: function($super,evt) {
+      
         var key = evt.getKeyChar();
         if (key) key = key.toLowerCase();
-
         if (evt.isShiftDown()) {  // shifted commands here...
             switch (key) {
                 case "i": { this.doInspect(); return true; }
@@ -797,7 +793,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 case "8": { this.emphasizeSelection({color: Config.userColor4 || Color.blue}); return true; }
             }
         }
-
         switch (key) {
             case "d": { this.doDoit(); return true; } // Doit
             case "p": { this.doPrintit(); return true; } // Printit
@@ -848,15 +843,14 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 }
               }
             case "v": { /*Just do the native paste*/ return false; }
-            case "z": {
-                if (!this.undo) return false;
-                this.undo(); return true;
-            }
+            case "y": { this.undoRedoInFocus('redo'); evt.stop(); return true }
+            case "z": { if (this.undo) this.undo(); // who uses this?? - Dan
+                        this.undoRedoInFocus('undo'); evt.stop(); return true }
         }
-
         switch(evt.getKeyCode()) {
             // Font Size
             case 187/*cmd+'+'*/: {
+                this.logChangeForUndo();  // save any preceding changes separately
                 if (this.hasNullSelection())
                     this.setFontSize(this.getFontSize() + 1);
                 else
@@ -864,6 +858,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
                 return true;
             }
             case 189/*cmd+'-'*/: {
+                this.logChangeForUndo();  // save any preceding changes separately
                 if (this.hasNullSelection())
                     this.setFontSize(this.getFontSize() - 1);
                 else
@@ -928,11 +923,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         );
     },
 
-    doMore: function(doMuchMore) {
+    doMore: function(doMuchMore, doingMuchMore) {
+        if (!doingMuchMore) this.logChangeForUndo();  // save any preceding changes separately
         if (doMuchMore) {  // call with true (shift-M) for replace-all
             // Simplest way:  just do N replacements
-            while (this.doMore(false)) { }  // Keep repeating the change while possible
-            return;
+            this.logChangeForUndo();  // save any preceding changes separately
+            while (this.doMore(false, true)) { }  // Keep repeating the change while possible
+            return true;
         }
         // Return of true or false used by doMuchMore
         if (!this.charsReplaced || this.charsReplaced.length == 0) return false;
@@ -974,16 +971,18 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         var sel = this.selectionString();
 
         if (!sel || sel == '') return;  // null selection means no replacement
-        console.log('Text>>rememberSelectionForDoMore setting charsReplaced='+sel);
+        //console.log('Text>>rememberSelectionForDoMore setting charsReplaced='+sel);
         this.charsReplaced = sel;
         this.lastFindLoc = this.getSelectionRange()[0] + sel.length;
         this.charsTyped = '';
     },
 	  indentSelection: function() {
+        this.logChangeForUndo();  // save any preceding changes separately
         var tab = this.tab;
         this.modifySelectedLines(function(line) { return line.length == 0 ? line : tab + line });
     },
     outdentSelection: function() {
+        this.logChangeForUndo();  // save any preceding changes separately
         var tab = this.tab, space = ' ';
         this.modifySelectedLines(function(line) {
                         if (line.startsWith(tab)) return line.substring(tab.length,line.length);
@@ -992,6 +991,8 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         });
     },
     doExchange: function() {
+        this.logChangeForUndo();  // save any preceding changes separately
+        console.log("exchange");
         // Probably won't preserve rich text attributes yet - DI
         var sel1 = this.getSelectionRange();
         var sel2 = this.previousSelection;
@@ -1019,6 +1020,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
     addOrRemoveBrackets: function(bracketIndex) {
         // Not yet working - DI
+        this.logChangeForUndo();  // save any preceding changes separately
         var left = this.locale.charSet.leftBrackets[bracketIndex];
         var right = this.locale.charSet.rightBrackets[bracketIndex];
 
@@ -1044,6 +1046,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         }
     },
     addOrRemoveComment: function() {
+        this.logChangeForUndo();  // save any preceding changes separately
         var commentRegex = /^(\s*)(\/\/\s*)(.*)/,
             spacesRegex = /^(\s*)(.*)/,
             noSelection = this.selectionString() == '';
@@ -1062,6 +1065,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // this function calls modifyFunc on each line that is selected
         // modifyFunc can somehow change the line
         // the selection grows/shrinks with the modifications
+        this.logChangeForUndo();  // save any preceding changes separately
         var lines = this.selectionString().split('\n')
         for (var i = 0; i < lines.length; i++) {
             lines[i] = modifyFunc(lines[i], i, lines);
@@ -1071,6 +1075,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
     },
 
     splitText: function () {
+        this.logChangeForUndo();  // save any preceding changes separately
         var selRange = this.getSelectionRange(),
             from = Math.max(selRange[0], selRange[1]),
             to = this.textString.length,
@@ -1391,6 +1396,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // if clicked in the text we want the default thing to happen, at least in HTML
         // but do not want other morphs to handle the event as well, so return true for was handled
 
+        this.logChangeForUndo();
         if (evt.target.onmousedown) { // handled by text chunk
             this.blur();
             return evt.target.onmousedown(evt);
@@ -1676,6 +1682,7 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // <div><span></text*></span*></div> or <div></text*></div>
         var parent = this.renderContext().textNode;
         if (!parent || !this.isFocused()) return this.priorSelectionRange;
+       
         var textNodeType = parent.TEXT_NODE;
         var textNodes = [];
 
@@ -1737,7 +1744,6 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             //result.push(true);
             //result.push(textNodes[textNodes.length - 1]);
         //}
-
         return result;
     },
 
@@ -2482,6 +2488,67 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             statusMorph.centerAt(this.worldPoint(this.innerBounds().center()));
         };
         (function() { statusMorph.remove(); }).delay(delay || 4);
+    }
+},
+'undo/redo', {
+    undoRedoComment: function(propName, phase) {
+        // TextMorphs maintain this.undoRedoMarkup as the most recent state of the text
+        // A call on logChangeForUndo will check if there has been a change and if so
+        // it will emit an undo action into the world's undoQueue.
+        // This is done *before* most changes so any prior changes are logged separately.
+        
+        // Text changes can be undone and redone either in the world or inside a TextMorph
+        // where cmd-z and cmd-y are handled differently.  The effect should be the same,
+        // except that within a textMorph, only changes to *that* text will be undone/redone
+        
+        // Several nice editor features seem no longer to work
+        // ToDo list for TextMorph editing and undo...
+        //    make add/remove backets work and check undo
+        //    make exchange work and check undo
+    },
+    logChangeForUndo: function() {
+        // this can be called any time to log any unlogged changes
+        // if there are none, it will do nothing
+        var nowMarkup = this.getRichTextMarkup();
+        if (this.undoRedoMarkup == null) { this.undoRedoMarkup = nowMarkup; return };  // first itme
+        if (nowMarkup.equals(this.undoRedoMarkup)) return;  // no changes to log
+        
+        $world.logMorphicAction({
+            morph: this, actionName: 'textChange', phase: 'focus',
+            undoFunctionName: 'undoRedoTextChange',
+            startMarkup: this.undoRedoMarkup, endMarkup: nowMarkup
+        });
+        this.undoRedoMarkup = nowMarkup;
+        this.isShareLocked&&(this.isShareLocked.time = Date.now());
+
+    },
+    logUnloggedText: function() { // deprecated
+        this.logTextForSharing();
+    },
+    logTextForSharing: function() {
+        // If text has been typed, but not logged, need to log it for shared worlds
+        this.logChangeForUndo();
+    },
+    undoRedoTextChange: function(spec, undoOrRedo) {
+        // Called from the world's undo queue mechanism
+        if (undoOrRedo == 'undo') {
+            this.setRichTextMarkup(spec.startMarkup);
+            this.undoRedoMarkup = spec.startMarkup;
+        }
+        if (undoOrRedo == 'redo') {
+            this.setRichTextMarkup(spec.endMarkup);
+            this.undoRedoMarkup = spec.endMarkup;
+        }
+    },
+    undoRedoInFocus: function(undoOrRedo) {
+        // Called from processCommandKeys in this textMorph
+        if (undoOrRedo == 'undo') this.logChangeForUndo();  // First log any unlogged changes
+
+        // like the world's undo mechanism but particular to this morph
+        var action = $world.getNextActionForUndoOrRedo(undoOrRedo);
+        if (action == null || action.morph !== this || action.actionName != 'textChange') return false;
+        this.undoRedoTextChange(action, undoOrRedo)
+        return true
     }
 },
 'tab handling', {

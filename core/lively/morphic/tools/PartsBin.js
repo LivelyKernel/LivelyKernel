@@ -606,6 +606,7 @@ lively.BuildSpec('lively.morphic.tools.PartsBin', {
                         fixedHeight: true,
                         fixedWidth: true,
                         name: "selectedPartSpaceName",
+                        isLoggingEnabled:false,
                         sourceModule: "lively.morphic.TextCore",
                         submorphs: [],
                         withoutLayers: [],

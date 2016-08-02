@@ -204,6 +204,12 @@ Object.extend(Global, {
     log:      lively.morphic.log
 });
 
+
+lively.morphic.Window.addMethods(
+  'undo',{
+    isLoggingEnabled:false
+});
+  
 lively.morphic.Morph.addMethods(
 'morphic relationship', {
 
@@ -346,11 +352,26 @@ lively.morphic.Morph.addMethods(
     }
 },
 'undo', {
-
+    
+    isLoggingEnabled:true,
+    
     undoRedoTransformationChange: function(spec, undo) {
         if (!undo || undo == 'undo') {
-            if (spec.startOrigin !== spec.endOrigin) {
-
+            // Change of polygon vertices
+            if (spec.actionName == 'dragVertex') {
+              this.removeHalos();
+              this.setVertices(spec.startVertices);
+              this.cachedBounds = null;
+              return;
+            }
+            if(spec.actionName == "editCanvas") {
+              this.clear();
+              this.setExtent(spec.startExtent,true)
+              this.history = spec.startHistory;
+              this.history.forEach(function(ea){
+                this.drawStroke(ea.from, ea.to, ea.color, ea.width, ea.pressure, ea. type, ea.startsStroke, ea.endsStroke)
+              }.bind(this));
+              return
             }
             // Change of owner due to grab/drop or remove
             if (spec.startOwner !== spec.endOwner) {
@@ -359,26 +380,54 @@ lively.morphic.Morph.addMethods(
                 else
                     spec.startOwner.addMorph(this);
             }
+            // Change of extent - may affect origin
+            if (!spec.startExtent.eqPt(spec.endExtent)) {
+              this.setExtent(spec.startExtent.scaleBy(1/this.getScale()));
+            }
+            // Change of origin by itself
+            else if (!spec.startOrigin.eqPt(spec.endOrigin)) {
+              this.adjustOrigin(spec.startOrigin);
+            }
             // Drag, rotate, scale
             this.setTransform(spec.startTransform);
-            if (!spec.startExtent.eqPt(spec.endExtent)) {
-                this.setExtent(spec.startExtent.scaleBy(1/this.getScale()));
-            }
+            this.cachedBounds = null;
         }
         if (undo == 'redo') {
-            if (spec.startOrigin !== spec.endOrigin) {
-
+            // Change of polygon vertices
+            if (spec.actionName == 'dragVertex') {
+              this.removeHalos();
+              this.setVertices(spec.endVertices);
+              this.cachedBounds = null;
+              return;
             }
             // Change of owner due to grab/drop or remove
+             if(spec.actionName == "editCanvas") {
+              this.setExtent(spec.endExtent,true)
+              this.clear();
+              this.history = spec.endHistory;
+              this.history.forEach(function(ea){
+                this.drawStroke(ea.from, ea.to, ea.color, ea.width, ea.pressure, ea. type, ea.startsStroke, ea.endsStroke)
+              }.bind(this));
+              return
+            }
+            
+            
             if (spec.startOwner !== spec.endOwner) {
-                spec.endOwner.addMorph(this);
+                if (spec.endOwner == null) this.remove();
+                else spec.endOwner.addMorph(this);
+            }
+            // change of extent (may affect origin)
+            if (!spec.startExtent.eqPt(spec.endExtent)) {
+                this.setExtent(spec.endExtent);
+            }
+            // Change of origin by itself
+            if (spec.startExtent.eqPt(spec.endExtent) && !spec.startOrigin.eqPt(spec.endOrigin)) {
+                this.adjustOrigin(spec.endOrigin);
             }
             // Drag, rotate, scale
             this.setTransform(spec.endTransform);
-            if (!spec.startExtent.eqPt(spec.endExtent)) {
-                    this.setExtent(spec.endExtent.scaleBy(1/this.getScale()));
-            }
         }
+        this.cachedBounds = null;
     },
 
     undoRedoStyleChange: function(spec, undo) {
@@ -397,11 +446,12 @@ lively.morphic.Morph.addMethods(
         // Style changes for now are all continuous - we can't tell the first from others
         // Therefore we look at the last undo item, and if it matches (morph and propName)
         //    then we amend with new value for end<Prop>, else we log a new undo item
+        if(!this.isLoggingEnabled) return;
         if ($world.undoQueue.length == 0
             || $world.undoQueue.last().morph !== this
             || $world.undoQueue.last().actionName != propName) {
             // Log the starting state for style changes
-            var spec = {morph: this, actionName: propName, phase: 'before',
+            var spec = {morph: this, actionName: propName, phase: 'start',
                         undoFunctionName: 'undoRedoStyleChange'};
             spec['start'+propName] = this['get'+propName]();
             $world.logMorphicAction(spec);
@@ -409,25 +459,70 @@ lively.morphic.Morph.addMethods(
         }
 
         // Log the ending state for changing style parameters
-        var spec = {morph: this, actionName: propName, phase: 'after'};
+        var spec = {morph: this, actionName: propName, phase: 'end'};
         spec['end'+propName] = this['get'+propName]();
         $world.amendMorphicAction(spec);
     },
 
     logTransformationForUndo: function(actionName, phase, evt) {
         // See World.undoReadme
-        // Note grab/drop involves change in both ownership and transformation
-        // Change of origin is handled separately
+        if(!this.isLoggingEnabled) return;
+        // Changes to polygon vertices...
+        if (actionName == 'dragVertex') {
+          if (phase == null || phase == 'start') {
+              // Log the starting state for, eg, grab, drag, etc.
+              return $world.logMorphicAction({
+                      morph: this, actionName: actionName, phase: phase,
+                      undoFunctionName: 'undoRedoTransformationChange',
+                      startVertices: this.vertices(),
+                      startOwner:this.owner});
+          }
+          // Log the ending state (we assume phase == 'end')
+          var amendments = {
+              morph: this, actionName: actionName, phase: phase,
+              endVertices: this.vertices(), endOwner: this.owner};
+          $world.amendMorphicAction(amendments);
+          return;
+        }
+        
+        
+        // Changes to existing canvas
+        if(actionName == "editCanvas") {
+          if(phase == null || phase == 'start') {
+            return $world.logMorphicAction({
+              morph: this, actionName: actionName, phase: 'start',
+                      undoFunctionName: 'undoRedoTransformationChange',
+                      startHistory: this.history,
+                      startExtent:this.getExtent(),
+                      startOwner:this.owner});
+          }
+          var amendments = {
+              morph: this, 
+              actionName: actionName, 
+              phase: phase,
+              endHistory: this.history,
+              endExtent:this.getExtent(),
+              endOwner:this.owner
+            };
+          $world.amendMorphicAction(amendments);
+          return;
+        }
+        
+        
+        
+        
+        // Changes to trasformation and origin...
+        // Note grab/drop may involve change in both ownership and transformation
+        // Change of origin is handled separately and not working right (affects location)
         var transform = this.getTransform();
         //in the case where morph gets moved by a mouse directly (without using the halo)
         //we need to calculate the mouse offset to get the morph's true start origin
         //and then adjust the difference in both the startOrigin, and startTransform.
         if(evt && evt.hand && evt.hand.eventStartPos && 
             ! (evt.getTargetMorph() instanceof lively.morphic.GrabHalo )) {
-            var mouseOffsetX = evt.getPosition().x - evt.hand.eventStartPos.x;
-            var mouseOffsetY = evt.getPosition().y - evt.hand.eventStartPos.y;
-            transform.e -= mouseOffsetX;
-            transform.f -= mouseOffsetY;
+            var mouseOffset = evt.getPosition().subPt(evt.hand.eventStartPos);
+            transform.e -= mouseOffset.x;
+            transform.f -= mouseOffset.y;
         }
         var org = transform.transformPoint(this.getOrigin());
         if (phase == null || phase == 'start') {
@@ -435,22 +530,20 @@ lively.morphic.Morph.addMethods(
             $world.logMorphicAction({
                 morph: this, actionName: actionName, phase: phase,
                 undoFunctionName: 'undoRedoTransformationChange',
-                startTransform: transform, startExtent: this.getBounds().extent(),
+                startTransform: transform, startExtent: this.getExtent(),
                 startOwner: this.owner,
                 startIndexInSubmorphs: this.owner ? this.owner.submorphs.indexOf(this) : null,
-                startOrigin: org
-            });
+                startOrigin: this.getOrigin() });
             return;
         }
         // Log the ending state for, eg, grab, drag, etc.
         var amendments = {
             morph: this, actionName: actionName, phase: phase,
-            endTransform: this.getTransform(), endExtent: this.getBounds().extent(),
-            endOwner: this.owner, endOrigin: org
-        };
+            endTransform: this.getTransform(), endExtent: this.getExtent(),
+            endOwner: this.owner, endOrigin: this.getOrigin() };
 
         if (this.owner) amendments.endIndexInSubmorphs = this.owner.submorphs.indexOf(this)
-            $world.amendMorphicAction(amendments);
+        $world.amendMorphicAction(amendments);
     }
 },
 'styling', {
@@ -1061,30 +1154,38 @@ lively.morphic.World.addMethods(
         this.undoRedoPointer = this.undoQueue.length - 1;  // reset pointer to latest action
         return;
     },
-    undoLastAction: function(actionSpec) {
-        // undo the most recent action
-        //  or before the last undo or after the last redo
-        if (!this.undoQueue) return;  // undo not enabled
-
-        if (this.undoRedoPointer < 0) return;  // queue is  empty
-        var action = this.undoQueue[this.undoRedoPointer]
-        if (action.phase && action.phase == 'start') {
-            console.log("Undo action still has phase = 'start'")
+    getNextActionForUndoOrRedo: function(which) {
+        if (!this.undoQueue) return null;  // undo not enabled
+        if (which == 'undo') {
+          // return the next action to undo, working back in the queue
+          //  or before the last undo or after the last redo
+          if (this.undoRedoPointer < 0) return null;  // no more to undo
+          return this.undoQueue[this.undoRedoPointer--];
         }
+        if (which == 'redo') {
+          // return the next action to redo, working forward in the queue
+          if (this.undoRedoPointer+1 > this.undoQueue.length-1) return;  // no more to redo
+          return this.undoQueue[++this.undoRedoPointer]
+        }
+    },
+    undoLastAction: function() {
+      
+        // undo the most recent action
+        //  or before the last undo, or after the last redo
+        var action = this.getNextActionForUndoOrRedo('undo');
+        if (action == null) return false;  // nothing to undo
         action.morph[action.undoFunctionName](action, 'undo');
-        this.undoRedoPointer--
+        return true
     },
     redoNextAction: function() {
         // redo the most recent undone action or that after the last redo
-        if (!this.undoQueue) return;  // undo not enabled
-
-        if (this.undoRedoPointer+1 > this.undoQueue.length-1) return;  // queue is  empty
-        var action = this.undoQueue[this.undoRedoPointer+1]
+        var action = this.getNextActionForUndoOrRedo('redo');
+        if (action == null) return false;  // nothing to redo
         if (action.phase && action.phase == 'start') {
             console.log("Last undo action still has phase = 'start'")
         }
         action.morph[action.undoFunctionName](action, 'redo');
-        this.undoRedoPointer++
+        return true;
     },
     getUndoQueue: function() {
         return this.undoQueue;
@@ -1101,7 +1202,7 @@ lively.morphic.World.addMethods(
             // meaning it needs more, so we should take it off the queue since incomplete
             return
         }
-        for (p in amendment) { lastAction[p] = amendment[p] };
+        for (var p in amendment) {lastAction[p] = amendment[p]}
     },
     undoReadme: function() {
         // NOTE:  Simple undo records should be logged with null phase = 'start/end'

@@ -130,7 +130,17 @@ Object.extend(lively.ide.commands, {
 
 Object.extend(lively.ide.commands.byName, {
 
-    // world
+
+    'lively.morphic.World.saveLocalCopy':{
+      description: 'Lively: save a local copy of the shared world',
+      exec:function(){
+        var world = lively.morphic.World.current();
+        var url = world.getUserDir().toString()+document.location.pathname.split("/").last();
+        world.saveWorldAs(url, false);
+        return true;
+      }
+    },
+    
     'lively.morphic.World.escape': {
         description: 'escape',
         exec: function() {

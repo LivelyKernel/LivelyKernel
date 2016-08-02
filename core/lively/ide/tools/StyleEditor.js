@@ -16,70 +16,70 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         _Position: lively.pt(4.0,22.0),
         _StyleClassNames: ["Morph","Box"],
         _StyleSheet: ".Box.Headline {\n\
-    	border-width: 0px 0px 1px 0px !important;\n\
-    	border-color: gray !important;\n\
+      border-width: 0px 0px 1px 0px !important;\n\
+      border-color: gray !important;\n\
     }\n\
     \n\
     .Tab {\n\
-    	border-width: 0px !important;\n\
-    	border-color: rgb(204,204,204) !important;\n\
-    	background-color: rgb(204,204,204);\n\
+      border-width: 0px !important;\n\
+      border-color: rgb(204,204,204) !important;\n\
+      background-color: rgb(204,204,204);\n\
     }\n\
     \n\
     .Tab.active {\n\
-    	background-color: white;\n\
+      background-color: white;\n\
     }\n\
     \n\
     .Tab .Text {\n\
-    	text-align: center;\n\
-    	margin: -1px 0px 0px 0px;\n\
+      text-align: center;\n\
+      margin: -1px 0px 0px 0px;\n\
     }\n\
     \n\
     .Tab .Text span {\n\
-    	padding: 0px 0px 0px 0px;\n\
+      padding: 0px 0px 0px 0px;\n\
     }\n\
     \n\
     .Text {\n\
-    	font-size: 11pt;\n\
-    	color: rgb(64,64,64);\n\
-    	font-family: Arial;\n\
+      font-size: 11pt;\n\
+      color: rgb(64,64,64);\n\
+      font-family: Arial;\n\
     }\n\
     \n\
     .TabPane {\n\
-    	border-width: 0px;\n\
-    	border-color: white;\n\
-    	background-color: white;\n\
+      border-width: 0px;\n\
+      border-color: white;\n\
+      background-color: white;\n\
     }\n\
     \n\
     .CheckBoxHover span {\n\
-    	color: rgb(0,101,204) !important;\n\
+      color: rgb(0,101,204) !important;\n\
     }\n\
     \n\
     .Button {\n\
-    	background-color: rgb(204,204,204);\n\
-    	border-radius: 0px;\n\
-    	border-width: 0px;\n\
+      background-color: rgb(204,204,204);\n\
+      border-radius: 0px;\n\
+      border-width: 0px;\n\
     }\n\
     \n\
     .Tree {\n\
-    	background-color: rgba(0,0,0,0) !important;\n\
+      background-color: rgba(0,0,0,0) !important;\n\
     }\n\
     \n\
     .DropDownList {\n\
-    	background: none;\n\
-    	border: none;\n\
+      background: none;\n\
+      border: none;\n\
     }\n\
     \n\
     .ClassEdit.Text {\n\
-    	font-size: 10pt;\n\
+      font-size: 10pt;\n\
     }\n\
     \n\
     .ClassEdit span {\n\
-    	padding: 0px 4px 0px 0px;\n\
+      padding: 0px 4px 0px 0px;\n\
     }\n\
     \n\
     .Slider, .SliderKnob {\n\
-    	border-width: 1px;\n\
+      border-width: 1px;\n\
     }",
         className: "lively.morphic.Box",
         customStyleButton: {
@@ -1983,10 +1983,10 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
                                                         var style = {},
-                                                    		prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                        prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('adjustForNewBoundsLabel').removeStyleClassName('CheckBoxHover')
@@ -2135,11 +2135,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('ResizeLabel').removeStyleClassName('CheckBoxHover')
@@ -2166,11 +2166,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('MoveLabel').removeStyleClassName('CheckBoxHover')
@@ -2198,11 +2198,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('CenterLabel').removeStyleClassName('CheckBoxHover')
@@ -2230,11 +2230,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('ScaleLabel').removeStyleClassName('CheckBoxHover')
@@ -2322,11 +2322,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('ResizeLabel').removeStyleClassName('CheckBoxHover')
@@ -2353,11 +2353,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('MoveLabel').removeStyleClassName('CheckBoxHover')
@@ -2384,11 +2384,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('CenterLabel').removeStyleClassName('CheckBoxHover')
@@ -2416,11 +2416,11 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                             connectionRebuilder: function connectionRebuilder() {
                             lively.bindings.connect(this, "checked", this.get("StyleEditorPane"), "setTargetStyle", {converter:
                         function (bool) {
-                                                		var style = {},
-                                                			prop = this.sourceObj.layoutProperty;
-                                                		style[prop] = bool;
-                                                		return style
-                                                	}});
+                                                    var style = {},
+                                                      prop = this.sourceObj.layoutProperty;
+                                                    style[prop] = bool;
+                                                    return style
+                                                  }});
                         },
                             onMouseOut: function onMouseOut() {
                             this.get('ScaleLabel').removeStyleClassName('CheckBoxHover')
@@ -2711,7 +2711,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                         _Position: lively.pt(11.9,11.9),
                         _StyleClassNames: ["Morph","Box","OldList","DropDownList"],
                         _StyleSheet: ".DrowDownList {\n\
-                    	box-shadow: none;\n\
+                      box-shadow: none;\n\
                     }",
                         changeTriggered: true,
                         className: "lively.morphic.DropDownList",
@@ -3036,8 +3036,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 _Position: lively.pt(261.8,0.0),
                 _StyleClassNames: ["Morph","Button"],
                 _StyleSheet: ".Image {\n\
-            	width: 0px !important;\n\
-            	height: 0px !important;\n\
+              width: 0px !important;\n\
+              height: 0px !important;\n\
             }",
                 className: "lively.morphic.Button",
                 droppingEnabled: false,
@@ -3194,8 +3194,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
                 _Position: lively.pt(233.6,0.0),
                 _StyleClassNames: ["Morph","Button"],
                 _StyleSheet: ".Image {\n\
-            	width: 0px !important;\n\
-            	height: 0px !important;\n\
+              width: 0px !important;\n\
+              height: 0px !important;\n\
             }",
                 className: "lively.morphic.Button",
                 droppingEnabled: false,
@@ -3444,8 +3444,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
           }
           // layout
           this.layoutProps.each(function(attr) {
-      		var checkBox = this.getMorphNamed(attr + 'CheckBox');
-      		checkBox.setChecked(spec[attr]);
+          var checkBox = this.getMorphNamed(attr + 'CheckBox');
+          checkBox.setChecked(spec[attr]);
           }, this)
           // misc
           this.getMorphNamed("AppearanceCheckBox").setChecked(!spec.appearanceStyling);
@@ -3840,12 +3840,12 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
             toolTip: this.getMorphNamed('ToolTipInput').savedTextString,
             handStyle: this.getMorphNamed('HandStyleList').selection
         }
-    	// layout
+      // layout
         this.layoutProps.each(function(attr) {
-    		var checkBox = this.getMorphNamed(attr + 'CheckBox');
-    		if (checkBox.checked) {
-    		    style[attr] = true;
-    		}
+        var checkBox = this.getMorphNamed(attr + 'CheckBox');
+        if (checkBox.checked) {
+            style[attr] = true;
+        }
         }, this)
         //text
         var textStyle = {};
@@ -3929,8 +3929,8 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         reset: function reset() {
           this.removeLeftoverTabs()
           this.resetTarget()
-        	this.getMorphNamed('borderWidthSlider').valueScale = 20;
-        	this.getMorphNamed('borderRadiusSlider').valueScale = 50;
+          this.getMorphNamed('borderWidthSlider').valueScale = 20;
+          this.getMorphNamed('borderRadiusSlider').valueScale = 50;
           this.getMorphNamed('TargetName').setLabel('no target chosen')
           this.layoutProps = ['adjustForNewBounds', 'resizeWidth', 'resizeHeight', 'moveVertical', 'moveHorizontal', 'centeredHorizontal', 'centeredVertical', 'scaleHorizontal', 'scaleVertical'];
           this.applyStyleConfiguration(this.defaultStyleConfiguration());
@@ -3939,7 +3939,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
           this.setTabExtends();
         },
         resetTarget: function resetTarget() {
-        	this.target = undefined;
+          this.target = undefined;
         },
         setAppearanceMode: function setAppearanceMode(override) {
         //alert("SetAppearance!");
@@ -4098,10 +4098,10 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
               morph.getStyleClassNames() && (spec.styleClassNames = morph.getStyleClassNames());
           }
 
-        	if (morph.layout) {
+          if (morph.layout) {
               this.layoutProps.forEach(function(attr) {
                   spec[attr] = morph.layout[attr]
-      	    });
+            });
           }
 
           if (morph.customStyleProperties) {
@@ -4118,7 +4118,7 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
           lively.bindings.noUpdate({sourceAttribute: "savedTextString", sourceObj: this.get("CSSCodePane")}, function() {
             this.applyStyleConfiguration(Object.merge([this.defaultStyleConfiguration(), spec]));
           }.bind(this));
-        	this.target = morph;
+          this.target = morph;
           // layout, has to be done later because loaded from PartsBin
           var layouter = morph.getLayouter();
           this.getMorphNamed('layouterList').setSelection(layouter && layouter.constructor.type);
@@ -4126,9 +4126,18 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
       },
 
         setTargetStyle: function setTargetStyle(style) {
-        	// alert(JSON.stringify(style))
-        	if (this.target) this.target.applyStyle(style)
+          if (this.target) {
+            this.target.applyStyle(style);
+            var prop = null;
+            if (style.fill) prop = 'Fill'; 
+            if (style.opacity) prop = 'Opacity'; 
+            if (style.borderWidth) prop = 'BorderWidth'; 
+            if (style.borderColor) prop = 'BorderColor'; 
+            if (style.borderRadius) prop = 'BorderRadius'; 
+            if (prop) this.target.logStyleForUndo(prop, 'more');
+          }
         },
+
         setupConnections: function setupConnections() {
         // newShowMorph(this.getMorphNamed('borderWidthSlider'))
         // this.get('borderWidthSlider').attributeConnections
@@ -4138,39 +4147,39 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
         // this.get('borderRadiusSlider').attributeConnections
         // disconnectAll(this.get('borderRadiusSlider'))
 
-        	lively.bindings.connect(this.getMorphNamed('borderWidthSlider'), 'value',
-        	this, "setTargetStyle", {
-        		converter: function(v) { return {borderWidth: v} }});
+          lively.bindings.connect(this.getMorphNamed('borderWidthSlider'), 'value',
+          this, "setTargetStyle", {
+            converter: function(v) { return {borderWidth: v} }});
 
-        	lively.bindings.connect(this.getMorphNamed('borderRadiusSlider'), 'value',
-        		this, "setTargetStyle", {
-        		converter: function(v) { return {borderRadius: v} }});
+          lively.bindings.connect(this.getMorphNamed('borderRadiusSlider'), 'value',
+            this, "setTargetStyle", {
+            converter: function(v) { return {borderRadius: v} }});
 
-        	lively.bindings.connect(this.getMorphNamed('opacitySlider'), 'value',
-        		this, "setTargetStyle", {
-        		converter: function(v) { return {opacity: v} }});
+          lively.bindings.connect(this.getMorphNamed('opacitySlider'), 'value',
+            this, "setTargetStyle", {
+            converter: function(v) { return {opacity: v} }});
 
-        	lively.bindings.connect(this.getMorphNamed('borderStyleList'), 'selection',
-        		this, "setTargetStyle", {
-        		converter: function(v) { return {borderStyle: v} }});
+          lively.bindings.connect(this.getMorphNamed('borderStyleList'), 'selection',
+            this, "setTargetStyle", {
+            converter: function(v) { return {borderStyle: v} }});
 
-        	lively.bindings.connect(this.getMorphNamed('ClipModeList'), 'selection',
-        		this, "setTargetStyle", {
-        		converter: function(v) { return {clipMode: v} }});
+          lively.bindings.connect(this.getMorphNamed('ClipModeList'), 'selection',
+            this, "setTargetStyle", {
+            converter: function(v) { return {clipMode: v} }});
 
                 lively.bindings.connect(this.getMorphNamed('layouterList'), 'selection', this, 'setLayouter')
 
                 this.layoutProps.forEach(function(attr) {
-                	var checkBox = this.getMorphNamed(attr + 'CheckBox');
-                	checkBox.layoutProperty = attr;
-                	connect(checkBox, 'checked', this,
-                	"setTargetStyle", { converter:
-                	function(bool) {
-                		var style = {},
-                			prop = this.sourceObj.layoutProperty;
-                		style[prop] = bool;
-                		return style
-                	}})
+                  var checkBox = this.getMorphNamed(attr + 'CheckBox');
+                  checkBox.layoutProperty = attr;
+                  connect(checkBox, 'checked', this,
+                  "setTargetStyle", { converter:
+                  function(bool) {
+                    var style = {},
+                      prop = this.sourceObj.layoutProperty;
+                    style[prop] = bool;
+                    return style
+                  }})
                 }, this);
 
         },
@@ -4190,7 +4199,17 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
     withoutLayers: "[GrabbingLayer]",
     setTarget: function setTarget(target) {
     this.get('StyleEditorPane').setTarget(target);
-}
+},
+
+
+    // for Sharing
+    onBlur: function(evt){
+      $super(evt);
+      if($world.isShared){
+        var targetId = this.get('StyleEditorPane').target.id
+        $world.notifyPeers('unlock_morph',{morphId:targetId})
+      } 
+    }
 })
 
 lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
@@ -4199,54 +4218,54 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     _Position: lively.pt(353.7,1492.0),
     _StyleClassNames: ["Morph","Box"],
     _StyleSheet: ".Box {\n\
-	border-width: 0px;\n\
+  border-width: 0px;\n\
 }\n\
 \n\
 .Slider, .SliderKnob {\n\
-	border-width: 1px;\n\
+  border-width: 1px;\n\
 }\n\
 \n\
 .Headline {\n\
-	border-width: 0px 0px 1px 0px !important;\n\
-	border-color: gray !important;\n\
+  border-width: 0px 0px 1px 0px !important;\n\
+  border-color: gray !important;\n\
 }\n\
 \n\
 .Headline .Text {\n\
-	font-size: 13pt;\n\
+  font-size: 13pt;\n\
 }\n\
 \n\
 .CheckBoxHover span {\n\
-	color: rgb(0,101,204) !important;\n\
+  color: rgb(0,101,204) !important;\n\
 }\n\
 \n\
 .DropDownList {\n\
-	background: none;\n\
-	border: none;\n\
+  background: none;\n\
+  border: none;\n\
 }\n\
 \n\
 .Text {\n\
-	font-size: 11pt;\n\
-	color: rgb(64,64,64);\n\
-	font-family: Arial;\n\
+  font-size: 11pt;\n\
+  color: rgb(64,64,64);\n\
+  font-family: Arial;\n\
 }\n\
 \n\
 .Button {\n\
-	background-color: rgb(204,204,204) !important;\n\
-	border-radius: 0px;\n\
-	border-width: 0px;\n\
+  background-color: rgb(204,204,204) !important;\n\
+  border-radius: 0px;\n\
+  border-width: 0px;\n\
 }\n\
 \n\
 .Button .Text {\n\
-	font-size: 10pt;\n\
+  font-size: 10pt;\n\
 }\n\
 \n\
 .Button .Text span {\n\
-	padding: 1px 0px 0px 0px;\n\
+  padding: 1px 0px 0px 0px;\n\
 }\n\
 \n\
 .Input {\n\
-	padding: 0px 0px 0px 0px;\n\
-	text-align: center;\n\
+  padding: 0px 0px 0px 0px;\n\
+  text-align: center;\n\
 }",
     className: "lively.morphic.Box",
     doNotSerialize: ["layer","withoutLayers","targetMorph"],
@@ -4405,7 +4424,7 @@ lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
                 _LineHeight: 1,
                 _StyleClassNames: ["Morph","Text"],
                 _StyleSheet: ".Text {\n\
-            	font-size: none;\n\
+              font-size: none;\n\
             }",
                 _TextColor: Color.rgb(64,64,64),
                 _TextDecoration: "none",

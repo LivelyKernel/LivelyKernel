@@ -530,7 +530,7 @@ lively.BuildSpec('lively.net.tools.Lively2LivelyChat', {
         function createUserItem(userName) {
             var imgWidth = 64, imgHeight = 64, textHeight = 20,
                 width = 100, height = imgHeight + textHeight;
-            new URL('http://lively-web.org/nodejs/UserServer/avatar/' + userName).asWebResource().beAsync().get().whenDone(function(url, _) {
+            new URL('https://lively-web.org/nodejs/UserServer/avatar/' + userName).asWebResource().beAsync().get().whenDone(function(url, _) {
                 img.setImageURL(url, false);
             });
             var img = lively.morphic.Image.fromURL('',lively.rect(width/2-imgWidth/2,0, imgWidth, imgHeight));

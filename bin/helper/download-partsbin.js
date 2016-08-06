@@ -1,4 +1,4 @@
-var http    = require("http"),
+var http    = require("https"),
     fs      = require("fs"),
     path    = require("path"),
     util    = require("util"),
@@ -7,7 +7,7 @@ var http    = require("http"),
     shelljs = require('shelljs');
 
 var lkDir = process.env.WORKSPACE_LK,
-    partsBinCopyURL = "http://lively-web.org/nodejs/PartsBinCopy/",
+    partsBinCopyURL = "https://lively-web.org/nodejs/PartsBinCopy/",
     zipFile = path.join(lkDir, 'PartsBinCopy.zip'),
     partsBinFolder = path.join(lkDir, 'PartsBin'),
     partsBinExtractionFolder = path.join(lkDir, 'PartsBin_extracted');

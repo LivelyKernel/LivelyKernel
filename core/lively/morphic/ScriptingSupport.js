@@ -168,6 +168,7 @@ lively.morphic.Morph.addMethods(
 'conversion', {
 
     asSVGLogo: function() {
+      "Make an SVG copy of this morph (with submorphs) for use as a preview, thumbnail, or icon"
         var oldPos = this.getPosition();
         var logoMorph = this.copy();
         logoMorph.setPosition(pt(0,0));
@@ -187,6 +188,7 @@ lively.morphic.Morph.addMethods(
     },
 
     asHTMLLogo: function (options) {
+      "Make an HTML copy of this morph (with submorphs) for use as a preview, thumbnail, or icon"
         options = options || {};
         var oldPos = this.getPosition(),
             oldScale = this.getScale(),
@@ -214,6 +216,7 @@ lively.morphic.Morph.addMethods(
     },
 
     asLogo: function() {
+      "Make an SVG copy of this morph (with submorphs) for use as a preview, thumbnail, or icon"
         var src = this.asSVGLogo(),
             svgNode = stringToXML(world.asSVGLogo()),
             shape = new lively.morphic.Shapes.External(svgNode),

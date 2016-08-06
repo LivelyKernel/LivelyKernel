@@ -15,7 +15,7 @@
     "babel-preset-es2015": "^6.3.13",
     "colorize": "~0.1",
     "escodegen": "^1.8.0",
-    "life_star": ">=0.8.5",
+    "life_star": ">=0.8.7",
     "lively-loader": "~0.2.0",
     "lively.ast": "^0.2.19",
     "lively.lang": "^0.5.8",

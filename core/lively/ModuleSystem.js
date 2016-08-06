@@ -490,7 +490,8 @@ var Module = Object.subclass('lively.Module',
       if (this.isLoaded()) return;
       if (typeof $world === "undefined") { // error loading world, abort
         var err = new Error('Could not load world dependency ' + this.namespaceIdentifier);
-        Global.LivelyLoader.handleStartupError(err);
+        if (Global.LivelyLoader.handleStartupError) Global.LivelyLoader.handleStartupError(err);
+        else console.error(err);
         return;
       }
       if (this.loadAttempts > 3) {

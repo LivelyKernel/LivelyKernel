@@ -304,7 +304,7 @@ Object.extend(lively.ide, {
           } catch (e) { return e; }
         }
         if (args.length <= 2) { // url or path or options object
-            var url = args[0].toString().startsWith('http:') ?
+            var url = args[0].toString().startsWith('http') ?
                 new URL(args[0]) : URL.root.withFilename(args[0]);
             this.browseURL(url, args[1]/*optional browser*/);
         } else {

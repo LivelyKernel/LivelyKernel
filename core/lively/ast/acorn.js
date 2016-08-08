@@ -6,7 +6,7 @@
   module("lively.ast.acorn").isLoaded = lively.lang.fun.True;
 })();
 
-module("lively.ast.acorn").requires().toRun(function() {
+module("lively.ast.acorn").requires().requiresLib({loadTest: function() { return window.babel; }, url: Config.codeBase + 'lib/babel-browser.js'}).toRun(function() {
 
 // rk 2016-03-03
 // FIXME

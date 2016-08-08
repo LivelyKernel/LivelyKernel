@@ -95,7 +95,7 @@ Object.subclass('lively.net.SessionTrackerConnection',
     listen: function() {
         var ws = this.webSocket;
         lively.bindings.connect(ws, 'lively-message', this, 'dispatchLivelyMessage', {
-            updater: function($upd, msg) { $upd(msg, session); },
+            updater: function($upd, msg) { $upd(msg, this.targetObj); },
             varMapping: {session: this}});
     },
 

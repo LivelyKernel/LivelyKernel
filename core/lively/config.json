@@ -174,7 +174,7 @@
   "Lively2Lively": [
     ["isPublicServer", false, "Is the lively server this world is started from considered public?"],
     ["lively2livelyAutoStart", true, "Whether to automatically connect to a session tracker server and enable Lively-to-Lively connections."],
-    ["lively2livelyCentral", "http://lively-web.org/nodejs/SessionTracker/", "Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate."],
+    ["lively2livelyCentral", "https://lively-web.org/nodejs/SessionTracker/", "Central server to connect to for inter-realm Lively-to-Lively connections. Nullify to deactivate."],
     ["lively2livelyAllowRemoteEval", true, "Allow eval actions from other Lively worlds."],
     ["lively2livelyEnableConnectionIndicator", true, "Show a morph that indicates whether lively2lively is running and which provides access to collab actions."],
     ["lively2livelyInformAboutReceivedMessages", true, "Visually log when receiving a lively2lively message."],
@@ -342,7 +342,7 @@
     ["verboseLogging", true, "Whether to make logging/alerting highly visible in the UI"],
     ["loadRewrittenCode", false, "Is currently running code rewritten?"],
     ["enableDebuggerStatements", false, "Whether to throw Debugger exceptions in rewritten code"],
-    ["bugReportWorld", "http://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
+    ["bugReportWorld", "https://lively-web.org/issues/IssueTemplate.html?openCreateIssuePrompt=true", "Where to report bugs"]
   ],
 
   "lively.morphic.Text": [

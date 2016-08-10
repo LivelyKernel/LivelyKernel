@@ -21,6 +21,7 @@
     "lively-loader": "~0.3.0",
     "lively-system-interface": "*",
     "lively.ast": "*",
+    "lively.bindings": "*",
     "lively.graphics": "*",
     "lively.installer": "*",
     "lively.lang": "*",

@@ -17,7 +17,7 @@
     "escodegen": "^1.8.0",
     "life_star": ">=0.8.7",
     "lively-loader": "~0.2.0",
-    "lively.ast": "^0.6.9",
+    "lively.ast": "^0.7.33",
     "lively.lang": "^0.7.3",
     "mysql": "^2.9.0",
     "optparse": "~1.0",

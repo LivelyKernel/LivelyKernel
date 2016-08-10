@@ -22,10 +22,11 @@ TestCase.subclass('lively.users.tests.Attributes',
 
 AsyncTestCase.subclass('lively.users.tests.Authorization',
 'running', {
-  
+
   setUp: function($super) {
-    lively.Config._globalPermissions = lively.Config._globalPermissions || [];
     this.oldRules = lively.Config._globalPermissions.clone();
+    lively.Config._globalPermissions = [];
+    // lively.Config._globalPermissions = this.oldRules;
     $super();
   },
 
@@ -38,47 +39,51 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
 "testing", {
   
   testIsUserAllowToWriteWorld: function() {
-    var test = this;
-    var user = new lively.users.User("test-user-1");
-    
+    var test = this,
+        user = new lively.users.User("test-user-1");
+
     lively.lang.fun.composeAsync(
+
       function(n) { return user.canWriteWorld("test/world.html", n); },
-      function(answer, n) { test.assertEqualState({value: false}, answer); n(); },
+      function(answer, n) { test.assertEqualState({value: "deny"}, answer, "1"); n(); },
+
       function(n) {
         user.addRule(function(url) { return !!url.fullPath().match(/\/test\//); });
         user.canWriteWorld("test/world.html", n)
       },
-      function(answer, n) { test.assertEqualState({value: true}, answer); n(); },
+      function(answer, n) { test.assertEqualState({value: "allow"}, answer, "2"); n(); },
+
       function(n) {
         user.addRule({type: "RegExp", rule: "users/${user.name}/.*"});
         user.canWriteWorld("users/test-user-1/world.html", n)
       },
-      function(answer, n) { test.assertEqualState({value: true}, answer); n(); }
+      function(answer, n) { test.assertEqualState({value: "allow"}, answer, "3"); n(); }
+
     )(function(err) {
       test.assert(!err, err && show(String(err.stack || err)));
       test.done();
     });
   },
 
-  testGlobalRule: function() {
-    var test = this;
-    var user = new lively.users.User("test-user-1");
+  testGlobalRule1: function() {
+    var test = this,
+        user = new lively.users.User("test-user-1");
     lively.users.GlobalRules.addRule(function (url) { return {value: !!url.fullPath().match(/\/test\//)}; });
     lively.lang.fun.composeAsync(
       function(n) { user.canWriteWorld("test/world.html", n); },
-      function(answer, n) { test.assertEqualState({value: true}, answer); n(); }
+      function(answer, n) { test.assertEqualState({value: "allow"}, answer); n(); }
     )(function(err) {
       test.assert(!err, err && show(String(err.stack || err)));
       test.done();
     });
   },
 
-  testGlobalRule: function() {
+  testGlobalRule2: function() {
     var user = new lively.users.User("test-user-1");
     lively.users.GlobalRules.addRule(url => ({value: !!url.fullPath().match(/\/test\//)}));
     lively.lang.fun.composeAsync(
       n => user.canWriteWorld("test/world.html", n),
-      (answer, n) => { this.assertEqualState({value: true}, answer); n(); }
+      (answer, n) => { this.assertEqualState({value: "allow"}, answer); n(); }
     )(err => {
       this.assert(!err, err && show(String(err.stack || err)));
       this.done();
@@ -88,12 +93,12 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
   testUserRedirect: function() {
     var test = this;
     var user = new lively.users.User("test-user-1");
-    var expected = {redirect: true, value: URL.root.withFilename("users/test-user-1/world.html")};
+    var expected = {value: "redirect", url: URL.root.withFilename("users/test-user-1/world.html")};
     
     lively.lang.fun.composeAsync(
       function(n) {
         user.addRule({type: "Function", rule: String(function(url) { 
-          return {redirect: true, value: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })});
+          return {value: "redirect", url: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })});
         user.canWriteWorld("foo/world.html", n);
       },
       function(answer, n) { test.assertEqualState(expected, answer); n(); }

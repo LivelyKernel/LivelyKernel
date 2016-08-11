@@ -510,10 +510,12 @@ Object.extend(Event, {
         // trying to find out what the String representation of the key pressed
         // in key event is.
         // Uses keyIdentifier which can be Unicode like "U+0021"
+
         var id = keyEvt.keyIdentifier,
             unicodeDecodeRe = /u\+?([\d\w]{4})/gi,
             unicodeReplacer = function (match, grp) { return String.fromCharCode(parseInt(grp, 16)); },
             key = id && id.replace(unicodeDecodeRe, unicodeReplacer);
+
         if (key === 'Meta') key = "Command";
         if (key === ' ') key = "Space";
         if (keyEvt.keyCode === Event.KEY_BACKSPACE) key = "Backspace";

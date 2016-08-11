@@ -47,12 +47,13 @@ lively.BuildSpec('lively.next.MenuBarEntry', lively.BuildSpec("lively.morphic.to
       }],
       {isMenuItem: true, isDivider: true},
       ["create a new morphic world", function() { lively.next.createNewMorphicWorld(); }],
+      ["create morphic nodejs process and world", function() { lively.next.createNodejsMorphicProcessAndWorld(); }],
       ["Reload all lively.next packages", reloadLivelyNext],
 
       {isMenuItem: true, isDivider: true},
       ["Update lively.next...", updateLivelyNext],
       ["Show package updates and status...", showPackageUpdatesAndStatus],
-      ["Show PartsBin updates and status...", showPartsBinUpdatesAndStatus],
+      ["Show PartsBin updates and status...", showPartsBinUpdatesAndStatus]
     ]
 
     function askForBaseDir() {
@@ -126,6 +127,14 @@ Object.extend(lively.next, {
       .then(() => window.System.import("lively.morphic/old-lively-helpers.js"))
       .then(helpers => helpers.createWorld())
       .catch(err => window.$world.logError(err))
+  },
+
+  createNodejsMorphicProcessAndWorld: function() {
+    lively.next.bootstrapped
+      .then(() => window.lively.modules.importPackage("node_modules/lively.morphic"))
+      .then(() => window.System.import("lively.morphic/nodejs-morphic-helpers.js"))
+      .then(nodejsHelper => nodejsHelper.startMorphicNodejsProcessAndWorld())
+      .catch(err => window.$world.logError(err));
   },
 
   getMenuBarEntries: function() {

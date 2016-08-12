@@ -7,13 +7,13 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
         var src = "this.foo.bar;",
             ast = lively.ast.acorn.parse(src),
             nodes = lively.ast.acorn.walk.findNodesIncluding(ast, 6);
-        this.assertEquals(4, nodes.length);
+        this.assertEquals(5, nodes.length);
     },
 
     testFindNodesIncludingInObjectLiteral: function() {
         var src = "var x = {foo: 34};",
-            ast = acorn.parse(src),
-            nodes = acorn.walk.findNodesIncluding(ast, 10);
+            ast = lively.ast.acorn.parse(src),
+            nodes = lively.ast.acorn.walk.findNodesIncluding(ast, 10);
         this.assertEquals(
             ["Program","VariableDeclaration", "VariableDeclarator", "ObjectExpression","Property","Identifier"],
             nodes.pluck("type"));

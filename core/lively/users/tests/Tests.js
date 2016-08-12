@@ -24,7 +24,7 @@ AsyncTestCase.subclass('lively.users.tests.Authorization',
 'running', {
 
   setUp: function($super) {
-    this.oldRules = lively.Config._globalPermissions.clone();
+    this.oldRules = (lively.Config._globalPermissions || []).clone();
     lively.Config._globalPermissions = [];
     // lively.Config._globalPermissions = this.oldRules;
     $super();

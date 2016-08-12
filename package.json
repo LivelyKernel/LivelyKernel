@@ -18,7 +18,7 @@
     "life_star": ">=0.8.7",
     "lively-loader": "~0.2.0",
     "lively.ast": "^0.7.33",
-    "lively.lang": "^0.7.3",
+    "lively.lang": "^0.6",
     "mysql": "^2.9.0",
     "optparse": "~1.0",
     "shelljs": "^0.5",

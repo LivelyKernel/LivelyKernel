@@ -53,10 +53,11 @@ Object.extend(lively.ide, {
 
     withLoadingIndicatorDo:  function(label, doFunc) {
       return lively.module('lively.morphic.tools.LoadingIndicator').load()
-        .then(mod => mod.open(label))
-        .then(indicator => {
+        .then(function(mod) { mod.open(label); })
+        .then(function(indicator) {
           doFunc && doFunc(null, indicator, indicator.remove.bind(indicator));
-          return indicator; });
+          return indicator;
+        });
     }
 
 });

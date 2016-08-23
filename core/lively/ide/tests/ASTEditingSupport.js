@@ -5,15 +5,15 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
 
     testFindNodesIncluding: function() {
         var src = "this.foo.bar;",
-            ast = acorn.parse(src),
-            nodes = acorn.walk.findNodesIncluding(ast, 6);
+            ast = lively.ast.acorn.parse(src),
+            nodes = lively.ast.acorn.walk.findNodesIncluding(ast, 6);
         this.assertEquals(5, nodes.length);
     },
 
     testFindNodesIncludingInObjectLiteral: function() {
         var src = "var x = {foo: 34};",
-            ast = acorn.parse(src),
-            nodes = acorn.walk.findNodesIncluding(ast, 10);
+            ast = lively.ast.acorn.parse(src),
+            nodes = lively.ast.acorn.walk.findNodesIncluding(ast, 10);
         this.assertEquals(
             ["Program","VariableDeclaration", "VariableDeclarator", "ObjectExpression","Property","Identifier"],
             nodes.pluck("type"));
@@ -34,15 +34,17 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.NodeWalker',
         //           right:Expression<10-11,"1">
         //             right:Literal<10-11,"1">
         var src = "Foo.bar = 1", nodes = [], state = {counter: 0};
-        acorn.walk.matchNodes(acorn.parse(src), {
+
+        lively.ast.acorn.walk.matchNodes(lively.ast.parse(src), {
             MemberExpression: function(node, state, depth, type) { nodes.pushIfNotIncluded(node); state.counter++; },
             Identifier: function(node, state, depth, type) { nodes.pushIfNotIncluded(node); state.counter++; }
         }, state);
+
         this.assert(state.counter >= 3, 'counter: ' + state.counter);
         this.assertMatches([
             {type: "MemberExpression"},
             {type: "Identifier", start: 0},
-            {type: "Identifier", start: 4}], nodes, Objects.inspect(nodes, {maxDepth: 1}));
+            {type: "Identifier", start: 4}], nodes, lively.lang.obj.inspect(nodes, {maxDepth: 1}));
     },
 });
 
@@ -75,9 +77,9 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.Navigation',
     testBackwardSexp: function() {
         var src = "this.foo(bar, 23);";
         // this.foo(bar, 23);
-        // lively.ast.acorn.nodeSource(src, lively.ast.acorn.nodesAt(5, src).last())
-        // lively.ast.acorn.printAst(src)
-        // acorn.walk.findNodesIncluding(ast, 8)
+        // lively.ast.stringify(lively.ast.query.nodesAt(5, src).last())
+        // lively.ast.printAst(src)
+        // lively.ast.acorn.walk.findNodesIncluding(lively.ast.parse(src), 8)
         var nav = this.sut;
         this.assertEquals(0, nav._backwardSexp(src, 18));
         this.assertEquals(5, nav._backwardSexp(src, 8));
@@ -217,7 +219,7 @@ TestCase.subclass('lively.ide.tests.ASTEditingSupport.ScopeAnalyzer',
             "for (var i =0; foo < 1; i++) 1;", ["foo"],
             "function foo(baz) { baz; bar }; foo", ["bar"]
         ];
-            
+
         for (var i = 0; i < tests.length; i+=2) {
             var src = tests[i], expected = tests[i+1], result = lively.ast.query.findGlobalVarRefs(src);
             this.assertEquals(

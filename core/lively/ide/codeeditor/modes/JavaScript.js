@@ -88,7 +88,7 @@ Object.subclass('lively.ide.codeeditor.modes.JavaScript.Navigator',
 
     _backwardSexp: function(src, pos) {
         var ast = this.ensureAST(src),
-            nodes = acorn.walk.findNodesIncluding(ast, pos),
+            nodes = lively.ast.acorn.walk.findNodesIncluding(ast, pos),
             containingNode = nodes.reverse().detect(function(n) { return n.start !== pos; });
         if (!containingNode) return pos;
         if (containingNode.type === 'BlockStatement') {

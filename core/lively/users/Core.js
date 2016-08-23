@@ -97,7 +97,9 @@ Object.subclass("lively.users.User",
   },
 
   canWriteWorld: function(worldPathOrURL, cb) {
-    var url = worldPathOrURL, user = this, answer = {value: false};
+    var url = worldPathOrURL,
+        user = this,
+        answer = {value: "undecided"};
 
     // ensure that worldPathOrURL is a URL
     if (!url.isURL) {
@@ -115,11 +117,9 @@ Object.subclass("lively.users.User",
     try {
       var globalRules = lively.Config.get("globalPermissions");
       for (var i = 0; i < globalRules.length; i++) {
-        var ruleFunc = globalRules[i];
-        var result = ruleFunc.call(Global, url, user);
-        if (!result || typeof result === "boolean") result = {value: result};
-        else if (!result.value) result = {value: result};
-        if (result.value) { answer = result; break; }
+        var ruleFunc = globalRules[i],
+            result = normalizeResult(ruleFunc.call(Global, url, user));
+        if (result.value !== "undecided") { answer = result; break; }
       }
     } catch (e) {
       console.error("Global auth rule failed: " + e);
@@ -127,15 +127,14 @@ Object.subclass("lively.users.User",
       cb && cb(e, answer);
       return answer;
     }
+
     // 2. user's rules
-    if (!answer.value) {
+    if (!answer.value || answer.value === "undecided") {
       try {
         for (var i = 0; i < this.authRules.length; i++) {
-          var ruleFunc = this.authRules[i];
-          var result = ruleFunc.call(user, url);
-          if (!result || typeof result === "boolean") result = {value: result};
-          else if (!result.value) result = {value: result}
-          if (result.value) { answer = result; break; }
+          var ruleFunc = this.authRules[i],
+              result = normalizeResult(ruleFunc.call(user, url));
+          if (result.value !== "undecided") { answer = result; break; }
         }
       } catch (e) {
         console.error("Auth rule failed: " + e);
@@ -145,8 +144,22 @@ Object.subclass("lively.users.User",
       }
     }
 
+    if (answer.value === "undecided") answer.value = "deny";
+
     cb && cb(null, answer);
     return answer;
+
+    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    function normalizeResult(result) {
+      if (["undecided", "allow", "deny"].indexOf(result) !== -1) return {value: result};
+      if (!result) return {value: "undecided"};
+      if (["undecided", "allow", "deny"].indexOf(result.value) !== -1) return result;
+      if (result.value === "redirect" && result.url) return result;
+      if (result === true || result.value === true) return {value: "allow"};
+      return {value: "undecided"};
+    }
+
   },
 },
 "custom user attributes", {
@@ -205,7 +218,7 @@ Object.extend(lively.users.User, {
   defaultPermissions: [
     {type: "RegExp", rule: "users/${user.name}/.*"},
     {type: "Function", rule: String(function(url) { 
-      return {redirect: true, value: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })}
+      return {value: "redirect", url: URL.root.withFilename("users/" + this.name + "/" + url.filename())}; })}
   ],
 
   named: function(name) {

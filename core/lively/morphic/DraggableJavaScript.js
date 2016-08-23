@@ -166,7 +166,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
     var replacementCode = dropjs.getCode(options),
         code = this.getCode(options),
         parsed = lively.ast.fuzzyParse(code, {addIndex: true}),
-        nodesAtPos = lively.ast.nodesAt(options.at, parsed);
+        nodesAtPos = lively.ast.query.nodesAt(options.at, parsed);
 
     var nodeToReplace = nodesAtPos.last();
     if (!nodeToReplace) {
@@ -250,7 +250,7 @@ Object.subclass("lively.morphic.DraggableJavaScript.DropJS",
     var ast = options.ast || this.getAst(options);
     var code = this.getCode(options);
     var ops = [];
-    lively.ast.withMozillaAstDo(ast, null, function(next, node, _, depth, path) {
+    lively.ast.withMozillaAstDo(ast, null, function(next, node, _, path) {
       if (node.type === "ReturnStatement") {
         ops.push(node.argument ?
           {type: "replace", as: "Argument", replaceNodeIndex: node.argument.astIndex} :

@@ -649,8 +649,8 @@ lively.BuildSpec("lively.wiki.LoginInfo", {
                 var context = {morph: this, user: data};
 
                 var markup = [
-                    ["You are logged in as ", {}], [data.name, {fontWeight: "bold"}],           ["\n", {}],
-                    ["Your email is ",        {}], [data.email, {fontWeight: "bold"}],          ["\n", {}],
+                    ["You are logged in as ", {}], [data.name || "", {fontWeight: "bold"}],           ["\n", {}],
+                    ["Your email is ",        {}], [data.email || "", {fontWeight: "bold"}],          ["\n", {}],
                     ["switch user",           this.textDoit("switchUser", context)],    [" ", {}],
                     ["change email",          this.textDoit("changeEmail", context)],   [" ", {}],
                     ["change password",          this.textDoit("changePassword", context)],   ["\n\n", {}],

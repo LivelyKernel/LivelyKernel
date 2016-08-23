@@ -66,7 +66,6 @@ var baseTests = [
 
     // AST / OMeta
     "ometa.tests.OmetaTests",
-    "lively.ast.tests.AcornTests",
 
     // persistence
     "lively.persistence.tests.BuildSpec",

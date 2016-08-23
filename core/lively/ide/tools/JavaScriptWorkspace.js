@@ -52,7 +52,17 @@ lively.BuildSpec("lively.ide.tools.JavaScriptWorkspace", {
       var clicked = m && m.isListItemMorph && this.itemList[m.index].value;
       if (!clicked) return [];
       return [["inspect " + clicked.name, lively.morphic.inspect.curry(clicked.value)]]
+    },
+    onLoad: function onLoad() {
+      this.itemList = [];
+      this.itemMorphs = [];
+    },
+
+    reset: function reset() {
+      if (this.hasOwnProperty("doNotSerialize")) this.doNotSerialize.push(["itemList", "itemMorphs"])
+      else this.doNotSerialize = ["itemList", "itemMorphs"];
     }
+
   },
 
   {

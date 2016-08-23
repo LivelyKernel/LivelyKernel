@@ -286,7 +286,7 @@ ObjectGraphLinearizer.addMethods(
                 alert('' + stack)
                 return
             }
-            if (fromId === toId) { alert('found ' + stack); found = stack.clone() }
+            if (fromId === toId) { found = stack.clone() }
             if (visited[fromId]) return;
             visited[fromId] = true;
             stack.push(fromId);

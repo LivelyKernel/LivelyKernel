@@ -1436,28 +1436,23 @@ Object.extend(lively.ide.commands.byName, {
     'lively.ide.openWorkspace': {
         description: 'open Workspace',
         exec: function(options) {
-            options = options || {};
-            lively.lang.fun.composeAsync(
-              function(n) {
-                if (!module("lively.ide.tools.JavaScriptWorkspace").isLoaded())
-                  lively.require("lively.ide.tools.JavaScriptWorkspace").toRun(function() { n(); });
-                else n();
-              },
-              function(n) {
-                var workspace = lively.ide.tools.JavaScriptWorkspace.open();
-                var ed = workspace.targetMorph;
-                if (options.title) workspace.setTitle(options.title);
-                if (options.extent) workspace.setExtent(options.extent);
-                if (options.position) workspace.setPosition(options.position);
-                if (options.content) ed.textString = options.content;
-                if (options.textMode) ed.setTextMode(options.textMode);
-                if (options.fontSize) ed.setFontSize(options.fontSize);
-                n(null, workspace);
-              }
-            )(options.thenDo || function() {});
-            return true;
+          options = options || {};
+          return lively.module("lively.ide.tools.JavaScriptWorkspace").load()
+            .then(function() {
+              var workspace = lively.ide.tools.JavaScriptWorkspace.open(),
+                  ed = workspace.targetMorph;
+              if (options.title) workspace.setTitle(options.title);
+              if (options.extent) workspace.setExtent(options.extent);
+              if (options.position) workspace.setPosition(options.position);
+              if (options.content) ed.textString = options.content;
+              if (options.textMode) ed.setTextMode(options.textMode);
+              if (options.fontSize) ed.setFontSize(options.fontSize);
+              options.thenDo && options.thenDo(null, workspace);
+              return workspace;
+            });
         }
     },
+
     'lively.ide.openTextWindow': {description: 'open Text window', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openTextWindow(); return true; }},
     'lively.ide.openSystemCodeBrowser': {description: 'open SystemCodeBrowser', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openSystemBrowser(); return true; }},
     'lively.ide.openObjectEditor': {description: 'open ObjectEditor', isActive: lively.ide.commands.helper.noCodeEditorActive, exec: function() { $world.openObjectEditor(); return true; }},

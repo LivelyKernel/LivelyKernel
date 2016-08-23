@@ -1696,6 +1696,131 @@ Object.extend(lively.ide.commands.byName, {
       }
     },
 
+    'lively.ide.git_blame': {
+      description: 'git blame / annotate',
+      exec: function() {
+
+        var base = lively.shell.cwd() + "/";
+        Promise.resolve()
+          .then(() => lively.modules.importPackage("git-blame"))
+          .then(() =>
+            lively.ide.CommandLineSearch.interactivelyChooseFileSystemItem(
+              'blame file: ',
+              null,
+              function(files, input) { return files.length ? files : [{isDirectory: false, path: input}]; },
+              "git-blame-find-file.Narrower",
+              [openGitBlame]))
+          .catch(err => $world.logError(err));
+
+        return true;
+
+        function openGitBlame(file) {
+          var relative = new window.URL("file://" + file.path).relativePathFrom(new window.URL("file://" + base));
+          var ed = createEd();
+          ed.state = {dir: base, file: relative, rev: "HEAD"};
+          ed.gitBlame().annotateRevIn(ed, relative, base, "HEAD");
+          ed.getWindow().comeForward();
+        }
+
+        function createEd() {
+          var ed = $world.addCodeEditor({
+            textMode: "text",
+            content: "",
+            extent: pt(600, 800)
+          });
+
+
+          ed.addScript(function gitBlame() {
+            return window.System.get(window.System.decanonicalize("git-blame"))
+          });
+
+          ed.addScript(function onKeyDown(evt) {
+
+
+            if (this.aceEditor.getKeyboardHandler().$iSearch || this.aceEditor.getKeyboardHandler().isOccurHandler) return;
+
+            var dir = lively.shell.cwd();
+            this.state.dir = dir;
+
+            var keyString = evt.getKeyString();
+            var handled = true;
+
+            switch (keyString) {
+
+              // Annotate the previous revision, i.e., the revision before the one currently
+              // annotated. A numeric prefix argument is a repeat count, so C-u 10 p would take
+              // you back 10 revisions.
+              case 'P': this.gitBlame().revBack(this); break;
+
+              // Annotate the next revision, i.e., the revision after the one currently
+              // annotated. A numeric prefix argument is a repeat count.
+              case 'N': this.gitBlame().revFwd(this); break;
+
+              // Annotate the revision indicated by the current line.
+              case 'J':
+                var fileAndRev = this.gitBlame().revAndFileAtLine(this);
+                var rev = fileAndRev.rev, file = fileAndRev.file;
+                if (rev.startsWith("^")) rev = rev.replace(/\^/, "")
+                this.gitBlame().annotateRevIn(this, file, null, rev);
+                break;
+
+              // Annotate the revision indicated by the current line.
+              case 'Shift-J': this.gitBlame().queryAnnotateRevIn(this); break;
+
+
+              // Annotate the revision before the one indicated by the current line. This is
+              // useful to see the state the file was in before the change on the current line
+              // was made.
+              case 'A':
+                var fileAndRev = this.gitBlame().revAndFileAtLine(this);
+                var file, rev = fileAndRev.rev;
+                if (rev.startsWith("^")) {
+                  file = fileAndRev.file;
+                  rev = rev.replace(/\^/, "")
+                }
+                this.gitBlame().annotateRevIn(this, file, null, rev + "~1");
+                break;
+
+              // f Show in a buffer the file revision indicated by the current line.
+              case 'F': this.gitBlame().showContentOfVersionAtLine(this); break;
+
+              // d Display the diff between the current line’s revision and the previous
+              // revision. This is useful to see what the current line’s revision actually
+              // changed in the file.
+              case 'D': this.gitBlame().showDiffOfVersionAtLine(this); break;
+
+              // D Display the diff between the current line’s revision and the previous
+              // revision for all files in the changeset (for VC systems that support
+              // changesets). This is useful to see what the current line’s revision actually
+              // changed in the tree.
+              case 'Shift-D': this.gitBlame().showDiffOfAllFilesOfVersionAtLine(this); break;
+
+              // l Show the log of the current line’s revision. This is useful to see the
+              // author’s description of the changes in the revision on the current line.
+              case 'L': this.gitBlame().showLogOfVersionAtLine(this); break;
+
+              // w Annotate the working revision–the one you are editing. If you used p and n to
+              // browse to other revisions, use this key to return to your working revision.
+
+              // v Toggle the annotation visibility. This is useful for looking just at the file
+              // contents without distraction from the annotations.
+
+              default:
+                handled = false;
+            }
+
+            if (handled) {
+              evt.stop();
+              return true;
+            }
+
+          });
+          return ed
+        }
+
+      }
+    },
+
     'apis.Github.browseIssues': {
       description: 'browse Github issues...',
       exec: function(args) {

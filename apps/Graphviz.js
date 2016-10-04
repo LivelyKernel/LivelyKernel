@@ -663,7 +663,7 @@ apps.Graphviz.Simple = {
   initialized: false,
 
   renderDotToSVG: function(dotSource, options) {
-    // apps.Graphviz.Simple.renderDotToSVG("digraph { a -> b; b -> a; }").then(svg => show(svg))
+    // apps.Graphviz.Simple.renderDotToSVG("digraph { a -> b; b -> a; }").then(show).catch(err => $world.logError(err))
     if (!dotSource || !dotSource.trim())
       return Promise.reject(new Error("Invalid dot source: " + dotSource))
 
@@ -672,7 +672,7 @@ apps.Graphviz.Simple = {
       Promise.resolve() :
       new Promise((resolve, reject) =>
         lively.shell.run('which dot', function (err, cmd) {
-          self.initialized = cmd.code === 0 ? 'viz-server' : 'viz-browser';
+          self.initialized = cmd.getCode() === 0 ? 'viz-server' : 'viz-browser';
           resolve();
         }));
     return initP.then(() => self.initialized === "viz-browser" ?
@@ -685,7 +685,7 @@ apps.Graphviz.Simple = {
       .then(function() {
         if (window.Viz) return window.Viz;
         // FIXME host ourselves? add to libs?
-        JSLoader.loadJs("http://mdaines.github.io/viz.js/bower_components/viz.js/viz.js");
+        JSLoader.loadJs("https://mdaines.github.io/viz.js/bower_components/viz.js/viz.js");
         return lively.lang.promise.waitFor(10000, function() { return window.Viz; });
       })
       .then(function(viz) { return viz(dotSource); })
@@ -693,14 +693,22 @@ apps.Graphviz.Simple = {
 
   renderDotToSVGViaServerImageMagick: function(dotSource, options) {
     // uses the commandline dot program that is part of imagemagick
-    return new Promise((resolve, reject) => {
-      if (!dotSource || !dotSource.trim()) return reject("Invalid dot source: " + dotSource)
-      var cmd = "dot -Tsvg";
-      lively.shell.run(cmd, {stdin: dotSource}, (err, cmd) => {
-        if (err) reject(cmd.resultString(true).trim() || err);
-        else resolve(cmd.getStdout());
+    return Promise.resolve()
+      .then(() => lively.shell.writeFile("dot-for-graphviz.dot", dotSource))
+      .then(() => new Promise((resolve, reject) => {
+        if (!dotSource || !dotSource.trim()) return reject("Invalid dot source: " + dotSource)
+        var cmd = "dot -Tsvg -odot-for-graphviz.svg dot-for-graphviz.dot";
+        lively.shell.run(cmd, {stdin: dotSource}, (err, cmd) => {
+          return err ? reject(cmd.resultString(true).trim() || err) :
+                resolve(cmd.getStdout());
+        })
+      }))
+      .then(() => new Promise((resolve, reject) =>
+        lively.shell.cat("dot-for-graphviz.svg", (err, content) =>
+          err ? reject(err) : resolve(content))))
+      .then(svg => {
+        return svg;
       });
-    });
   },
 
   renderDotToDisplay: function(dotSource, options) {

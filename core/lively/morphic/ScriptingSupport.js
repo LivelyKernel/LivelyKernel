@@ -216,12 +216,13 @@ lively.morphic.Morph.addMethods(
     },
 
     asLogo: function() {
-      "Make an SVG copy of this morph (with submorphs) for use as a preview, thumbnail, or icon"
-        var src = this.asSVGLogo(),
-            svgNode = stringToXML(world.asSVGLogo()),
-            shape = new lively.morphic.Shapes.External(svgNode),
-            morph = new lively.morphic.Morph(shape);
-        return morph;
+      // Creates a dumb HTML copy for this morph.
+      // Also find this code when searching for "icon" and "thumbnail"
+      var html = this.asHTMLLogo({asFragment: true}),
+          placeholder = new lively.morphic.HtmlWrapperMorph(this.getExtent());
+      placeholder.setHTML(html.replace("left: 5px; top: 5px;"), "left: 0px; top: 0px;");
+      placeholder.applyStyle({fill: null, borderWidth: 0});
+      return placeholder;
     }
 
 },

@@ -1773,6 +1773,10 @@ lively.morphic.World.addMethods(
             lively.morphic.EventHandler.prototype.patchEvent(evt);
             self.onWindowScroll(evt);
         };
+        document.addEventListener("dragstart", function handler(evt) {
+          lively.morphic.EventHandler.prototype.patchEvent(evt);
+          self.onHTML5DragStart(evt);
+        });
         this.registerForVisibilityChange(false);
         this.registerForBrowserSpecificEvents(false);
     },
@@ -2035,6 +2039,15 @@ lively.morphic.World.addMethods(
             messageMorph.setScale(1/newScale);
             messageMorph.align(messageMorph.bounds().center(), this.visibleBounds().center());
         }
+    },
+
+    onHTML5DragStart: function(evt) {
+      // This method is called when a browser native drag event occurs. This
+      // happens when selecting and dragging HTML elements or text (you usually
+      // need to hold your mouse down for a while, then drag to trigger it)
+      // By default we will not handle these events and just stop them.
+      evt.stop();
+      return true;
     },
 
     onHTML5DragEnter: function(evt) { evt.stop(); return true; },

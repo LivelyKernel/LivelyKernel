@@ -2027,6 +2027,19 @@ lively.morphic.World.addMethods(
             lively.morphic.World.current().firstHand().grabMorph(part);
         }]}))
 
+        var drawing = ["Drawing Canvas",function(){
+      if(!$world.drawingCanvas) {
+          $world.loadPartItem('DrawingCanvas', 'https://lively-web.org/PartsBin/Pronto-system/',function(err,part){
+            $world.drawingCanvas = part
+            $world.drawingCanvas.slideDown();
+            $world.drawingCanvas.getMorphNamed('penButton').doAction()
+          });
+          return;
+      }
+      $world.drawingCanvas.slideDown()
+      $world.drawingCanvas.getMorphNamed('penButton').doAction()
+    }];
+        items.push(drawing)
 
         partNames = ["List", "Slider", "Button"].sort()
         items.pushAll(partNames.collect(function(ea) { return [ea, function() {

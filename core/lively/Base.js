@@ -30,6 +30,8 @@
     global.lively.lang = livelyLang;
   }
   livelyLang.deprecatedLivelyPatches();
+  
+  delete lively.lang._prevLivelyGlobal;
 })();
 
 (function defineFunctionPrototypeName() {

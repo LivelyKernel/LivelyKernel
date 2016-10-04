@@ -432,7 +432,12 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
         }]);
         items.push(['pick color', function() { self._pickColorOnNextClick = true; }]);
         return items;
+    },
+
+    logoHTMLString: function () {
+      return this.toImage().logoHTMLString()
     }
+
 },
 'events', {
     onMouseDown: function($super, evt) {

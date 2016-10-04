@@ -302,29 +302,31 @@ Object.subclass("lively.ast.Rewriting.Rewriter",
     registerDeclarations: function(ast, visitor) {
         if (!this.scopes.length) return;
         var scope = this.scopes.last(), that = this, decls = {};
-        acorn.walk.matchNodes(ast, {
-            'VariableDeclaration': function(node, state, depth, type) {
-                if (node.type != type) return; // skip Expression, Statement, etc.
-                node.declarations.forEach(function(n) {
-                    // only if it has not been defined before (as variable or argument!)
-                    if ((scope.localVars.indexOf(n.id.name) == -1) && (n.id.name != 'arguments')) {
-                        state[n.id.name] = {
-                            key: that.newNode('Literal', {value: n.id.name}),
-                            type: "Property",
-                            kind: 'init',
-                            value: that.newNode('Identifier', {name: 'undefined'})
-                        };
-                        scope.localVars.push(n.id.name);
-                    }
-                });
-            },
-            'FunctionDeclaration': function(node, state, depth, type) {
-                if (node.type != type) return; // skip Expression, Statement, etc.
-                state[node.id.name] = node; // rewrite is done below (to know all local vars first)
-                if (scope.localVars.indexOf(node.id.name) == -1)
-                    scope.localVars.push(node.id.name);
-            }
-        }, decls, { visitors: acorn.walk.visitors.stopAtFunctions });
+        
+        lively.ast.withMozillaAstDo(ast, {}, function(next, node, _, depth, path) {
+          if (node.type === "FunctionDeclaration") {
+            decls[node.id.name] = node; // rewrite is done below (to know all local vars first)
+            if (scope.localVars.indexOf(node.id.name) == -1)
+                scope.localVars.push(node.id.name);
+          }
+          if (node.type === "VariableDeclaration") {
+            // if (node.type != type) return; // skip Expression, Statement, etc.
+            node.declarations.forEach(function(n) {
+                // only if it has not been defined before (as variable or argument!)
+                if ((scope.localVars.indexOf(n.id.name) == -1) && (n.id.name != 'arguments')) {
+                    decls[n.id.name] = {
+                        key: that.newNode('Literal', {value: n.id.name}),
+                        type: "Property",
+                        kind: 'init',
+                        value: that.newNode('Identifier', {name: 'undefined'})
+                    };
+                    scope.localVars.push(n.id.name);
+                }
+            });
+        
+          }
+          next();
+        });
 
         return Object.getOwnPropertyNames(decls).map(function(decl) {
             var node = decls[decl];

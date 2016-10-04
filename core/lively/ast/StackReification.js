@@ -1,5 +1,92 @@
 module('lively.ast.StackReification').requires('lively.ast.AcornInterpreter', 'lively.ast.Rewriting').toRun(function() {
 
+var NativeArrayFunctions = {
+
+  sort: function(sortFunc) {
+    // show-in-doc
+    if (!sortFunc) {
+      sortFunc = function(x,y) {
+        if (x < y) return -1;
+        if (x > y) return 1;
+        return 0;
+      };
+    }
+    var len = this.length, sorted = [];
+    for (var i = 0; i < this.length; i++) {
+      var inserted = false;
+      for (var j = 0; j < sorted.length; j++) {
+        if (1 === sortFunc(sorted[j], this[i])) {
+          inserted = true;
+          sorted[j+1] = sorted[j];
+          sorted[j] = this[i];
+          break;
+        }
+      }
+      if (!inserted) sorted.push(this[i]);
+    }
+    return sorted;
+  },
+
+  filter: function(iterator, context) {
+    // show-in-doc
+    var results = [];
+    for (var i = 0; i < this.length; i++) {
+      if (!this.hasOwnProperty(i)) continue;
+      var value = this[i];
+      if (iterator.call(context, value, i)) results.push(value);
+    }
+    return results;
+  },
+
+  forEach: function(iterator, context) {
+    // show-in-doc
+    for (var i = 0, len = this.length; i < len; i++) {
+      iterator.call(context, this[i], i, this); }
+  },
+
+  some: function(iterator, context) {
+    // show-in-doc
+    return this.detect(iterator, context) !== undefined;
+  },
+
+  every: function(iterator, context) {
+    // show-in-doc
+    var result = true;
+    for (var i = 0, len = this.length; i < len; i++) {
+      result = result && !! iterator.call(context, this[i], i);
+      if (!result) break;
+    }
+    return result;
+  },
+
+  map: function(iterator, context) {
+    // show-in-doc
+    var results = [];
+    this.forEach(function(value, index) {
+      results.push(iterator.call(context, value, index));
+    });
+    return results;
+  },
+
+  reduce: function(iterator, memo, context) {
+    // show-in-doc
+    var start = 0;
+    if (!arguments.hasOwnProperty(1)) { start = 1; memo = this[0]; }
+    for (var i = start; i < this.length; i++)
+      memo = iterator.call(context, memo, this[i], i, this);
+    return memo;
+  },
+
+  reduceRight: function(iterator, memo, context) {
+    // show-in-doc
+    var start = this.length-1;
+    if (!arguments.hasOwnProperty(1)) { start--; memo = this[this.length-1]; }
+    for (var i = start; i >= 0; i--)
+      memo = iterator.call(context, memo, this[i], i, this);
+    return memo;
+  }
+
+};
 lively.Closure.subclass('lively.ast.RewrittenClosure',
 'initializing', {
 

@@ -1,8 +1,8 @@
-module('apis.OAuth').requires('lively.Network').toRun(function() {
+module('apis.OAuth').requires('lively.Network').toRun(function () {
 
 Object.extend(apis.OAuth, {
 
-  getCachedAccess: function(scope, providerName) {
+  getCachedAccess: function getCachedAccess(scope, providerName) {
     var user = $world.getCurrentUser(),
         auth = lively.lookup(providerName + ".oauth", user);
     if (auth && auth.error) {
@@ -15,7 +15,7 @@ Object.extend(apis.OAuth, {
     return auth;
   },
 
-  requestAccess: function(options, thenDo) {
+  requestAccess: function requestAccess(options, thenDo) {
     // providerName like "github"
     // providerLoginURL like ""https://github.com/login/oauth/authorize"
     // subserverURL like ""http://lively-web.org/nodejs/GithubOAuth/""
@@ -27,11 +27,11 @@ Object.extend(apis.OAuth, {
       providerLoginURL: null,
       subserverURL: null,
       l2lCallbackServiceSelector: null,
-      timeout: 30 * 1000/*ms*/,
-      scope: [],
+      timeout: 30 * 1000 /*ms*/
+      , scope: [],
       query: {},
-      popupWidth: $world.windowBounds().extent().x*1/3,
-      popupHeight: $world.windowBounds().extent().y*2/3,
+      popupWidth: $world.windowBounds().extent().x * 1 / 3,
+      popupHeight: $world.windowBounds().extent().y * 2 / 3,
       popupPos: $world.windowBounds().center()
     }, options);
 
@@ -41,57 +41,53 @@ Object.extend(apis.OAuth, {
         subserverURL = options.subserverURL,
         l2lCallbackServiceSelector = options.l2lCallbackServiceSelector || providerName + "-oauthResponse";
 
-    return new Promise((resolve, reject) => {
+    return new Promise(function (resolve, reject) {
 
-      var required = ["providerName","providerLoginURL","subserverURL"],
-          missing = required.detect(ea => !(ea in options));
+      var required = ["providerName", "providerLoginURL", "subserverURL"],
+          missing = required.detect(function (ea) {
+        return !(ea in options);
+      });
 
       if (missing) {
         var err = new Error("options field " + missing + " is required");
-        (typeof thenDo === "function") && thenDo(err); reject(err); return;
+        typeof thenDo === "function" && thenDo(err);reject(err);return;
       }
-  
+
       // are we logged in yet?
       var auth = apis.OAuth.getCachedAccess(scope, providerName);
       if (auth && !(auth instanceof Error)) {
-        (typeof thenDo === "function") && thenDo(null, auth); resolve(auth); return;
+        typeof thenDo === "function" && thenDo(null, auth);resolve(auth);return;
       }
-  
+
       var inProgressKey = providerName + "-authRequestInProgress";
       subserverURL = new URL(subserverURL);
-  
-      if (apis.OAuth[inProgressKey]) { // for parallel requests
-        lively.bindings.once(
-          apis.OAuth, providerName + '-authRequestDone',
-          {callback: result => {
+
+      if (apis.OAuth[inProgressKey]) {
+        // for parallel requests
+        lively.bindings.once(apis.OAuth, providerName + '-authRequestDone', { callback: function callback(result) {
             var err = result && result instanceof Error ? result : null;
-            (typeof thenDo === "function") && thenDo(err, result);
+            typeof thenDo === "function" && thenDo(err, result);
             err ? reject(err) : resolve(result);
-          }}, 'callback');
+          } }, 'callback');
         return;
       }
-  
+
       apis.OAuth[inProgressKey] = true;
-  
+
       // Uses the OAuth webflow, like https://developer.github.com/v3/oauth/#web-application-flow
-      lively.lang.fun.composeAsync(
-        withClientId,
-        withTempCodeDo,
-        requestOAuthToken,
-        addAuthToUser
-      )((err, auth) => {
+      lively.lang.fun.composeAsync(withClientId, withTempCodeDo, requestOAuthToken, addAuthToUser)(function (err, auth) {
         apis.OAuth[inProgressKey] = false;
         lively.bindings.signal(apis.OAuth, providerName + '-authRequestDone', err || auth);
-        (typeof thenDo === "function") && thenDo(err, auth);
+        typeof thenDo === "function" && thenDo(err, auth);
       }).then(resolve, reject);
     });
 
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
     function withClientId(thenDo) {
-      subserverURL.withFilename("clientId")
-        .asWebResource().beAsync().get().whenDone((id, status) =>
-          thenDo(status.isSuccess() ? null: new Error(String(status) + "\n" + id), id));
+      subserverURL.withFilename("clientId").asWebResource().beAsync().get().whenDone(function (id, status) {
+        return thenDo(status.isSuccess() ? null : new Error(String(status) + "\n" + id), id);
+      });
     }
 
     function withTempCodeDo(clientId, thenDo) {
@@ -110,10 +106,12 @@ Object.extend(apis.OAuth, {
       var popupWidth = options.popupWidth,
           popupHeight = options.popupHeight,
           pos = options.popupPos,
-          left = pos.x - popupWidth/2,
-          top = pos.y - popupHeight/2,
-          win = window.open(String(url), "_blank", `chrome=yes, modal=yes, toolbar=yes, scrollbars=yes, resizable=yes, centerscreen=yes, top=${top}, left=${left}, width=${popupWidth}, height=${popupHeight}`);
-      waitForCallback((err, data) => thenDo && thenDo(err, data && data.code));
+          left = pos.x - popupWidth / 2,
+          top = pos.y - popupHeight / 2,
+          win = window.open(String(url), "_blank", 'chrome=yes, modal=yes, toolbar=yes, scrollbars=yes, resizable=yes, centerscreen=yes, top=' + top + ', left=' + left + ', width=' + popupWidth + ', height=' + popupHeight);
+      waitForCallback(function (err, data) {
+        return thenDo && thenDo(err, data && data.code);
+      });
     }
 
     function requestOAuthToken(tempCode, thenDo) {
@@ -125,20 +123,18 @@ Object.extend(apis.OAuth, {
         state: s ? s.sessionId : "no session"
       }, options.query);
 
-      url.asWebResource().setRequestHeaders({"Accept": "application/json"}).beAsync().post()
-        .whenDone((content, status) => {
-          var err;
-          if (!status.isSuccess()) err = new Error(status);
-          else {
-            try {
-              var json = JSON.parse(content);
-            } catch (e) {
-              err = new Error("Cannot parse " + providerName + " oauth response:\n" + (content||"nothing").slice(0,300))
-            }
+      url.asWebResource().setRequestHeaders({ "Accept": "application/json" }).beAsync().post().whenDone(function (content, status) {
+        var err;
+        if (!status.isSuccess()) err = new Error(status);else {
+          try {
+            var json = JSON.parse(content);
+          } catch (e) {
+            err = new Error("Cannot parse " + providerName + " oauth response:\n" + (content || "nothing").slice(0, 300));
           }
-          if (json && json.error) err = new Error(json.error_description || json.error);
-          thenDo(err, json);
-        });
+        }
+        if (json && json.error) err = new Error(json.error_description || json.error);
+        thenDo(err, json);
+      });
     }
 
     function waitForCallback(thenDo) {
@@ -147,16 +143,20 @@ Object.extend(apis.OAuth, {
       // handler we send the code to our Lively world via l2l using the state parameter
 
       var service = {};
-      service[l2lCallbackServiceSelector] = function(msg, session) {
+      service[l2lCallbackServiceSelector] = function (msg, session) {
         lively.bindings.signal(apis.OAuth, providerName + '-oauthCallback', msg.data);
-      }
+      };
       Object.extend(lively.net.SessionTracker.defaultActions, service);
 
       var timeout = options.timeout,
           data = undefined,
-          con = lively.bindings.once(apis.OAuth, providerName + '-oauthCallback', function() { data = this; }, "call");
+          con = lively.bindings.once(apis.OAuth, providerName + '-oauthCallback', function () {
+        data = this;
+      }, "call");
 
-      lively.lang.fun.waitFor(timeout, () => !!data, function(err) {
+      lively.lang.fun.waitFor(timeout, function () {
+        return !!data;
+      }, function (err) {
         con.disconnect();
         if (err) {
           if (err.message === "timeout") err = new Error("Timeout logging in to " + providerName);
@@ -170,15 +170,13 @@ Object.extend(apis.OAuth, {
       var user = $world.getCurrentUser();
       if (user) {
         var attrs = {};
-        attrs[providerName] = lively.lang.obj.merge(user.getAttributes()[providerName], {oauth: auth});
+        attrs[providerName] = lively.lang.obj.merge(user.getAttributes()[providerName], { oauth: auth });
         user.addAttributes(attrs);
       }
       n(null, auth);
     }
-
   }
 
 });
 
-
-}) // end of module
+}); // end of module

@@ -4203,14 +4203,14 @@ lively.BuildSpec("lively.ide.tools.StyleEditor", {
 
 
     // for Sharing
-    onBlur: function(evt){
+    onBlur: function onBlur(evt){
       $super(evt);
       if($world.isShared){
         var targetId = this.get('StyleEditorPane').target.id
         $world.notifyPeers('unlock_morph',{morphId:targetId})
       } 
     }
-})
+});
 
 lively.BuildSpec("lively.ide.tools.TextAttributeEditor", {
     _Extent: lively.pt(279.5,566.4),

@@ -958,7 +958,8 @@ var ModeExtension = {
 
     doSave: function(editor) {
       editor.doSave();
-      editor.aceEditor.execCommand("lively.ide.c_cpp.check-comile-with-overlays")
+      if (editor.aceEditor.session.$c_cpp.checkOnChange)
+        editor.aceEditor.execCommand("lively.ide.c_cpp.check-comile-with-overlays");
     },
 
     doListProtocol: function(codeEditor) {
@@ -982,17 +983,20 @@ lively.ide.codeeditor.ModeChangeHandler.subclass('lively.ide.codeeditor.modes.C_
 
         if (!session.$c_cpp) return;
 
-        codeEditor.setStatusMessage("checking...");
 
-        lively.lang.fun.debounceNamed(this.id + "after-change-compile-check", 1500,
-          function() {
-            codeEditor.aceEditor.execCommand("lively.ide.c_cpp.check-comile-with-overlays", {
-              noMessage: true,
-              thenDo: function(_, parsedErrors) {
-                // changeHandler.updateCodeMarkers(codeEditor, session, parsedErrors || []);
-              }
-            })
-          })();
+        if (session.$c_cpp.checkOnChange) {
+          codeEditor.setStatusMessage("checking...");
+          lively.lang.fun.debounceNamed(this.id + "after-change-compile-check", 1500,
+            function() {
+              codeEditor.aceEditor.execCommand("lively.ide.c_cpp.check-comile-with-overlays", {
+                noMessage: true,
+                thenDo: function(_, parsedErrors) {
+                  // changeHandler.updateCodeMarkers(codeEditor, session, parsedErrors || []);
+                }
+              })
+            })();
+        }
+
     },
 
     updateCodeMarkers: function(codeEditor, session, parsedErrors) {

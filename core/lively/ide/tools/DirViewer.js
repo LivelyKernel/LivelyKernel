@@ -978,7 +978,7 @@ lively.BuildSpec('lively.ide.tools.DirViewer', {
                 item.path || item.fileName);
         }
 
-        function pad(string, entireLength) { return Strings.pad(string, entireLength-string.length, true); }
+        function pad(string, entireLength) { return Strings.pad(string, Math.max(0, entireLength-string.length), true); }
 
         function printDate(d) {
             return d && String(d) !== "Invalid Date" && d.format ?

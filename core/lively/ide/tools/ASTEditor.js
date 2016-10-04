@@ -1,5 +1,5 @@
 module('lively.ide.tools.ASTEditor').requires("lively.ide.tools.CommandLine", 'lively.ast.acorn')
-.requiresLib({url: 'http://lively-web.org/core/lib/grasp.js', loadTest: function() { return typeof grasp !== 'undefined' }})
+.requiresLib({url: 'https://lively-web.org/core/lib/grasp.js', loadTest: function() { return typeof grasp !== 'undefined' }})
 .toRun(function() {
 
 lively.BuildSpec('lively.ide.tools.ASTEditor', {

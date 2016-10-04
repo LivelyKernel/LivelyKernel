@@ -397,7 +397,7 @@ Object.subclass('lively.morphic.Morph',
         for (var i = this.submorphs.length -1 ; i >=0; i--) {
             this.submorphs[i].morphsContainingPoint(point, list);
         }
-        if (this.innerBoundsContainsWorldPoint(point)) list.push(this);
+        if (this.shapeContainsPoint(this.owner == null ? point : this.localize(point))) list.push(this);
         return list;
     },
 

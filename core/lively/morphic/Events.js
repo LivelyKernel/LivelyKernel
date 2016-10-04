@@ -951,8 +951,11 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
-        if (!this.reallyContainsPoint(evt.getPosition(), null)) return false;
-
+        // if (!this.reallyContainsPoint(evt.getPosition(), null)) return false;
+        if (!this.reallyContainsPoint(evt.getPosition(), null)) {
+          return $world.morphsContainingPoint(evt.getPosition())
+            .without($world).find(function(morph) { return morph.onMouseDownEntry(evt); })
+        }
         evt.hand.pointerId = evt.pointerId;
         // checkMouseUpEntry if mouse is on the scrollbar
         var suppressScrollbarClick = (this.showsVerticalScrollBar()
@@ -970,9 +973,7 @@ handleOnCapture);
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
                 return false;
             }
-
         }
-
         if (this.showsMorphMenu
                 && !this.eventsAreIgnored
                 && evt.isRightMouseButtonDown()
@@ -982,11 +983,9 @@ handleOnCapture);
             this.world().worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
-
         if (this.isHalo) {
             evt.hand.haloLastClickedOn = this;
         }
-
         // This is like clickedOnMorph, but also takes into consideration
         // Halos, Morphs ignoring events etc. For internal use.
         evt.hand.internalClickedOnMorph = this;
@@ -995,7 +994,6 @@ handleOnCapture);
             evt.hand.haloTarget = this;
             return false;
         }
-
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
         evt.hand.clickedOnMorph = this;
@@ -1004,7 +1002,6 @@ handleOnCapture);
         this.world().clickedOnMorphTime = Date.now();
 
         return this.onMouseDown(evt);
-
     },
 
     onMouseUp: function(evt) { return false; },
@@ -1012,7 +1009,12 @@ handleOnCapture);
     onMouseUpEntry: function(evt, allHits) {
         evt.hand.move(evt);
         evt.hand.pointerId = undefined;
-        if (!this.reallyContainsPoint(evt.getPosition())) return false;
+
+        if (!this.reallyContainsPoint(evt.getPosition(), null)) {
+          return $world.morphsContainingPoint(evt.getPosition())
+            .without($world).find(function(morph) { return morph.onMouseDownEntry(evt);});
+        }
+        // if (!this.reallyContainsPoint(evt.getPosition())) return false;
 
         var world = evt.world,
             completeClick = evt.getTargetMorph() === this,
@@ -1325,6 +1327,7 @@ handleOnCapture);
       var tm = evt.getTargetMorph();
        if(tm===evt.world)
            tm.registerForTouchEvents(lively.Config.handleOnCapture); 
+      // long click to show halos
       if(tm && !(tm instanceof lively.morphic.MenuItem) && tm.touchStartPos.dist(evt.getPosition())<5 && Date.now()-tm.haloTimer>tm.haloTimeout){
           tm.toggleHalos(evt);
           evt.stop()
@@ -2265,14 +2268,14 @@ lively.morphic.Morph.subclass('lively.morphic.HandMorph',
                 submorphPos = submorph.getPosition();
             if (submorph.isGrabShadow) submorph.remove();
             else {
-              submorph.dropOn(morph);
+              submorph.dropOn(morph, evt);
               submorph.onGrabEnd(evt, morph);
               submorph.logTransformationForUndo('grab', 'end');
               
             }
         };
         if (submorphs.length == 2 && submorphs[0].isGrabShadow) {
-            console.log("logging end of grab");
+            // console.log("logging end of grab");
         }
         evt && evt.stop();
         return true;

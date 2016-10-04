@@ -27,9 +27,32 @@ Object.extend(lively.persistence.Debugging, {
 
   jsonOfWorld: function(url) {
     var html = new URL(url).asWebResource().forceUncached().get().content,
-        roughly = html.slice(html.indexOf('"text/x-lively-world"')+6, html.lastIndexOf("</script>")),
-        json = roughly.slice(roughly.indexOf('{'));
+        scriptTag = html.match(/<script type="text\/x-lively-world[^>]+>/);
+    if (!scriptTag)
+      throw new Error("Cannot find lively world data in " + url);
+    var json = html.slice(html.indexOf(scriptTag[0])+scriptTag[0].length, html.lastIndexOf("</script>"));
     return JSON.parse(json);
+  },
+
+  writeJsonOfWorld: function(url, newJSON) {
+    var preview = "",
+        title = "...",
+        bootstrapFile = new URL(module("lively.bootstrap").uri()).relativePathFrom(new URL(url)),
+        css = [],
+        metaTags = [],
+        linkTags = [],
+        docSpec = {
+            title: title,
+            metaTags: metaTags,
+            linkTags: linkTags,
+            migrationLevel: LivelyMigrationSupport.migrationLevel,
+            serializedWorld: typeof newJSON === "string" ? newJSON : JSON.stringify(newJSON),
+            html: preview,
+            styleSheets: css,
+            externalScripts: [bootstrapFile]
+        },
+        doc = lively.persistence.HTMLDocBuilder.documentForWorldSerializationAsString(docSpec);
+    return new URL(url).asWebResource().put(doc);
   },
 
   svgGrawGraph: function(graphMap, snapshot, options) {

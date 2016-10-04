@@ -2062,7 +2062,7 @@ lively.morphic.World.addMethods(
                     function(input) {
                       if (!input || input === "cancel") return;
                       else if (input === "saved") {
-                        lively.persistence.Debugging.svgGraphForSerializedObjectGraph(URL.source);
+                        lively.persistence.Debugging.svgGraphForWorld(URL.source);
                       } else {
                         var json = lively.persistence.Serializer.serialize($world);
                         lively.persistence.Debugging.svgGraphForSerializedObjectGraph(JSON.parse(json));

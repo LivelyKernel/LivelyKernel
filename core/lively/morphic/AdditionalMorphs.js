@@ -142,7 +142,10 @@ lively.morphic.Morph.subclass('lively.morphic.CanvasMorph',
     },
 
     toImage: function() {
-        return lively.morphic.Image.fromURL(this.toDataURI(), this.getCanvasBounds());
+        var image = lively.morphic.Image.fromURL(this.toDataURI(), this.getCanvasBounds());
+        image.setRotation(this.getRotation());
+        image.setScale(this.getScale());
+        return image;
     },
 
     toImageDataArray: function(optBounds) {

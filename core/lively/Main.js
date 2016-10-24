@@ -138,9 +138,9 @@ Object.subclass('lively.Main.Loader',
         // child elements to overwrite -moz-user-select
         cssDef += ""
                 + "*:not(:focus) {\n"
-                // + "  -moz-user-select: -moz-none;\n"
-                // + "  -webkit-user-select: none;\n"
-                // + "  -ms-user-select: none;\n"
+                + "  -moz-user-select: -moz-none;\n"
+                + "  -webkit-user-select: none;\n"
+                + "  -ms-user-select: none;\n"
                 + "  user-select: none;\n"
                 + "}\n"
                 + ".selectable, .selectable *, .visibleSelection:focus * {\n"

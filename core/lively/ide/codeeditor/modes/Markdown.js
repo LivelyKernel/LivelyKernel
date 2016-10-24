@@ -59,12 +59,12 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
         lines = Array.isArray(markdownSrcOrLines) ?
           markdownSrcOrLines : lively.lang.string.lines(markdownSrcOrLines),
         headings = lines
-          .map(l => l.match(lexer.rules.heading))
-          .map((m, i) => m ? {
+          .map(function(l) { return l.match(lexer.rules.heading); })
+          .map(function(m, i) { return m ? {
             line: i,
             depth: m[1].trim().length,
             string: m[2].trim()
-          } : null)
+          } : null })
           .compact();
     return headings;
   },
@@ -73,15 +73,15 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
     if (heading.depth <= 1) return [];
     var before = headings.slice(0, headings.indexOf(heading));
     if (!before.length) return [];
-    var owner = before.reverse().detect(ea => ea.depth < heading.depth);
+    var owner = before.reverse().detect(function(ea) { return ea.depth < heading.depth; });
     return this.ownerHeadings(headings, owner).concat([owner]);
   },
 
   withSiblings: function(markdownSrcOrLines, headings, heading) {
-    if (heading.depth === 1) return headings.filter(ea => ea.depth === 1);
+    if (heading.depth === 1) return headings.filter(function(ea) { return ea.depth === 1; });
     var owners = this.ownerHeadings(headings, heading),
         sub = this.rangeOfHeading(markdownSrcOrLines, headings, owners.last());
-    return sub.subheadings.filter(ea => ea.depth === heading.depth);
+    return sub.subheadings.filter(function(ea) { return ea.depth === heading.depth; });
   },
 
   siblingsBefore: function(markdownSrcOrLines, headings, heading) {
@@ -109,9 +109,9 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
     var md = this,
         lines = Array.isArray(markdownSrcOrLines) ?
           markdownSrcOrLines : lively.lang.string.lines(markdownSrcOrLines),
-        start = headings.detect(ea => heading && ea.line === heading.line),
+        start = headings.detect(function(ea) { return heading && ea.line === heading.line; }),
         startIndex = headings.indexOf(start),
-        end = headings.slice(startIndex+1).detect(ea => ea.depth <= heading.depth),
+        end = headings.slice(startIndex+1).detect(function(ea) { return ea.depth <= heading.depth; }),
         subheadings = headings.slice(
           headings.indexOf(start),
           end ? headings.indexOf(end) : headings.length);
@@ -132,14 +132,14 @@ Object.extend(lively.ide.codeeditor.modes.Markdown, {
         subheadings = this.rangeOfHeading(lines, headings, heading),
         depth = heading.depth,
         delta = newDepth - depth,
-        newHeadings = subheadings.subheadings.map(h => lively.lang.obj.merge(h, {
+        newHeadings = subheadings.subheadings.map(function(h) { return lively.lang.obj.merge(h, {
           depth: h.depth + delta,
           lineString: lively.lang.string.times("#", h.depth + delta) + " " + h.string
-        })),
-        changes = lively.lang.arr.flatmap(newHeadings, h => [
+        }); }),
+        changes = lively.lang.arr.flatmap(newHeadings, function(h) { return [
           ["remove", {row: h.line, column: 0}, {row: h.line, column: lines[h.line].length}],
           ["insert", {row: h.line, column: 0}, h.lineString],
-        ]);
+        ]; });
     return changes;
   }
 });
@@ -251,9 +251,9 @@ MarkdownMode.addMethods({
           exec: function(ed) {
             var editor = ed.$morph;
             lively.lang.fun.composeAsync(
-              n => n(null, lively.ide.codeeditor.modes.Markdown.parseHeadings(editor.textString)),
-              (headings, n) => showNarrower(editor, headings, n)
-            )(err => err && editor.showError(err));
+              function(n) { return n(null, lively.ide.codeeditor.modes.Markdown.parseHeadings(editor.textString)); },
+              function(headings, n) { return showNarrower(editor, headings, n); }
+            )(function(err) { return err && editor.showError(err); });
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -262,11 +262,11 @@ MarkdownMode.addMethods({
                   name: "lively.ide.codeeditor.modes.Markdown.headingsBrowser-" + editorMorph.id,
                   spec: {
                       prompt: 'headings: ',
-                      candidates: headings.map(h => lively.lang.obj.merge(h, {
+                      candidates: headings.map(function(h) { return lively.lang.obj.merge(h, {
                         isListItem: true,
                         value: h,
                         string: lively.lang.string.indent(h.string, " ", h.depth-1)
-                      })),
+                      }); }),
                       keepInputOnReactivate: true,
                       actions: [{
                           name: 'open',

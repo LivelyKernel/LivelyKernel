@@ -434,7 +434,7 @@ Object.subclass('lively.persistence.Debugging.Helper',
             sortedEntries: function() {
                 return Properties.own(this)
                     .collect(function(prop) { return this[prop]  }, this)
-                    .sortBy(function(tuple) { return tuple.bytes }).reverse()
+                    .sortBy(function(tuple) { return isNaN(tuple.bytes) ? 0 : tuple.bytes; }).reverse()
             },
             toString: function() {
                 var classItems = this.sortedEntries().collect(function(tuple) {

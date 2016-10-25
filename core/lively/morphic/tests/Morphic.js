@@ -444,6 +444,7 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphsContainingP
     },
 
     testMorphsContainingPointDoesNotIncludeOffsetedOwner: function() {
+        // ...b/c it's bounds() are including its submorphs
         var owner = lively.morphic.Morph.makeRectangle(0, 0, 100, 100),
             submorph = lively.morphic.Morph.makeRectangle(110, 10, 90, 90),
             other = lively.morphic.Morph.makeRectangle(100, 0, 100, 100);
@@ -454,9 +455,10 @@ lively.morphic.tests.MorphTests.subclass('lively.morphic.tests.MorphsContainingP
         this.world.addMorphBack(other)
 
         var result = this.world.morphsContainingPoint(pt(150,50));
-        this.assertEquals(3, result.length, 'for ' + pt(150,50));
-        this.assertEquals(this.world, result[2], 'for 2');
-        this.assertEquals(other, result[1], 'for 1');
+        this.assertEquals(4, result.length, 'for ' + pt(150,50));
+        this.assertEquals(this.world, result[3], 'for 3');
+        this.assertEquals(other, result[2], 'for 2');
+        this.assertEquals(owner, result[1], 'for 1');
         this.assertEquals(submorph, result[0], 'for 0');
     }
 

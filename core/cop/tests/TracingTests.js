@@ -48,8 +48,8 @@ TestCase.subclass('cop.tests.TracingTests.TracerTest',
         cop.withLayers([cop.Tracing.ObjectTraceLayer], function(){
             new klass().m1()
         });
-        this.assert(this.tracer.rootActivations[0], 'no activation recorded');
-        var activation = this.tracer.rootActivations[0];
+        this.assert(this.tracer.rootActivations.last(), 'no activation recorded');
+        var activation = this.tracer.rootActivations.last();
         this.assertEquals('m1', activation.methodName);
         this.assertEquals(klass.type, activation.className);
     },
@@ -58,7 +58,7 @@ TestCase.subclass('cop.tests.TracingTests.TracerTest',
         cop.withLayers([cop.Tracing.ObjectTraceLayer], function(){
             new klass().m2() // m2 calls m1 twice
         });
-        var root = this.tracer.rootActivations[0],
+        var root = this.tracer.rootActivations.last(),
             callees = root.callees;
         this.assertEquals(2, callees.length, 'no activation recorded');
         this.assertEquals('m1', callees[0].methodName);

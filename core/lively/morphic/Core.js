@@ -844,11 +844,11 @@ lively.morphic.Morph.subclass('lively.morphic.World',
         if (this.cachedWindowBounds) return this.cachedWindowBounds;
         var canvas = optWorldDOMNode || this.renderContext().getMorphNode(),
             topmost = document.documentElement,
-            body = document.body,
+            scroller = document.scrollingElement || document.body,
             scale = 1 / this.getScale(),
-            topLeft = pt(body.scrollLeft - (canvas.offsetLeft || 0), body.scrollTop - (canvas.offsetTop || 0)),
+            topLeft = pt(scroller.scrollLeft - (canvas.offsetLeft || 0), scroller.scrollTop - (canvas.offsetTop || 0)),
             width, height;
-        if (UserAgent.isTouch || UserAgent.isMobile){
+        if (UserAgent.isTouch || UserAgent.isMobile) {
             width = window.innerWidth * scale;
             height = window.innerHeight * scale;
         } else {

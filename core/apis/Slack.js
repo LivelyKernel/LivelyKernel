@@ -7,10 +7,10 @@ Object.extend(apis.Slack, {
     providerLoginURL: "https://slack.com/oauth/authorize",
     scope: ["client"],
     query: {
-      redirect_uri: "http://lively-web.org/nodejs/SlackServer/oauth/callback",
+      redirect_uri: "https://lively-web.org/nodejs/SlackServer/oauth/callback",
       team: "cdglabs"
     },
-    subserverURL: "http://lively-web.org/nodejs/SlackServer/",
+    subserverURL: "https://lively-web.org/nodejs/SlackServer/",
     l2lCallbackServiceSelector: "slackOauthResponse"
   },
 

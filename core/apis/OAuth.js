@@ -18,7 +18,7 @@ Object.extend(apis.OAuth, {
   requestAccess: function requestAccess(options, thenDo) {
     // providerName like "github"
     // providerLoginURL like ""https://github.com/login/oauth/authorize"
-    // subserverURL like ""http://lively-web.org/nodejs/GithubOAuth/""
+    // subserverURL like ""https://lively-web.org/nodejs/GithubOAuth/""
     //   subserver should implement: GET clientId, POST oauth/access_token (proxying)
     // l2lCallbackServiceSelector like "githubOauthResponse" (for l2l service, callback -> subserver -> lively)
 

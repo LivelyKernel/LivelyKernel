@@ -72,7 +72,7 @@ Object.extend(apis.Github, {
     providerName: "github",
     providerLoginURL: "https://github.com/login/oauth/authorize",
     scope: ["public_repo"],
-    subserverURL: "http://lively-web.org/nodejs/GithubOAuth/",
+    subserverURL: "https://lively-web.org/nodejs/GithubOAuth/",
     l2lCallbackServiceSelector: "githubOauthResponse"
   },
 

@@ -266,7 +266,8 @@ Object.subclass('DocLinkConverter', {
         if (relative.startsWith('/')) throw dbgOn(new Error('relative looks different than expected'));
         var levels = relative.split('/').length -1
         // FIXME result should count levels between lively root dir and codeBase
-        var result = Array.range(2, levels).collect(function() { return '..' }).join('/');
+        var result = levels < 2 ? "" :
+          Array.range(2, levels).collect(function () { return '..'; }).join('/');
         if (result.length > 0) result += '/';
         return result;
     },

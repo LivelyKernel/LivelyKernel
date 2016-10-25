@@ -383,7 +383,7 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
     var recordingAstRegistry = lively.ast.Rewriting.getCurrentASTRegistry(),
         recordingRewriter = new lively.ast.Rewriting.RecordingRewriter(recordingAstRegistry, "RewriteForCapturing-tests-manual", "Global.__recordComputation"),
         src = this.textString,
-        ast = lively.ast.parse(src, { addSource: true }),
+        ast = lively.ast.parse(src, {addSource: true, addAstIndex: true}),
         recordingRewrite = recordingRewriter.rewrite(ast);
 
     var lastRecording = this.recordingWorkspaceState.lastRecording;
@@ -494,7 +494,7 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
 
     function showStepsBefore(thenDo) {
       if (!showOlderSteps) return thenDo();
-      var stepsBefore = lively.lang.arr.range(0, stepNumber-1).reverse();
+      var stepsBefore = lively.lang.arr.range(0, Math.max(0, stepNumber-1)).reverse();
       lively.lang.arr.mapAsyncSeries(stepsBefore,
         function(stepNumber, i, n) {
           self.rerenderComputationStep(

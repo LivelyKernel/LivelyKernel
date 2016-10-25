@@ -307,6 +307,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
             // we get this already with initialize
             if (methodName === 'constructor' && type === 'class') return;
+            if (methodName === 'toString' && type === 'extend') return;
             if (methodName === 'superclass' && lively.Class.isClass(obj.superclass)) return;
 
             var proto = obj.constructor && obj.constructor.prototype;

@@ -97,6 +97,7 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
   },
 
   withRecordingWorkspaceDo: function(optEditor, doFunc) {
+    // var ed;  lively.ide.codeeditor.JavaScriptDebugging.withRecordingWorkspaceDo(null, (err, _ed) => ed = err||_ed);
       var editor;
       lively.lang.fun.composeAsync(
         function(n) {
@@ -131,13 +132,15 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
   },
 
   removeRecordingWorkspaceBehavior: function(codeEditor) {
-    codeEditor.recordingWorkspaceReset();
+    codeEditor.recordingWorkspaceReset && codeEditor.recordingWorkspaceReset();
     var trait = Trait('lively.ide.codeeditor.RecordingWorkspace');
     trait.removeFrom(codeEditor, {override: ["boundEval"]});
 
-    var ctls = codeEditor.owner.get("RecordingWorkspaceControls");
-    codeEditor.setHeight(codeEditor.height() + ctls.height());
-    if (ctls) ctls.remove();
+    var ctls = codeEditor.owner.getMorphNamed("RecordingWorkspaceControls");
+    if (ctls) {
+      codeEditor.setHeight(codeEditor.height() + ctls.height());
+      if (ctls) ctls.remove();
+    }
 
     codeEditor.morphicOverlaysRemoveAll();
     delete codeEditor.recordingWorkspaceState;
@@ -145,6 +148,30 @@ Object.extend(lively.ide.codeeditor.JavaScriptDebugging, {
     if (codeEditor.hasOwnProperty("__preRecordingDebugger__boundEval")) {
       codeEditor["__preRecordingDebugger__boundEval"].asScriptOf(codeEditor, "boundEval");
     }
+
+    // this is a hack to properly re-display the debugged code inside the
+    // addScript when debugging inside the ObjectEditor. This basically allows to
+    // keep the modified code of the debug session
+    var inObjectEditor = codeEditor.owner.name === "ObjectEditorPane";
+    if (inObjectEditor) {
+      var objectEd = codeEditor.owner,
+          debuggedCode = codeEditor.textString,
+          debuggedAst = codeEditor.withASTDo();
+      if (objectEd.scriptList.selection === lively.lang.Path("body.0.id.name").get(debuggedAst)) {
+        // don't ask for discard changes
+        codeEditor.lastSaveSource = debuggedCode;
+    
+        objectEd.displaySourceForScript(objectEd.scriptList.selection, false);
+        var methodCode = codeEditor.textString,
+            methodAst = lively.ast.parse(methodCode);
+
+        var fnNode = lively.lang.Path("body.0.expression.arguments.0").get(methodAst)
+        codeEditor.textString = methodCode.slice(0, fnNode.start) + debuggedCode + methodCode.slice(fnNode.end)
+        codeEditor.lastSaveSource = codeEditor.textString
+      }
+      
+    }
+    
   },
 
 
@@ -420,7 +447,7 @@ Trait('lively.ide.codeeditor.RecordingWorkspace',
       var thisExpr = 'Global["' + exportName + '"].__functionCallThis';
       // var funcOwner = options.functionCallThis ? thisExpr : "_0"; // FIXME!!!
       var funcOwner = "_0"; // FIXME!!!
-      codeToRun += lively.lang.string.format('\n;debugger;%s["%s"].call(%s%s%s)',
+      codeToRun += lively.lang.string.format('\n;%s["%s"].call(%s%s%s)',
         funcOwner,
         options.recordFunctionCall,
         thisExpr,

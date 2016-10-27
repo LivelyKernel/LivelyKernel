@@ -4505,7 +4505,8 @@ lively.morphic.Box.subclass('lively.morphic.SliderKnob',
 
         if (isNaN(newValue)) newValue = 0;
         var prevVal = slider.getScaledValue(this);
-        var newVal = slider.setScaledValue(slider.clipValue(newValue), this);
+        slider.setScaledValue(slider.clipValue(newValue), this);
+        var newVal = slider.getScaledValue(this);
         if (+newVal != +prevVal) this.hitPoint = slider.localize(evt.getPosition());
     },
     onDragEnd: function($super, evt) { return $super(evt) },

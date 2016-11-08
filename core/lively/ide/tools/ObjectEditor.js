@@ -1469,9 +1469,10 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 },
         sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
 
-            if (!Functions.own(obj) ||  Functions.own(obj).size() == 0) return [];
+            var ownFns = Functions.own(obj);
+            if (!ownFns || ownFns.size() == 0) return [];
 
-            var selectedScripts = Functions.own(obj)
+            var selectedScripts = ownFns
                 .select(function(name) { return obj[name].getOriginal().hasLivelyClosure; })
                 .reject(function(name) { return name.startsWith('$$'); })
                 .sortBy(function(name) { return name.toLowerCase() });

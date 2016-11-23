@@ -143,9 +143,9 @@ lively.morphic.World.addMethods(
 
     onrestore: function($super) {
         $super();
-        var toRemove = this.submorphs
+        var toRemove = (this.submorphs || [])
                 .without(this.firstHand())
-                .select(function (ea) {return ea.isHand})
+                .select(function (ea) { return ea.isHand; })
         toRemove.invoke('remove');
         toRemove.each(function (unusedHand) {
             this.hands.remove(unusedHand);
@@ -213,7 +213,7 @@ lively.morphic.World.addMethods(
         if (lively.Config.get("checkWriteAuthorizationOfUsers", true)) {
           var user = $world.getCurrentUser();
 
-          if (user.isUnknownUser()) {
+          if (user.isUnknownUser() && !user.canWriteWorld(url)) {
             var msg = "Only logged in users can save a world";;
             $world.confirm(msg + ", log in now?", function(input) {
               if (!input) thenDo && thenDo(new Error(msg));
@@ -226,13 +226,14 @@ lively.morphic.World.addMethods(
 
           var answer = user.canWriteWorld(url);
           if (answer.value === "redirect") {
-            var msg = "Cannot save as " + url + "\n Save as " + answer.url + " instead?";
-            $world.confirm(msg, function (input) {
-              if (!input)
-                thenDo && thenDo(new Error(msg));
-              else
-                $world.saveWorldAs(answer.url, checkForOverwrites, bootstrapModuleURL, thenDo);
-              });
+            var msg = "Cannot save as " + url + ".\nSave in your own directory instead?";
+            $world.prompt(msg, function(input){
+              if(!input){
+                 thenDo /*&& thenDo(new Error(msg));*/
+              } else {
+                $world.saveWorldAs(input, true, bootstrapModuleURL, thenDo);
+              }
+            },String(answer.url)) 
             return;
           }
           if (answer.value === "deny") {

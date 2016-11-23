@@ -790,6 +790,7 @@ lively.morphic.Layout.Layout.subclass('lively.morphic.Layout.GridLayout',
     },
     getRowHeight: function(rowIndex) {
         return this.rows[rowIndex].reduce(function(s, ea) {
+            if (!ea) {return s};
             return Math.max(ea.getExtent().y, s); }, 0);
     },
     adjustRowAndColSizes: function() {

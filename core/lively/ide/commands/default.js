@@ -653,6 +653,49 @@ Object.extend(lively.ide.commands.byName, {
         },
     },
 
+    'lively.ide.codeditor.browseWarningsAndErrorsInCodeEditor': {
+        description: '[codeeditor] browse warnings and errors',
+        exec: function(opts) {
+          var focused = lively.morphic.Morph.focusedMorph();
+          if (!focused || !focused.isCodeEditor)
+            focused = $world.currentMenu && $world.currentMenu.lastFocusedMorph;
+          if (!focused || !focused.isCodeEditor) {
+            $world.inform("No code editor selected");
+            return true;
+          }
+
+          var markers = focused.getSession() ? focused.getSession()["$ext.lang.codeMarker"] : null;
+          
+          if (!markers) {
+            focused.setStatusMessage("Cannot access $ext.lang.codeMarker");
+            return true;
+          }
+          if (!markers.markerRanges.length) {
+            focused.setStatusMessage("No markers found");
+            return true;
+          }
+
+          var candidates = markers.markerRanges.map(ea => ({
+            isListItem: true,
+            string: `[${ea.cssClassName}] ${ea.name}`,
+            value: ea
+          }))
+          
+          lively.ide.tools.SelectionNarrowing.chooseOne(
+            candidates,
+            (err, candidate) => {
+              focused.withAceDo(e => {
+                focused.setSelectionRange(candidate.start, candidate.end, true);
+                e.renderer.scrollCursorIntoView();
+              });
+            }, {
+              name: "lively.ide.codeditor.error-jumper"
+            });
+
+            return true;
+        }
+    },
+
     'lively.ide.tools.SelectionNarrowing.activateLastActive': {
         description: 'open last active selection narrower',
         exec: function() {

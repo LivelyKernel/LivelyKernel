@@ -15,6 +15,7 @@ jsMode.addMethods({
         items.push(editor.menuItemForCommand('inspect', cmds['doInspect']));
         items.push(editor.menuItemForCommand('printit', cmds['printit']));
         items.push(editor.menuItemForCommand('doit', cmds['doit']));
+        items.push(editor.menuItemForCommand('show warnings and errors', cmds['lively.ide.codeditor.browseWarningsAndErrorsInCodeEditor']));
 
         var jsItems = [
           ["open AST editor", function() { lively.ide.commands.exec("lively.ide.openASTEditor", editor); }]

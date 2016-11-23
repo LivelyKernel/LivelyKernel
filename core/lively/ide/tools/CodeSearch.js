@@ -293,6 +293,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
 
             if (type === 'namespace' && matchesSearch(obj.namespaceIdentifier)) {
                 found.push({
+                    doNotSerialize: ["object", "parent"],
                     object: obj,
                     objectName: obj.namespaceIdentifier,
                     type: type,
@@ -348,6 +349,7 @@ lively.BuildSpec('lively.ide.tools.CodeSearch', {
             if (![name, methodName, source].some(matchesSearch)) return;
 
             found.push({
+                doNotSerialize: ["object", "parent"],
                 object: obj,
                 selector: methodName,
                 objectName: name,

@@ -1963,8 +1963,8 @@ Trait('lively.morphic.SetStatusMessageTrait'),
       // cmd as one of the commands returned by
       // lively.ide.commands.getCommands({editor: this});
       var editor = this,
-          binding = cmd.readableKeyBinding.replace(/\s*\|.*$/, ""),
-          label = name + " (" + binding + ")";
+          binding = cmd.readableKeyBinding && cmd.readableKeyBinding.replace(/\s*\|.*$/, ""),
+          label = name + (binding ? " (" + binding + ")" : "");
       return [label, function() { cmd.exec(); editor.focus(); }];
     },
 

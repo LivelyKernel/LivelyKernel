@@ -813,6 +813,7 @@ lively.morphic.Box.subclass('lively.morphic.List',
             layout.listItemHeight*noOfItems+4));
     },
 
+
     onWindowExpand: function() {
       this.updateView();
     }

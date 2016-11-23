@@ -951,10 +951,12 @@ handleOnCapture);
     },
 
     onMouseDownEntry: function(evt) {
-        // if (!this.reallyContainsPoint(evt.getPosition(), null)) return false;
-        if (!this.reallyContainsPoint(evt.getPosition(), null)) {
-          return $world.morphsContainingPoint(evt.getPosition())
-            .without($world).find(function(morph) { return morph.onMouseDownEntry(evt); })
+        var world = this.world(),
+            pos = evt.getPosition();
+
+        if (!this.reallyContainsPoint(pos, null)) {
+          return world.morphsContainingPoint(pos)
+            .without(world).find(function(morph) { return morph.onMouseDownEntry(evt); })
         }
         evt.hand.pointerId = evt.pointerId;
         // checkMouseUpEntry if mouse is on the scrollbar
@@ -964,10 +966,6 @@ handleOnCapture);
         if (suppressScrollbarClick) {
             var scrollbarExtent = this.getScrollBarExtent(),
                 extent = this.getExtent();
-            //console.log("You clicked on: "+this.name);
-            //console.log(this.grabbingEnabled);
-            //console.log("evt.offsetX: "+ (evt.offsetX) + "    extent.x- scrollbarExtent.x: " +(extent.x- scrollbarExtent.x));
-            //console.log("evt.offsetY: "+ (evt.offsetY)+"    extent.y- scrollbarExtent.y: "+(extent.y- scrollbarExtent.y));
             // FIXME: not the perfect solution for text edit scroll morphs
             if ((evt.offsetX> extent.x- scrollbarExtent.x) && (evt.offsetX < extent.x)  ||
                 (evt.offsetY> extent.y- scrollbarExtent.y) && (evt.offsetY < extent.y)) {
@@ -975,12 +973,12 @@ handleOnCapture);
             }
         }
         if (this.showsMorphMenu
-                && !this.eventsAreIgnored
-                && evt.isRightMouseButtonDown()
-                && evt.getTargetMorph() == this) {
+        && !this.eventsAreIgnored
+        && evt.isRightMouseButtonDown()
+        && evt.getTargetMorph() == this) {
             evt.hand.clickedOnMorph=this;
-            this.world().clickedOnMorph=this;
-            this.world().worldMenuOpened = true;
+            world.clickedOnMorph=this;
+            world.worldMenuOpened = true;
             return this.showMorphMenu(evt);
         }
         if (this.isHalo) {
@@ -997,10 +995,9 @@ handleOnCapture);
         // do we pass the event to the user defined handler?
         if (this.eventsAreIgnored) return false;
         evt.hand.clickedOnMorph = this;
-        this.world().clickedOnMorph = this;
+        world.clickedOnMorph = this;
         evt.hand.clickedOnMorphTime = Date.now();
-        this.world().clickedOnMorphTime = Date.now();
-
+        world.clickedOnMorphTime = Date.now();
         return this.onMouseDown(evt);
     },
 
@@ -1832,8 +1829,8 @@ lively.morphic.World.addMethods(
     }
 },
 'mouse event handling', {
+
     onMouseDown: function($super, evt) {
-      
         evt.hand.eventStartPos = evt.getPosition();
         // remove the selection when clicking into the world...
          if (this.selectionMorph
@@ -1841,6 +1838,7 @@ lively.morphic.World.addMethods(
           && evt.getTargetMorph() === this) { this.resetSelection(); }
         return false;
     },
+
     onMouseUp: function (evt) {
         var evtTarget = evt.getTargetMorph();
         while ((evtTarget && evtTarget.eventsAreIgnored)) evtTarget = evtTarget.owner;
@@ -1895,6 +1893,7 @@ lively.morphic.World.addMethods(
 
         return false;
     },
+
     onMouseMove: function(evt) {
         // how dragging works:
         // Basically, we detect onMouseDowns and remember which morph was clicked.
@@ -1966,6 +1965,7 @@ lively.morphic.World.addMethods(
         }
         return false;
     },
+
     dispatchDrop: function(evt) {
         if (evt.hand.submorphs.length === 0) return false;
         var morphStack = this.morphsContainingPoint(evt.getPosition()),
@@ -1981,6 +1981,7 @@ lively.morphic.World.addMethods(
         }
         return evt.hand.dropContentsOn(dropTarget, evt);
     },
+
     onMouseWheel: function($super, evt) {
         if (evt.isCommandKey()) {
             this.doZoomBy(evt.wheelDelta, evt.getPosition(), true);
@@ -1992,6 +1993,7 @@ lively.morphic.World.addMethods(
         }
         return $super(evt);
     },
+
     doZoomBy: function(wheelDelta, zoomPoint, showZoom) {
         // wheelDelta from mouse event, zoomPoint is the global position to
         // zoom in/out (center of transformation)

@@ -44,7 +44,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             isMorphRef: true,
             name: "ObjectEditorScriptPane"
         },
-        submorphs: [{
+        submorphs: [
+
+        {
             _AutocompletionEnabled: true,
             _BorderColor: Color.rgb(189,190,192),
             _BorderWidth: 1,
@@ -120,7 +122,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             updateTarget: function updateTarget(target) {
                     this.doitContext = this.owner.target;
                 }
-        },{
+        },
+        
+        {
             _BorderWidth: 1,
             _Extent: lively.pt(8.6,9.7),
             _Fill: Color.rgb(0,0,0),
@@ -146,11 +150,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                     this.setFill(color);
                     this.setBorderColor(color);
                 }
-        },{
+        },
+
+        {
             _BorderColor: Color.rgb(189,190,192),
             _BorderRadius: 3,
             _BorderWidth: 1,
-            _Extent: lively.pt(400,21.0),
+            _Extent: lively.pt(327,21.0),
             _Position: lively.pt(185.0,9.0),
             className: "lively.morphic.Button",
             label: "ObjectEditor",
@@ -373,7 +379,9 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                         update.call(this, true);
                     }
                 }
-        },{
+        },
+
+        {
             _ClipMode: "hidden",
             _Extent: lively.pt(64.9,15.0),
             _FontFamily: "Arial, sans-serif",
@@ -402,7 +410,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Extent: lively.pt(40,21.0),
             _Position: lively.pt(728,9.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "run",
             layout: {
                 centeredHorizontal: false,
@@ -441,7 +448,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Extent: lively.pt(40,21.0),
             _Position: lively.pt(772.0,9.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "save",
             layout: {
                 centeredHorizontal: false,
@@ -480,7 +486,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Extent: lively.pt(100.0,21.0),
             _Position: lively.pt(624,9.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "debug next call",
             layout: {
                 centeredHorizontal: false,
@@ -523,6 +528,28 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 lively.ide.codeeditor.JavaScriptDebugging.removeRecordingWorkspaceBehavior(editor);
                 button.setLabel("debug next call");
               }
+            }
+        },
+
+        {
+            _BorderColor: Color.rgb(189,190,192),
+            _BorderRadius: 3,
+            _BorderWidth: 1,
+            _Extent: lively.pt(100.0,21.0),
+            _Position: lively.pt(519,9.0),
+            className: "lively.morphic.Button",
+            label: "past saves...",
+            layout: {moveHorizontal: true},
+            name: "saveHistoryButton",
+            style: {
+              toolTip: "Open a history of saved sources",
+            },
+            connectionRebuilder: function connectionRebuilder() {
+              lively.bindings.connect(this, "fire", this, "doAction");
+            },
+
+            doAction: function doAction() {
+              this.get("ObjectEditorPane").browseSaveHistory();
             }
         },
 
@@ -647,7 +674,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _StyleClassNames: ["Morph","Button"],
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
-                isPressed: false,
                 label: "-",
                 morphRefId: 24,
                 name: "ObjectEditorRemoveScriptButton",
@@ -696,7 +722,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _StyleClassNames: ["Morph","Button"],
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
-                isPressed: false,
                 label: "+",
                 morphRefId: 22,
                 name: "ObjectEditorAddScriptButton",
@@ -780,7 +805,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _Position: lively.pt(160.0,0.0),
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
-                isPressed: false,
                 label: "-",
                 layout: {
                     moveVertical: true
@@ -873,7 +897,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 _Position: lively.pt(141.0,0.0),
                 className: "lively.morphic.Button",
                 isCopyMorphRef: true,
-                isPressed: false,
                 label: "+",
                 layout: {
                     moveVertical: true
@@ -961,7 +984,6 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             _Extent: lively.pt(60.0,20.0),
             _Position: lively.pt(35.0,9.0),
             className: "lively.morphic.Button",
-            isPressed: false,
             label: "all",
             list: [],
             listMorph: null,
@@ -1077,18 +1099,72 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             isMorphRef: true,
             name: "ObjectEditor"
         },
+
+        browseSaveHistory: function browseSaveHistory() {
+          if (!lively.LocalStorage.isAvailable()) {
+            $world.inform("browser local storage not avilable");
+            return;
+          }
+          
+          // lively.LocalStorage.remove("ObjectEditor-save-history")
+          var hist = lively.LocalStorage.get("ObjectEditor-save-history");
+          if (!hist) { $world.inform("history empty"); return; }
+          
+          hist = JSON.parse(hist);
+
+          $world.listPrompt("Select which entry to restore:",
+            function(selection) {
+              if (!selection) return;
+              $world.addCodeEditor({
+                title: `saved ObjectEditor source for ${selection.objName}>>${selection.methodName}`,
+                content: selection.source,
+                textMode: "javascript"
+              });
+            },
+            hist.map(function(histEntry) {
+              return {
+                isListItem: true,
+                string: `[${new Date(histEntry.timestamp).format("yy-mm-dd HH:MM")}] ${histEntry.objName}>>${histEntry.methodName} ${histEntry.source.truncate(50).replace(/\n/g, "")}`,
+                value: histEntry
+              }
+            }).reverse(),
+            null,
+            pt(600,300))
+        },
+
+        addToSaveHistory: function addToSaveHistory(methodName, objName, source) {
+          if (!lively.LocalStorage.isAvailable()) return;
+          var maxEntries = 10;
+          var hist = lively.LocalStorage.get("ObjectEditor-save-history");
+          hist = hist ? JSON.parse(hist) : [];
+          
+          if (hist.length >= maxEntries) hist.shift();
+          
+          hist.push({
+            methodName: methodName,
+            objName: objName,
+            source: source,
+            timestamp: Date.now()
+          });
+          
+          lively.LocalStorage.set("ObjectEditor-save-history", JSON.stringify(hist));
+        },
+
         confirmShutdown: function confirmShutdown(thenDo) {
             if (!this.scriptPane.hasChanged()) return thenDo(true);
             this.confirmUnsavedChanges(thenDo);
         },
+
         confirmUnsavedChanges: function confirmUnsavedChanges(callback) {
             var dialog = $world.confirm("Discard unsaved changes?", callback.bind(this));
             (function() { dialog.view.focus(); }).delay(0.1);
             return dialog;
         },
+
         copyToPartsBinWithUserRequest: function copyToPartsBinWithUserRequest() {
             this.owner.copyToPartsBinWithUserRequest();
         },
+
         deleteSelectedScript: function deleteSelectedScript() {
             var editor = this,
                 selection = editor.scriptList.selection,
@@ -1103,6 +1179,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 editor.scriptList.selectAt(idx);
             });
         },
+
         displayInitialScript: function displayInitialScript() {
             if (this.scriptList.getList().size() > 1) {
                 this.scriptList.preselectItem();
@@ -1112,19 +1189,21 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 this.scriptList.selectAt(0);
             }
         },
-        displayJavaScriptSource: function displayJavaScriptSource(jsCode, selectString, optMode) {
-    var editor = this.scriptPane;
-    function insert() {
-        if (optMode) editor.setTextMode(optMode);
-        editor.display(jsCode);
-        editor.focus();
-        selectString && editor.find({needle: selectString, start: {column: 0, row: 0}});
-    }
 
-    if (this.scriptPane.hasChanged()) {
-        this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });
-    } else { insert(); }
-},
+        displayJavaScriptSource: function displayJavaScriptSource(jsCode, selectString, optMode) {
+            var editor = this.scriptPane;
+            function insert() {
+                if (optMode) editor.setTextMode(optMode);
+                editor.display(jsCode);
+                editor.focus();
+                selectString && editor.find({needle: selectString, start: {column: 0, row: 0}});
+            }
+        
+            if (this.scriptPane.hasChanged()) {
+                this.confirmUnsavedChanges(function(confirmed) { confirmed && insert(); });
+            } else { insert(); }
+        },
+
         displaySourceForConnection: function displaySourceForConnection(connection) {
             var code = "", that = this;
             if (connection === undefined) return;
@@ -1171,47 +1250,49 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
                 optConfig.join(','));
 
         },
+
         generateSourceForScript: function generateSourceForScript(scriptName) {
-    var script = this.target[scriptName];
-    if (!script) return null;
+            var script = this.target[scriptName];
+            if (!script) return null;
+        
+            return {
+                mode: 'javascript',
+                scriptName: scriptName,
+                code: Strings.format(
+                    '// changed at %s by %s\nthis.addScript(%s%s)%s;',
+                    script.timestamp, script.user,
+                    normalizeIndentOfFunctionSouce(script),
+                    printVarMapping(script),
+                    this.printTags(script)),
+            };
+        
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        
+            function normalizeIndentOfFunctionSouce(func) {
+                var source = String(func.getOriginal().originalSource || func.getOriginal());
+                var lines = Strings.lines(source);
+                if (!lines[1]) return source;
+                var normalizedIndent = "    "
+                var firstLineIndent = lines[1].match(/^\s*/)[0] || "";
+                firstLineIndent = firstLineIndent.slice(normalizedIndent.length);
+                var indentFixRe = new RegExp("^" + firstLineIndent);
+                return Strings.lines(String(source)).map(function(line) {
+                    return line.replace(indentFixRe, ""); }).join('\n');
+            }
+        
+            function printVarMapping(func) {
+                if (!func.hasLivelyClosure) return '';
+                var varM = func.livelyClosure.varMapping;
+                var keys = Object.keys(varM || {}).withoutAll(['this', '$super']);
+                if (!keys.length) return '';
+                var shallowCopy = keys.reduce(function(shallowCopy, key) {
+                    shallowCopy[key] = varM[key];
+                    return shallowCopy;
+                }, {});
+                return ', null, ' + Objects.inspect(shallowCopy, {maxDepth: 3});
+            }
+        },
 
-    return {
-        mode: 'javascript',
-        scriptName: scriptName,
-        code: Strings.format(
-            '// changed at %s by %s\nthis.addScript(%s%s)%s;',
-            script.timestamp, script.user,
-            normalizeIndentOfFunctionSouce(script),
-            printVarMapping(script),
-            this.printTags(script)),
-    };
-
-    // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-    function normalizeIndentOfFunctionSouce(func) {
-        var source = String(func.getOriginal().originalSource || func.getOriginal());
-        var lines = Strings.lines(source);
-        if (!lines[1]) return source;
-        var normalizedIndent = "    "
-        var firstLineIndent = lines[1].match(/^\s*/)[0] || "";
-        firstLineIndent = firstLineIndent.slice(normalizedIndent.length);
-        var indentFixRe = new RegExp("^" + firstLineIndent);
-        return Strings.lines(String(source)).map(function(line) {
-            return line.replace(indentFixRe, ""); }).join('\n');
-    }
-
-    function printVarMapping(func) {
-        if (!func.hasLivelyClosure) return '';
-        var varM = func.livelyClosure.varMapping;
-        var keys = Object.keys(varM || {}).withoutAll(['this', '$super']);
-        if (!keys.length) return '';
-        var shallowCopy = keys.reduce(function(shallowCopy, key) {
-            shallowCopy[key] = varM[key];
-            return shallowCopy;
-        }, {});
-        return ', null, ' + Objects.inspect(shallowCopy, {maxDepth: 3});
-    }
-},
         generateTargetCode: function generateTargetCode(baseObject, targetObject) {
             var name = targetObject.name;
             if (baseObject === targetObject)
@@ -1227,9 +1308,11 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             else
                 return "????";
         },
+
         hasUnsavedChanges: function hasUnsavedChanges() {
             return this.scriptPane.hasChanged();
         },
+
         newConnection: function newConnection() {
             if (this.target) {
                 var code = "lively.bindings.connect(SOURCE, SOURCE_PROPERTY, TARGET, TARGET_PROPERTY);";
@@ -1247,34 +1330,36 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
 
         onKeyDown: function onKeyDown(evt) {
-    var keys = evt.getKeyString();
-    switch (keys) {
-        case 'Command-Shift-R': case 'Control-Shift-R':
-            this.runScript();
-            evt.stop(); return true;
-        case 'Command-Shift-+': case 'Control-Shift-+':
-            this.newScript();
-            evt.stop(); return true;
-        case 'Command-Shift--': case 'Control-Shift--':
-        case 'Command-Shift-_': case 'Control-Shift-_':
-            this.deleteSelectedScript();
-            evt.stop(); return true;
-        case 'Alt-Shift-T':
-            var self = this;
-            lively.ide.tools.SelectionNarrowing.chooseOne(
-                this.sortedScriptNamesOfObj(this.target),
-                function(err, candidate) {
-                    if (err) return show('%s', err);
-                    self.get('ObjectEditorScriptList').setSelection(candidate);
-                },
-                {name: "lively.ide.ObjectEditorMethodSelector"});
-            evt.stop(); return true;
-    }
-    return $super(evt);
-},
+            var keys = evt.getKeyString();
+            switch (keys) {
+                case 'Command-Shift-R': case 'Control-Shift-R':
+                    this.runScript();
+                    evt.stop(); return true;
+                case 'Command-Shift-+': case 'Control-Shift-+':
+                    this.newScript();
+                    evt.stop(); return true;
+                case 'Command-Shift--': case 'Control-Shift--':
+                case 'Command-Shift-_': case 'Control-Shift-_':
+                    this.deleteSelectedScript();
+                    evt.stop(); return true;
+                case 'Alt-Shift-T':
+                    var self = this;
+                    lively.ide.tools.SelectionNarrowing.chooseOne(
+                        this.sortedScriptNamesOfObj(this.target),
+                        function(err, candidate) {
+                            if (err) return show('%s', err);
+                            self.get('ObjectEditorScriptList').setSelection(candidate);
+                        },
+                        {name: "lively.ide.ObjectEditorMethodSelector"});
+                    evt.stop(); return true;
+            }
+            return $super(evt);
+        },
+
         onWindowGetsFocus: function onWindowGetsFocus() {
-                    this.get('ObjectEditorScriptPane').focus();
-                },
+            this.get('ObjectEditorScriptPane').focus();
+        },
+
         openPartTestRunner: function openPartTestRunner() {
             module('lively.PartsTestFramework').load();
             var runner = $part('PartTestRunnerWithCodeEditor', 'PartsBin/Tools');
@@ -1283,10 +1368,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             runner.align(runner.bounds().topLeft(),
                 this.owner.bounds().topLeft().addPt(pt(30,30)))
         },
+
         printTags: function printTags(script) {
-        return !script.tags || !script.tags.length ?
-            "" : ".tag(" + Strings.print(script.tags) + ')';
-    },
+            return !script.tags || !script.tags.length ?
+                "" : ".tag(" + Strings.print(script.tags) + ')';
+        },
+
         reset: function reset() {
             this.scriptPane = this.get('ObjectEditorScriptPane');
             this.scriptList = this.get('ObjectEditorScriptList');
@@ -1306,6 +1393,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 
             this.stopStepping();
         },
+
         runScript: function runScript() {
             var scriptName = this.get("ObjectEditorScriptList").selection;
             if (!scriptName || !this.target) return;
@@ -1314,8 +1402,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
 
         saveSourceFromEditor: function saveSourceFromEditor(editor) {
-            var source = editor.getTextString(),
-                parsed = lively.ast.parse(source),
+            var source = editor.getTextString();
+            this.addToSaveHistory(
+              this.get("ObjectEditorScriptList").selection,
+              String(this.target),
+              source);
+
+            var parsed = lively.ast.parse(source),
                 saved = editor.tryBoundEval(source),
                 self = this;
 
@@ -1442,6 +1535,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             }
 
         },
+
         setTag: function setTag(tag) {
             if (tag === 'all') {
                 this.currentTag = '';
@@ -1451,6 +1545,7 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.updateLists();
             this.displayInitialScript();
         },
+
         setTarget: function setTarget(targetMorph) {
             this.target = targetMorph;
             this.scriptPane.updateTarget();
@@ -1462,11 +1557,13 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
             this.startStepping(500/*ms*/, 'update');
             this.updateTitleBar();
         },
+
         sortedConnectionNamesOfObj: function sortedConnectionNamesOfObj(obj) {
-    return obj.attributeConnections ?
-        obj.attributeConnections
-            .map(function(con) { return [con.getSourceAttrName(), con]; }): [];
-},
+            return obj.attributeConnections ?
+                obj.attributeConnections
+                    .map(function(con) { return [con.getSourceAttrName(), con]; }): [];
+        },
+
         sortedScriptNamesOfObj: function sortedScriptNamesOfObj(obj) {
 
             var ownFns = Functions.own(obj);
@@ -1487,10 +1584,12 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
 
             return selectedScripts;
         },
+
         update: function update() {
             // alias to conform to convention
             this.updateLists();
         },
+
         updateLists: function updateLists() {
 
             var scriptListItems = this.sortedScriptNamesOfObj(this.target) || [];
@@ -1507,13 +1606,14 @@ lively.BuildSpec('lively.ide.tools.ObjectEditor', {
         },
 
         updateTitleBar: function updateTitleBar() {
-        var targetName = this.target ? this.target.name || String(this.target) : '',
-            methodName = this.get('ObjectEditorScriptList').selection,
-                title = Strings.format('ObjectEditor%s%s',
-                targetName ? ' -- ' + targetName : '',
-                targetName && methodName ? '>>' + methodName : '');
-        this.getWindow().setTitle(title);
-    }
+            var targetName = this.target ? this.target.name || String(this.target) : '',
+                methodName = this.get('ObjectEditorScriptList').selection,
+                    title = Strings.format('ObjectEditor%s%s',
+                    targetName ? ' -- ' + targetName : '',
+                    targetName && methodName ? '>>' + methodName : '');
+            this.getWindow().setTitle(title);
+        }
+
     }],
     titleBar: "ObjectEditor",
     initiateShutdown: function initiateShutdown(force) {

@@ -678,6 +678,10 @@ ObjectLinearizerPlugin.subclass('DoNotSerializePlugin',
     doNotSerialize: function(obj, propName) {
         if (!obj.doNotSerialize) return false;
         var merged = Object.mergePropertyInHierarchy(obj, 'doNotSerialize');
+        if (!Array.isArray(merged)) {
+          console.warn("Strange doNotSerialize property in " + obj, merged);
+          return false;
+        }
         return merged.include(propName);
     }
 },
@@ -886,7 +890,7 @@ ObjectLinearizerPlugin.subclass('ClosurePlugin',
     additionallySerialize: function(original, persistentCopy) {
         var closures = {}, found = false;
         Functions.own(original).forEach(function(funcName) {
-            if (original.doNotSerialize && original.doNotSerialize.include(funcName)) return;
+            if (Array.isArray(original.doNotSerialize) && original.doNotSerialize.include(funcName)) return;
             var func = original[funcName];
             if (!func || !func.hasLivelyClosure) return;
             found = true;

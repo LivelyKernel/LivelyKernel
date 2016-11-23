@@ -416,6 +416,19 @@
           "code": "function() { return lively.LocalStorage.get('useEmacsyKeys') || false; }"
       },
       "set": {"type": "function", "code": "function(v) { lively.LocalStorage.set('useEmacsyKeys', v); require('lively.ide.CodeEditor').toRun(function() { lively.ide.CodeEditor.KeyboardShortcuts.reinitKeyBindingsForAllOpenEditors(); }); return v; }"}
+    },
+    {
+      "name": "codeEditorUserKeySetup",
+      "type": "function",
+      "doc": "function to setup custom key bindings",
+      "get": {
+        "type": "function",
+        "code": "function() { return Config._codeEditorUserKeySetup; }"
+      },
+      "set": {
+        "type": "function",
+        "code": "function(val) { Config._codeEditorUserKeySetup = val; var shortcuts = lively.lang.Path('ide.CodeEditor.KeyboardShortcuts').get(lively); shortcuts.reinitKeyBindingsForAllOpenEditors(); }"
+      }
     }
   ],
 

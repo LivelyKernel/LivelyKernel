@@ -511,6 +511,10 @@ Object.subclass('lively.Rectangle',
         return new lively.Rectangle(this.x + d.x, this.y + d.y, this.width, this.height);
     },
 
+    scaledBy: function(s) {
+        return new lively.Rectangle(this.x * s, this.y * s, this.width * s, this.height * s);
+    },
+
     scaleByRect: function(r) {
         // r is a relative rect, as a pane spec in a window
         return new lively.Rectangle(

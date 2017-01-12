@@ -2083,12 +2083,13 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         // https://developer.mozilla.org/en-US/docs/Web/API/Selection
         var domRect = sel.getRangeAt(0).getBoundingClientRect(),
             scale = this.world() ? this.world().getScale(): 1;
-        // 2. make a livelyRectangle from the DOMSelection rect scaled by world scale
-        return rect(domRect.left/scale, domRect.top/scale, domRect.width/scale, domRect.height/scale)
+        // 2. make a livelyRectangle from the DOMSelection rect
+        return rect(domRect.left, domRect.top, domRect.width, domRect.height)
             // 3. the DOM selection is in absolute (world) coordinates offsetted by the
             // current scroll of web browser window. Remove that offset:
             // make them absolute
             .translatedBy(pt($win.scrollLeft(), $win.scrollTop()))
+            .scaledBy(1 / scale)
             // the rectangle does not take the scroll value of the morph into account, add it
             .translatedBy(pt(scroll[0], scroll[1]))
             // we now make that rectnagle local so that it can be compared to

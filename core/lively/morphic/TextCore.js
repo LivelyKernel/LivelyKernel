@@ -2081,9 +2081,10 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
         if (!sel) return lively.rect(0,0,0,0);
         // 1. get the bounding box of the current selection
         // https://developer.mozilla.org/en-US/docs/Web/API/Selection
-        var domRect = sel.getRangeAt(0).getBoundingClientRect();
-        // 2. make a livelyRectangle from the DOMSelection rect
-        return rect(domRect.left, domRect.top, domRect.width, domRect.height)
+        var domRect = sel.getRangeAt(0).getBoundingClientRect(),
+            scale = this.world() ? this.world().getScale(): 1;
+        // 2. make a livelyRectangle from the DOMSelection rect scaled by world scale
+        return rect(domRect.left/scale, domRect.top/scale, domRect.width/scale, domRect.height/scale)
             // 3. the DOM selection is in absolute (world) coordinates offsetted by the
             // current scroll of web browser window. Remove that offset:
             // make them absolute

@@ -192,7 +192,7 @@ var askPassScript = '';
 ;(function setupAskpass() {
     var baseName = 'bin/askpass' + (isWindows ? ".win.sh" : ".sh");
     askPassScript = path.join(process.env.WORKSPACE_LK, baseName);
-    if (!isWindows) fs.chmod(askPassScript, 0755);
+    if (!isWindows) fs.chmodSync(askPassScript, 0755);
 })();
 
 function prepareForAskpass(cmdInstructions) {
@@ -208,7 +208,7 @@ var editorScript = '';
 ;(function setupEditor() {
     var baseName = 'bin/lively-as-editor.sh';
     editorScript = path.join(process.env.WORKSPACE_LK, baseName);
-    if (!isWindows) fs.chmod(editorScript, 0755);
+    if (!isWindows) fs.chmodSync(editorScript, 0755);
 })();
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

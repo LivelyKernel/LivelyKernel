@@ -1,10 +1,10 @@
 /*global require, process, __dirname*/
+/*global require, process, __dirname*/
 
 var path             = require("path"),
     util             = require("util"),
     fs               = require("fs"),
     zlib             = require('zlib'),
-    url              = require("url"),
     crypto           = require("crypto"),
     concat           = require("source-map-concat"),
     babel            = require("babel-core"),
@@ -29,7 +29,7 @@ function combinedFileAndHashCached() {
   // combinedFileAndHashCached().then(x => console.log(x)).catch(err => console.error(err))
   if (!Config.optimizedLoading) return Promise.reject("Optimized loading not enabled");
   return _combinedFileAndHashCached ?
-    Promise.resolve(_combinedFileAndHashCached) : 
+    Promise.resolve(_combinedFileAndHashCached) :
     combinedFileAndHash().then(result => {
       _combinedFileAndHashCached = result;
       setTimeout(() => _combinedFileAndHashCached = null, _combinedFileAndHashCachedTimeout);
@@ -49,7 +49,7 @@ function combinedFileAndHash() {
   // combinedFileAndHash().then(x => console.log(x)).catch(err => console.error(err))
   var files = coreFiles(process.env.WORKSPACE_LK);
   return lang.promise.chain([
-    () => lang.promise(fs.mkdir)(workDir).catch(x => {}),
+    () => lang.promise(fs.mkdir)(workDir).catch(_ => {}),
     () => concatAndWrite(files, rootDir, workDir, combinedFile, new Date()),
     (concatResult) => concatResult.wasChanged ?
                         computeHash(combinedFile) :
@@ -64,8 +64,8 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
 
   // var x = prepareFileForConcat(rootDir, workDir, files[1])
   // x.then((arg) => console.log(arg))
-  
-  return new Promise((resolve, reject) => {
+
+  return new Promise((resolve, _reject) => {
     var babelExceptions = ['core/lib/lively-libs-debug.js'],
         cacheFile = path.join(cacheDir, file.replace(/\//g, "_")),
         mtimeFile = cacheFile + ".mtime",
@@ -83,7 +83,7 @@ function prepareFileForConcat(rootDir, cacheDir, file) {
       fs.writeFileSync(cacheFile, source);
       fs.writeFileSync(mtimeFile, mtime);
     }
-    
+
     resolve({
       source: file, code: source && String(source),
       sourcesRelativeTo: rootDir.replace(/\/$/, "/"),
@@ -108,7 +108,7 @@ function concatAndWrite(files, rootDir, workDir, targetFilePath, time) {
       if (!changed && fs.existsSync(combinedFile) && fs.existsSync(combinedHashFile)) {
         return {file: combinedFile, wasChanged: false};
       }
-      
+
       return lang.promise.chain([
         () => Promise.all(filesForConcat.map(ea => ea.code ? ea : lang.obj.merge(ea, {code: String(fs.readFileSync(ea.cacheFile))}))),
         (filesForConcat) => concat(filesForConcat, {delimiter: "\n", mapPath: targetFilePath + ".jsm"}),
@@ -126,9 +126,9 @@ function concatAndWrite(files, rootDir, workDir, targetFilePath, time) {
 function createHeader(timestamp, files) {
   // Note: JSLoader relies on JSLoader.expectToLoadModules to be initialized!
   return util.format('// This file was generated on %s\n\n'
-                   + 'JSLoader.expectToLoadModules([%s]);\n\n',
+                   + 'JSLoader.expectToLoadModules(%s);\n\n',
                      timestamp.toGMTString(),
-                     files.map(function(fn) { return "'" + fn + "'" }));
+                     JSON.stringify(files));
 }
 
 
@@ -209,9 +209,9 @@ function coreFiles(baseDir) {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-module.exports = function(route, app) {
+module.exports = function(_route, app) {
 
-    app.get('/generated/combinedModulesHash.txt', function(req, res) {
+    app.get('/generated/combinedModulesHash.txt', function(_req, res) {
       combinedFileAndHashCached()
         .then(hashAndFile => {
           res.writeHead(200, {
@@ -228,7 +228,7 @@ module.exports = function(route, app) {
     });
 
     app.get('/generated/:hash/combinedModules.js', function(req, res) {
-      
+
       combinedFileAndHashCached()
         .then(hashAndFile => {
 

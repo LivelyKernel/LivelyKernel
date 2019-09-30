@@ -266,7 +266,7 @@ lively.morphic.World.addMethods(
     return name ? lively.users.User.named(name) : lively.users.User.unknown();
   }
 })
-  
+
 });
 })();
 

@@ -341,7 +341,7 @@ lively.ide.CommandLineInterface.Command.subclass('lively.ide.CommandLineInterfac
 
         function getLively2LivelyId(ip, next) {
             lively.net.tools.Functions.withTrackerSessionsDo(sess,
-              function(err, trackers) { 
+              function(err, trackers) {
                 next(err, ip, trackers); });
         }
 
@@ -490,7 +490,7 @@ Object.extend(lively.ide.CommandLineInterface, {
       var cmd = lively.ide.CommandLineInterface.run(commandString, options, thenDo);
       var m = module("lively.ide.tools.ShellCommandRunner");
       if (!m.isLoaded()) m.load();
-      m.runWhenLoaded(function() { 
+      m.runWhenLoaded(function() {
         var runner = m.forCommand(cmd, options);
         runner.openInWorldCenter().comeForward();
         thenDo && thenDo(null, runner);
@@ -1010,7 +1010,7 @@ Object.extend(lively.ide.CommandLineSearch, {
           cmd.isOutdated = processStateForThisGroup.some(function(otherCmd) {
             return otherCmd.getStartTime() > cmd.getStartTime();
           });
-          
+
           var err = cmd.getCode() != 0 ? cmd.resultString(true) : null;
           if (err) console.warn(err);
           result = !err && parseDirectoryList(cmd.getStdout(), rootDirectory);

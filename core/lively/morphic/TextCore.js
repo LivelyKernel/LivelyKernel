@@ -570,7 +570,9 @@ lively.morphic.Morph.subclass('lively.morphic.Text', Trait('TextChunkOwner'),
             var paddingHeight = padding ? padding.top() + padding.bottom() : 0,
                 newHeight = prefix + 'calc(100% - ' + paddingHeight + 'px)';
             style.minHeight = newHeight;
-            style.maxHeight = newHeight;
+            // rksm: Sep 30, 2019: fixes the scrollde down selection in text windows
+            // when they contain more text than fits in there non-clipped content
+            // style.maxHeight = newHeight;
         } else {
             var minHeight = this.getMinTextHeight();
             style.minHeight = minHeight ? minHeight + 'px' : null;

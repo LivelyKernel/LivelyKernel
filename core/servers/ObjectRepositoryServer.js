@@ -33,12 +33,17 @@ module.exports = function(route, app) {
     app.get(route, function(req, res) {
         var query = url.parse(req.url, true).query;
         if (query.getRecords) {
-            withRecordsDo(query.getRecords, function(err, rows) {
-                if (err) res.status(400).json({error: String(err)});
-                else res.json(rows);
-            });
+            if (!lively.repository.fs.storage.db) {
+                console.log("cannot get records, versioning disabled");
+                res.json([]);
+            } else {
+                withRecordsDo(query.getRecords, function (err, rows) {
+                    if (err) res.status(400).json({ error: String(err) });
+                    else res.json(rows);
+                });
+            }
         } else {
-            res.status(400).json({error: 'no getRecords query found'});
+            res.status(400).json({ error: "no getRecords query found" });
         }
     });
 

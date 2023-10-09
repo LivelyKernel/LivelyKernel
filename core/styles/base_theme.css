@@ -178,6 +178,10 @@
 	background: linear-gradient(to bottom, #EEE, #CCC);
 }
 
+.FlapHandle {
+	border: 1px solid black;
+}
+
 .AccordionHeader {
 	background-image: -webkit-linear-gradient(top, #eee, #ccc);
 	background-image: -moz-linear-gradient(top, #eee, #ccc);

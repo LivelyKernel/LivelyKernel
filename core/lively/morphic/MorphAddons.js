@@ -1698,6 +1698,105 @@ lively.morphic.Morph.addMethods(
     }
 });
 
+lively.morphic.Morph.addMethods({
+    openInFlap: function(alignment) {
+        var owner = this.owner || lively.morphic.World.current();
+        return owner.addFlapWithMorph(this, alignment);
+    },
+    addFlapWithMorph: function(morph, alignment) {
+        if (!morph.owner)
+            this.addMorph(morph)
+        var offset = 5,
+            flapBounds = this.determineFlapBounds(alignment, morph, offset),
+            scaleFactor = this.isWorld? this.getZoomLevel() : 1,
+            flap = new lively.morphic.Flap(alignment, this, flapBounds);
+        flap.addMorph(morph);
+        flap.setFixed(false);
+        flap.setScale(1/scaleFactor);
+        flap.setFixed(true);
+        this.adjustHandlePosition(flap);
+        morph.setScale(scaleFactor);
+        morph.setPosition(morph.determinePositionInFlap(alignment, flapBounds.extent(), scaleFactor, offset));
+        return flap;
+    },
+    determineFlapBounds: function(alignment, morph, offset) {
+        var flapExtent = this.determineFlapExtent(alignment, morph, offset),
+            flapPosition = this.determineFlapPosition(alignment, morph, flapExtent, offset);
+        return flapPosition.extent(flapExtent);
+    },
+    determineFlapExtent: function(alignment, morph, offset) {
+        var myBounds = morph.getBounds(),
+            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
+            extent;
+        switch (alignment) {
+            case 'top': {
+                extent = pt(myBounds.width, myBounds.bottomRight().y - ownerBounds.topLeft().y);
+                break;
+            }
+            case 'left': {
+                extent = pt(myBounds.bottomRight().x - ownerBounds.topLeft().x, myBounds.height);
+                break
+            }
+            case 'bottom': {
+                extent = pt(myBounds.width, ownerBounds.bottomRight().y - myBounds.topLeft().y);
+                break;
+            }
+            case 'right': {
+                extent = pt(ownerBounds.bottomRight().x - myBounds.topLeft().x, myBounds.height);
+                break;
+            }
+        }
+        return extent.addPt(pt(2*offset, 2*offset));
+    },
+    determineFlapPosition: function(alignment, morph, flapExtent, offset) {
+        var myBounds = morph.getBounds(),
+            myPosition = morph.getPosition(),
+            ownerBounds = this.isWorld? this.visibleBounds() : this.getBounds(),
+            ownerPosition = ownerBounds.topLeft(),
+            ownerExtent = ownerBounds.extent();
+        switch (alignment) {
+            case 'top': return pt(myPosition.x - ownerPosition.x - offset, 0);
+            case 'left': return pt(0,myPosition.y - ownerPosition.y - offset);
+            case 'bottom': return pt(myPosition.x - offset, ownerBounds.bottomRight().y - flapExtent.y).subPt(ownerPosition);
+            case 'right': return pt(ownerBounds.bottomRight().x - flapExtent.x + offset, myPosition.y).subPt(ownerPosition);
+            default: return pt(0,0);
+        }
+    },
+
+    determinePositionInFlap: function(alignment, flapExtent, scaleFactor, offset) {
+        var myExtent = this.getExtent();
+        switch (alignment) {
+            case 'top': return pt(offset, (flapExtent.y - myExtent.y) * scaleFactor - offset);
+            case 'left': return pt((flapExtent.x - myExtent.x) * scaleFactor - offset, offset);
+            case 'bottom': case 'right': return pt(offset,offset);
+            default: return pt(0,0);
+        }
+    },
+
+    adjustHandlePosition: function(flap) {
+        switch(flap.alignment) {
+            case 'top': {
+                flap.flapHandle.setPosition(pt(5,flap.getExtent().y));
+                break
+            }
+            case 'right': {
+                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5));
+                break
+            }
+            case 'left': {
+                flap.flapHandle.setPosition(pt(flap.flapHandle.getPosition().x, 5));
+                break
+            }
+            case 'bottom': {
+                flap.flapHandle.setPosition(pt(5,flap.flapHandle.getPosition().y));
+                break
+            }
+        }
+    }
+
+});
+
+
 Trait('lively.morphic.FixedPositioning.WorldTrait', {
     restoreFixedMorphs: function() {
         this.submorphs

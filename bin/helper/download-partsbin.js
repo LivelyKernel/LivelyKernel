@@ -7,8 +7,8 @@ var http    = require("https"),
     shelljs = require('shelljs');
 
 var lkDir = process.env.WORKSPACE_LK,
-    partsBinCopyURL = "https://lively-web.org/nodejs/PartsBinCopy/",
-    zipFile = path.join(lkDir, 'PartsBinCopy.zip'),
+    partsBinCopyURL = "https://smalltalkzoo.thechm.org/PartsBin.zip",
+    zipFile = path.join(lkDir, 'PartsBin.zip'),
     partsBinFolder = path.join(lkDir, 'PartsBin'),
     partsBinExtractionFolder = path.join(lkDir, 'PartsBin_extracted');
 
@@ -17,6 +17,7 @@ function partsBinExists() {
 }
 
 function downloadPartsBin(next) {
+    if (fs.existsSync(zipFile)) { next(null); return; }
     http.get(partsBinCopyURL, function(res) {
         var writeS = fs.createWriteStream(zipFile);
 	if (res.statusCode >= 400) {
@@ -37,7 +38,7 @@ function extractPartsBin(next) {
 }
 
 function movePartsBinExtracted(next) {
-    shelljs.mv(path.join(partsBinExtractionFolder, 'PartsBin'), partsBinFolder);
+    shelljs.mv(path.join(partsBinExtractionFolder), partsBinFolder);
     next();
 }
 

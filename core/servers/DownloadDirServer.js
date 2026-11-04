@@ -1,17 +1,18 @@
 var fs = require("fs");
-var exec = require("child_process").exec;
+var execFile = require("child_process").execFile;
 
-var cmd = 'path="%s";'
-        + 'cd $path;'
-        + 'name="`basename $path`";'
-        + 'zip --quiet -r $name .;'
-        + "mv $name.zip $TEMP_DIR;"
-        + 'zip="$TEMP_DIR/$name.zip";'
-        + 'echo $zip;'
+function createZip(dirPath, thenDo) {
+  var Path = require("path"),
+      dir = dirPath.replace(/\/+$/, ""),            
+      name = Path.basename(dir),
+      zipName = name + ".zip",
+      zipPath = Path.join(process.env.TEMP_DIR, zipName);
 
-function createZip(path, thenDo) {
-  exec(lively.lang.string.format(cmd, path), function(code, out, err) {
-    thenDo(code ? new Error(out + "\n" + err) : null, out.trim());
+  execFile("zip", ["--quiet", "-r", zipName, "."], { cwd: dir }, function(code, out, err) {
+    if (code) { thenDo(new Error(out + "\n" + err)); return; }
+    execFile("mv", [Path.join(dir, zipName), zipPath], function(code2, out2, err2) {
+      thenDo(code2 ? new Error(out2 + "\n" + err2) : null, zipPath);
+    });
   });
 }
 

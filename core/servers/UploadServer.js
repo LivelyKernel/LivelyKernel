@@ -3,7 +3,6 @@ var fs  = require("fs");
 var util  = require("util");
 var async = require("async");
 var path  = require("path");
-var exec = require("child_process").exec;
 
 
 var numberFileRe = /^(.*\/)?([^\.]+)(\.[^\/]+)?$/
@@ -42,13 +41,23 @@ function gatherFormFiles(formFiles, location) {
   return files;
 }
 
+function moveFile(from, to, thenDo) {
+  fs.rename(from, to, function(err) {
+    if (!err || err.code !== 'EXDEV') return thenDo(err);
+    fs.copyFile(from, to, function(copyErr) {
+      if (copyErr) return thenDo(copyErr);
+      fs.unlink(from, thenDo);
+    });
+  });
+}
+
 function uploadFiles(location, formFiles, thenDo) {
 
     var report = {uploadedFiles: []};
     // gather all files in the form
 
     lang.fun.composeAsync(
-      function ensureLocation(n) { exec("mkdir -p " + location, function(err, stdout, stderr) { n(err); }); },
+      function ensureLocation(n) { fs.mkdir(location, { recursive: true }, function(err) { n(err); }); },
       function(n) {
         var files = gatherFormFiles(formFiles, location),
             lkDir = lang.Path("lv.server.lifeStar.tree.basePath").get(global)
@@ -68,7 +77,7 @@ function uploadFiles(location, formFiles, thenDo) {
           report.uploadedFiles.push(reported);
           // by default files get uploaded via bodyParser to /tmp/... location. Move
           // them to the specified location
-          exec(['mv', file.path, to].join(' '), next);
+          moveFile(file.path, to, next);
         }, function(err) { n(err); });
       }
     )(function(err) { thenDo(err, report); });

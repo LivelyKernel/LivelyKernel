@@ -26,7 +26,7 @@ var env = {
 
 var isWindows = process.platform !== 'linux'
              && process.platform !== 'darwin'
-             && process.platform.include('win');
+             && process.platform.includes('win');
 
 /*
  * this is the state that holds on to running shell commands
@@ -43,6 +43,18 @@ function findShellCommand(pid) {
 }
 
 /*
+ * Validate a pid and signal before they are interpolated into a kill command.
+ * This prevents shell metacharacters (; & | $() ` etc.) in a client-supplied
+ * pid or signal from being interpreted as command syntax by the shell.
+ */
+function isValidPid(pid) {
+    return /^[0-9]+$/.test(String(pid));
+}
+function isValidSignal(signal) {
+    return /^[A-Z0-9]+$/.test(signal);
+}
+
+/*
  * determine the kill command at startup. if pkill is available then use that
  * to do a full process tree kill
  */
@@ -50,6 +62,9 @@ function defaultKill(pid, cmd, signal, thenDo) {
     // signal = "SIGKILL"|"SIGQUIT"|"SIGINT"|...
     debug && console.log('signal pid %s with', pid, signal);
     signal = signal.toUpperCase().replace(/^SIG/, '');
+    if (!isValidPid(pid) || !isValidSignal(signal)) {
+        return thenDo(1, '', 'Invalid pid or signal');
+    }
     exec('kill -s ' + signal + " " + pid, function(code, out, err) {
         debug && console.log('signal result: ', out, err);
         thenDo(code, out, err);
@@ -59,6 +74,9 @@ function defaultKill(pid, cmd, signal, thenDo) {
 function pkillKill(pid, cmd, signal, thenDo) {
     // signal = "SIGKILL"|"SIGQUIT"|"SIGINT"|...
     signal = signal.toUpperCase().replace(/^SIG/, '');
+    if (!isValidPid(pid) || !isValidSignal(signal)) {
+        return thenDo(1, '', 'Invalid pid or signal');
+    }
     // rk 2015-07-15: properly killing piped processes -- currently this only
     // works when making the spawned process a group leader
     var killCmd = util.format('pkill -%s -g $(ps opgid= "%s")', signal, pid);
